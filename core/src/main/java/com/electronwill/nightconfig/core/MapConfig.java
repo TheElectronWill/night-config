@@ -50,7 +50,7 @@ public class MapConfig implements Config {
 
 	@Override
 	public boolean containsValue(String path) {
-		final List<String> keys = StringUtils.split(path, ',');
+		final List<String> keys = StringUtils.split(path, '.');
 		final int lastIndex = keys.size() - 1;
 		return containsValue(keys, lastIndex);
 	}
@@ -69,7 +69,7 @@ public class MapConfig implements Config {
 
 	@Override
 	public Object getValue(String path) {
-		final List<String> keys = StringUtils.split(path, ',');
+		final List<String> keys = StringUtils.split(path, '.');
 		final int lastIndex = keys.size() - 1;
 		return getValue(keys, lastIndex);
 	}
@@ -88,7 +88,7 @@ public class MapConfig implements Config {
 
 	@Override
 	public void setValue(String path, Object value) {
-		final List<String> keys = StringUtils.split(path, ',');
+		final List<String> keys = StringUtils.split(path, '.');
 		final int lastIndex = keys.size() - 1;
 		setValue(keys, lastIndex, value);
 	}
