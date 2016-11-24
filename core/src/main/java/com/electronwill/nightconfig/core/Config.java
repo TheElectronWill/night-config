@@ -33,6 +33,19 @@ public interface Config {
 	Map<String, Object> asMap();
 
 	/**
+	 * Checks if the given type is supported by this config. Please note that an implementation of the
+	 * Config interface is <b>not</b> required to check the type of the values that you add to it.
+	 * Actually, the default behavior is to allow any value. If an implementation behaves otherwise it must
+	 * document it.
+	 *
+	 * @param type the type's class.
+	 * @return {@code true} if it is supported, {@code false} otherwise.
+	 */
+	default boolean supportsType(Class<?> type) {
+		return true;
+	}
+
+	/**
 	 * Checks if the given path is associated with a value.
 	 *
 	 * @param path the path.
