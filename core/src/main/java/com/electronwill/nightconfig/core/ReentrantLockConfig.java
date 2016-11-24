@@ -16,7 +16,7 @@ public final class ReentrantLockConfig extends MapConfig implements SafeConfig {
 	/**
 	 * The internal lock which is used to guarantee the thread-safety of the config.
 	 */
-	private final ReadWriteLock lock = new ReentrantReadWriteLock();
+	private final ReadWriteLock lock;
 
 	/**
 	 * Creates a new {@code RWLockConfig} backed by a new {@link java.util.HashMap} and a new <i>unfair</i>
