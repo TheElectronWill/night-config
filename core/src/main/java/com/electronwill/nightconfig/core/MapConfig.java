@@ -49,6 +49,26 @@ public class MapConfig implements Config {
 	}
 
 	@Override
+	public String toString() {
+		return map.toString();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o instanceof MapConfig) {
+			MapConfig config = (MapConfig)o;
+			return config.map.equals(this.map);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return map.hashCode();
+	}
+
+	@Override
 	public boolean containsValue(String path) {
 		final List<String> keys = StringUtils.split(path, '.');
 		final int lastIndex = keys.size() - 1;
