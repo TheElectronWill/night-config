@@ -21,6 +21,15 @@ import java.util.Map;
 public interface Config {
 
 	/**
+	 * Checks if the config is empty.
+	 *
+	 * @return {@code true} if it is empty, {@code false} if it not.
+	 */
+	default boolean isEmpty() {
+		return size() == 0;
+	}
+
+	/**
 	 * @return the number of top-level elements in this config.
 	 */
 	int size();
