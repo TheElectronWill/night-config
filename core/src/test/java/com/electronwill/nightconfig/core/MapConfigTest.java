@@ -25,6 +25,9 @@ public class MapConfigTest {
 		config.setLong("long", 123456789876543210L);
 		assert config.getLong("long") == 123456789876543210L;
 
+		config.setFloat("float", 1.23456789F);
+		assert config.getFloat("float") == 1.23456789F;
+
 		config.setDouble("double", Math.PI);
 		assert config.getDouble("double") == Math.PI;
 

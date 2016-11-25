@@ -11,11 +11,14 @@ import java.util.List;
 public class JsonConfig extends MapConfig {
 
 	private static final HashSet<Class<?>> SUPPORTED_TYPES = new HashSet<>();
+
 	static {
 		SUPPORTED_TYPES.add(int.class);
 		SUPPORTED_TYPES.add(Integer.class);
 		SUPPORTED_TYPES.add(long.class);
 		SUPPORTED_TYPES.add(Long.class);
+		SUPPORTED_TYPES.add(float.class);
+		SUPPORTED_TYPES.add(Float.class);
 		SUPPORTED_TYPES.add(double.class);
 		SUPPORTED_TYPES.add(Double.class);
 		SUPPORTED_TYPES.add(boolean.class);

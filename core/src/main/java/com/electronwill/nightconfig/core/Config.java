@@ -112,6 +112,27 @@ public interface Config {
 	}
 
 	/**
+	 * Gets the float value at the given path. If the given path isn't associated with a value, or if its value
+	 * isn't of type float, this method throws an exception.
+	 *
+	 * @param path the path.
+	 * @return the float value at the given path.
+	 */
+	default float getFloat(String path) {
+		return (float)getValue(path);
+	}
+
+	/**
+	 * Sets the value at the given path.
+	 *
+	 * @param path  the path.
+	 * @param value the value to set.
+	 */
+	default void setFloat(String path, float value) {
+		setValue(path, value);
+	}
+
+	/**
 	 * Gets the double value at the given path. If the given path isn't associated with a value, or if its value
 	 * isn't of type double, this method throws an exception.
 	 *
