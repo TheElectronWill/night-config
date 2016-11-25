@@ -243,7 +243,8 @@ public class ConfigSpecification {
 			ValueSpecification spec = map.get(path);
 
 			if (value instanceof Config) {
-				valid &= checkValues(config, listener, stopAfterOneFail, path);//process the content of the config
+				valid &= checkValues((Config)value, listener, stopAfterOneFail, path);//process the content of
+				// the config
 				if (stopAfterOneFail && !valid) {
 					return false;
 				}
@@ -351,7 +352,7 @@ public class ConfigSpecification {
 			ValueSpecification spec = map.get(path);
 
 			if (value instanceof Config) {
-				corrected += correctBadValues(config, listener, path);//process the content of the config
+				corrected += correctBadValues((Config)value, listener, path);//process the content of the config
 			} else {
 				if (spec == null) {//no specification -> remove the value
 					listener.onCorrect(CorrectionAction.REMOVE, path, value, null);
