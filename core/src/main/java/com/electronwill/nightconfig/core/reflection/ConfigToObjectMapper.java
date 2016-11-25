@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.reflection;
 
 import com.electronwill.nightconfig.core.Config;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,22 +23,24 @@ public class ConfigToObjectMapper {
 		this.conversionMap = conversionMap;
 	}
 
-	public <T> T map(Config config, Class<T> objectClass) throws NoSuchFieldException,
-			IllegalAccessException, InstantiationException {
-		T object = objectClass.newInstance();
+	public <T> T map(Config config, Class<T> objectClass) throws ReflectiveOperationException {
+		Constructor<T> constructor = objectClass.getDeclaredConstructor();//constructor with no parameters
+		if (!constructor.isAccessible()) {
+			constructor.setAccessible(true);//forces the constructor to be accessible
+		}
+		T object = constructor.newInstance();//call the constructor
 		map(config, object);
 		return object;
 	}
 
-	public void map(Config config, Object object) throws NoSuchFieldException, IllegalAccessException,
-			InstantiationException {
+	public void map(Config config, Object object) throws ReflectiveOperationException {
 		Class<?> c = object.getClass();
 		Map<String, Object> map = config.asMap();
 		for (Map.Entry<String, Object> entry : map.entrySet()) {
 			String key = entry.getKey();
 			Object value = entry.getValue();//may be null!
 
-			Field correspondingField = c.getField(key);
+			Field correspondingField = c.getDeclaredField(key);
 			if (!correspondingField.isAccessible()) {
 				correspondingField.setAccessible(true);
 			}
@@ -61,9 +64,6 @@ public class ConfigToObjectMapper {
 					map((Config)value, correspondingField.get(object));//map to object recursively
 				}
 			} else {
-				if (!correspondingField.isAccessible()) {
-					correspondingField.setAccessible(true);
-				}
 				correspondingField.set(object, value);
 			}
 		}

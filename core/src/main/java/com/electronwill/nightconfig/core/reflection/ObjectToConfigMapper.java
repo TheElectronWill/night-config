@@ -26,7 +26,7 @@ public class ObjectToConfigMapper {
 	public void map(Object object, Config config) throws IllegalAccessException {
 		Class<?> c = object.getClass();
 		Map<String, Object> map = config.asMap();
-		for (Field field : c.getFields()) {
+		for (Field field : c.getDeclaredFields()) {
 			String name = field.getName();
 			Object value = field.get(object);//may be null!
 
