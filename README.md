@@ -1,2 +1,3 @@
-![Night Config](logo.png)
+![Night Config](logo.png)  
+
 Powerful java configuration library.
