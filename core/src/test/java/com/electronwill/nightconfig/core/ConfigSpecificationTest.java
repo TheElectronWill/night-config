@@ -19,7 +19,7 @@ public class ConfigSpecificationTest {
 		spec.defineList("a.list", Arrays.asList("1", "2"), element -> element instanceof String);
 
 		{
-			Config config = new MapConfig();
+			Config config = new SimpleConfig();
 			config.setInt("a.i", 256);
 			config.setLong("a.l", 1234567890);
 			config.setFloat("a.f", 12f);
@@ -35,7 +35,7 @@ public class ConfigSpecificationTest {
 		}
 
 		{
-			Config config = new MapConfig();
+			Config config = new SimpleConfig();
 			config.setInt("a.i", 18);
 			config.setLong("a.l", 18);
 			config.setFloat("a.f", 0.15f);

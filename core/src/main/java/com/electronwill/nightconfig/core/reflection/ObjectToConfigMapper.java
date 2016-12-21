@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.core.reflection;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.MapConfig;
+import com.electronwill.nightconfig.core.SimpleConfig;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
@@ -85,7 +85,7 @@ public final class ObjectToConfigMapper {
 				if (((map.get(name) instanceof Config))) {//if a subconfig with the correct name already exists, use it.
 					correspondingConfig = (Config)map.get(name);
 				} else {//else, create a new one
-					correspondingConfig = new MapConfig();
+					correspondingConfig = new SimpleConfig(new SimpleConfig.SupportEverythingStrategy());
 					map.put(name, correspondingConfig);
 				}
 				map(value, correspondingConfig);//recursively map the compound object to the config

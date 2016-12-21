@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A configuration that uses a {@link java.util.Map} to store its values.
+ * Abstract configuration that uses a {@link java.util.Map} to store its values.
  *
  * @author TheElectronWill
  */
-public class MapConfig implements Config {
+public abstract class MapConfig implements Config {
 	/**
 	 * The internal map that stores the config values.
 	 */
@@ -55,7 +55,8 @@ public class MapConfig implements Config {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
+		if (this == o)
+			return true;
 		if (o instanceof MapConfig) {
 			MapConfig config = (MapConfig)o;
 			return config.map.equals(this.map);
@@ -69,68 +70,47 @@ public class MapConfig implements Config {
 	}
 
 	@Override
-	public boolean containsValue(String path) {
-		final List<String> keys = StringUtils.split(path, '.');
-		final int lastIndex = keys.size() - 1;
-		return containsValue(keys, lastIndex);
-	}
-
-	protected boolean containsValue(List<String> keys, int lastIndex) {
+	public boolean containsValue(List<String> path) {
 		Map<String, Object> currentMap = map;
-		for (String currentKey : keys.subList(0, lastIndex)) {
-			Object currentValue = currentMap.get(currentKey);
-			if (!(currentValue instanceof Config)) {//missing or incompatible intermediary level
+		for (String key : path) {
+			final Object value = currentMap.get(key);
+			if (!(value instanceof Config)) {//missing or incompatible intermediary level
 				return false;
 			}
-			currentMap = ((Config)currentValue).asMap();
+			currentMap = ((Config)value).asMap();
 		}
-		return currentMap.containsKey(keys.get(lastIndex));
+		return currentMap.containsKey(path.get(path.size() - 1));
 	}
 
 	@Override
-	public Object getValue(String path) {
-		final List<String> keys = StringUtils.split(path, '.');
-		final int lastIndex = keys.size() - 1;
-		return getValue(keys, lastIndex);
-	}
-
-	protected Object getValue(List<String> keys, int lastIndex) {
+	public Object getValue(List<String> path) {
 		Map<String, Object> currentMap = map;
-		for (String currentKey : keys.subList(0, lastIndex)) {
-			Object currentValue = currentMap.get(currentKey);
-			if (!(currentValue instanceof Config)) {//missing or incompatible intermediary level
+		for (String key : path) {
+			final Object value = currentMap.get(key);
+			if (!(value instanceof Config)) {//missing or incompatible intermediary level
 				return null;
 			}
-			currentMap = ((Config)currentValue).asMap();
+			currentMap = ((Config)value).asMap();
 		}
-		return currentMap.get(keys.get(lastIndex));
+		return currentMap.get(path.get(path.size() - 1));
 	}
 
 	@Override
-	public void setValue(String path, Object value) {
-		final List<String> keys = StringUtils.split(path, '.');
-		final int lastIndex = keys.size() - 1;
-		setValue(keys, lastIndex, value);
-	}
-
-	protected void setValue(List<String> keys, int lastIndex, Object value) {
+	public void setValue(List<String> path, Object value) {
 		Map<String, Object> currentMap = map;
-		for (String currentKey : keys.subList(0, lastIndex)) {
-			Object currentValue = currentMap.get(currentKey);
-			Config config;
+		for (String currentKey : path) {
+			final Object currentValue = currentMap.get(currentKey);
+			final Config config;
 			if (currentValue == null) {//missing intermediary level
-				config = new MapConfig();
+				config = createEmptyConfig();
 				currentMap.put(currentKey, config);
 			} else if (!(currentValue instanceof Config)) {//incompatible intermediary level
-				throw new IllegalArgumentException("The specified path is already partially used, in such a" +
-						" way that we cannot assign it a value.");
+				throw new IllegalArgumentException("The specified path is already partially used, in such a" + " way that we cannot assign it a value.");
 			} else {//existing intermediary level
 				config = (Config)currentValue;
 			}
 			currentMap = config.asMap();
 		}
-		currentMap.put(keys.get(lastIndex), value);
+		currentMap.put(path.get(path.size() - 1), value);
 	}
-
-
 }

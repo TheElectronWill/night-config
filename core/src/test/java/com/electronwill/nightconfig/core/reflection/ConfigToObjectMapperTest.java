@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.core.reflection;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.MapConfig;
 import com.electronwill.nightconfig.core.SimpleConfig;
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +13,7 @@ public class ConfigToObjectMapperTest {
 
 	private final Config config = new SimpleConfig();
 	private final List<String> list1 = Arrays.asList("a", "b", "c"), list2 = Arrays.asList("element");
-	private final Config config1 = new MapConfig(), config2 = new SimpleConfig();
+	private final Config config1 = new SimpleConfig(new SimpleConfig.SupportEverythingStrategy()), config2 = new SimpleConfig();
 
 	{
 		config.setInt("integer", 1234568790);
@@ -36,7 +35,7 @@ public class ConfigToObjectMapperTest {
 		MyObject object = ctom.map(config, MyObject.class);
 
 		ObjectToConfigMapper otcm = new ObjectToConfigMapper();
-		Config myConfig = new SimpleConfig();//MapConfig doesn't work because it accepts any value type
+		Config myConfig = new SimpleConfig();
 		otcm.map(object, myConfig);
 
 		System.out.println("Original config: " + config);
@@ -64,7 +63,6 @@ public class ConfigToObjectMapperTest {
 			assert object.subObject.config == config2;
 			assert object.subObject.subObject == null;
 		}
-
 
 		System.out.println();
 		System.out.println("====== Test with final fields ======");
@@ -105,14 +103,7 @@ public class ConfigToObjectMapperTest {
 
 		@Override
 		public String toString() {
-			return "MyObject{" +
-					"integer=" + integer +
-					", decimal=" + decimal +
-					", string='" + string + '\'' +
-					", stringList=" + stringList +
-					", config=" + config +
-					", subObject=" + subObject +
-					'}';
+			return "MyObject{" + "integer=" + integer + ", decimal=" + decimal + ", string='" + string + '\'' + ", stringList=" + stringList + ", config=" + config + ", subObject=" + subObject + '}';
 		}
 	}
 
@@ -143,14 +134,7 @@ public class ConfigToObjectMapperTest {
 
 		@Override
 		public String toString() {
-			return "MyObjectFinal{" +
-					"integer=" + integer +
-					", decimal=" + decimal +
-					", string='" + string + '\'' +
-					", stringList=" + stringList +
-					", config=" + config +
-					", subObject=" + subObject +
-					'}';
+			return "MyObjectFinal{" + "integer=" + integer + ", decimal=" + decimal + ", string='" + string + '\'' + ", stringList=" + stringList + ", config=" + config + ", subObject=" + subObject + '}';
 		}
 	}
 

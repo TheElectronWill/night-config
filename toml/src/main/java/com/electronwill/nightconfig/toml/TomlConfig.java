@@ -43,6 +43,11 @@ public class TomlConfig extends MapConfig {
 				|| Config.class.isAssignableFrom(type);
 	}
 
+	@Override
+	public TomlConfig createEmptyConfig() {
+		return new TomlConfig();
+	}
+
 	public LocalTime getLocalTime(String path) {
 		return (LocalTime)getValue(path);
 	}

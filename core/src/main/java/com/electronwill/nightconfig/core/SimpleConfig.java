@@ -2,41 +2,76 @@ package com.electronwill.nightconfig.core;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-/**
- * A SimpleConfig is a MapConfig that supports only the following "basic" types: int, long, float, double,
- * boolean, String, List, Config.
- *
- * @author TheElectronWill
- */
-public class SimpleConfig extends MapConfig {
+public final class SimpleConfig extends MapConfig {
 
-	private static final HashSet<Class<?>> SUPPORTED_TYPES = new HashSet<>();
+	private static final Set<Class<?>> BASIC_TYPES = new HashSet<>();
+	private static final Set<Class<?>> BASIC_EXTENSIBLE_TYPES = new HashSet<>();
 
 	static {
-		SUPPORTED_TYPES.add(int.class);
-		SUPPORTED_TYPES.add(Integer.class);
-		SUPPORTED_TYPES.add(long.class);
-		SUPPORTED_TYPES.add(Long.class);
-		SUPPORTED_TYPES.add(float.class);
-		SUPPORTED_TYPES.add(Float.class);
-		SUPPORTED_TYPES.add(double.class);
-		SUPPORTED_TYPES.add(Double.class);
-		SUPPORTED_TYPES.add(boolean.class);
-		SUPPORTED_TYPES.add(Boolean.class);
-		SUPPORTED_TYPES.add(String.class);
-		SUPPORTED_TYPES.add(List.class);
-		SUPPORTED_TYPES.add(Config.class);
+		BASIC_TYPES.add(Integer.class);
+		BASIC_TYPES.add(Long.class);
+		BASIC_TYPES.add(Float.class);
+		BASIC_TYPES.add(Double.class);
+		BASIC_TYPES.add(Boolean.class);
+		BASIC_TYPES.add(String.class);
+		BASIC_TYPES.add(List.class);
+		BASIC_TYPES.add(Config.class);
+
+		BASIC_EXTENSIBLE_TYPES.add(List.class);
+		BASIC_EXTENSIBLE_TYPES.add(Config.class);
 	}
 
-	/**
-	 * Returns {@code true} if and only if {@code type} is the class of: int, long, float, double, boolean,
-	 * (or a wrapper of these primitive types), List, Config (or an implementation of these interfaces).
-	 */
+	private final SupportStrategy supportStrategy;
+
+	public SimpleConfig() {
+		this(new SimpleSupportStrategy(BASIC_TYPES, BASIC_EXTENSIBLE_TYPES));
+	}
+
+	public SimpleConfig(SupportStrategy supportStrategy) {
+		this.supportStrategy = supportStrategy;
+	}
+
 	@Override
 	public boolean supportsType(Class<?> type) {
-		return SUPPORTED_TYPES.contains(type)
-				|| List.class.isAssignableFrom(type)
-				|| Config.class.isAssignableFrom(type);
+		return supportStrategy.supportsType(type);
+	}
+
+	@Override
+	public SimpleConfig createEmptyConfig() {
+		return new SimpleConfig(supportStrategy);
+	}
+
+	public static final class SimpleSupportStrategy implements SupportStrategy {
+		private final Set<Class<?>> supportedTypes, extensibleSupportedTypes;
+
+		public SimpleSupportStrategy(Set<Class<?>> supportedTypes, Set<Class<?>> extensibleSupportedTypes) {
+			this.supportedTypes = supportedTypes;
+			this.extensibleSupportedTypes = extensibleSupportedTypes;
+		}
+
+		@Override
+		public boolean supportsType(Class<?> type) {
+			if (supportedTypes.contains(type))
+				return true;
+			for (Class<?> supportedType : extensibleSupportedTypes) {
+				if (supportedType.isAssignableFrom(type))
+					return true;
+			}
+			return false;
+		}
+	}
+
+	public static final class SupportEverythingStrategy implements SupportStrategy {
+		@Override
+		public boolean supportsType(Class<?> type) {
+			return true;
+		}
+	}
+
+	@FunctionalInterface
+	public static interface SupportStrategy {
+		boolean supportsType(Class<?> type);
 	}
 }

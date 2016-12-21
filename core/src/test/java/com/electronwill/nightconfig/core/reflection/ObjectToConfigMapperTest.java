@@ -41,7 +41,7 @@ public class ObjectToConfigMapperTest {
 	@Test
 	public void testWithMapConfig() throws Exception {
 		ObjectToConfigMapper mapper = new ObjectToConfigMapper();
-		Config config = new MapConfig();
+		Config config = new SimpleConfig(new SimpleConfig.SupportEverythingStrategy());
 		MyObject object = new MyObject();
 		mapper.map(object, config);
 
@@ -61,7 +61,7 @@ public class ObjectToConfigMapperTest {
 		double decimal = Math.PI;
 		String string = "value";
 		List<String> stringList = Arrays.asList("a", "b", "c");
-		Config config = new MapConfig();
+		Config config = new SimpleConfig(new SimpleConfig.SupportEverythingStrategy());
 		MyObject subObject;
 
 		public MyObject(MyObject subObject) {

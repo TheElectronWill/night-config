@@ -2,4 +2,3 @@ rootProject.name = 'Night Config'
 include 'core'
 include 'json'
 include 'toml'
-
