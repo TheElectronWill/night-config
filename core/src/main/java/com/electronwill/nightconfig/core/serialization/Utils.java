@@ -33,7 +33,7 @@ public final class Utils {
 		for (int i = 0; i < chars.length; i++) {
 			int digitValue = Character.digit(chars[i], base);
 			value += digitValue * coefficient;
-			coefficient *= 16;
+			coefficient *= base;
 		}
 		return negative ? -value : value;
 	}
@@ -49,7 +49,7 @@ public final class Utils {
 		for (int i = 0; i < chars.length; i++) {
 			int digitValue = Character.digit(chars[i], base);
 			value += digitValue * coefficient;
-			coefficient *= 16;
+			coefficient *= base;
 		}
 		return negative ? -value : value;
 	}
