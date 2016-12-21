@@ -85,7 +85,7 @@ public final class ObjectToConfigMapper {
 				if (((map.get(name) instanceof Config))) {//if a subconfig with the correct name already exists, use it.
 					correspondingConfig = (Config)map.get(name);
 				} else {//else, create a new one
-					correspondingConfig = new SimpleConfig(new SimpleConfig.SupportEverythingStrategy());
+					correspondingConfig = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
 					map.put(name, correspondingConfig);
 				}
 				map(value, correspondingConfig);//recursively map the compound object to the config

@@ -39,7 +39,7 @@ public class MapConfigTest {
 		config.setList("stringList", stringList);
 		assert config.<String>getList("stringList") == stringList;
 
-		Config subConfig = new SimpleConfig(new SimpleConfig.SupportEverythingStrategy());
+		Config subConfig = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
 		subConfig.setString("string", "test!");
 		subConfig.setString("subSubConfig.string", "another test!");
 		config.setConfig("subConfig", subConfig);
@@ -62,7 +62,7 @@ public class MapConfigTest {
 		String[] jsplit = ".a...a.".split("\\.");
 		System.out.println("String#split: " + Arrays.toString(jsplit));
 
-		MapConfig config = new SimpleConfig(new SimpleConfig.SupportEverythingStrategy());
+		MapConfig config = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
 		config.setString(".a...a.", "value");
 		assert config.containsValue(".a...a.");
 		assert config.getString(".a...a.").equals("value");
@@ -80,11 +80,11 @@ public class MapConfigTest {
 
 	@Test
 	public void size() throws Exception {
-		MapConfig config = new SimpleConfig(new SimpleConfig.SupportEverythingStrategy());
+		MapConfig config = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
 		config.setString("a.b.c", "value");
 		config.setDouble("pi", Math.PI);
 
-		Config subConfig = new SimpleConfig(new SimpleConfig.SupportEverythingStrategy());
+		Config subConfig = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
 		subConfig.setString("string", "test!");
 		config.setConfig("subConfig", subConfig);
 
@@ -94,7 +94,7 @@ public class MapConfigTest {
 
 	@Test
 	public void asMap() throws Exception {
-		MapConfig config = new SimpleConfig(new SimpleConfig.SupportEverythingStrategy());
+		MapConfig config = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
 		config.setString("a.b.c", "value");
 		config.setDouble("pi", Math.PI);
 
@@ -114,7 +114,7 @@ public class MapConfigTest {
 
 	@Test
 	public void containsValue() throws Exception {
-		MapConfig config = new SimpleConfig(new SimpleConfig.SupportEverythingStrategy());
+		MapConfig config = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
 		config.setString("a.b.c", "value");
 		assert config.containsValue("a");
 

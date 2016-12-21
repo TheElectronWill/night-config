@@ -13,7 +13,7 @@ public class ConfigToObjectMapperTest {
 
 	private final Config config = new SimpleConfig();
 	private final List<String> list1 = Arrays.asList("a", "b", "c"), list2 = Arrays.asList("element");
-	private final Config config1 = new SimpleConfig(new SimpleConfig.SupportEverythingStrategy()), config2 = new SimpleConfig();
+	private final Config config1 = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL), config2 = new SimpleConfig();
 
 	{
 		config.setInt("integer", 1234568790);

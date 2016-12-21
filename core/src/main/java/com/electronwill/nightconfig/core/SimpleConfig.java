@@ -4,6 +4,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * A simple configuration that allows the user to specify a support strategy.
+ */
 public final class SimpleConfig extends MapConfig {
 
 	private static final Set<Class<?>> BASIC_TYPES = new HashSet<>();
@@ -23,10 +26,13 @@ public final class SimpleConfig extends MapConfig {
 		BASIC_EXTENSIBLE_TYPES.add(Config.class);
 	}
 
+	public static final SupportStrategy STRATEGY_SUPPORT_ALL = type -> true;
+	public static final SupportStrategy STRATEGY_SUPPORT_BASIC = new SimpleSupportStrategy(BASIC_TYPES, BASIC_EXTENSIBLE_TYPES);
+
 	private final SupportStrategy supportStrategy;
 
 	public SimpleConfig() {
-		this(new SimpleSupportStrategy(BASIC_TYPES, BASIC_EXTENSIBLE_TYPES));
+		this(STRATEGY_SUPPORT_BASIC);
 	}
 
 	public SimpleConfig(SupportStrategy supportStrategy) {
@@ -60,13 +66,6 @@ public final class SimpleConfig extends MapConfig {
 					return true;
 			}
 			return false;
-		}
-	}
-
-	public static final class SupportEverythingStrategy implements SupportStrategy {
-		@Override
-		public boolean supportsType(Class<?> type) {
-			return true;
 		}
 	}
 
