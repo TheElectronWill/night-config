@@ -71,8 +71,9 @@ public abstract class MapConfig implements Config {
 
 	@Override
 	public boolean containsValue(List<String> path) {
+		final int lastIndex = path.size() - 1;
 		Map<String, Object> currentMap = map;
-		for (String key : path) {
+		for (String key : path.subList(0, lastIndex)) {
 			final Object value = currentMap.get(key);
 			if (!(value instanceof Config)) {//missing or incompatible intermediary level
 				return false;
@@ -84,15 +85,16 @@ public abstract class MapConfig implements Config {
 
 	@Override
 	public Object getValue(List<String> path) {
+		final int lastIndex = path.size() - 1;
 		Map<String, Object> currentMap = map;
-		for (String key : path) {
+		for (String key : path.subList(0, lastIndex)) {
 			final Object value = currentMap.get(key);
 			if (!(value instanceof Config)) {//missing or incompatible intermediary level
 				return null;
 			}
 			currentMap = ((Config)value).asMap();
 		}
-		return currentMap.get(path.get(path.size() - 1));
+		return currentMap.get(path.get(lastIndex));
 	}
 
 	@Override

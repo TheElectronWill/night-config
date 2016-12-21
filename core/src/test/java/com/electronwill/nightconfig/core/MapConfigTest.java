@@ -123,6 +123,9 @@ public class MapConfigTest {
 
 		assert !config.containsValue("c");
 		assert config.containsValue("a.b.c");
+
+		config.setInt("int", 12);
+		assert config.containsValue("int");
 	}
 
 }
