@@ -1,17 +1,22 @@
-package com.electronwill.nightconfig.json
+package com.electronwill.nightconfig.json;
 
-import com.electronwill.nightconfig.core.Config
-import com.electronwill.nightconfig.core.SimpleConfig
-import com.electronwill.nightconfig.core.serialization.FileConfig
-import org.junit.Test
+import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.SimpleConfig;
+import com.electronwill.nightconfig.core.serialization.FileConfig;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * @author TheElectronWill
  */
-class JsonConfigTest {
+public class JsonConfigTest {
 	private final FileConfig config = new JsonConfig();
+
 	{
-		Config config2 = new SimpleConfig(supportStrategy);
+		Config config2 = new SimpleConfig();
 		config2.setBoolean("boolean", true);
 		config2.setBoolean("false", false);
 
@@ -24,16 +29,17 @@ class JsonConfigTest {
 		config.setList("list", Arrays.asList("a", "b", 3, null, true, false, 17.5));
 		config.setValue("null", null);
 	}
-	private final File file = "test.json";
+
+	private final File file = new File("test.json");
 
 	@Test
-	void testWriteTo() {
+	public void testWrite() throws IOException {
 		config.writeTo(file);
 	}
 
 	@Test
-	void testReadFrom() {
+	public void testRead() throws IOException {
 		config.readFrom(file);
-		println config;
+		System.out.println(config);
 	}
 }

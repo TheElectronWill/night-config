@@ -28,7 +28,7 @@ public final class ReentrantLockedConfig implements SafeConfig {
 	private final Config config;
 
 	/**
-	 * Creates a new {@code LockedConfig} around a given configuration, and with a new <i>unfair</i>
+	 * Creates a new {@code ReentrantLockedConfig} around a given configuration, and with a new <i>unfair</i>
 	 * {@link ReentrantReadWriteLock}. This constructor is equivalent to {@code LockedConfig(config, false)}.
 	 *
 	 * @param config the configuration to wrap
@@ -39,7 +39,7 @@ public final class ReentrantLockedConfig implements SafeConfig {
 	}
 
 	/**
-	 * Creates a new {@code LockedConfig} around a given configuration, and with a new
+	 * Creates a new {@code ReentrantLockedConfig} around a given configuration, and with a new
 	 * {@link ReentrantReadWriteLock} with the specified fairnes policy.
 	 *
 	 * @param fairLock true to use a fair lock, false to use an unfair lock

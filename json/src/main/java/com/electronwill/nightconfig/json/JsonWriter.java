@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.serialization.CharacterOutput;
 import com.electronwill.nightconfig.core.serialization.SerializationException;
 import com.electronwill.nightconfig.core.serialization.Utils;
+
 import java.util.Iterator;
 import java.util.Map;
 
@@ -37,12 +38,11 @@ public final class JsonWriter {
 			writeString(key);
 			output.write(':');
 			writeValue(value);
-			if (it.hasNext()) {
+			if (it.hasNext())
 				output.write(',');
-				output.write('\n');
-			} else {
+			else
 				break;
-			}
+
 		} while (true);
 		output.write('}');
 	}
@@ -51,20 +51,21 @@ public final class JsonWriter {
 		if (v == null)
 			writeNull();
 		else if (v instanceof CharSequence)
-			writeString((CharSequence)v);
+			writeString((CharSequence) v);
 		else if (v instanceof Number)
 			output.write(v.toString());
 		else if (v instanceof Config)
-			writeObject((Config)v);
+			writeObject((Config) v);
 		else if (v instanceof Iterable)
-			writeArray((Iterable)v);
+			writeArray((Iterable) v);
 		else if (v instanceof Boolean)
-			writeBoolean((boolean)v);
+			writeBoolean((boolean) v);
 		else
 			throw new SerializationException("Unsupported value type: " + v.getClass());
 	}
 
 	private void writeArray(Iterable<?> iterable) {
+		output.write('[');
 		final Iterator<?> it = iterable.iterator();
 		do {
 			Object value = it.next();
@@ -74,6 +75,7 @@ public final class JsonWriter {
 			else
 				break;
 		} while (true);
+		output.write(']');
 	}
 
 	private void writeBoolean(boolean b) {
@@ -88,6 +90,7 @@ public final class JsonWriter {
 	}
 
 	private void writeString(CharSequence s) {
+		output.write('"');
 		final int length = s.length();
 		for (int i = 0; i < length; i++) {
 			char c = s.charAt(i);
@@ -100,9 +103,7 @@ public final class JsonWriter {
 				output.write(c);
 			}
 		}
+		output.write('"');
 	}
 
-	private void writeNumber(Number n) {
-		output.write(n.toString());
-	}
 }

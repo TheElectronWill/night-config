@@ -28,13 +28,5 @@ public interface CharacterInput {
 
 	char[] readChars(int n);
 
-	default CharsWrapper readCharUntil(char[] stop) {
-		CharsWrapper.Builder builder = new CharsWrapper.Builder(10);
-		char c = readChar();
-		while (!Utils.arrayContains(stop, c)) {
-			builder.append(c);
-			c = readChar();
-		}
-		return builder.build();
-	}
+	CharsWrapper readCharUntil(char[] stop);
 }

@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.serialization.CharacterInput;
 import com.electronwill.nightconfig.core.serialization.CharsWrapper;
 import com.electronwill.nightconfig.core.serialization.ParsingException;
 import com.electronwill.nightconfig.core.serialization.Utils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,30 +38,40 @@ public final class JsonParser {
 	}
 
 	private JsonConfig parseObject(JsonConfig config) {
-		for (char keyFirst = input.readCharAndSkip(SPACES); keyFirst != '}'; keyFirst = input.readCharAndSkip(SPACES)) {
+		while(true) {
+			char keyFirst = input.readCharAndSkip(SPACES);
 			if (keyFirst != '"')
 				throw new ParsingException("Invalid beginning of a key: " + keyFirst);
 
 			String key = parseString();
+			char separator = input.readCharAndSkip(SPACES);
+			if (separator != ':')
+				throw new ParsingException("Invalid key/value separator: " + separator);
+
 			char valueFirst = input.readCharAndSkip(SPACES);
 			Object value = parseValue(valueFirst);
 			config.setValue(key, value);
+
+			char next = input.readCharAndSkip(SPACES);
+			if (next == '}')//end of the object
+				return config;
+			else if (next != ',')
+				throw new ParsingException("Invalid value separator: " + next);
 		}
-		return config;
 	}
 
 	private List<Object> parseArray() {
 		final List<Object> list = new ArrayList<>();
-		char next = input.readCharAndSkip(SPACES);
 		while (true) {
-			Object value = parseValue(next);
+			char valueFirst = input.readCharAndSkip(SPACES);
+			Object value = parseValue(valueFirst);
 			list.add(value);
 
-			next = input.readCharAndSkip(SPACES);
+			char next = input.readCharAndSkip(SPACES);
 			if (next == ']')//end of the array
 				return list;
 			else if (next != ',')//invalid separator
-				throw new ParsingException("Invalid separator: " + next);
+				throw new ParsingException("Invalid value separator: " + valueFirst);
 		}
 	}
 
@@ -115,7 +126,7 @@ public final class JsonParser {
 	private String parseString() {
 		StringBuilder builder = new StringBuilder();
 		boolean escape = false;
-		for (char c = input.readChar(); c != '"' && !escape; c = input.readChar()) {
+		for (char c = input.readChar(); c != '"' || escape; c = input.readChar()) {
 			if (escape) {
 				builder.append(escape(c));
 				escape = false;
@@ -146,7 +157,7 @@ public final class JsonParser {
 				return '\t';
 			case 'u':
 				char[] chars = input.readChars(4);
-				return (char)Utils.parseInt(chars, 16);
+				return (char) Utils.parseInt(chars, 16);
 			default:
 				throw new ParsingException("Invalid escapement: \\" + c);
 		}

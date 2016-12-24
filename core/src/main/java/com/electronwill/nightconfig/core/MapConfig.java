@@ -98,9 +98,10 @@ public abstract class MapConfig implements Config {
 	}
 
 	@Override
-	public void setValue(List<String> path, Object value) {
+	public void setValue(final List<String> path, final Object value) {
+		final int lastIndex = path.size() - 1;
 		Map<String, Object> currentMap = map;
-		for (String currentKey : path) {
+		for (String currentKey : path.subList(0, lastIndex)) {
 			final Object currentValue = currentMap.get(currentKey);
 			final Config config;
 			if (currentValue == null) {//missing intermediary level

@@ -38,8 +38,8 @@ public class JsonConfig extends MapConfig implements FileConfig {
 
 	@Override
 	public void writeTo(File file) throws IOException {
-		try (Writer fileWriter = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
-			CharacterOutput output = new WriterOutput(new BufferedWriter(fileWriter));
+		try (Writer fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
+			CharacterOutput output = new WriterOutput(fileWriter);
 			JsonWriter jsonWriter = new JsonWriter(output);
 			jsonWriter.writeJsonObject(this);
 		}//finally closes the writer
@@ -47,8 +47,8 @@ public class JsonConfig extends MapConfig implements FileConfig {
 
 	@Override
 	public void readFrom(File file) throws IOException {
-		try (Reader inputReader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
-			CharacterInput input = new ReaderInput(new BufferedReader(inputReader));
+		try (Reader fileReader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+			CharacterInput input = new ReaderInput(fileReader);
 			JsonParser jsonParser = new JsonParser(input);
 			this.asMap().clear();//clears the config
 			jsonParser.parseJsonObject(this);//reads the value from the file to the config
