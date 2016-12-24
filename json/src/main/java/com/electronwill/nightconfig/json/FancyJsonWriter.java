@@ -166,32 +166,49 @@ public final class FancyJsonWriter {
 			return new FancyJsonWriter(output, indent, newline, indentObjects, indentArrays, spaceArrays, newlineBeforeObject, newlineBeforeArray);
 		}
 
-		public void setNewlineBeforeObject(boolean newlineBeforeObject) {
+		public Builder newlineBeforeObject(boolean newlineBeforeObject) {
 			this.newlineBeforeObject = newlineBeforeObject;
+			return this;
 		}
 
-		public void setNewlineBeforeArray(boolean newlineBeforeArray) {
+		public Builder newlineBeforeArray(boolean newlineBeforeArray) {
 			this.newlineBeforeArray = newlineBeforeArray;
+			return this;
 		}
 
-		public void setIndent(char[] indent) {
+		public Builder indent(char[] indent) {
 			this.indent = indent;
+			return this;
 		}
 
-		public void setNewline(char[] newline) {
+		public Builder newline(char[] newline) {
 			this.newline = newline;
+			return this;
 		}
 
-		public void setIndentObjects(boolean indentObjects) {
+		public Builder indent(String indent) {
+			this.indent = indent.toCharArray();
+			return this;
+		}
+
+		public Builder newline(String newline) {
+			this.newline = newline.toCharArray();
+			return this;
+		}
+
+		public Builder indentObjects(boolean indentObjects) {
 			this.indentObjects = indentObjects;
+			return this;
 		}
 
-		public void setIndentArrays(boolean indentArrays) {
+		public Builder indentArrays(boolean indentArrays) {
 			this.indentArrays = indentArrays;
+			return this;
 		}
 
-		public void setSpaceArrays(boolean spaceArrays) {
+		public Builder spaceArrays(boolean spaceArrays) {
 			this.spaceArrays = spaceArrays;
+			return this;
 		}
 	}
 
