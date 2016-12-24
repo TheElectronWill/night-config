@@ -49,7 +49,12 @@ public class JsonConfigTest {
 	public void testFancyWriter() throws IOException{
 		try (Writer fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
 			CharacterOutput output = new WriterOutput(fileWriter);
-			FancyJsonWriter jsonWriter = new FancyJsonWriter.Builder().build(output);
+			FancyJsonWriter.Builder builder = new FancyJsonWriter.Builder();
+			builder.newline("\r").indent("    ");
+			builder.indentArrays(false).indentObjects(true);
+			builder.newlineBeforeObject(true);
+			builder.spaceArrays(true);
+			FancyJsonWriter jsonWriter = builder.build(output);
 			jsonWriter.writeJsonObject(config);
 		}//finally closes the writer
 	}
