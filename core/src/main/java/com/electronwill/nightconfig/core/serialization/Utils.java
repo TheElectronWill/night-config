@@ -4,7 +4,10 @@ package com.electronwill.nightconfig.core.serialization;
  * @author TheElectronWill
  */
 public final class Utils {
-	private Utils() {}
+	private static final char[] EMPTY_CHAR_ARRAY = new char[0];
+
+	private Utils() {
+	}
 
 	public static boolean arrayContains(char[] array, char element) {
 		for (char c : array) {
@@ -56,5 +59,9 @@ public final class Utils {
 
 	public static double parseDouble(CharsWrapper chars) {
 		return Double.parseDouble(chars.toString());
+	}
+
+	public static char[] noChars() {
+		return EMPTY_CHAR_ARRAY;
 	}
 }

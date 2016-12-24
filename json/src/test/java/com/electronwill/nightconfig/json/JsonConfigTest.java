@@ -2,11 +2,13 @@ package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
+import com.electronwill.nightconfig.core.serialization.CharacterOutput;
 import com.electronwill.nightconfig.core.serialization.FileConfig;
+import com.electronwill.nightconfig.core.serialization.WriterOutput;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -41,5 +43,14 @@ public class JsonConfigTest {
 	public void testRead() throws IOException {
 		config.readFrom(file);
 		System.out.println(config);
+	}
+
+	@Test
+	public void testFancyWriter() throws IOException{
+		try (Writer fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
+			CharacterOutput output = new WriterOutput(fileWriter);
+			FancyJsonWriter jsonWriter = new FancyJsonWriter.Builder().build(output);
+			jsonWriter.writeJsonObject(config);
+		}//finally closes the writer
 	}
 }
