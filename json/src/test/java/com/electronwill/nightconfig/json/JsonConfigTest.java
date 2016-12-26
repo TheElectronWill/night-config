@@ -5,11 +5,10 @@ import com.electronwill.nightconfig.core.SimpleConfig;
 import com.electronwill.nightconfig.core.serialization.CharacterOutput;
 import com.electronwill.nightconfig.core.serialization.FileConfig;
 import com.electronwill.nightconfig.core.serialization.WriterOutput;
-import org.junit.Test;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import org.junit.Test;
 
 /**
  * @author TheElectronWill
@@ -46,7 +45,7 @@ public class JsonConfigTest {
 	}
 
 	@Test
-	public void testFancyWriter() throws IOException{
+	public void testFancyWriter() throws IOException {
 		try (Writer fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
 			CharacterOutput output = new WriterOutput(fileWriter);
 			FancyJsonWriter.Builder builder = new FancyJsonWriter.Builder();

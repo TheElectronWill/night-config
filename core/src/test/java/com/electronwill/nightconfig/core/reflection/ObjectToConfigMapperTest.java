@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.core.reflection;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.MapConfig;
 import com.electronwill.nightconfig.core.SimpleConfig;
 import java.util.Arrays;
 import java.util.List;
@@ -77,13 +76,13 @@ public class ObjectToConfigMapperTest {
 		@Override
 		public String toString() {
 			return "MyObject{" +
-					"integer=" + integer +
-					", decimal=" + decimal +
-					", string='" + string + '\'' +
-					", stringList=" + stringList +
-					", config=" + config +
-					", subObject=" + subObject +
-					'}';
+				"integer=" + integer +
+				", decimal=" + decimal +
+				", string='" + string + '\'' +
+				", stringList=" + stringList +
+				", config=" + config +
+				", subObject=" + subObject +
+				'}';
 		}
 	}
 

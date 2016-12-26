@@ -17,7 +17,7 @@ public class StringUtilsTest {
 		List<String> split2 = new LinkedList<>();
 		StringUtils.split("some spaces here but no separator!", '.', split2);
 		assert split2.equals(Arrays.asList("some spaces here but no separator!")) : "Invalid split2: " +
-				split2;
+			split2;
 	}
 
 	@Test
@@ -42,7 +42,6 @@ public class StringUtilsTest {
 		printSplitted(".a.a.", '.');
 		printSplitted("a..a", '.');
 		printSplitted("a...a", '.');
-
 
 		//Split with 's' separator
 		System.out.println("========================================");

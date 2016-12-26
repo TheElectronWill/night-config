@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.io.Reader;
 
 /**
+ * An implementation of {@link CharacterInput} based on a {@link Reader}.
+ *
  * @author TheElectronWill
  */
 public final class ReaderInput implements CharacterInput {
 	private final Reader reader;
-	private int next = -1;
+	private int next = NONE;
+	private static final int EOS = -1, NONE = -2;
 
 	public ReaderInput(Reader reader) {
 		this.reader = reader;
@@ -16,10 +19,10 @@ public final class ReaderInput implements CharacterInput {
 
 	@Override
 	public int read() {
-		if (next != -1) {
-			char c = (char) next;
-			next = -1;
-			return c;
+		if (next != NONE) {
+			int n = next;
+			next = NONE;
+			return n;
 		}
 		try {
 			return reader.read();
@@ -32,11 +35,13 @@ public final class ReaderInput implements CharacterInput {
 	public char[] read(int n) {
 		final char[] array;
 		final int offset;
-		if (next != -1) {
+		if (next != NONE) {
+			if (next == EOS)
+				return null;
 			offset = 1;
 			array = new char[n + 1];
-			array[0] = (char) next;
-			next = -1;
+			array[0] = (char)next;
+			next = NONE;
 		} else {
 			offset = 0;
 			array = new char[n];
@@ -53,20 +58,23 @@ public final class ReaderInput implements CharacterInput {
 	}
 
 	@Override
+	public int seek() {
+		if (next == NONE) {
+			try {
+				next = reader.read();
+			} catch (IOException e) {
+				throw new ParsingException("Failed to read data", e);
+			}
+		}
+		return next;
+	}
+
+	@Override
 	public char readChar() {
-		if (next != -1) {
-			char c = (char) next;
-			next = -1;
-			return c;
-		}
-		try {
-			int read = reader.read();
-			if (read == -1)
-				throw new ParsingException("Not enough data available");
-			return (char) read;
-		} catch (IOException e) {
-			throw new ParsingException("Failed to read data", e);
-		}
+		int read = read();
+		if (read == EOS)
+			throw new ParsingException("Not enough data available");
+		return (char)read;
 	}
 
 	@Override
@@ -87,5 +95,13 @@ public final class ReaderInput implements CharacterInput {
 		}
 		next = c;//remember this char for later
 		return builder.build();
+	}
+
+	@Override
+	public char seekChar() {
+		int n = seek();
+		if (n == EOS)
+			throw new ParsingException("Not enough data available");
+		return (char)n;
 	}
 }

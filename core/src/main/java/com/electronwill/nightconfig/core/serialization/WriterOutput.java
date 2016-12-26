@@ -23,9 +23,9 @@ public final class WriterOutput implements CharacterOutput {
 	}
 
 	@Override
-	public void write(char[] chars) {
+	public void write(char[] chars, int offset, int length) {
 		try {
-			writer.write(chars);
+			writer.write(chars, offset, length);
 		} catch (IOException e) {
 			throw new SerializationException("Failed to write data", e);
 		}

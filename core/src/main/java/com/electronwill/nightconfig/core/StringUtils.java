@@ -10,7 +10,7 @@ import java.util.List;
  */
 public final class StringUtils {
 
-	private StringUtils() {}
+	private StringUtils() {}//Utility class can't be constructed
 
 	/**
 	 * Splits a String around each occurence of the specified character. The result is <b>not</b> the same as

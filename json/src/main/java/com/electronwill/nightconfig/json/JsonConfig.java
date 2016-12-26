@@ -9,26 +9,32 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
+ * A JSON configuration. It supports the following types:
+ * <ul>
+ * <li>Integer</li>
+ * <li>Long</li>
+ * <li>Float</li>
+ * <li>Double</li>
+ * <li>Boolen</li>
+ * <li>String</li>
+ * <li>List and its subclasses</li>
+ * <li>Config and its subclasses</li>
+ * </ul>
+ *
  * @author TheElectronWill
  */
-public class JsonConfig extends MapConfig implements FileConfig {
-
-	private static final HashSet<Class<?>> SUPPORTED_TYPES = new HashSet<>();
-
-	static {
-		SUPPORTED_TYPES.add(Integer.class);
-		SUPPORTED_TYPES.add(Long.class);
-		SUPPORTED_TYPES.add(Float.class);
-		SUPPORTED_TYPES.add(Double.class);
-		SUPPORTED_TYPES.add(Boolean.class);
-		SUPPORTED_TYPES.add(String.class);
-		SUPPORTED_TYPES.add(List.class);
-		SUPPORTED_TYPES.add(Config.class);
-	}
+public final class JsonConfig extends MapConfig implements FileConfig {
 
 	@Override
 	public boolean supportsType(Class<?> type) {
-		return SUPPORTED_TYPES.contains(type) || List.class.isAssignableFrom(type) || Config.class.isAssignableFrom(type);
+		return type == Integer.class
+			|| type == Long.class
+			|| type == Float.class
+			|| type == Double.class
+			|| type == Boolean.class
+			|| type == String.class
+			|| List.class.isAssignableFrom(type)
+			|| Config.class.isAssignableFrom(type);
 	}
 
 	@Override

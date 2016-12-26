@@ -4,12 +4,13 @@ import com.electronwill.nightconfig.core.serialization.CharacterInput;
 import com.electronwill.nightconfig.core.serialization.CharsWrapper;
 import com.electronwill.nightconfig.core.serialization.ParsingException;
 import com.electronwill.nightconfig.core.serialization.Utils;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 /**
+ * A JSON parser.
+ *
  * @author TheElectronWill
  */
 public final class JsonParser {
@@ -20,16 +21,32 @@ public final class JsonParser {
 
 	private final CharacterInput input;
 
+	/**
+	 * Creates a new JsonParser that will parse the specified CharacterInput.
+	 *
+	 * @param input the input to parse
+	 */
 	public JsonParser(CharacterInput input) {
 		this.input = input;
 	}
 
+	/**
+	 * Parses the next JSON object and puts it in a new JsonConfig.
+	 *
+	 * @return the next JSON object.
+	 */
 	public JsonConfig parseJsonObject() {
 		JsonConfig config = new JsonConfig();
 		parseJsonObject(config);
 		return config;
 	}
 
+	/**
+	 * Parses the next JSON object and puts it in the specified configuration. The object's entries are added
+	 * to the configuration. Any previous entry with a conflicting name is replaced.
+	 *
+	 * @param config the config where the JSON object will be stored
+	 */
 	public void parseJsonObject(JsonConfig config) {
 		char firstChar = input.readCharAndSkip(SPACES);
 		if (firstChar != '{')
@@ -38,21 +55,21 @@ public final class JsonParser {
 	}
 
 	private JsonConfig parseObject(JsonConfig config) {
-		while(true) {
-			char keyFirst = input.readCharAndSkip(SPACES);
+		while (true) {
+			char keyFirst = input.readCharAndSkip(SPACES);//the first character of the key
 			if (keyFirst != '"')
 				throw new ParsingException("Invalid beginning of a key: " + keyFirst);
 
 			String key = parseString();
-			char separator = input.readCharAndSkip(SPACES);
+			char separator = input.readCharAndSkip(SPACES);//the separator between the key and the value
 			if (separator != ':')
 				throw new ParsingException("Invalid key/value separator: " + separator);
 
-			char valueFirst = input.readCharAndSkip(SPACES);
+			char valueFirst = input.readCharAndSkip(SPACES);//the first character of the value
 			Object value = parseValue(valueFirst);
 			config.setValue(key, value);
 
-			char next = input.readCharAndSkip(SPACES);
+			char next = input.readCharAndSkip(SPACES);//the next non-space character, should be '}' or ','
 			if (next == '}')//end of the object
 				return config;
 			else if (next != ',')
@@ -63,11 +80,11 @@ public final class JsonParser {
 	private List<Object> parseArray() {
 		final List<Object> list = new ArrayList<>();
 		while (true) {
-			char valueFirst = input.readCharAndSkip(SPACES);
+			char valueFirst = input.readCharAndSkip(SPACES);//the first character of the value
 			Object value = parseValue(valueFirst);
 			list.add(value);
 
-			char next = input.readCharAndSkip(SPACES);
+			char next = input.readCharAndSkip(SPACES);//the next character, should be ']' or ','
 			if (next == ']')//end of the array
 				return list;
 			else if (next != ',')//invalid separator
@@ -157,7 +174,7 @@ public final class JsonParser {
 				return '\t';
 			case 'u':
 				char[] chars = input.readChars(4);
-				return (char) Utils.parseInt(chars, 16);
+				return (char)Utils.parseInt(chars, 16);
 			default:
 				throw new ParsingException("Invalid escapement: \\" + c);
 		}

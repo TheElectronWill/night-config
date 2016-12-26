@@ -39,8 +39,8 @@ public class TomlConfig extends MapConfig {
 	@Override
 	public boolean supportsType(Class<?> type) {
 		return SUPPORTED_TYPES.contains(type)
-				|| List.class.isAssignableFrom(type)
-				|| Config.class.isAssignableFrom(type);
+			|| List.class.isAssignableFrom(type)
+			|| Config.class.isAssignableFrom(type);
 	}
 
 	@Override
