@@ -407,12 +407,12 @@ public class ConfigSpecification {
 	/**
 	 * Defines a specification for a particular value.
 	 */
-	private static class ValueSpecification {
+	protected static final class ValueSpecification {
 
 		private final Object defaultValue;
 		private final Predicate<Object> validator;
 
-		ValueSpecification(Object defaultValue, Predicate<Object> validator) {
+		public ValueSpecification(Object defaultValue, Predicate<Object> validator) {
 			Objects.requireNonNull(validator, "The validator must not be null.");
 			this.defaultValue = defaultValue;
 			this.validator = validator;
