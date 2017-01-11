@@ -10,8 +10,6 @@ public class ConfigSpecification {
 
 	protected final Map<String, ValueSpecification> map = new HashMap<>();
 
-	public ConfigSpecification() {}
-
 	/**
 	 * Defines a specification for the given path. The validator associated with the path will check if
 	 * the actual value is of the same type as, or a subtype of, defaultValue's type.

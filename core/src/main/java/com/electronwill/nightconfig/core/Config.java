@@ -71,8 +71,7 @@ public interface Config {
 	 * @return {@code true} if the value exist, {@code false} if it doesn't.
 	 */
 	default boolean containsValue(String path) {
-		final List<String> list = StringUtils.split(path, '.');
-		return containsValue(list);
+		return containsValue(StringUtils.split(path, '.'));
 	}
 
 	/**
@@ -90,8 +89,11 @@ public interface Config {
 	 * @return the value at the given path, or {@code null} if no value is associated with this path.
 	 */
 	default Object getValue(String path) {
-		final List<String> list = StringUtils.split(path, '.');
-		return getValue(list);
+		return getValue(StringUtils.split(path, '.'));
+	}
+
+	default <T> T getValue(String path, Class<T> clazz) {
+		return clazz.cast(getValue(path));
 	}
 
 	/**
@@ -109,8 +111,7 @@ public interface Config {
 	 * @param value the value to set.
 	 */
 	default void setValue(String path, Object value) {
-		final List<String> list = StringUtils.split(path, '.');
-		setValue(list, value);
+		setValue(StringUtils.split(path, '.'), value);
 	}
 
 	/**
@@ -331,10 +332,7 @@ public interface Config {
 	 * @return the String value at the given path.
 	 */
 	default String getString(List<String> path) {
-		final Object value = getValue(path);
-		if (value == null)
-			return null;
-		return (String)value;
+		return (String)getValue(path);
 	}
 
 	/**
@@ -345,10 +343,7 @@ public interface Config {
 	 * @return the String value at the given path.
 	 */
 	default String getString(String path) {
-		final Object value = getValue(path);
-		if (value == null)
-			return null;
-		return (String)value;
+		return (String)getValue(path);
 	}
 
 	/**
@@ -379,10 +374,7 @@ public interface Config {
 	 * @return the List value at the given path.
 	 */
 	default <T> List<T> getList(List<String> path) {
-		final Object value = getValue(path);
-		if (value == null)
-			return null;
-		return (List<T>)value;
+		return (List<T>)getValue(path);
 	}
 
 	/**
@@ -393,10 +385,7 @@ public interface Config {
 	 * @return the List value at the given path.
 	 */
 	default <T> List<T> getList(String path) {
-		final Object value = getValue(path);
-		if (value == null)
-			return null;
-		return (List<T>)value;
+		return (List<T>)getValue(path);
 	}
 
 	/**
@@ -427,10 +416,7 @@ public interface Config {
 	 * @return the Config value at the given path.
 	 */
 	default Config getConfig(List<String> path) {
-		final Object value = getValue(path);
-		if (value == null)
-			return null;
-		return (Config)value;
+		return (Config)getValue(path);
 	}
 
 	/**
@@ -441,10 +427,7 @@ public interface Config {
 	 * @return the Config value at the given path.
 	 */
 	default Config getConfig(String path) {
-		final Object value = getValue(path);
-		if (value == null)
-			return null;
-		return (Config)value;
+		return (Config)getValue(path);
 	}
 
 	/**
