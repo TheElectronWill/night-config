@@ -120,8 +120,8 @@ public interface Config {
 	 * @param path the path.
 	 * @return the int value at the given path.
 	 */
-	default int getInt(List<String> path) {
-		return (int)getValue(path);
+	default Integer getInt(List<String> path) {
+		return (Integer)getValue(path);
 	}
 
 	/**
@@ -131,8 +131,8 @@ public interface Config {
 	 * @param path the path.
 	 * @return the int value at the given path.
 	 */
-	default int getInt(String path) {
-		return (int)getValue(path);
+	default Integer getInt(String path) {
+		return (Integer)getValue(path);
 	}
 
 	/**
@@ -162,8 +162,8 @@ public interface Config {
 	 * @param path the path.
 	 * @return the long value at the given path.
 	 */
-	default long getLong(List<String> path) {
-		return (long)getValue(path);
+	default Long getLong(List<String> path) {
+		return (Long)getValue(path);
 	}
 
 	/**
@@ -173,8 +173,8 @@ public interface Config {
 	 * @param path the path.
 	 * @return the long value at the given path.
 	 */
-	default long getLong(String path) {
-		return (long)getValue(path);
+	default Long getLong(String path) {
+		return (Long)getValue(path);
 	}
 
 	/**
@@ -204,8 +204,8 @@ public interface Config {
 	 * @param path the path.
 	 * @return the float value at the given path.
 	 */
-	default float getFloat(List<String> path) {
-		return (float)getValue(path);
+	default Float getFloat(List<String> path) {
+		return (Float)getValue(path);
 	}
 
 	/**
@@ -215,8 +215,8 @@ public interface Config {
 	 * @param path the path.
 	 * @return the float value at the given path.
 	 */
-	default float getFloat(String path) {
-		return (float)getValue(path);
+	default Float getFloat(String path) {
+		return (Float)getValue(path);
 	}
 
 	/**
@@ -246,8 +246,8 @@ public interface Config {
 	 * @param path the path.
 	 * @return the double value at the given path.
 	 */
-	default double getDouble(List<String> path) {
-		return (double)getValue(path);
+	default Double getDouble(List<String> path) {
+		return (Double)getValue(path);
 	}
 
 	/**
@@ -257,8 +257,8 @@ public interface Config {
 	 * @param path the path.
 	 * @return the double value at the given path.
 	 */
-	default double getDouble(String path) {
-		return (double)getValue(path);
+	default Double getDouble(String path) {
+		return (Double)getValue(path);
 	}
 
 	/**
@@ -288,8 +288,8 @@ public interface Config {
 	 * @param path the path.
 	 * @return the boolean value at the given path.
 	 */
-	default boolean getBoolean(List<String> path) {
-		return (boolean)getValue(path);
+	default Boolean getBoolean(List<String> path) {
+		return (Boolean)getValue(path);
 	}
 
 	/**
@@ -299,8 +299,8 @@ public interface Config {
 	 * @param path the path.
 	 * @return the boolean value at the given path.
 	 */
-	default boolean getBoolean(String path) {
-		return (boolean)getValue(path);
+	default Boolean getBoolean(String path) {
+		return (Boolean)getValue(path);
 	}
 
 	/**
