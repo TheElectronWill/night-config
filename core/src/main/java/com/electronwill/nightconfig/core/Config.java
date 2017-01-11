@@ -82,6 +82,14 @@ public interface Config {
 	 */
 	Object getValue(List<String> path);
 
+	/**
+	 * Gets the value at the given path, as an instance of the specified class.
+	 *
+	 * @param path  the path.
+	 * @param clazz the class to cast the value to.
+	 * @param <T>   the type of the class
+	 * @return a value of type T, {@code null} if no value is associated with this path.
+	 */
 	default <T> T getValue(List<String> path, Class<T> clazz) {
 		return clazz.cast(getValue(path));
 	}
@@ -96,6 +104,14 @@ public interface Config {
 		return getValue(StringUtils.split(path, '.'));
 	}
 
+	/**
+	 * Gets the value at the given path, as an instance of the specified class.
+	 *
+	 * @param path  the path.
+	 * @param clazz the class to cast the value to.
+	 * @param <T>   the type of the class
+	 * @return a value of type T, {@code null} if no value is associated with this path.
+	 */
 	default <T> T getValue(String path, Class<T> clazz) {
 		return clazz.cast(getValue(path));
 	}
