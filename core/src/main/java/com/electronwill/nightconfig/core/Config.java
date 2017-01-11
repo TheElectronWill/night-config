@@ -82,6 +82,10 @@ public interface Config {
 	 */
 	Object getValue(List<String> path);
 
+	default <T> T getValue(List<String> path, Class<T> clazz) {
+		return clazz.cast(getValue(path));
+	}
+
 	/**
 	 * Gets the value at the given path.
 	 *
