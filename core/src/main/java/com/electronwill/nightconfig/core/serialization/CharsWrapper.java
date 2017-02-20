@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.serialization;
 
 import java.util.Arrays;
+import java.util.Iterator;
 
 /**
  * A simple, efficient implementation of CharSequence. To avoid data copying, its constructor doesn't
@@ -8,8 +9,9 @@ import java.util.Arrays;
  *
  * @author TheElectronWill
  */
-public final class CharsWrapper implements CharSequence, Cloneable {
+public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Character> {
 	private final char[] chars;
+	private final int offset, limit;
 
 	/**
 	 * Creates a new CharsWrapper backed by the given char array. Any modification to the array is
@@ -18,24 +20,71 @@ public final class CharsWrapper implements CharSequence, Cloneable {
 	 * @param chars the char array to use
 	 */
 	public CharsWrapper(char[] chars) {
+		this(chars, 0, chars.length);
+	}
+
+	/**
+	 * Creates a new CharsWrapper backed by the given char array. Any modification to the array is
+	 * reflected to the CharsWrapper and vice-versa.
+	 *
+	 * @param chars  the char array to use
+	 * @param offset the index (in the array) of the first character of the Wrapper
+	 * @param limit  the index +1 (in the array) of the last character of the Wrapper
+	 */
+	public CharsWrapper(char[] chars, int offset, int limit) {
 		this.chars = chars;
+		this.offset = offset;
+		this.limit = limit;
+	}
+
+	/**
+	 * Creates a new CharsWrapper containing the same characters as the specified CharSequence. The data is
+	 * copied and the new CharsWrapper is completely independent.
+	 *
+	 * @param csq the sequence to copy
+	 */
+	public CharsWrapper(CharSequence csq) {
+		offset = 0;
+		limit = csq.length();
+		chars = new char[limit];
+		for (int i = 0; i < limit; i++) {
+			chars[i] = csq.charAt(i);
+		}
+	}
+
+	/**
+	 * Returns the underlying char array that contains the CharsWrapper's characters. Any modification to
+	 * the array is reflected to the CharsWrapper and vice-versa.
+	 *
+	 * @return the underlying char array
+	 */
+	char[] getChars() {
+		return chars;
+	}
+
+	int getOffset() {
+		return offset;
+	}
+
+	int getLimit() {
+		return limit;
 	}
 
 	@Override
 	public int length() {
-		return chars.length;
+		return limit - offset;
 	}
 
 	@Override
 	public char charAt(int index) {
-		return chars[index];
+		return chars[offset + index];
 	}
 
 	/**
 	 * {@inheritDoc}
 	 * <p>
-	 * This method creates a copy of the data. The returned CharsWrapper doesn't share its array with
-	 * the original one.
+	 * This method copies the data so the returned CharsWrapper doesn't share its array with this CharsWrapper
+	 * and is completely independant.
 	 * </p>
 	 */
 	@Override
@@ -43,21 +92,69 @@ public final class CharsWrapper implements CharSequence, Cloneable {
 		return new CharsWrapper(Arrays.copyOfRange(chars, start, end));
 	}
 
+	/**
+	 * Creates a view of a part of this CharsWrapper. Any modification to the view is reflected to the
+	 * original CharsWrapper and vice-versa.
+	 *
+	 * @param start the start index, inclusive
+	 * @param end   the end index, exclusive
+	 * @return a new CharsWrapper that is a view of a part of this CharsWrapper
+	 */
+	public CharsWrapper subView(int start, int end) {
+		return new CharsWrapper(chars, start, end);
+	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) return true;
-		if (obj instanceof CharsWrapper) {
-			CharsWrapper wrapper = (CharsWrapper)obj;
-			return Arrays.equals(wrapper.chars, chars);
+		if (!(obj instanceof CharsWrapper)) return false;
+
+		CharsWrapper other = (CharsWrapper)obj;
+		final int l = other.length();
+		if (length() != l) {
+			return false;
 		}
-		return false;
+
+		for (int i = 0; i < l; i++) {
+			char c = chars[offset + i];
+			char co = chars[other.offset + i];
+			if (c != co) return false;
+		}
+		return true;
 	}
 
+	/**
+	 * Compares this CharsWrapper to a CharSequence, ignoring case considerations.
+	 *
+	 * @param cs the CharSequence to compare with this CharsWrapper
+	 * @return true if cs isn't null and contains the same characters as this CharsWrapper, ignoring
+	 * case considerations.
+	 * @see String#equalsIgnoreCase(String)
+	 */
+	public boolean equalsIgnoreCase(CharSequence cs) {
+		if (cs == this) return true;
+		if (cs == null || cs.length() != length()) return false;
+
+		for (int i = 0; i < limit; i++) {
+			char u1 = Character.toUpperCase(chars[offset + i]);
+			char u2 = Character.toUpperCase(cs.charAt(i));
+			if (u1 != u2) return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Compares this CharsWrapper to a CharSequence.
+	 *
+	 * @param cs the CharSequence to compare with this CharsWrapper
+	 * @return true if cs isn't null and contains the same characters as this CharsWrapper
+	 * @see String#contentEquals(CharSequence)
+	 */
 	public boolean contentEquals(CharSequence cs) {
 		if (cs == this) return true;
 		if (cs == null || cs.length() != length()) return false;
 
-		for (int i = 0; i < chars.length; i++) {
+		for (int i = offset; i < limit; i++) {
 			if (chars[i] != cs.charAt(i))
 				return false;
 		}
@@ -66,7 +163,11 @@ public final class CharsWrapper implements CharSequence, Cloneable {
 
 	@Override
 	public int hashCode() {
-		return Arrays.hashCode(chars);
+		int hashCode = 1;
+		for (int i = offset; i < limit; i++) {
+			hashCode = 31 * hashCode + chars[offset + i];
+		}
+		return hashCode;
 	}
 
 	/**
@@ -103,23 +204,28 @@ public final class CharsWrapper implements CharSequence, Cloneable {
 	 * @return the index of the first occurence of {@code c}, or {@code -1} if not found.
 	 */
 	public int indexOf(char c) {
-		String a;
-		for (int i = 0; i < chars.length; i++) {
+		for (int i = offset; i < limit; i++) {
 			char ch = chars[i];
-			if (ch == c)
-				return i;
+			if (ch == c) return i;
 		}
 		return -1;
 	}
 
-	/**
-	 * Returns the underlying char array that contains the CharsWrapper's characters. Any modification to
-	 * the array is reflected to the CharsWrapper and vice-versa.
-	 *
-	 * @return the underlying char array
-	 */
-	char[] getChars() {
-		return chars;
+	@Override
+	public Iterator<Character> iterator() {
+		return new Iterator<Character>() {
+			private int index = offset;
+
+			@Override
+			public boolean hasNext() {
+				return index < limit;
+			}
+
+			@Override
+			public Character next() {
+				return chars[index++];
+			}
+		};
 	}
 
 	/**
@@ -243,14 +349,22 @@ public final class CharsWrapper implements CharSequence, Cloneable {
 		}
 
 		/**
-		 * Builds a CharsWrapper with the content of this builder. The builder is first compacted, and then
-		 * the builder's content is directly used to create a new CharsWrappers.
+		 * Builds a CharsWrapper with the content of this builder. The builder's content is directly used
+		 * to create a new CharsWrapper.
 		 *
 		 * @return a new CharsWrapper with the content of this builder
 		 */
 		public CharsWrapper build() {
-			compact();
-			return new CharsWrapper(data);
+			return new CharsWrapper(data, 0, cursor);
+		}
+
+		/**
+		 * Builds a CharsWrapper with <b>a copy of</b> the content of this builder.
+		 *
+		 * @return a new CharsWrapper with a copy of the content of this builder
+		 */
+		public CharsWrapper copyAndBuild() {
+			return new CharsWrapper(Arrays.copyOfRange(data, 0, cursor));
 		}
 
 		/**
