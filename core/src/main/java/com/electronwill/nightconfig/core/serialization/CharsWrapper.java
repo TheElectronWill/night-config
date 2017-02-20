@@ -31,6 +31,13 @@ public final class CharsWrapper implements CharSequence, Cloneable {
 		return chars[index];
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * This method creates a copy of the data. The returned CharsWrapper doesn't share its array with
+	 * the original one.
+	 * </p>
+	 */
 	@Override
 	public CharsWrapper subSequence(int start, int end) {
 		return new CharsWrapper(Arrays.copyOfRange(chars, start, end));
@@ -39,7 +46,6 @@ public final class CharsWrapper implements CharSequence, Cloneable {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) return true;
-		if (obj == null) return false;
 		if (obj instanceof CharsWrapper) {
 			CharsWrapper wrapper = (CharsWrapper)obj;
 			return Arrays.equals(wrapper.chars, chars);
@@ -47,13 +53,30 @@ public final class CharsWrapper implements CharSequence, Cloneable {
 		return false;
 	}
 
+	public boolean contentEquals(CharSequence cs) {
+		if (cs == this) return true;
+		if (cs == null || cs.length() != length()) return false;
+
+		for (int i = 0; i < chars.length; i++) {
+			if (chars[i] != cs.charAt(i))
+				return false;
+		}
+		return true;
+	}
+
 	@Override
 	public int hashCode() {
 		return Arrays.hashCode(chars);
 	}
 
+	/**
+	 * Creates and returns a copy of this CharsWrapper. The underlying char array is copied and used to
+	 * create a new instance of CharsWrapper.
+	 *
+	 * @return a copy of this CharsWrapper
+	 */
 	@Override
-	protected CharsWrapper clone() {
+	public CharsWrapper clone() {
 		return new CharsWrapper(Arrays.copyOf(chars, chars.length));
 	}
 
@@ -203,13 +226,30 @@ public final class CharsWrapper implements CharSequence, Cloneable {
 			return this;
 		}
 
+		public int length() {
+			return cursor;
+		}
+
+		public char[] getChars() {
+			return data;
+		}
+
 		/**
-		 * Builds a CharsWrapper with the content of this builder. The content is NOT copied but directly
-		 * used as it is.
+		 * Compacts this builder, minimizing its size in memory.
+		 */
+		public void compact() {
+			if (cursor != data.length)
+				data = Arrays.copyOf(data, cursor);
+		}
+
+		/**
+		 * Builds a CharsWrapper with the content of this builder. The builder is first compacted, and then
+		 * the builder's content is directly used to create a new CharsWrappers.
 		 *
 		 * @return a new CharsWrapper with the content of this builder
 		 */
 		public CharsWrapper build() {
+			compact();
 			return new CharsWrapper(data);
 		}
 

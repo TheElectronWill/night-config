@@ -2,28 +2,24 @@ package com.electronwill.nightconfig.core.serialization;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Arrays;
+
+import static javax.swing.TransferHandler.NONE;
 
 /**
  * An implementation of {@link CharacterInput} based on a {@link Reader}.
  *
  * @author TheElectronWill
  */
-public final class ReaderInput implements CharacterInput {
+public final class ReaderInput extends AbstractInput {
 	private final Reader reader;
-	private int next = NONE;
-	private static final int EOS = -1, NONE = -2;
 
 	public ReaderInput(Reader reader) {
 		this.reader = reader;
 	}
 
 	@Override
-	public int read() {
-		if (next != NONE) {
-			int n = next;
-			next = NONE;
-			return n;
-		}
+	public int directRead() {
 		try {
 			return reader.read();
 		} catch (IOException e) {
@@ -32,76 +28,86 @@ public final class ReaderInput implements CharacterInput {
 	}
 
 	@Override
-	public char[] read(int n) {
-		final char[] array;
-		final int offset;
-		if (next != NONE) {
-			if (next == EOS)
-				return null;
-			offset = 1;
-			array = new char[n + 1];
-			array[0] = (char)next;
-			next = NONE;
-		} else {
-			offset = 0;
-			array = new char[n];
-		}
-		final int length = n - offset;
+	public char directReadChar() throws ParsingException {
+		int read;
 		try {
-			int read = reader.read(array, offset, length);
-			if (read != length)
-				return null;
-			return array;
+			read = reader.read();
 		} catch (IOException e) {
 			throw new ParsingException("Failed to read data", e);
 		}
-	}
-
-	@Override
-	public int seek() {
-		if (next == NONE) {
-			try {
-				next = reader.read();
-			} catch (IOException e) {
-				throw new ParsingException("Failed to read data", e);
-			}
+		if (read == -1) {
+			throw new ParsingException("Not enough data available.");
 		}
-		return next;
-	}
-
-	@Override
-	public char readChar() {
-		int read = read();
-		if (read == EOS)
-			throw new ParsingException("Not enough data available");
 		return (char)read;
 	}
 
 	@Override
-	public char[] readChars(int n) {
-		char[] read = read(n);
-		if (read == null)
-			throw new ParsingException("Not enough data available");
-		return read;
-	}
-
-	@Override
-	public CharsWrapper readCharUntil(char[] stop) {
-		CharsWrapper.Builder builder = new CharsWrapper.Builder(10);
-		char c = readChar();
-		while (!Utils.arrayContains(stop, c)) {
-			builder.append(c);
-			c = readChar();
+	public char[] read(int n) {
+		// Overriden method to provide better performance: use read(char[], ...) instead of taking the
+		// characters one by one.
+		char[] array = new char[n];
+		if (deque.isEmpty()) {
+			int nRead;
+			try {
+				nRead = reader.read(array);
+			} catch (IOException e) {
+				throw new ParsingException("Failed to read data", e);
+			}
+			if (nRead != n) return Arrays.copyOf(array, nRead);
+			return array;
+		} else {
+			int offset = Math.min(deque.size(), n);
+			for (int i = 0; i < offset; i++) {
+				int next = deque.removeFirst();
+				if (next == EOS) {
+					return Arrays.copyOf(array, i);
+				}
+				array[i] = (char)next;
+			}
+			int length = n - offset;
+			int nRead;
+			try {
+				nRead = reader.read(array, offset, length);
+			} catch (IOException e) {
+				throw new ParsingException("Failed to read data", e);
+			}
+			if (nRead != length) return Arrays.copyOf(array, offset + nRead);
+			return array;
 		}
-		next = c;//remember this char for later
-		return builder.build();
 	}
 
 	@Override
-	public char seekChar() {
-		int n = seek();
-		if (n == EOS)
-			throw new ParsingException("Not enough data available");
-		return (char)n;
+	public char[] readChars(int n) {
+		char[] array = new char[n];
+		if (deque.isEmpty()) {
+			int nRead;
+			try {
+				nRead = reader.read(array);
+			} catch (IOException e) {
+				throw new ParsingException("Failed to read data", e);
+			}
+			if (nRead != n) return Arrays.copyOf(array, nRead);
+			return array;
+		} else {
+			int offset = Math.min(deque.size(), n);
+			for (int i = 0; i < offset; i++) {
+				int next = deque.removeFirst();
+				if (next == EOS) {
+					throw new ParsingException("Not enough data available.");
+				}
+				array[i] = (char)next;
+			}
+			int length = n - offset;
+			int nRead;
+			try {
+				nRead = reader.read(array, offset, length);
+			} catch (IOException e) {
+				throw new ParsingException("Failed to read data", e);
+			}
+			if (nRead != length) {
+				throw new ParsingException("Not enough data available.");
+			}
+			return array;
+		}
 	}
 }

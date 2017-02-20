@@ -37,4 +37,13 @@ public interface CharacterOutput {
 	 * @param s the string to write
 	 */
 	void write(String s);
+
+	/**
+	 * Writes all the characters in the given CharsWrapper.
+	 *
+	 * @param cw the CharsWrapper to write
+	 */
+	default void write(CharsWrapper cw) {
+		write(cw.getChars());
+	}
 }

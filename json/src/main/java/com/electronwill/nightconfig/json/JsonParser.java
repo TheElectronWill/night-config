@@ -112,7 +112,7 @@ public final class JsonParser {
 	}
 
 	private Number parseNumber() {
-		CharsWrapper chars = input.readCharUntil(NUMBER_END);
+		CharsWrapper chars = input.readCharsUntil(NUMBER_END);
 		if (chars.contains('.') || chars.contains('e') || chars.contains('E')) {//must be a double
 			return Utils.parseDouble(chars);
 		}
