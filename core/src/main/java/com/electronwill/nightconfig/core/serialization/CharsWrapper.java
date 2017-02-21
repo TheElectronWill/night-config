@@ -161,6 +161,23 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		return true;
 	}
 
+	/**
+	 * Compares this CharsWrapper to an array of characters.
+	 *
+	 * @param array the array to compare with this CharsWrapper
+	 * @return true if the array isn't null and contains the same characters as this CharsWrapper
+	 */
+	public boolean contentEquals(char[] array) {
+		final int l = length();
+		if (array == null || array.length != l) return false;
+
+		for (int i = 0; i < l; i++) {
+			if (chars[i + offset] != array[i])
+				return false;
+		}
+		return true;
+	}
+
 	@Override
 	public int hashCode() {
 		int hashCode = 1;
