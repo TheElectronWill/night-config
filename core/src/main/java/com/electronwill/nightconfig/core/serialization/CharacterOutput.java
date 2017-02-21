@@ -18,7 +18,7 @@ public interface CharacterOutput {
 	 *
 	 * @param chars the characters to write
 	 */
-	default void write(char[] chars) {
+	default void write(char... chars) {
 		write(chars, 0, chars.length);
 	}
 
@@ -44,6 +44,6 @@ public interface CharacterOutput {
 	 * @param cw the CharsWrapper to write
 	 */
 	default void write(CharsWrapper cw) {
-		write(cw.getChars());
+		write(cw.getChars(), cw.getOffset(), cw.getLimit());
 	}
 }
