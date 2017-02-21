@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 /**
- * A simple, efficient implementation of CharSequence. To avoid data copying, its constructor doesn't
- * perfom any copy of the char array.
+ * A simple, efficient implementation of CharSequence, designed to avoid data copying and to maximize
+ * performance.
  *
  * @author TheElectronWill
  */
@@ -19,7 +19,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	 *
 	 * @param chars the char array to use
 	 */
-	public CharsWrapper(char[] chars) {
+	public CharsWrapper(char... chars) {
 		this(chars, 0, chars.length);
 	}
 
@@ -28,13 +28,38 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	 * reflected to the CharsWrapper and vice-versa.
 	 *
 	 * @param chars  the char array to use
-	 * @param offset the index (in the array) of the first character of the Wrapper
-	 * @param limit  the index +1 (in the array) of the last character of the Wrapper
+	 * @param offset the index (in the array) of the first character to use
+	 * @param limit  the index +1 (in the array) of the last character to use
 	 */
 	public CharsWrapper(char[] chars, int offset, int limit) {
 		this.chars = chars;
 		this.offset = offset;
 		this.limit = limit;
+	}
+
+	/**
+	 * Creates a new CharsWrapper containing the same characters as the specified String. The data is
+	 * copied and the new CharsWrapper is completely independent.
+	 *
+	 * @param str the String to copy
+	 */
+	public CharsWrapper(String str) {
+		this(str, 0, str.length());
+	}
+
+	/**
+	 * Creates a new CharsWrapper containing the same characters as the specified String. The data is
+	 * copied and the new CharsWrapper is completely independent.
+	 *
+	 * @param str   the String to copy
+	 * @param begin index of the first character to copy from str
+	 * @param end   index after the last character to copy from str
+	 */
+	public CharsWrapper(String str, int begin, int end) {
+		offset = 0;
+		limit = end - begin;
+		chars = new char[limit];
+		str.getChars(begin, end, chars, 0);
 	}
 
 	/**
@@ -44,20 +69,26 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	 * @param csq the sequence to copy
 	 */
 	public CharsWrapper(CharSequence csq) {
-		offset = 0;
-		limit = csq.length();
-		chars = new char[limit];
-		for (int i = 0; i < limit; i++) {
-			chars[i] = csq.charAt(i);
-		}
+		this(csq, 0, csq.length());
 	}
 
 	/**
-	 * Returns the underlying char array that contains the CharsWrapper's characters. Any modification to
-	 * the array is reflected to the CharsWrapper and vice-versa.
+	 * Creates a new CharsWrapper containing the same characters as the specified CharSequence. The data is
+	 * copied and the new CharsWrapper is completely independent.
 	 *
-	 * @return the underlying char array
+	 * @param csq   the sequence to copy
+	 * @param begin index of the first character to copy from csq
+	 * @param end   index after the last character to copy from csq
 	 */
+	public CharsWrapper(CharSequence csq, int begin, int end) {
+		offset = 0;
+		limit = end - begin;
+		chars = new char[limit];
+		for (int i = begin; i < end; i++) {
+			chars[i - begin] = csq.charAt(i);
+		}
+	}
+
 	char[] getChars() {
 		return chars;
 	}
@@ -81,27 +112,59 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	}
 
 	/**
-	 * {@inheritDoc}
-	 * <p>
-	 * This method copies the data so the returned CharsWrapper doesn't share its array with this CharsWrapper
-	 * and is completely independant.
-	 * </p>
+	 * @param index the character's index (the first character is at index 0)
+	 * @return the character at the specified index
 	 */
-	@Override
-	public CharsWrapper subSequence(int start, int end) {
-		return new CharsWrapper(Arrays.copyOfRange(chars, start, end));
+	public char get(int index) {
+		return chars[offset + index];
 	}
 
 	/**
-	 * Creates a view of a part of this CharsWrapper. Any modification to the view is reflected to the
-	 * original CharsWrapper and vice-versa.
+	 * Sets the value of a character.
 	 *
-	 * @param start the start index, inclusive
-	 * @param end   the end index, exclusive
-	 * @return a new CharsWrapper that is a view of a part of this CharsWrapper
+	 * @param index the character's index (the first character is at index 0)
+	 * @param ch    the character value to set
 	 */
-	public CharsWrapper subView(int start, int end) {
-		return new CharsWrapper(chars, start, end);
+	public void set(int index, char ch) {
+		chars[offset + index] = ch;
+	}
+
+	/**
+	 * Replaces all occurences in this Wrapper of a character by another one.
+	 *
+	 * @param ch          the character to replace
+	 * @param replacement the replacement to use
+	 */
+	public void replaceAll(char ch, char replacement) {
+		for (int i = offset; i < limit; i++) {
+			if (chars[i] == ch)
+				chars[i] = replacement;
+		}
+	}
+
+	/**
+	 * Checks if this CharsWrapper contains the specified character.
+	 *
+	 * @param c the character to look for
+	 * @return true if it contains the character, false if it does not
+	 */
+	public boolean contains(char c) {
+		return indexOf(c) != -1;
+	}
+
+	/**
+	 * Returns the index within this CharsWrapper of the first occurrence of the specified character.
+	 * Returns -1 if this CharsWrapper doesn't contains the character.
+	 *
+	 * @param c the character to look for
+	 * @return the index of the first occurence of {@code c}, or {@code -1} if not found.
+	 */
+	public int indexOf(char c) {
+		for (int i = offset; i < limit; i++) {
+			char ch = chars[i];
+			if (ch == c) return i - offset;
+		}
+		return -1;
 	}
 
 	@Override
@@ -178,6 +241,35 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * This method copies the data so the returned CharsWrapper doesn't share its array with this CharsWrapper
+	 * and is completely independant.
+	 * </p>
+	 */
+	@Override
+	public CharsWrapper subSequence(int start, int end) {
+		return new CharsWrapper(Arrays.copyOfRange(chars, start, end));
+	}
+
+	/**
+	 * Creates a view of a part of this CharsWrapper. Any modification to the view is reflected to the
+	 * original CharsWrapper and vice-versa.
+	 *
+	 * @param start the start index, inclusive
+	 * @param end   the end index, exclusive
+	 * @return a new CharsWrapper that is a view of a part of this CharsWrapper
+	 */
+	public CharsWrapper subView(int start, int end) {
+		return new CharsWrapper(chars, start, end);
+	}
+
+	@Override
+	public String toString() {
+		return new String(chars, offset, length());
+	}
+
 	@Override
 	public int hashCode() {
 		int hashCode = 1;
@@ -196,36 +288,6 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	@Override
 	public CharsWrapper clone() {
 		return new CharsWrapper(Arrays.copyOf(chars, chars.length));
-	}
-
-	@Override
-	public String toString() {
-		return new String(chars);
-	}
-
-	/**
-	 * Checks if this CharsWrapper contains the specified character.
-	 *
-	 * @param c the character to look for
-	 * @return true if it contains the character, false if it does not
-	 */
-	public boolean contains(char c) {
-		return indexOf(c) != -1;
-	}
-
-	/**
-	 * Returns the index within this CharsWrapper of the first occurrence of the specified character.
-	 * Returns -1 if this CharsWrapper doesn't contains the character.
-	 *
-	 * @param c the character to look for
-	 * @return the index of the first occurence of {@code c}, or {@code -1} if not found.
-	 */
-	public int indexOf(char c) {
-		for (int i = offset; i < limit; i++) {
-			char ch = chars[i];
-			if (ch == c) return i;
-		}
-		return -1;
 	}
 
 	@Override
@@ -248,7 +310,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	/**
 	 * Builder class for constructing CharsWrappers.
 	 */
-	public static class Builder implements CharacterOutput {
+	public static final class Builder implements CharacterOutput, Appendable {
 		private char[] data;
 		private int cursor = 0;
 
@@ -268,34 +330,34 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		 */
 		private void ensureCapacity(int capacity) {
 			if (data.length < capacity) {
-				int newCapacity = Math.max(capacity, data.length * 2);
+				int newCapacity = Math.max(capacity, data.length * 3 / 2);
 				data = Arrays.copyOf(data, newCapacity);
 			}
 		}
 
-		/**
-		 * Appends a character to this builder.
-		 *
-		 * @param c the character to append
-		 * @return this builder
-		 */
+		@Override
 		public Builder append(char c) {
 			write(c);
 			return this;
 		}
 
-		/**
-		 * Appends a CharSequence to this builder.
-		 *
-		 * @param sequence the sequence to append
-		 * @return this builder
-		 */
-		public Builder append(CharSequence sequence) {
-			final int length = sequence.length();//caches the length for better performance.
-			// The sequence must not change between this point and the end of the loop!
+		@Override
+		public Builder append(CharSequence csq) {
+			if (csq == null) {
+				return append('n', 'u', 'l', 'l');
+			}
+			return append(csq, 0, csq.length());
+		}
+
+		@Override
+		public Builder append(CharSequence csq, int start, int end) {
+			if (csq == null) {
+				return append('n', 'u', 'l', 'l', start, end);
+			}
+			int length = end - start;
 			ensureCapacity(cursor + length);
-			for (int i = 0; i < length; i++) {
-				data[cursor + i] = sequence.charAt(i);
+			for (int i = start; i < end; i++) {
+				data[cursor + i] = csq.charAt(i);
 			}
 			cursor += length;
 			return this;
@@ -307,7 +369,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		 * @param chars the array to append
 		 * @return this builder
 		 */
-		public Builder append(char[] chars) {
+		public Builder append(char... chars) {
 			return append(chars, 0, chars.length);
 		}
 
@@ -332,12 +394,15 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		 * @return this builder
 		 */
 		public Builder append(Object o) {
-			return append(String.valueOf(o));
+			if (o == null) {
+				return append('n', 'u', 'l', 'l');
+			}
+			return append(o.toString());
 		}
 
 		/**
 		 * Appends multiple objects to this builder. This is equivalent to calling {@code append(String
-		 * .valueOf (o))} in a loop.
+		 * .valueOf(o))} in a loop.
 		 *
 		 * @param objects the objects to append
 		 * @return this builder
@@ -387,7 +452,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		/**
 		 * {@inheritDoc}
 		 *
-		 * @deprecated use {@link #build()} instead
+		 * @deprecated use {@link #build()} or {@link #copyAndBuild()} instead
 		 */
 		@Override
 		@Deprecated
@@ -398,8 +463,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		@Override
 		public void write(char c) {
 			ensureCapacity(cursor + 1);
-			data[cursor] = c;
-			cursor++;
+			data[cursor++] = c;
 		}
 
 		@Override
