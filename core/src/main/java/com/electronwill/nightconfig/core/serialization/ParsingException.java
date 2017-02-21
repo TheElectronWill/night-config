@@ -12,10 +12,6 @@ public class ParsingException extends RuntimeException {
 		super(message, cause);
 	}
 
-	public ParsingException(Throwable cause) {
-		super(cause);
-	}
-
 	public static ParsingException readFailed(Throwable cause) {
 		return new ParsingException("Failed to read data", cause);
 	}
