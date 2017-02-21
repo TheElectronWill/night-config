@@ -68,15 +68,15 @@ public interface CharacterInput {
 	 * @param n the number of characters to read
 	 * @return an array containing at most n characters, not null
 	 */
-	default char[] read(int n) {
-		char[] chars = new char[n];
+	default CharsWrapper read(int n) {
+		CharsWrapper.Builder builder = new CharsWrapper.Builder(n);
 		for (int i = 0; i < n; i++) {
 			int next = read();
 			if (next == -1)//EOS
-				return Arrays.copyOf(chars, i);//return a smaller array
-			chars[i] = (char)next;
+				break;
+			builder.append((char)next);
 		}
-		return chars;
+		return builder.build();
 	}
 
 	/**
@@ -86,15 +86,15 @@ public interface CharacterInput {
 	 * @return an array containing the next n characters, not null
 	 * @throws ParsingException if there is no more available data
 	 */
-	default char[] readChars(int n) {
+	default CharsWrapper readChars(int n) {
 		char[] chars = new char[n];
 		for (int i = 0; i < n; i++) {
 			int next = read();
 			if (next == -1)//EOS
-				throw new ParsingException("Not enough data available.");
+				throw new ParsingException("Not enough data available");
 			chars[i] = (char)next;
 		}
-		return chars;
+		return new CharsWrapper(chars);
 	}
 
 	/**

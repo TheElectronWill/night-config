@@ -1,7 +1,5 @@
 package com.electronwill.nightconfig.core.serialization;
 
-import java.util.Arrays;
-
 /**
  * An implementation of {@link CharacterInput} based on an array of characters.
  *
@@ -41,55 +39,45 @@ public final class ArrayInput extends AbstractInput {
 	@Override
 	public char directReadChar() throws ParsingException {
 		if (index >= chars.length)
-			throw new ParsingException("Not enough data available.");
+			throw new ParsingException("Not enough data available");
 		return chars[index++];
 	}
 
 	@Override
-	public char[] read(int n) {
+	public CharsWrapper read(int n) {
 		// Overriden method to provide better performance: use arraycopy instead of taking the characters
 		// one by one.
 		n = Math.min(n, chars.length - index + deque.size());
-		final int offset;
+		final int offset = Math.min(deque.size(), n);
 		final char[] array = new char[n];
-		if (deque.isEmpty()) {
-			offset = 0;
-		} else {
-			offset = Math.min(deque.size(), n);
-			for (int i = 0; i < offset; i++) {
-				int next = deque.removeFirst();
-				if (next == EOS) {
-					return Arrays.copyOf(array, i);
-				}
-				array[i] = (char)next;
+		for (int i = 0; i < offset; i++) {
+			int next = deque.removeFirst();
+			if (next == EOS) {
+				return new CharsWrapper(array, 0, i);
 			}
+			array[i] = (char)next;
 		}
 		System.arraycopy(chars, index, array, offset, n - offset);
 		index += n;
-		return array;
+		return new CharsWrapper(array);
 	}
 
 	@Override
-	public char[] readChars(final int n) {
+	public CharsWrapper readChars(final int n) {
 		if (chars.length - index + deque.size() < n) {
-			throw new ParsingException("Not enough data available.");
+			throw new ParsingException("Not enough data available");
 		}
-		final int offset;
+		final int offset = Math.min(deque.size(), n);
 		final char[] array = new char[n];
-		if (deque.isEmpty()) {
-			offset = 0;
-		} else {
-			offset = Math.min(deque.size(), n);
-			for (int i = 0; i < offset; i++) {
-				int next = deque.removeFirst();
-				if (next == EOS) {
-					throw new ParsingException("Not enough data available.");
-				}
-				array[i] = (char)next;
+		for (int i = 0; i < offset; i++) {
+			int next = deque.removeFirst();
+			if (next == EOS) {
+				throw new ParsingException("Not enough data available");
 			}
+			array[i] = (char)next;
 		}
 		System.arraycopy(chars, index, array, offset, n - offset);
 		index += n;
-		return array;
+		return new CharsWrapper(array);
 	}
 }
