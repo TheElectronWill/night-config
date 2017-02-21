@@ -39,7 +39,7 @@ public final class ArrayInput extends AbstractInput {
 	@Override
 	public char directReadChar() throws ParsingException {
 		if (index >= chars.length)
-			throw new ParsingException("Not enough data available");
+			throw ParsingException.notEnoughData();
 		return chars[index++];
 	}
 
@@ -65,14 +65,14 @@ public final class ArrayInput extends AbstractInput {
 	@Override
 	public CharsWrapper readChars(final int n) {
 		if (chars.length - index + deque.size() < n) {
-			throw new ParsingException("Not enough data available");
+			throw ParsingException.notEnoughData();
 		}
 		final int offset = Math.min(deque.size(), n);
 		final char[] array = new char[n];
 		for (int i = 0; i < offset; i++) {
 			int next = deque.removeFirst();
 			if (next == EOS) {
-				throw new ParsingException("Not enough data available");
+				throw ParsingException.notEnoughData();
 			}
 			array[i] = (char)next;
 		}

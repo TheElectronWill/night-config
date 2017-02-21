@@ -20,7 +20,7 @@ public final class ReaderInput extends AbstractInput {
 		try {
 			return reader.read();
 		} catch (IOException e) {
-			throw new ParsingException("Failed to read data", e);
+			throw ParsingException.readFailed(e);
 		}
 	}
 
@@ -30,10 +30,10 @@ public final class ReaderInput extends AbstractInput {
 		try {
 			read = reader.read();
 		} catch (IOException e) {
-			throw new ParsingException("Failed to read data", e);
+			throw ParsingException.readFailed(e);
 		}
 		if (read == -1) {
-			throw new ParsingException("Not enough data available");
+			throw ParsingException.notEnoughData();
 		}
 		return (char)read;
 	}
@@ -55,7 +55,7 @@ public final class ReaderInput extends AbstractInput {
 		try {
 			nRead = reader.read(array, offset, n - offset);
 		} catch (IOException e) {
-			throw new ParsingException("Failed to read data", e);
+			throw ParsingException.readFailed(e);
 		}
 		return new CharsWrapper(array, 0, offset + nRead);
 	}
@@ -67,7 +67,7 @@ public final class ReaderInput extends AbstractInput {
 		for (int i = 0; i < offset; i++) {
 			int next = deque.removeFirst();
 			if (next == EOS) {
-				throw new ParsingException("Not enough data available");
+				throw ParsingException.notEnoughData();
 			}
 			array[i] = (char)next;
 		}
@@ -76,10 +76,10 @@ public final class ReaderInput extends AbstractInput {
 		try {
 			nRead = reader.read(array, offset, length);
 		} catch (IOException e) {
-			throw new ParsingException("Failed to read data", e);
+			throw ParsingException.readFailed(e);
 		}
 		if (nRead != length) {
-			throw new ParsingException("Not enough data available");
+			throw ParsingException.notEnoughData();
 		}
 		return new CharsWrapper(array);
 	}

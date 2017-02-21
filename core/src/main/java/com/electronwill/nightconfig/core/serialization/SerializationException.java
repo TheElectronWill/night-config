@@ -15,4 +15,8 @@ public class SerializationException extends RuntimeException {
 	public SerializationException(Throwable cause) {
 		super(cause);
 	}
+
+	public static SerializationException writeFailed(Throwable cause) {
+		return new SerializationException("Failed to write data", cause);
+	}
 }

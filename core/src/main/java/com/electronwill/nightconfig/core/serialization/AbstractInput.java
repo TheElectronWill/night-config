@@ -23,7 +23,7 @@ public abstract class AbstractInput implements CharacterInput {
 	 * @return the next character
 	 * @throws ParsingException if the EOS has been reached
 	 */
-	public abstract char directReadChar() throws ParsingException;
+	public abstract char directReadChar();
 
 	@Override
 	public int read() {
@@ -38,7 +38,7 @@ public abstract class AbstractInput implements CharacterInput {
 		if (!deque.isEmpty()) {
 			int next = deque.removeFirst();
 			if (next == EOS)
-				throw new ParsingException("Not enough data available.");
+				throw ParsingException.notEnoughData();
 			return (char)next;
 		}
 		return directReadChar();
@@ -72,7 +72,7 @@ public abstract class AbstractInput implements CharacterInput {
 	public char peekChar() {
 		int c = peek();
 		if (c == EOS)
-			throw new ParsingException("Not enough data available.");
+			throw ParsingException.notEnoughData();
 		return (char)c;
 	}
 
@@ -80,7 +80,7 @@ public abstract class AbstractInput implements CharacterInput {
 	public char peekChar(int n) {
 		int c = peek(n);
 		if (c == EOS)
-			throw new ParsingException("Not enough data available.");
+			throw ParsingException.notEnoughData();
 		return (char)c;
 	}
 

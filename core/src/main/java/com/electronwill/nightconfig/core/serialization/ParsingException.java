@@ -15,4 +15,12 @@ public class ParsingException extends RuntimeException {
 	public ParsingException(Throwable cause) {
 		super(cause);
 	}
+
+	public static ParsingException readFailed(Throwable cause) {
+		return new ParsingException("Failed to read data", cause);
+	}
+
+	public static ParsingException notEnoughData() {
+		return new ParsingException("Not enough data available");
+	}
 }

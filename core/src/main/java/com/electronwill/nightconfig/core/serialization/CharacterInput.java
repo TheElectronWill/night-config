@@ -1,7 +1,5 @@
 package com.electronwill.nightconfig.core.serialization;
 
-import java.util.Arrays;
-
 /**
  * Interface for sources of characters.
  * <p>
@@ -90,8 +88,9 @@ public interface CharacterInput {
 		char[] chars = new char[n];
 		for (int i = 0; i < n; i++) {
 			int next = read();
-			if (next == -1)//EOS
-				throw new ParsingException("Not enough data available");
+			if (next == -1) {//EOS
+				throw ParsingException.notEnoughData();
+			}
 			chars[i] = (char)next;
 		}
 		return new CharsWrapper(chars);
