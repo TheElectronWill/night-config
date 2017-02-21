@@ -49,26 +49,35 @@ public final class Utils {
 	 * @return the long value represented by the CharsWrapper
 	 */
 	public static long parseLong(CharsWrapper chars, int base) {
-		return parseLong(chars.getChars(), base);
+		//Optimized lightweight parsing
+		int offset = chars.getOffset();
+		boolean negative = false;
+		char firstChar = chars.charAt(0);
+		if (firstChar == '-') {
+			negative = true;
+			offset += 1;
+		} else if (firstChar == '+') {
+			offset += 1;
+		}
+		long value = 0, coefficient = 1;
+		char[] array = chars.getChars();
+		for (int i = chars.getLimit() - 1; i > offset; i--) {
+			int digitValue = Character.digit(array[i], base);
+			value += digitValue * coefficient;
+			coefficient *= base;
+		}
+		return negative ? -value : value;
 	}
 
 	/**
 	 * Parses an array of chars that represents a long value in the specified base.
 	 *
-	 * @param chars the CharsWrapper representing a long
+	 * @param chars the array of characters representing a long
 	 * @param base  the base of the number
 	 * @return the long value represented by the CharsWrapper
 	 */
 	public static long parseLong(char[] chars, int base) {
-		//Optimized lightweight parsing
-		boolean negative = (chars[0] == '-');
-		long value = 0, coefficient = 1;
-		for (int i = 0; i < chars.length; i++) {
-			int digitValue = Character.digit(chars[i], base);
-			value += digitValue * coefficient;
-			coefficient *= base;
-		}
-		return negative ? -value : value;
+		return parseLong(new CharsWrapper(chars), base);
 	}
 
 	/**
@@ -79,26 +88,18 @@ public final class Utils {
 	 * @return the int value represented by the CharsWrapper
 	 */
 	public static int parseInt(CharsWrapper chars, int base) {
-		return parseInt(chars.getChars(), base);
+		return (int)parseLong(chars, base);
 	}
 
 	/**
 	 * Parses an array of chars that represents an int value in the specified base.
 	 *
-	 * @param chars the CharsWrapper representing an int
+	 * @param chars the array of characters representing an int
 	 * @param base  the base of the number
 	 * @return the int value represented by the CharsWrapper
 	 */
 	public static int parseInt(char[] chars, int base) {
-		//Optimized lightweight parsing
-		boolean negative = (chars[0] == '-');
-		int value = 0, coefficient = 1;
-		for (int i = 0; i < chars.length; i++) {
-			int digitValue = Character.digit(chars[i], base);
-			value += digitValue * coefficient;
-			coefficient *= base;
-		}
-		return negative ? -value : value;
+		return (int)parseLong(chars, base);
 	}
 
 	/**
