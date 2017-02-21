@@ -5,7 +5,6 @@ import com.electronwill.nightconfig.core.MapConfig;
 import com.electronwill.nightconfig.core.serialization.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
 import java.util.List;
 
 /**

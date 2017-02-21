@@ -120,22 +120,22 @@ public final class JsonParser {
 	}
 
 	private boolean parseTrue() {
-		char[] chars = input.readChars(3);
-		if (!Arrays.equals(chars, TRUE_LAST))
+		CharsWrapper chars = input.readChars(3);
+		if (!chars.contentEquals(TRUE_LAST))
 			throw new ParsingException("Invalid value: t" + new CharsWrapper(chars) + " - expected boolean true");
 		return true;
 	}
 
 	private boolean parseFalse() {
-		char[] chars = input.readChars(4);
-		if (!Arrays.equals(chars, FALSE_LAST))
+		CharsWrapper chars = input.readChars(4);
+		if (!chars.contentEquals(FALSE_LAST))
 			throw new ParsingException("Invalid value: f" + new CharsWrapper(chars) + " - expected boolean false");
 		return false;
 	}
 
 	private Object parseNull() {
-		char[] chars = input.readChars(3);
-		if (!Arrays.equals(chars, NULL_LAST))
+		CharsWrapper chars = input.readChars(3);
+		if (!chars.contentEquals(NULL_LAST))
 			throw new ParsingException("Invaid value: n" + new CharsWrapper(chars) + " - expected null");
 		return null;
 	}
@@ -143,7 +143,8 @@ public final class JsonParser {
 	private String parseString() {
 		StringBuilder builder = new StringBuilder();
 		boolean escape = false;
-		for (char c = input.readChar(); c != '"' || escape; c = input.readChar()) {
+		char c;
+		while((c = input.readChar()) != '"' || escape) {
 			if (escape) {
 				builder.append(escape(c));
 				escape = false;
@@ -173,7 +174,7 @@ public final class JsonParser {
 			case 't':
 				return '\t';
 			case 'u':
-				char[] chars = input.readChars(4);
+				CharsWrapper chars = input.readChars(4);
 				return (char)Utils.parseInt(chars, 16);
 			default:
 				throw new ParsingException("Invalid escapement: \\" + c);
