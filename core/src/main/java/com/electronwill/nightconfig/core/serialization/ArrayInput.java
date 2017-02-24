@@ -7,7 +7,8 @@ package com.electronwill.nightconfig.core.serialization;
  */
 public final class ArrayInput extends AbstractInput {
 	private final char[] chars;
-	private int index = 0;
+	private final int limit;
+	private int cursor;
 
 	/**
 	 * Creates a new ArrayInput based on the underlying array of the specified CharsWrapper. Any
@@ -16,7 +17,7 @@ public final class ArrayInput extends AbstractInput {
 	 * @param chars the CharsWrapper to use as an input
 	 */
 	public ArrayInput(CharsWrapper chars) {
-		this(chars.getChars());
+		this(chars.getChars(), chars.getOffset(), chars.getLimit());
 	}
 
 	/**
@@ -26,28 +27,42 @@ public final class ArrayInput extends AbstractInput {
 	 * @param chars the char array to use as an input
 	 */
 	public ArrayInput(char[] chars) {
+		this(chars, 0, chars.length);
+	}
+
+	/**
+	 * Creates a new ArrayInput based on the specified array. Any modification to the array is reflected to
+	 * the input.
+	 *
+	 * @param chars  the char array to use as an input
+	 * @param offset the index to begin at (inclusive index)
+	 * @param limit  the limit to stop at (exclusive index)
+	 */
+	public ArrayInput(char[] chars, int offset, int limit) {
 		this.chars = chars;
+		this.cursor = offset;
+		this.limit = limit;
 	}
 
 	@Override
-		if (index >= chars.length)
 	protected int directRead() {
+		if (cursor >= limit)
 			return EOS;
-		return chars[index++];
+		return chars[cursor++];
 	}
 
 	@Override
-		if (index >= chars.length)
 	protected char directReadChar() throws ParsingException {
+		if (cursor >= limit)
 			throw ParsingException.notEnoughData();
-		return chars[index++];
+		return chars[cursor++];
 	}
 
 	@Override
 	public CharsWrapper read(int n) {
 		// Overriden method to provide better performance: use arraycopy instead of taking the characters
 		// one by one.
-		n = Math.min(n, chars.length - index + deque.size());
+		n = Math.min(n, limit - cursor + deque.size());
 		final int offset = Math.min(deque.size(), n);
 		final char[] array = new char[n];
 		for (int i = 0; i < offset; i++) {
@@ -57,14 +72,14 @@ public final class ArrayInput extends AbstractInput {
 			}
 			array[i] = (char)next;
 		}
-		System.arraycopy(chars, index, array, offset, n - offset);
-		index += n;
+		System.arraycopy(chars, cursor, array, offset, n - offset);
+		cursor += n;
 		return new CharsWrapper(array);
 	}
 
 	@Override
 	public CharsWrapper readChars(final int n) {
-		if (chars.length - index + deque.size() < n) {
+		if (limit - cursor + deque.size() < n) {
 			throw ParsingException.notEnoughData();
 		}
 		final int offset = Math.min(deque.size(), n);
@@ -76,8 +91,8 @@ public final class ArrayInput extends AbstractInput {
 			}
 			array[i] = (char)next;
 		}
-		System.arraycopy(chars, index, array, offset, n - offset);
-		index += n;
+		System.arraycopy(chars, cursor, array, offset, n - offset);
+		cursor += n;
 		return new CharsWrapper(array);
 	}
 }
