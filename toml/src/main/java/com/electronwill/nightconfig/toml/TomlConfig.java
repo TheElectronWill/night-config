@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.temporal.Temporal;
 import java.util.HashSet;
 import java.util.List;
 
@@ -14,31 +15,15 @@ import java.util.List;
  */
 public class TomlConfig extends MapConfig {
 
-	private static final HashSet<Class<?>> SUPPORTED_TYPES = new HashSet<>();
-
-	static {
-		SUPPORTED_TYPES.add(int.class);
-		SUPPORTED_TYPES.add(Integer.class);
-		SUPPORTED_TYPES.add(long.class);
-		SUPPORTED_TYPES.add(Long.class);
-		SUPPORTED_TYPES.add(float.class);
-		SUPPORTED_TYPES.add(Float.class);
-		SUPPORTED_TYPES.add(double.class);
-		SUPPORTED_TYPES.add(Double.class);
-		SUPPORTED_TYPES.add(boolean.class);
-		SUPPORTED_TYPES.add(Boolean.class);
-		SUPPORTED_TYPES.add(String.class);
-		SUPPORTED_TYPES.add(List.class);
-		SUPPORTED_TYPES.add(Config.class);
-		SUPPORTED_TYPES.add(LocalTime.class);
-		SUPPORTED_TYPES.add(LocalDate.class);
-		SUPPORTED_TYPES.add(LocalDateTime.class);
-		SUPPORTED_TYPES.add(OffsetDateTime.class);
-	}
-
 	@Override
 	public boolean supportsType(Class<?> type) {
-		return SUPPORTED_TYPES.contains(type)
+		return type == Integer.class
+			|| type == Long.class
+			|| type == Float.class
+			|| type == Double.class
+			|| type == Boolean.class
+			|| type == String.class
+			|| Temporal.class.isAssignableFrom(type)
 			|| List.class.isAssignableFrom(type)
 			|| Config.class.isAssignableFrom(type);
 	}
