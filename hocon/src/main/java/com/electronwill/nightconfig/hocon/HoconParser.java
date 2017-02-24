@@ -5,53 +5,117 @@ import com.electronwill.nightconfig.core.serialization.CharsWrapper;
 import com.electronwill.nightconfig.core.serialization.ParsingException;
 import com.electronwill.nightconfig.core.serialization.Utils;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * @author TheElectronWill
  */
 public final class HoconParser {
-	private static final char[] SPACES = {' ', '\t', '\n', '\r'};
+	private static final char[] ADDITIONAL_SPACES =
+		{'\t', '\r', '\uFEFF', '\u000B', '\u000C', '\u001C', '\u001D', '\u001D', '\u001E', '\u001F'};
+
+	private static final char[] NEWLINE = {('\n')};
 	private static final char[] TRUE_LAST = {'r', 'u', 'e'}, FALSE_LAST = {'a', 'l', 's', 'e'};
 	private static final char[] NULL_LAST = {'u', 'l', 'l'};
 	private static final char[] NUMBER_END = {',', '}', ']', ' ', '\t', '\n', '\r'};
+	private static final char[] UNQUOTED_FORBIDDEN = {'$', '"', '{', '}', '[', ']', ':', '=', ',', '+',
+		'#', '`', '^', '?', '!', '@', '*', '&', '\\'};//whitespaces are forbidden too
 
 	private final CharacterInput input;
+	private boolean rootBracesOmitted;
 
 	public HoconParser(CharacterInput input) {
 		this.input = input;
 	}
 
-	public HoconConfig parseHoconObject() {
+	private boolean isWhiteSpace(char c) {
+		return c == '\n' || isWhiteSpaceExceptLF(c);
+	}
+
+	private boolean isWhiteSpaceExceptLF(char c) {
+		return Character.isSpaceChar(c) || Utils.arrayContains(ADDITIONAL_SPACES, c);
+	}
+
+	private char readCharAndSkipSpaces() {
+		char c;
+		do {
+			c = input.readChar();
+			if ((c == '/' && input.peek() == '/') || c == '#') {//comment
+				input.readCharsUntil(NEWLINE);
+			}
+		} while (isWhiteSpace(c));
+		return c;
+	}
+
+	private char readCharAndSkipSpacesExceptLF() {
+		int read = readAndSkipSpacesExceptLF();
+		if (read == -1) throw ParsingException.notEnoughData();
+		return (char)read;
+	}
+
+	private int readAndSkipSpacesExceptLF() {
+		int c;
+		do {
+			c = input.readChar();
+			if (c == -1) {
+				return -1;
+			} else if ((c == '/' && input.peek() == '/') || c == '#') {//comment
+				input.readCharsUntil(NEWLINE);
+			}
+		} while (isWhiteSpaceExceptLF((char)c));
+		return c;
+	}
+
+	public HoconConfig parseRootObject() {
+		char firstChar = readCharAndSkipSpaces();
+		if (firstChar != '{') {
+			rootBracesOmitted = true;
+		}
 		HoconConfig config = new HoconConfig();
-		parseHoconObject(config);
+		parseObject(config, firstChar);
 		return config;
 	}
 
-	public void parseHoconObject(HoconConfig config) {
-		char firstChar = input.readCharAndSkip(SPACES);
-		if (firstChar != '{')
-			throw new ParsingException("Invalid first character for a json object: " + firstChar);
-		parseObject(config);
+	private HoconConfig parseObject(HoconConfig config) {
+		return parseObject(config, -1);
 	}
 
-	private HoconConfig parseObject(HoconConfig config) {
+	private HoconConfig parseObject(HoconConfig config, int firstNonSpaceChar) {
 		while (true) {
-			char keyFirst = input.readCharAndSkip(SPACES);
+			final char keyFirst;
+			if (firstNonSpaceChar > 0 && firstNonSpaceChar != '{') {
+				keyFirst = (char)firstNonSpaceChar;
+			} else {
+				keyFirst = readCharAndSkipSpaces();
+			}
+			final String key;
+			if(keyFirst == '"')
+				key = parseString();
+			else
+				key = parseUnquotedString();
 			if (keyFirst != '"')
 				throw new ParsingException("Invalid beginning of a key: " + keyFirst);
 
-			String key = parseString();
-			char separator = input.readCharAndSkip(SPACES);
-			if (separator != ':')
+			final String key = parseString();
+			final char separator = readCharAndSkipSpaces();
+			if (separator == '{') {//A a key may be directly followed by { to declare an object
+				HoconConfig valueObject = parseObject(new HoconConfig());
+				config.setValue(key, valueObject);
+				continue;
+			}
+			if (separator != ':' && separator != '=')
 				throw new ParsingException("Invalid key/value separator: " + separator);
 
-			char valueFirst = input.readCharAndSkip(SPACES);
+			final char valueFirst = readCharAndSkipSpaces();
 			Object value = parseValue(valueFirst);
 			config.setValue(key, value);
 
-			char next = input.readCharAndSkip(SPACES);
+			final int next = readAndSkipSpacesExceptLF();
+			if (next == -1) {
+				if (rootBracesOmitted && firstNonSpaceChar > 0)//end of the root object
+					return config;
+				throw ParsingException.notEnoughData();
+			}
 			if (next == '}')//end of the object
 				return config;
 			else if (next != ',')
@@ -62,11 +126,11 @@ public final class HoconParser {
 	private List<Object> parseArray() {
 		final List<Object> list = new ArrayList<>();
 		while (true) {
-			char valueFirst = input.readCharAndSkip(SPACES);
+			char valueFirst = readCharAndSkipSpaces();
 			Object value = parseValue(valueFirst);
 			list.add(value);
 
-			char next = input.readCharAndSkip(SPACES);
+			char next = readCharAndSkipSpaces();
 			if (next == ']')//end of the array
 				return list;
 			else if (next != ',')//invalid separator
@@ -94,7 +158,7 @@ public final class HoconParser {
 	}
 
 	private Number parseNumber() {
-		CharsWrapper chars = input.readCharUntil(NUMBER_END);
+		CharsWrapper chars = input.readCharsUntil(NUMBER_END);
 		if (chars.contains('.') || chars.contains('e') || chars.contains('E')) {//must be a double
 			return Utils.parseDouble(chars);
 		}
@@ -102,22 +166,22 @@ public final class HoconParser {
 	}
 
 	private boolean parseTrue() {
-		char[] chars = input.readChars(3);
-		if (!Arrays.equals(chars, TRUE_LAST))
+		CharsWrapper chars = input.readChars(3);
+		if (!chars.contentEquals(TRUE_LAST))
 			throw new ParsingException("Invalid value: t" + new CharsWrapper(chars) + " - expected boolean true");
 		return true;
 	}
 
 	private boolean parseFalse() {
-		char[] chars = input.readChars(4);
-		if (!Arrays.equals(chars, FALSE_LAST))
+		CharsWrapper chars = input.readChars(4);
+		if (!chars.contentEquals(FALSE_LAST))
 			throw new ParsingException("Invalid value: f" + new CharsWrapper(chars) + " - expected boolean false");
 		return false;
 	}
 
 	private Object parseNull() {
-		char[] chars = input.readChars(3);
-		if (!Arrays.equals(chars, NULL_LAST))
+		CharsWrapper chars = input.readChars(3);
+		if (!chars.contentEquals(NULL_LAST))
 			throw new ParsingException("Invaid value: n" + new CharsWrapper(chars) + " - expected null");
 		return null;
 	}
@@ -125,7 +189,8 @@ public final class HoconParser {
 	private String parseString() {
 		StringBuilder builder = new StringBuilder();
 		boolean escape = false;
-		for (char c = input.readChar(); c != '"' || escape; c = input.readChar()) {
+		char c;
+		while((c = input.readChar()) != '"' || escape) {
 			if (escape) {
 				builder.append(escape(c));
 				escape = false;
@@ -137,6 +202,8 @@ public final class HoconParser {
 		}
 		return builder.toString();
 	}
+
+	private String parseUnquotedString()
 
 	private char escape(char c) {
 		switch (c) {
@@ -155,7 +222,7 @@ public final class HoconParser {
 			case 't':
 				return '\t';
 			case 'u':
-				char[] chars = input.readChars(4);
+				CharsWrapper chars = input.readChars(4);
 				return (char)Utils.parseInt(chars, 16);
 			default:
 				throw new ParsingException("Invalid escapement: \\" + c);
