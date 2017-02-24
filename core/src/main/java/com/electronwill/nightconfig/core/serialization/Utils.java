@@ -63,6 +63,9 @@ public final class Utils {
 		char[] array = chars.getChars();
 		for (int i = chars.getLimit() - 1; i > offset; i--) {
 			int digitValue = Character.digit(array[i], base);
+			if (digitValue == -1) {//invalid digit in the specified base
+				throw new ParsingException("Invalid value: " + chars);
+			}
 			value += digitValue * coefficient;
 			coefficient *= base;
 		}
