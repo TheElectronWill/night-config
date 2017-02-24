@@ -30,15 +30,15 @@ public final class ArrayInput extends AbstractInput {
 	}
 
 	@Override
-	public int directRead() {
 		if (index >= chars.length)
+	protected int directRead() {
 			return EOS;
 		return chars[index++];
 	}
 
 	@Override
-	public char directReadChar() throws ParsingException {
 		if (index >= chars.length)
+	protected char directReadChar() throws ParsingException {
 			throw ParsingException.notEnoughData();
 		return chars[index++];
 	}

@@ -16,7 +16,7 @@ public final class ReaderInput extends AbstractInput {
 	}
 
 	@Override
-	public int directRead() {
+	protected int directRead() {
 		try {
 			return reader.read();
 		} catch (IOException e) {
@@ -25,7 +25,7 @@ public final class ReaderInput extends AbstractInput {
 	}
 
 	@Override
-	public char directReadChar() throws ParsingException {
+	protected char directReadChar() throws ParsingException {
 		int read;
 		try {
 			read = reader.read();

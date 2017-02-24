@@ -15,7 +15,7 @@ public abstract class AbstractInput implements CharacterInput {
 	 *
 	 * @return the next character, or -1 if the EOS has been reached
 	 */
-	public abstract int directRead();
+	protected abstract int directRead();
 
 	/**
 	 * Tries to read the next character without taking care of the peek deque.
@@ -23,7 +23,7 @@ public abstract class AbstractInput implements CharacterInput {
 	 * @return the next character
 	 * @throws ParsingException if the EOS has been reached
 	 */
-	public abstract char directReadChar();
+	protected abstract char directReadChar();
 
 	@Override
 	public int read() {
