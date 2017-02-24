@@ -169,4 +169,11 @@ public interface CharacterInput {
 	 * Skips all the character that have been peeked and not read yead.
 	 */
 	void skipPeeks();
+
+	/**
+	 * Pushes a character back to the input, so that it will be returned by the next reading operation.
+	 *
+	 * @param c the character to push back
+	 */
+	void pushBack(char c);
 }

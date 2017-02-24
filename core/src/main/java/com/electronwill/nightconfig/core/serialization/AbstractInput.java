@@ -90,6 +90,11 @@ public abstract class AbstractInput implements CharacterInput {
 	}
 
 	@Override
+	public void pushBack(char c) {
+		deque.addFirst(c);
+	}
+
+	@Override
 	public CharsWrapper readUntil(char[] stop) {
 		CharsWrapper.Builder builder = new CharsWrapper.Builder(10);
 		int c = read();
