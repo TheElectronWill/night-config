@@ -32,9 +32,9 @@ public final class WriterOutput implements CharacterOutput {
 	}
 
 	@Override
-	public void write(String s) {
+	public void write(String s, int offset, int length) {
 		try {
-			writer.write(s);
+			writer.write(s, offset, length);
 		} catch (IOException e) {
 			throw new SerializationException("Failed to write data", e);
 		}

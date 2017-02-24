@@ -36,7 +36,18 @@ public interface CharacterOutput {
 	 *
 	 * @param s the string to write
 	 */
-	void write(String s);
+	default void write(String s) {
+		write(s, 0, s.length());
+	}
+
+	/**
+	 * Writes a portion of a String.
+	 *
+	 * @param s      the string to write
+	 * @param offset the index to start at
+	 * @param length the number of characters to write
+	 */
+	void write(String s, int offset, int length);
 
 	/**
 	 * Writes all the characters in the given CharsWrapper.
