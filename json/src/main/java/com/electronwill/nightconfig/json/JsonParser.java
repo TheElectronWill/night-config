@@ -5,7 +5,6 @@ import com.electronwill.nightconfig.core.serialization.CharsWrapper;
 import com.electronwill.nightconfig.core.serialization.ParsingException;
 import com.electronwill.nightconfig.core.serialization.Utils;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -28,6 +27,13 @@ public final class JsonParser {
 	 */
 	public JsonParser(CharacterInput input) {
 		this.input = input;
+	}
+
+	public Object parseJsonDocument() {
+		char firstChar = input.readCharAndSkip(SPACES);
+		if (firstChar == '{') return parseObject(new JsonConfig());
+		if (firstChar == '[') return parseArray(new ArrayList<>());
+		throw new ParsingException("Invalid first character for a json document: " + firstChar);
 	}
 
 	/**
@@ -54,6 +60,19 @@ public final class JsonParser {
 		parseObject(config);
 	}
 
+	public List<Object> parseJsonArray() {
+		List<Object> list = new ArrayList<>();
+		parseJsonArray(list);
+		return list;
+	}
+
+	public void parseJsonArray(List<Object> list) {
+		char firstChar = input.readCharAndSkip(SPACES);
+		if (firstChar != '[')
+			throw new ParsingException("Invalid first character for a json array: " + firstChar);
+		parseArray(list);
+	}
+
 	private JsonConfig parseObject(JsonConfig config) {
 		while (true) {
 			char keyFirst = input.readCharAndSkip(SPACES);//the first character of the key
@@ -77,8 +96,7 @@ public final class JsonParser {
 		}
 	}
 
-	private List<Object> parseArray() {
-		final List<Object> list = new ArrayList<>();
+	private List<Object> parseArray(List<Object> list) {
 		while (true) {
 			char valueFirst = input.readCharAndSkip(SPACES);//the first character of the value
 			Object value = parseValue(valueFirst);
@@ -99,7 +117,7 @@ public final class JsonParser {
 			case '{':
 				return parseObject(new JsonConfig());
 			case '[':
-				return parseArray();
+				return parseArray(new ArrayList<>());
 			case 't':
 				return parseTrue();
 			case 'f':
@@ -144,7 +162,7 @@ public final class JsonParser {
 		StringBuilder builder = new StringBuilder();
 		boolean escape = false;
 		char c;
-		while((c = input.readChar()) != '"' || escape) {
+		while ((c = input.readChar()) != '"' || escape) {
 			if (escape) {
 				builder.append(escape(c));
 				escape = false;
