@@ -4,7 +4,7 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author TheElectronWill

@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.core.serialization;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author TheElectronWill
@@ -9,7 +9,7 @@ import org.junit.Test;
 public class IntDequeTest {
 	private IntDeque deque;
 
-	@Before
+	@BeforeAll
 	public void setUp() throws Exception {
 		deque = new IntDeque();
 	}

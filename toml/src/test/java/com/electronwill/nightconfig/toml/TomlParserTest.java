@@ -3,7 +3,7 @@ package com.electronwill.nightconfig.toml;
 import com.electronwill.nightconfig.core.serialization.CharacterInput;
 import com.electronwill.nightconfig.core.serialization.ReaderInput;
 import java.io.StringReader;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author TheElectronWill

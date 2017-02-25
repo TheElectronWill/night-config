@@ -8,7 +8,7 @@ import com.electronwill.nightconfig.core.serialization.WriterOutput;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author TheElectronWill
