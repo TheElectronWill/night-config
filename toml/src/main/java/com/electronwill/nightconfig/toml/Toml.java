@@ -1,15 +1,12 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.serialization.CharacterInput;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 
 /**
  * @author TheElectronWill
  */
-public final class Toml {
+final class Toml {
 
-	static final int BUILDER_INITIAL_CAPACITY = 16;//TODO make it configurable (later)
 	static final char[] WHITESPACE_OR_NEWLINE = {'\t', ' ', '\n', '\r'};
 	static final char[] WHITESPACE = {'\t', ' '};
 	static final char[] NEWLINE = {'\n'};

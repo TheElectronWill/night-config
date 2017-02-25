@@ -1,18 +1,22 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.serialization.*;
+import com.electronwill.nightconfig.core.serialization.CharacterInput;
+import com.electronwill.nightconfig.core.serialization.CharsWrapper;
+import com.electronwill.nightconfig.core.serialization.ParsingException;
+import com.electronwill.nightconfig.core.serialization.Utils;
 
 /**
  * @author TheElectronWill
+ * @see <a href="https://github.com/toml-lang/toml#user-content-string">TOML specification - Strings</a>
  */
-public final class StringParser {
+final class StringParser {
 	private static final char[] SINGLE_QUOTE = {'\''};
 
 	/**
 	 * Parses a basic string (surrounded by "). The opening quote must be read before calling this method.
 	 */
-	static String parseBasic(CharacterInput input) {
-		CharsWrapper.Builder builder = new CharsWrapper.Builder(Toml.BUILDER_INITIAL_CAPACITY);
+	static String parseBasic(CharacterInput input, TomlParser parser) {
+		CharsWrapper.Builder builder = new CharsWrapper.Builder(parser.getInitialStringBuilderCapacity());
 		boolean escape = false;
 		char c;
 		while ((c = input.readChar()) != '\"' || escape) {
@@ -31,8 +35,10 @@ public final class StringParser {
 	/**
 	 * Parses a literal string (surrounded by '). The opening quote must be read before calling this method.
 	 */
-	static String parseLiteral(CharacterInput input) {
-		return input.readCharsUntil(SINGLE_QUOTE).toString();
+	static String parseLiteral(CharacterInput input, TomlParser parser) {
+		String str = input.readCharsUntil(SINGLE_QUOTE).toString();
+		input.readChar();//skips the last single quote
+		return str;
 	}
 
 	/**
@@ -53,8 +59,8 @@ public final class StringParser {
 	 * Parses a multiline basic string (surrounded by """). The 3 opening quotes must be read before
 	 * calling this method.
 	 */
-	static String parseMultiBasic(CharacterInput input) {
-		CharsWrapper.Builder builder = new CharsWrapper.Builder(Toml.BUILDER_INITIAL_CAPACITY);
+	static String parseMultiBasic(CharacterInput input, TomlParser parser) {
+		CharsWrapper.Builder builder = new CharsWrapper.Builder(parser.getInitialStringBuilderCapacity());
 		char c;
 		while ((c = input.readChar()) != '\"' || input.peek() != '\"' || input.peek(1) != '\"') {
 			if (c == '\\') {
@@ -81,8 +87,8 @@ public final class StringParser {
 	 * Parses a multiline literal string (surrounded by '''). The 3 opening quotes must be read before
 	 * calling this method.
 	 */
-	static String parseMultiLiteral(CharacterInput input) {
-		CharsWrapper.Builder builder = new CharsWrapper.Builder(Toml.BUILDER_INITIAL_CAPACITY);
+	static String parseMultiLiteral(CharacterInput input, TomlParser parser) {
+		CharsWrapper.Builder builder = new CharsWrapper.Builder(parser.getInitialStringBuilderCapacity());
 		char c;
 		while ((c = input.readChar()) != '\'' || input.peek() != '\'' || input.peek(1) != '\'') {
 			builder.append(c);

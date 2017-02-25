@@ -10,16 +10,16 @@ import java.util.List;
  * @see <a href="https://github.com/toml-lang/toml#user-content-array-of-tables">TOML specification -
  * Arrays of tables</a>
  */
-public final class TableArrayParser {
-	static List<String> parseElementName(CharacterInput input) {
-		List<String> list = new ArrayList<>();
+final class TableArrayParser {
+	static List<String> parseElementName(CharacterInput input, TomlParser parser) {
+		List<String> list = new ArrayList<>(parser.getInitialListCapacity());
 
 		// Special case for the first part because we need to forbid [[]] and [[ <spaces here> ]]
 		char first = input.readChar();
 		if (first == ']') {
 			throw new ParsingException("The name of an element in an array of tables must not be empty.");
 		}
-		String firstKey = TableParser.parseKey(input, first);
+		String firstKey = TableParser.parseKey(input, first, parser);
 		list.add(firstKey);
 
 		while (true) {
@@ -35,7 +35,7 @@ public final class TableArrayParser {
 				+ before + "' after a part of the name.");
 
 			char next = input.readChar();
-			String key = TableParser.parseKey(input, next);
+			String key = TableParser.parseKey(input, next, parser);
 			list.add(key);
 		}
 	}

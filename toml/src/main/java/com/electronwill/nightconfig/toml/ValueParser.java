@@ -7,29 +7,33 @@ import com.electronwill.nightconfig.core.serialization.Utils;
 
 /**
  * @author TheElectronWill
+ * @see <a href="https://github.com/toml-lang/toml#user-content-integer">TOML specification - Integers</a>
+ * @see <a href="https://github.com/toml-lang/toml#user-content-float">TOML specification - Floats</a>
+ * @see <a href="https://github.com/toml-lang/toml#user-content-boolean">TOML specification - Booleans</a>
  */
-public final class ValueParser {
+final class ValueParser {
 
 	private static final char[] END_OF_VALUE = {'\t', ' ', '\n', '\r', ','};
 	private static final char[] TRUE_END = {'r', 'u', 'e'}, FALSE_END = {'a', 'l', 's', 'e'};
 	private static final char[] ONLY_IN_FP_NUMBER = {'.', 'e', 'E'};
 
-	static Object parseValue(CharacterInput input, char firstChar) {
+	static Object parseValue(CharacterInput input, char firstChar, TomlParser parser) {
+		System.out.println("parseValue(" + firstChar + ")");//TODO debug
 		switch (firstChar) {
 			case '{':
-				return TableParser.parseInline(input);
+				return TableParser.parseInline(input, parser);
 			case '[':
-				return ArrayParser.parseArray(input);
+				return ArrayParser.parseArray(input, parser);
 			case '\'':
 				if (input.peek() == '\'' && input.peek(1) == '\'') {
-					return StringParser.parseMultiLiteral(input);
+					return StringParser.parseMultiLiteral(input, parser);
 				}
-				return StringParser.parseLiteral(input);
+				return StringParser.parseLiteral(input, parser);
 			case '\"':
 				if (input.peek() == '\"' && input.peek(1) == '\"') {
-					return StringParser.parseMultiBasic(input);
+					return StringParser.parseMultiBasic(input, parser);
 				}
-				return StringParser.parseMultiBasic(input);
+				return StringParser.parseBasic(input, parser);
 			case 't':
 				return parseTrue(input);
 			case 'f':
@@ -82,8 +86,9 @@ public final class ValueParser {
 		return true;
 	}
 
-	static Object parseValue(CharacterInput input) {
-		return parseValue(input, input.readChar());
+	static Object parseValue(CharacterInput input, TomlParser parser) {
+		char firstChar = Toml.readNonSpaceChar(input);
+		return parseValue(input, firstChar, parser);
 	}
 
 	private ValueParser() {}

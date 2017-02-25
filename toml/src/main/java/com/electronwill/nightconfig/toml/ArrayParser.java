@@ -7,17 +7,16 @@ import java.util.List;
 
 /**
  * @author TheElectronWill
- * @see <a href="https://github.com/toml-lang/toml#user-content-array">TOML specification -
- * Arrays</a>
+ * @see <a href="https://github.com/toml-lang/toml#user-content-array">TOML specification - Arrays</a>
  */
-public final class ArrayParser {
-	static List<?> parseArray(CharacterInput input) {
-		List<Object> list = new ArrayList<>();
+final class ArrayParser {
+	static List<?> parseArray(CharacterInput input, TomlParser parser) {
+		List<Object> list = new ArrayList<>(parser.getInitialListCapacity());
 		while (true) {
 			char firstChar = Toml.readUsefulChar(input);
 			if (firstChar == ']') return list;//handle [] and [v1,v2,... ,]
 
-			Object value = ValueParser.parseValue(input, firstChar);
+			Object value = ValueParser.parseValue(input, firstChar, parser);
 			list.add(value);
 
 			char after = Toml.readUsefulChar(input);
