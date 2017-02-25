@@ -186,9 +186,9 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	 * @return the index of the first occurence of a character of {@code ch}, or {@code -1} if not found.
 	 */
 	public int indexOfFirst(char... ch) {
-		for (int i = 0; i < limit; i++) {
+		for (int i = offset; i < limit; i++) {
 			if (Utils.arrayContains(ch, chars[i]))
-				return i;
+				return i - offset;
 		}
 		return -1;
 	}
