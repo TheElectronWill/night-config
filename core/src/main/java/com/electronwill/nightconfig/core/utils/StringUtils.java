@@ -1,4 +1,4 @@
-package com.electronwill.nightconfig.core;
+package com.electronwill.nightconfig.core.utils;
 
 import java.util.ArrayList;
 import java.util.List;
