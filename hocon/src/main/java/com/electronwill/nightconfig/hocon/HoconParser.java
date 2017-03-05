@@ -23,7 +23,11 @@ public final class HoconParser {
 	private static void put(Config typesafeConfig, HoconConfig config) {
 		Map<String, Object> map = config.asMap();
 		for (Map.Entry<String, ConfigValue> entry : typesafeConfig.entrySet()) {
-			map.put(entry.getKey(), entry.getValue().unwrapped());
+			Object value = entry.getValue().unwrapped();
+			if (value instanceof Map) {
+				value = new HoconConfig((Map)value);
+			}
+			map.put(entry.getKey(), value);
 		}
 	}
 
