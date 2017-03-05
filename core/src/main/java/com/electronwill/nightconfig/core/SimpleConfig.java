@@ -45,7 +45,7 @@ public final class SimpleConfig extends MapConfig {
 	}
 
 	@Override
-	public SimpleConfig createEmptyConfig() {
+	protected SimpleConfig createSubConfig() {
 		return new SimpleConfig(supportStrategy);
 	}
 

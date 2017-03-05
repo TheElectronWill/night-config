@@ -7,11 +7,17 @@ import com.electronwill.nightconfig.core.serialization.WriterOutput;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author TheElectronWill
  */
 public final class HoconConfig extends MapConfig implements FileConfig {
+	public HoconConfig() {}
+
+	public HoconConfig(Map<String, Object> map) {
+		super(map);
+	}
 
 	@Override
 	public boolean supportsType(Class<?> type) {
@@ -26,7 +32,7 @@ public final class HoconConfig extends MapConfig implements FileConfig {
 	}
 
 	@Override
-	public HoconConfig createEmptyConfig() {
+	public HoconConfig createSubConfig() {
 		return new HoconConfig();
 	}
 

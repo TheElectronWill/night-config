@@ -6,6 +6,7 @@ import com.electronwill.nightconfig.core.serialization.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A JSON configuration. It supports the following types:
@@ -23,6 +24,11 @@ import java.util.List;
  * @author TheElectronWill
  */
 public final class JsonConfig extends MapConfig implements FileConfig {
+	public JsonConfig() {}
+
+	public JsonConfig(Map<String, Object> map) {
+		super(map);
+	}
 
 	@Override
 	public boolean supportsType(Class<?> type) {
@@ -37,7 +43,7 @@ public final class JsonConfig extends MapConfig implements FileConfig {
 	}
 
 	@Override
-	public JsonConfig createEmptyConfig() {
+	public JsonConfig createSubConfig() {
 		return new JsonConfig();
 	}
 

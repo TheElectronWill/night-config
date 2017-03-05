@@ -8,11 +8,17 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.Temporal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author TheElectronWill
  */
 public class TomlConfig extends MapConfig {
+	public TomlConfig() {}
+
+	public TomlConfig(Map<String, Object> map) {
+		super(map);
+	}
 
 	@Override
 	public boolean supportsType(Class<?> type) {
@@ -28,40 +34,9 @@ public class TomlConfig extends MapConfig {
 	}
 
 	@Override
-	public TomlConfig createEmptyConfig() {
+	public TomlConfig createSubConfig() {
 		return new TomlConfig();
 	}
 
-	public LocalTime getLocalTime(String path) {
-		return (LocalTime)getValue(path);
-	}
-
-	public void setLocalTime(String path, LocalTime value) {
-		setValue(path, value);
-	}
-
-	public LocalDate getLocalDate(String path) {
-		return (LocalDate)getValue(path);
-	}
-
-	public void setLocalDate(String path, LocalDate value) {
-		setValue(path, value);
-	}
-
-	public LocalDateTime getLocalDateTime(String path) {
-		return (LocalDateTime)getValue(path);
-	}
-
-	public void setLocalDateTime(String path, LocalDateTime value) {
-		setValue(path, value);
-	}
-
-	public OffsetDateTime getOffsetDateTime(String path) {
-		return (OffsetDateTime)getValue(path);
-	}
-
-	public void setOffsetDateTime(String path, OffsetDateTime value) {
-		setValue(path, value);
-	}
-
+	//TODO writeTo(File) and readFrom(File)
 }
