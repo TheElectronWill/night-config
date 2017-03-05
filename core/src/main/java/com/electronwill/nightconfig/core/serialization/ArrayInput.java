@@ -12,7 +12,7 @@ public final class ArrayInput extends AbstractInput {
 
 	/**
 	 * Creates a new ArrayInput based on the underlying array of the specified CharsWrapper. Any
-	 * modification to the wrapper is reflected to the input.
+	 * modification to the wrapper is reflected in the input.
 	 *
 	 * @param chars the CharsWrapper to use as an input
 	 */
@@ -21,7 +21,7 @@ public final class ArrayInput extends AbstractInput {
 	}
 
 	/**
-	 * Creates a new ArrayInput based on the specified array. Any modification to the array is reflected to
+	 * Creates a new ArrayInput based on the specified array. Any modification to the array is reflected in
 	 * the input.
 	 *
 	 * @param chars the char array to use as an input
@@ -31,7 +31,7 @@ public final class ArrayInput extends AbstractInput {
 	}
 
 	/**
-	 * Creates a new ArrayInput based on the specified array. Any modification to the array is reflected to
+	 * Creates a new ArrayInput based on the specified array. Any modification to the array is reflected in
 	 * the input.
 	 *
 	 * @param chars  the char array to use as an input

@@ -16,7 +16,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 
 	/**
 	 * Creates a new CharsWrapper backed by the given char array. Any modification to the array is
-	 * reflected to the CharsWrapper and vice-versa.
+	 * reflected in the CharsWrapper and vice-versa.
 	 *
 	 * @param chars the char array to use
 	 */
@@ -26,7 +26,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 
 	/**
 	 * Creates a new CharsWrapper backed by the given char array. Any modification to the array is
-	 * reflected to the CharsWrapper and vice-versa.
+	 * reflected in the CharsWrapper and vice-versa.
 	 *
 	 * @param chars  the char array to use
 	 * @param offset the index (in the array) of the first character to use
@@ -280,7 +280,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	}
 
 	/**
-	 * Creates a view of a part of this CharsWrapper. Any modification to the view is reflected to the
+	 * Creates a view of a part of this CharsWrapper. Any modification to the view is reflected in the
 	 * original CharsWrapper and vice-versa.
 	 *
 	 * @param start the start index, inclusive
@@ -292,7 +292,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	}
 
 	/**
-	 * Creates a view of a part of this CharsWrapper. Any modification to the view is reflected to the
+	 * Creates a view of a part of this CharsWrapper. Any modification to the view is reflected in the
 	 * original CharsWrapper and vice-versa.
 	 *
 	 * @param start the start index, inclusive
@@ -304,7 +304,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 
 	/**
 	 * Creates a trimmed view of this CharsWrapper, with any leading and trailing whitespace removed. Any
-	 * modification to the view is reflected to the original CharsWrapper and vice-versa.
+	 * modification to the view is reflected in the original CharsWrapper and vice-versa.
 	 *
 	 * @return a new CharsWrapper that is a trimmed view of this CharsWrapper
 	 * @see String#trim()
