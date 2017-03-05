@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core;
 
+import com.electronwill.nightconfig.core.utils.StringUtils;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
