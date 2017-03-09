@@ -1,15 +1,16 @@
 package com.electronwill.nightconfig.core.serialization;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author TheElectronWill
  */
 public class IntDequeTest {
-	private IntDeque deque;
+	private static IntDeque deque;
 
-	@BeforeAll
+	@BeforeEach
 	public void setUp() throws Exception {
 		deque = new IntDeque();
 	}

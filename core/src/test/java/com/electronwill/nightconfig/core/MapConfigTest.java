@@ -15,40 +15,40 @@ public class MapConfigTest {
 	@Test
 	public void basicTest() throws Exception {
 		MapConfig config = new SimpleConfig();
-		config.setBoolean("true", true);
-		config.setBoolean("false", false);
-		assert config.getBoolean("true");
-		assert !config.getBoolean("false");
+		config.setValue("true", true);
+		config.setValue("false", false);
+		assert config.<Boolean>getValue("true");
+		assert !config.<Boolean>getValue("false");
 
-		config.setInt("int", 1234567890);
-		assert config.getInt("int") == 1234567890;
+		config.setValue("int", 1234567890);
+		assert config.<Integer>getValue("int") == 1234567890;
 
-		config.setLong("long", 123456789876543210L);
-		assert config.getLong("long") == 123456789876543210L;
+		config.setValue("long", 123456789876543210L);
+		assert config.<Long>getValue("long") == 123456789876543210L;
 
-		config.setFloat("float", 1.23456789F);
-		assert config.getFloat("float") == 1.23456789F;
+		config.setValue("float", 1.23456789F);
+		assert config.<Float>getValue("float") == 1.23456789F;
 
-		config.setDouble("double", Math.PI);
-		assert config.getDouble("double") == Math.PI;
+		config.setValue("double", Math.PI);
+		assert config.<Double>getValue("double") == Math.PI;
 
 		String string = "!!!???";
-		config.setString("string", string);
-		assert config.getString("string") == string;
+		config.setValue("string", string);
+		assert config.<String>getValue("string") == string;
 
 		List<String> stringList = Arrays.asList("a", "b", "c", "d");
-		config.setList("stringList", stringList);
-		assert config.<String>getList("stringList") == stringList;
+		config.setValue("stringList", stringList);
+		assert config.<List<String>>getValue("stringList") == stringList;
 
 		Config subConfig = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
-		subConfig.setString("string", "test!");
-		subConfig.setString("subSubConfig.string", "another test!");
-		config.setConfig("subConfig", subConfig);
-		assert config.getConfig("subConfig") == subConfig;
-		assert config.getString("subConfig.string").equals("test!");
-		assert config.getString("subConfig.subSubConfig.string").equals("another test!");
+		subConfig.setValue("string", "test!");
+		subConfig.setValue("subSubConfig.string", "another test!");
+		config.setValue("subConfig", subConfig);
+		assert config.<Config>getValue("subConfig") == subConfig;
+		assert config.<String>getValue("subConfig.string").equals("test!");
+		assert config.<String>getValue("subConfig.subSubConfig.string").equals("another test!");
 
-		Map map = new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("key in the map", "isn't in a config path");
 		config.setValue("map", map);
 		assert config.getValue("map") == map;
@@ -64,30 +64,30 @@ public class MapConfigTest {
 		System.out.println("String#split: " + Arrays.toString(jsplit));
 
 		MapConfig config = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
-		config.setString(".a...a.", "value");
+		config.setValue(".a...a.", "value");
 		assert config.containsValue(".a...a.");
-		assert config.getString(".a...a.").equals("value");
+		assert config.<String>getValue(".a...a.").equals("value");
 
 		Map<String, Object> map = config.asMap();
 		assert map.get("") instanceof Config;
 		Config c1 = (Config)map.get("");
-		Config c2 = c1.getConfig("a");
-		Config c3 = c2.getConfig("");
-		Config c4 = c3.getConfig("");
-		Config c5 = c4.getConfig("a");
-		String value = c5.getString("");
+		Config c2 = c1.<Config>getValue("a");
+		Config c3 = c2.<Config>getValue("");
+		Config c4 = c3.<Config>getValue("");
+		Config c5 = c4.<Config>getValue("a");
+		String value = c5.<String>getValue("");
 		assert value.equals("value");
 	}
 
 	@Test
 	public void size() throws Exception {
 		MapConfig config = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
-		config.setString("a.b.c", "value");
-		config.setDouble("pi", Math.PI);
+		config.setValue("a.b.c", "value");
+		config.setValue("pi", Math.PI);
 
 		Config subConfig = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
-		subConfig.setString("string", "test!");
-		config.setConfig("subConfig", subConfig);
+		subConfig.setValue("string", "test!");
+		config.setValue("subConfig", subConfig);
 
 		assert subConfig.size() == 1 : "Invalid subConfig size: " + subConfig.size();
 		assert config.size() == 3 : "Invalid config size: " + config.size();
@@ -96,8 +96,8 @@ public class MapConfigTest {
 	@Test
 	public void asMap() throws Exception {
 		MapConfig config = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
-		config.setString("a.b.c", "value");
-		config.setDouble("pi", Math.PI);
+		config.setValue("a.b.c", "value");
+		config.setValue("pi", Math.PI);
 
 		Map<String, Object> map = config.asMap();
 		assert map.size() == config.size();
@@ -110,13 +110,13 @@ public class MapConfigTest {
 
 		Config a = (Config)map.get("a");
 		assert a.size() == 1;
-		assert a.getString("b.c").equals("value");
+		assert a.<String>getValue("b.c").equals("value");
 	}
 
 	@Test
 	public void containsValue() throws Exception {
 		MapConfig config = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
-		config.setString("a.b.c", "value");
+		config.setValue("a.b.c", "value");
 		assert config.containsValue("a");
 
 		assert !config.containsValue("b");
@@ -125,7 +125,7 @@ public class MapConfigTest {
 		assert !config.containsValue("c");
 		assert config.containsValue("a.b.c");
 
-		config.setInt("int", 12);
+		config.setValue("int", 12);
 		assert config.containsValue("int");
 	}
 

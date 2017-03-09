@@ -21,18 +21,18 @@ public class ObjectToConfigMapperTest {
 		System.out.println("MyObject mapped to a SimpleConfig:");
 		System.out.println(config.asMap());
 
-		assert config.getInt("integer") == object.integer;
-		assert config.getDouble("decimal") == object.decimal;
-		assert config.getString("string") == object.string;
-		assert config.<String>getList("stringList") == object.stringList;
-		assert config.getConfig("config") == object.config;
+		assert config.<Integer>getValue("integer") == object.integer;
+		assert config.<Double>getValue("decimal") == object.decimal;
+		assert config.<String>getValue("string") == object.string;
+		assert config.<List<String>>getValue("stringList") == object.stringList;
+		assert config.<Config>getValue("config") == object.config;
 		assert config.getValue("subObject") instanceof Config;
 		Config sub = (Config)config.getValue("subObject");
-		assert sub.getInt("integer") == 1234567890;
-		assert sub.getDouble("decimal") == Math.PI;
-		assert sub.getString("string").equals("value");
-		assert sub.getList("stringList").equals(Arrays.asList("a", "b", "c"));
-		assert sub.getConfig("config").size() == 0;
+		assert sub.<Integer>getValue("integer") == 1234567890;
+		assert sub.<Double>getValue("decimal") == Math.PI;
+		assert sub.<String>getValue("string").equals("value");
+		assert sub.<List<?>>getValue("stringList").equals(Arrays.asList("a", "b", "c"));
+		assert sub.<Config>getValue("config").size() == 0;
 		assert sub.containsValue("subObject");
 		assert sub.getValue("subObject") == null;
 	}
@@ -47,11 +47,11 @@ public class ObjectToConfigMapperTest {
 		System.out.println("MyObject mapped to a MapConfig:");
 		System.out.println(config.asMap());
 
-		assert config.getInt("integer") == object.integer;
-		assert config.getDouble("decimal") == object.decimal;
-		assert config.getString("string") == object.string;
-		assert config.<String>getList("stringList") == object.stringList;
-		assert config.getConfig("config") == object.config;
+		assert config.<Integer>getValue("integer") == object.integer;
+		assert config.<Double>getValue("decimal") == object.decimal;
+		assert config.<String>getValue("string") == object.string;
+		assert config.<List<String>>getValue("stringList") == object.stringList;
+		assert config.<Config>getValue("config") == object.config;
 		assert config.getValue("subObject") == object.subObject;
 	}
 

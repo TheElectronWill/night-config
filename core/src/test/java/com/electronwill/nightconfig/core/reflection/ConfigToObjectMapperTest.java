@@ -16,17 +16,17 @@ public class ConfigToObjectMapperTest {
 	private final Config config1 = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL), config2 = new SimpleConfig();
 
 	{
-		config.setInt("integer", 1234568790);
-		config.setDouble("decimal", Math.PI);
-		config.setString("string", "value");
-		config.setList("stringList", list1);
-		config.setConfig("config", config1);
-		config.setInt("subObject.integer", -1);
-		config.setDouble("subObject.decimal", 0.5);
-		config.setString("subObject.string", "Hey!");
-		config.setList("subObject.stringList", list2);
-		config.setConfig("subObject.config", config2);
-		config.setConfig("subObject.subObject", null);
+		config.setValue("integer", 1234568790);
+		config.setValue("decimal", Math.PI);
+		config.setValue("string", "value");
+		config.setValue("stringList", list1);
+		config.setValue("config", config1);
+		config.setValue("subObject.integer", -1);
+		config.setValue("subObject.decimal", 0.5);
+		config.setValue("subObject.string", "Hey!");
+		config.setValue("subObject.stringList", list2);
+		config.setValue("subObject.config", config2);
+		config.setValue("subObject.subObject", null);
 	}
 
 	@Test
@@ -50,15 +50,15 @@ public class ConfigToObjectMapperTest {
 		{
 			MyObject object = new MyObject();
 			testConfigToObject(config, object);// does the mapping
-			assert object.integer == config.getInt("integer");
-			assert object.decimal == config.getDouble("decimal");
-			assert object.string == config.getString("string");
+			assert object.integer == config.<Integer>getValue("integer");
+			assert object.decimal == config.<Double>getValue("decimal");
+			assert object.string.equals(config.<String>getValue("string"));
 			assert object.stringList == list1;
 			assert object.config == config1;
 			assert object.subObject != null;
-			assert object.subObject.integer == config.getInt("subObject.integer");
-			assert object.subObject.decimal == config.getDouble("subObject.decimal");
-			assert object.subObject.string == config.getString("subObject.string");
+			assert object.subObject.integer == config.<Integer>getValue("subObject.integer");
+			assert object.subObject.decimal == config.<Double>getValue("subObject.decimal");
+			assert object.subObject.string.equals(config.<String>getValue("subObject.string"));
 			assert object.subObject.stringList == list2;
 			assert object.subObject.config == config2;
 			assert object.subObject.subObject == null;
@@ -69,15 +69,15 @@ public class ConfigToObjectMapperTest {
 		{
 			MyObjectFinal object = new MyObjectFinal();
 			testConfigToObject(config, object);//does the mapping
-			assert object.integer == config.getInt("integer");
-			assert object.decimal == config.getDouble("decimal");
-			assert object.string == config.getString("string");
+			assert object.integer == config.<Integer>getValue("integer");
+			assert object.decimal == config.<Double>getValue("decimal");
+			assert object.string.equals(config.<String>getValue("string"));
 			assert object.stringList == list1;
 			assert object.config == config1;
 			assert object.subObject != null;
-			assert object.subObject.integer == config.getInt("subObject.integer");
-			assert object.subObject.decimal == config.getDouble("subObject.decimal");
-			assert object.subObject.string == config.getString("subObject.string");
+			assert object.subObject.integer == config.<Integer>getValue("subObject.integer");
+			assert object.subObject.decimal == config.<Double>getValue("subObject.decimal");
+			assert object.subObject.string.equals(config.<String>getValue("subObject.string"));
 			assert object.subObject.stringList == list2;
 			assert object.subObject.config == config2;
 			assert object.subObject.subObject == null;
