@@ -101,15 +101,11 @@ final class TableParser {
 				throw new ParsingException("Empty bare keys aren't allowed.");
 			}
 			for (char c : bareKey) {
-				if (!isValidInBareKey(c))
+				if (!Toml.isValidInBareKey(c, parser.isLenientWithBareKeys()))
 					throw new ParsingException("Forbidden character in bare key: '" + c + "'");
 			}
 			return bareKey.toString();
 		}
-	}
-
-	private static boolean isValidInBareKey(char c) {
-		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_';
 	}
 
 	private TableParser() {}

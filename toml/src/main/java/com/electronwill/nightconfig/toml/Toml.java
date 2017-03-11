@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.serialization.CharacterInput;
+import com.electronwill.nightconfig.core.serialization.Utils;
 
 /**
  * @author TheElectronWill
@@ -10,6 +11,7 @@ final class Toml {
 	static final char[] WHITESPACE_OR_NEWLINE = {'\t', ' ', '\n', '\r'};
 	static final char[] WHITESPACE = {'\t', ' '};
 	static final char[] NEWLINE = {'\n'};
+	static final char[] FORBIDDEN_IN_ALL_BARE_KEYS = {'.', '[', ']', '#', '='};
 
 	/**
 	 * Returns the next "useful" character. Skips comments, spaces and newlines.
@@ -44,6 +46,18 @@ final class Toml {
 		return input.readAndSkip(WHITESPACE);
 	}
 
-	private Toml() {}
+	static boolean isValidInBareKey(char c, boolean lenient) {
+		if (lenient) return c > ' ' && !Utils.arrayContains(FORBIDDEN_IN_ALL_BARE_KEYS, c);
+		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_';
+	}
 
+	static boolean isValidBareKey(CharSequence csq, boolean lenient) {
+		for (int i = 0; i < csq.length(); i++) {
+			if (!isValidInBareKey(csq.charAt(i), lenient))
+				return false;
+		}
+		return true;
+	}
+
+	private Toml() {}
 }
