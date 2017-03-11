@@ -30,16 +30,16 @@ public final class TomlParser {
 				input.skipPeeks();
 				List<String> key = TableArrayParser.parseElementName(input, this);
 				TomlConfig table = TableParser.parseNormal(input, this);
-				List<TomlConfig> arrayOfTables = rootTable.getList(key);
+				List<TomlConfig> arrayOfTables = rootTable.getValue(key);
 				if (arrayOfTables == null) {
 					arrayOfTables = new ArrayList<>(initialListCapacity);
-					rootTable.setList(key, arrayOfTables);
+					rootTable.setValue(key, arrayOfTables);
 				}
 				arrayOfTables.add(table);
 			} else {//[ a table
 				List<String> key = TableParser.parseTableName(input, this);
 				TomlConfig table = TableParser.parseNormal(input, this);
-				rootTable.setConfig(key, table);
+				rootTable.setValue(key, table);
 			}
 		}
 		return rootTable;
