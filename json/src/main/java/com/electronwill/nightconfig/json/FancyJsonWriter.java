@@ -1,10 +1,9 @@
 package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.serialization.CharacterOutput;
-import com.electronwill.nightconfig.core.serialization.ConfigWriter;
-import com.electronwill.nightconfig.core.serialization.SerializationException;
-import com.electronwill.nightconfig.core.serialization.Utils;
+import com.electronwill.nightconfig.core.serialization.*;
+import java.io.IOException;
+import java.io.Writer;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Predicate;
@@ -16,7 +15,7 @@ import static com.electronwill.nightconfig.json.MinimalJsonWriter.*;
  *
  * @author TheElectronWill
  */
-public final class FancyJsonWriter implements ConfigWriter {
+public final class FancyJsonWriter implements ConfigWriter<Config> {
 	private static final char[] ENTRY_SEPARATOR = {':', ' '}, VALUE_SEPARATOR = {',', ' '};
 
 	private Predicate<Config> indentObjectElementsPredicate = c -> true;
@@ -26,13 +25,10 @@ public final class FancyJsonWriter implements ConfigWriter {
 	private char[] newline = System.getProperty("line.separator").toCharArray();
 	private int currentIndentLevel;
 
-	/**
-	 * Writes a configuration as a JSON object.
-	 */
 	@Override
-	public void writeConfig(Config config, CharacterOutput output) {
+	public void writeConfig(Config config, Writer writer) throws IOException {
 		currentIndentLevel = 0;
-		writeObject(config, output);
+		writeObject(config, new WriterOutput(writer));
 	}
 
 	private void writeObject(Config config, CharacterOutput output) {
@@ -94,7 +90,7 @@ public final class FancyJsonWriter implements ConfigWriter {
 		else if (v.getClass().isArray())
 			writeArray(v, output);
 		else
-			throw new SerializationException("Unsupported value type: " + v.getClass());
+			throw new WritingException("Unsupported value type: " + v.getClass());
 	}
 
 	/**

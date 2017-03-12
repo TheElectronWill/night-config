@@ -2,9 +2,10 @@ package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.MapConfig;
-import com.electronwill.nightconfig.core.serialization.*;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import com.electronwill.nightconfig.core.serialization.FileConfig;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -42,26 +43,18 @@ public final class JsonConfig extends MapConfig implements FileConfig {
 	}
 
 	@Override
-	public JsonConfig createSubConfig() {
+	protected JsonConfig createSubConfig() {
 		return new JsonConfig();
 	}
 
 	@Override
-	public void writeTo(File file) throws IOException {
-		try (Writer fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
-			CharacterOutput output = new WriterOutput(fileWriter);
-			MinimalJsonWriter jsonWriter = new MinimalJsonWriter();
-			jsonWriter.writeConfig(this, output);
-		}//finally closes the writer
+	public void writeTo(File file, boolean append) throws IOException {
+		new MinimalJsonWriter().writeConfig(this, file, append);
 	}
 
 	@Override
-	public void readFrom(File file) throws IOException {
-		try (Reader fileReader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-			CharacterInput input = new ReaderInput(fileReader);
-			JsonParser jsonParser = new JsonParser(input);
-			this.asMap().clear();//clears the config
-			jsonParser.parseJsonObject(this);//reads the value from the file to the config
-		}//finally closes the reader
+	public void readFrom(File file, boolean merge) throws IOException {
+		if (!merge) this.asMap().clear();//clears the config
+		new JsonParser().parseConfig(file, this);//reads the value from the file to the config
 	}
 }

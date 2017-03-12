@@ -2,7 +2,6 @@ package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
-import com.electronwill.nightconfig.core.serialization.CharacterOutput;
 import com.electronwill.nightconfig.core.serialization.FileConfig;
 import com.electronwill.nightconfig.core.serialization.WriterOutput;
 import java.io.*;
@@ -50,7 +49,7 @@ public class JsonConfigTest {
 			FancyJsonWriter jsonWriter = new FancyJsonWriter();
 			jsonWriter.setNewline("\r");
 			jsonWriter.setIndent("    ");
-			jsonWriter.writeConfig(config, new WriterOutput(fileWriter));
+			jsonWriter.writeConfig(config, fileWriter);
 		}//finally closes the writer
 	}
 
@@ -58,7 +57,7 @@ public class JsonConfigTest {
 	public void testMinimalWriter() {
 		StringWriter sw = new StringWriter();
 		MinimalJsonWriter writer = new MinimalJsonWriter();
-		writer.writeConfig(config, new WriterOutput(sw));
+		writer.writeJsonObject(config, new WriterOutput(sw));
 		System.out.println("Written:\n" + sw.toString());
 	}
 }
