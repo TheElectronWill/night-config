@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.serialization.CharacterOutput;
+import com.electronwill.nightconfig.core.serialization.ConfigWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -9,7 +10,7 @@ import java.util.function.Predicate;
 /**
  * @author TheElectronWill
  */
-public final class TomlWriter {
+public final class TomlWriter implements ConfigWriter {
 	private boolean lenientBareKeys = false;
 	private Predicate<Config> writeTableInlinePredicate = Config::isEmpty;
 	private Predicate<String> writeStringLiteralPredicate = c -> false;
@@ -19,21 +20,22 @@ public final class TomlWriter {
 	private int currentIndentLevel;
 
 	/**
-	 * Writes a TOML configuration.
+	 * Writes a configuration in the TOML format.
 	 *
 	 * @param config the config to write
 	 * @param output the output to write the config to
 	 */
-	public void writeConfiguration(Config config, CharacterOutput output) {
+	@Override
+	public void writeConfig(Config config, CharacterOutput output) {
 		currentIndentLevel = -1;//-1 to make the root entries not indented
 		TableWriter.writeSmartly(config, new ArrayList<>(), output, this);
 	}
 
-	public boolean usesLenientBareKeys() {
+	public boolean isLenientWithBareKeys() {
 		return lenientBareKeys;
 	}
 
-	public void setUseLenientBareKeys(boolean lenientBareKeys) {
+	public void setLenientWithBareKeys(boolean lenientBareKeys) {
 		this.lenientBareKeys = lenientBareKeys;
 	}
 

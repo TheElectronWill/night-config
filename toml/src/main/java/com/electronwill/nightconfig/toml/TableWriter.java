@@ -22,7 +22,7 @@ final class TableWriter {
 		for (Map.Entry<String, Object> entry : config.asMap().entrySet()) {
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
-			if (Toml.isValidBareKey(key, writer.usesLenientBareKeys())) {
+			if (Toml.isValidBareKey(key, writer.isLenientWithBareKeys())) {
 				output.write(key);
 			} else {
 				StringWriter.writeBasic(key, output);
@@ -54,7 +54,7 @@ final class TableWriter {
 				}
 			}
 			writer.writeIndent(output);//Indents the line.
-			if (Toml.isValidBareKey(key, writer.usesLenientBareKeys())) {
+			if (Toml.isValidBareKey(key, writer.isLenientWithBareKeys())) {
 				output.write(key);
 			} else {
 				StringWriter.writeBasic(key, output);
@@ -107,7 +107,7 @@ final class TableWriter {
 		Iterator<String> it = name.iterator();
 		while (true) {
 			String part = it.next();
-			if (Toml.isValidBareKey(part, writer.usesLenientBareKeys())) {
+			if (Toml.isValidBareKey(part, writer.isLenientWithBareKeys())) {
 				output.write(part);
 			} else if (writer.getWriteStringLiteralPredicate().test(part)) {
 				StringWriter.writeLiteral(part, output);
