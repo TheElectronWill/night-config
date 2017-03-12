@@ -1,7 +1,9 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.serialization.CharacterInput;
-import com.electronwill.nightconfig.core.serialization.ParsingException;
+import com.electronwill.nightconfig.core.serialization.ConfigParser;
+import com.electronwill.nightconfig.core.serialization.ReaderInput;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,19 +13,22 @@ import java.util.List;
  * @author TheElectronWill
  * @see <a href="https://github.com/toml-lang/toml">TOML specification</a>
  */
-public final class TomlParser {
+public final class TomlParser implements ConfigParser<TomlConfig> {
 	private int initialStringBuilderCapacity = 16, initialListCapacity = 10;
 	private boolean lenientBareKeys = false;
 
-	/**
-	 * Parses a TOML configuration.
-	 *
-	 * @param input the input containing the data
-	 * @return a new TomlConfig
-	 * @throws ParsingException if an error occur
-	 */
-	public TomlConfig parseConfiguration(CharacterInput input) {
-		TomlConfig rootTable = TableParser.parseNormal(input, this);
+	@Override
+	public TomlConfig parseConfig(Reader reader) {
+		return parseConfig(new ReaderInput(reader), new TomlConfig());
+	}
+
+	@Override
+	public void parseConfig(Reader reader, TomlConfig destination) {
+		parseConfig(new ReaderInput(reader), destination);
+	}
+
+	private TomlConfig parseConfig(CharacterInput input, TomlConfig destination) {
+		TomlConfig rootTable = TableParser.parseNormal(input, this, destination);
 		int next;
 		while ((next = input.peek()) != -1) {
 			if (next == '[') {//[[ element of an array of tables

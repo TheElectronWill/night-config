@@ -38,8 +38,7 @@ final class TableParser {
 		}
 	}
 
-	static TomlConfig parseNormal(CharacterInput input, TomlParser parser) {
-		TomlConfig config = new TomlConfig();
+	static TomlConfig parseNormal(CharacterInput input, TomlParser parser, TomlConfig config) {
 		while (true) {
 			int keyFirst = Toml.readUseful(input);
 			if (keyFirst == -1 || keyFirst == '[') return config;//EOS or beginning of an other table
@@ -61,6 +60,10 @@ final class TableParser {
 					key + "\" = " + value);
 			}
 		}
+	}
+
+	static TomlConfig parseNormal(CharacterInput input, TomlParser parser) {
+		return parseNormal(input, parser, new TomlConfig());
 	}
 
 	static List<String> parseTableName(CharacterInput input, TomlParser parser) {

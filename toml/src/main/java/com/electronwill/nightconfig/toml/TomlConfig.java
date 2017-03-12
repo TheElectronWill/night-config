@@ -2,10 +2,9 @@ package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.MapConfig;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
+import com.electronwill.nightconfig.core.serialization.FileConfig;
+import java.io.File;
+import java.io.IOException;
 import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +12,7 @@ import java.util.Map;
 /**
  * @author TheElectronWill
  */
-public class TomlConfig extends MapConfig {
+public class TomlConfig extends MapConfig implements FileConfig {
 	public TomlConfig() {}
 
 	public TomlConfig(Map<String, Object> map) {
@@ -34,9 +33,18 @@ public class TomlConfig extends MapConfig {
 	}
 
 	@Override
-	public TomlConfig createSubConfig() {
+	protected TomlConfig createSubConfig() {
 		return new TomlConfig();
 	}
 
-	//TODO writeTo(File) and readFrom(File)
+	@Override
+	public void writeTo(File file, boolean append) throws IOException {
+		new TomlWriter().writeConfig(this, file, append);
+	}
+
+	@Override
+	public void readFrom(File file, boolean merge) throws IOException {
+		if (!merge) asMap().clear();
+		new TomlParser().parseConfig(file, this);
+	}
 }

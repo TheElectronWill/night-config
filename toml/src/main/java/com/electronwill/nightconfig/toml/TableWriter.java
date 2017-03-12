@@ -2,7 +2,7 @@ package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.serialization.CharacterOutput;
-import com.electronwill.nightconfig.core.serialization.SerializationException;
+import com.electronwill.nightconfig.core.serialization.WritingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -100,7 +100,7 @@ final class TableWriter {
 	private static void writeTableName(List<String> name, CharacterOutput output, TomlWriter writer, char[] begin,
 									   char[] end) {
 		if (name.isEmpty()) {
-			throw new SerializationException("Invalid empty table name.");
+			throw new WritingException("Invalid empty table name.");
 		}
 		writer.writeIndent(output);//Indents the line.
 		output.write(begin);

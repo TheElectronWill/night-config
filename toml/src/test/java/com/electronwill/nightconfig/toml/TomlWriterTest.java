@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.toml;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.serialization.CharacterOutput;
 import com.electronwill.nightconfig.core.serialization.WriterOutput;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import org.junit.jupiter.api.Test;
 public class TomlWriterTest {
 
 	@Test
-	public void writeToString() {
+	public void writeToString() throws IOException {
 		Config subConfig = new TomlConfig();
 		subConfig.setValue("string", "test");
 		subConfig.setValue("dateTime", ZonedDateTime.now());
@@ -37,8 +38,7 @@ public class TomlWriterTest {
 		config.setValue("table_array", tableArray);
 		StringWriter writer = new StringWriter();
 
-		CharacterOutput output = new WriterOutput(writer);
-		new TomlWriter().writeConfiguration(config, output);
+		new TomlWriter().writeConfig(config, writer);
 		System.out.println("Written:");
 		System.out.println(writer.toString());
 	}
