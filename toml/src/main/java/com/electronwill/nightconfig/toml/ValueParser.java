@@ -18,7 +18,7 @@ final class ValueParser {
 	private static final char[] ONLY_IN_FP_NUMBER = {'.', 'e', 'E'};
 
 	static Object parseValue(CharacterInput input, char firstChar, TomlParser parser) {
-		System.out.println("parseValue(" + firstChar + ")");//TODO debug
+		//System.out.println("parseValue(" + firstChar + ")");//TODO debug
 		switch (firstChar) {
 			case '{':
 				return TableParser.parseInline(input, parser);

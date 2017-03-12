@@ -34,7 +34,7 @@ final class TemporalParser {
 	 * @return a Temporal value
 	 */
 	static Temporal parseTemporal(CharsWrapper chars) {//the CharsWrapper must be already trimmed
-		System.out.println("parseTemporal(" + chars + ")");
+		//System.out.println("parseTemporal(" + chars + ")");debug
 		if (chars.get(2) == ':') {// LocalTime
 			return parseTime(chars);
 		}
@@ -72,7 +72,7 @@ final class TemporalParser {
 	}
 
 	private static LocalTime parseTime(CharsWrapper chars) {
-		System.out.println("parseTime(" + chars + ")");//TODO debug
+		//System.out.println("parseTime(" + chars + ")");//TODO debug
 		CharsWrapper hourChars = chars.subView(0, 2);
 		CharsWrapper minuteChars = chars.subView(3, 5);
 		CharsWrapper secondChars = chars.subView(6, 8);
@@ -83,13 +83,13 @@ final class TemporalParser {
 
 		if (chars.length() > 8) {
 			CharsWrapper fractionChars = new CharsWrapper(chars.subView(9));
-			System.out.println("secFrac:" + fractionChars);//TODO debug
+			//System.out.println("secFrac:" + fractionChars);//TODO debug
 			if (fractionChars.length() > 9) {
 				fractionChars = fractionChars.subView(0, 9);//truncate if there are too many digits
 			}
 			int value = Utils.parseInt(fractionChars, 10);
 			int coeff = (int)Math.pow(10, 9 - fractionChars.length());
-			System.out.println("value: " + value + "; coeff: " + coeff);
+			//System.out.println("value: " + value + "; coeff: " + coeff);//TODO debug
 			nanos = value * coeff;
 		} else {
 			nanos = 0;

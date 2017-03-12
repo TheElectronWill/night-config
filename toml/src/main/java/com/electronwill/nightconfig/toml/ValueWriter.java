@@ -10,7 +10,7 @@ import java.util.List;
  */
 final class ValueWriter {
 	static void writeValue(Object value, CharacterOutput output, TomlWriter writer) {
-		System.out.println("writeValue: (" + value.getClass() + ") " + value);//TODO debug
+		//System.out.println("writeValue: (" + value.getClass() + ") " + value);//TODO debug
 		if (value instanceof Config) {
 			TableWriter.writeInline((Config)value, output, writer);
 		} else if (value instanceof List) {
