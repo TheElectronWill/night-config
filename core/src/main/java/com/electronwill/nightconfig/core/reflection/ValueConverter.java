@@ -14,7 +14,7 @@ final class ValueConverter<A, B> implements ConversionChecker<A>, ConversionAppl
 	final ConversionChecker<A> checker;
 	final ConversionApplier<A, B> applier;
 
-	public ValueConverter(ConversionChecker<A> checker, ConversionApplier<A, B> applier) {
+	ValueConverter(ConversionChecker<A> checker, ConversionApplier<A, B> applier) {
 		Objects.requireNonNull(checker, "The ConversionChecker must not be null.");
 		Objects.requireNonNull(applier, "The ConversionApplier must not be null.");
 		this.checker = checker;
