@@ -51,8 +51,8 @@ public final class JsonConfig extends MapConfig implements FileConfig {
 	public void writeTo(File file) throws IOException {
 		try (Writer fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
 			CharacterOutput output = new WriterOutput(fileWriter);
-			JsonWriter jsonWriter = new JsonWriter(output);
-			jsonWriter.writeJsonObject(this);
+			MinimalJsonWriter jsonWriter = new MinimalJsonWriter();
+			jsonWriter.writeConfig(this, output);
 		}//finally closes the writer
 	}
 
