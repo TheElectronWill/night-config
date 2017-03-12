@@ -5,7 +5,6 @@ import com.electronwill.nightconfig.core.MapConfig;
 import com.electronwill.nightconfig.core.serialization.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,9 +14,9 @@ import java.util.Map;
  * <li>Long</li>
  * <li>Float</li>
  * <li>Double</li>
- * <li>Boolen</li>
+ * <li>Boolean</li>
  * <li>String</li>
- * <li>List and its subclasses</li>
+ * <li>Collection and its subclasses</li>
  * <li>Config and its subclasses</li>
  * </ul>
  *
@@ -38,7 +37,7 @@ public final class JsonConfig extends MapConfig implements FileConfig {
 			|| type == Double.class
 			|| type == Boolean.class
 			|| type == String.class
-			|| List.class.isAssignableFrom(type)
+			|| Collection.class.isAssignableFrom(type)
 			|| Config.class.isAssignableFrom(type);
 	}
 

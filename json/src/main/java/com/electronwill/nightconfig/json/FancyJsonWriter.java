@@ -12,8 +12,7 @@ import java.util.function.Predicate;
 import static com.electronwill.nightconfig.json.MinimalJsonWriter.*;
 
 /**
- * A simple JSON writer that produces a minimized output: no line breaks, no spaces, no indentation. Use
- * the {@link FancyJsonWriter} if you want a nicer output.
+ * A configurable JSON writer.
  *
  * @author TheElectronWill
  */
