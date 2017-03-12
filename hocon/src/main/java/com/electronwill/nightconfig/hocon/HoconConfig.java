@@ -3,9 +3,8 @@ package com.electronwill.nightconfig.hocon;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.MapConfig;
 import com.electronwill.nightconfig.core.serialization.FileConfig;
-import com.electronwill.nightconfig.core.serialization.WriterOutput;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -32,23 +31,18 @@ public final class HoconConfig extends MapConfig implements FileConfig {
 	}
 
 	@Override
-	public HoconConfig createSubConfig() {
+	protected HoconConfig createSubConfig() {
 		return new HoconConfig();
 	}
 
 	@Override
-	public void writeTo(File file) throws IOException {
-		try (Writer fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
-			HoconWriter hoconWriter = new HoconWriter();
-			hoconWriter.writeConfig(this, new WriterOutput(fileWriter));
-		}
+	public void writeTo(File file, boolean append) throws IOException {
+		new HoconWriter().writeConfig(this, file, append);
 	}
 
 	@Override
-	public void readFrom(File file) throws IOException {
-		try (Reader fileReader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-			this.asMap().clear();
-			HoconParser.parseConfiguration(file, this);
-		}
+	public void readFrom(File file, boolean merge) throws IOException {
+		if (!merge) asMap().clear();
+		new HoconParser().parseConfig(file, this);
 	}
 }

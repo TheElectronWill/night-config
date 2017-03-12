@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.hocon;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.serialization.CharacterOutput;
 import com.electronwill.nightconfig.core.serialization.WriterOutput;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import org.junit.jupiter.api.Test;
  */
 public class HoconWriterTest {
 	@Test
-	public void testWrite() {
+	public void testWrite() throws IOException {
 		Config subConfig = new HoconConfig();
 		subConfig.setValue("string", "test");
 		subConfig.setValue("sub", new HoconConfig());
@@ -35,9 +36,8 @@ public class HoconWriterTest {
 		config.setValue("config_list", configList);
 
 		StringWriter sw = new StringWriter();
-		CharacterOutput output = new WriterOutput(sw);
 		HoconWriter writer = new HoconWriter();
-		writer.writeConfig(config, output);
+		writer.writeConfig(config, sw);
 		System.out.println("Written:");
 		System.out.println(sw.toString());
 	}

@@ -1,10 +1,9 @@
 package com.electronwill.nightconfig.hocon;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.serialization.CharacterOutput;
-import com.electronwill.nightconfig.core.serialization.ConfigWriter;
-import com.electronwill.nightconfig.core.serialization.SerializationException;
-import com.electronwill.nightconfig.core.serialization.Utils;
+import com.electronwill.nightconfig.core.serialization.*;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -15,7 +14,7 @@ import java.util.function.Predicate;
  *
  * @author TheElectronWill
  */
-public final class HoconWriter implements ConfigWriter {
+public final class HoconWriter implements ConfigWriter<Config> {
 	private static final char[] NULL_CHARS = {'n', 'u', 'l', 'l'};
 	private static final char[] TRUE_CHARS = {'t', 'r', 'u', 'e'}, FALSE_CHARS = {'f', 'a', 'l', 's', 'e'};
 	private static final char[] TO_ESCAPE = {'"', '\n', '\r', '\t', '\\'};
@@ -32,13 +31,10 @@ public final class HoconWriter implements ConfigWriter {
 	private char[] newline = System.getProperty("line.separator").toCharArray();
 	private int currentIndentLevel;
 
-	/**
-	 * Writes a configuration as a HOCON object.
-	 */
 	@Override
-	public void writeConfig(Config config, CharacterOutput output) {
+	public void writeConfig(Config config, Writer writer) throws IOException {
 		currentIndentLevel = 0;
-		writeObject(config, output, false);
+		writeObject(config, new WriterOutput(writer), true);
 	}
 
 	private void writeObject(Config config, CharacterOutput output, boolean root) {
@@ -95,7 +91,7 @@ public final class HoconWriter implements ConfigWriter {
 		else if (v instanceof Boolean)
 			writeBoolean((boolean)v, output);
 		else
-			throw new SerializationException("Unsupported value type: " + v.getClass());
+			throw new WritingException("Unsupported value type: " + v.getClass());
 	}
 
 	private void writeArray(Collection<?> collection, CharacterOutput output) {

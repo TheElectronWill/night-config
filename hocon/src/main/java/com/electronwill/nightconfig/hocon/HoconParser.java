@@ -1,16 +1,14 @@
 package com.electronwill.nightconfig.hocon;
 
+import com.electronwill.nightconfig.core.serialization.ConfigParser;
 import com.typesafe.config.*;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.Reader;
 import java.util.Map;
 
 /**
  * @author TheElectronWill
  */
-public final class HoconParser {
-	private HoconParser() {}
-
+public final class HoconParser implements ConfigParser<HoconConfig> {
 	private static final ConfigParseOptions PARSE_OPTIONS = ConfigParseOptions.defaults()
 		.setAllowMissing(false).setSyntax(ConfigSyntax.CONF);
 
@@ -31,27 +29,13 @@ public final class HoconParser {
 		}
 	}
 
-	public static HoconConfig parseConfiguration(File file) {
-		return convert(ConfigFactory.parseFile(file, PARSE_OPTIONS).resolve());
-	}
-
-	public static void parseConfiguration(File file, HoconConfig config) {
-		put(ConfigFactory.parseFile(file, PARSE_OPTIONS).resolve(), config);
-	}
-
-	public static HoconConfig parseConfiguration(Reader reader) {
+	@Override
+	public HoconConfig parseConfig(Reader reader) {
 		return convert(ConfigFactory.parseReader(reader, PARSE_OPTIONS).resolve());
 	}
 
-	public static void parseConfiguration(Reader reader, HoconConfig config) {
-		put(ConfigFactory.parseReader(reader, PARSE_OPTIONS).resolve(), config);
-	}
-
-	public static HoconConfig parseConfiguration(InputStream input) {
-		return parseConfiguration(new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8)));
-	}
-
-	public static void parseConfiguration(InputStream input, HoconConfig config) {
-		parseConfiguration(new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8)), config);
+	@Override
+	public void parseConfig(Reader reader, HoconConfig destination) {
+		put(ConfigFactory.parseReader(reader, PARSE_OPTIONS).resolve(), destination);
 	}
 }
