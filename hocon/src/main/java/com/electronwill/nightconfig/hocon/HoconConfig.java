@@ -39,8 +39,8 @@ public final class HoconConfig extends MapConfig implements FileConfig {
 	@Override
 	public void writeTo(File file) throws IOException {
 		try (Writer fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
-			HoconWriter hoconWriter = new HoconWriter.Builder().build(new WriterOutput(fileWriter));
-			hoconWriter.writeHoconObject(this);
+			HoconWriter hoconWriter = new HoconWriter();
+			hoconWriter.writeConfig(this, new WriterOutput(fileWriter));
 		}
 	}
 

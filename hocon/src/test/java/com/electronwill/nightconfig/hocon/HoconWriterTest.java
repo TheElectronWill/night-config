@@ -36,8 +36,8 @@ public class HoconWriterTest {
 
 		StringWriter sw = new StringWriter();
 		CharacterOutput output = new WriterOutput(sw);
-		HoconWriter writer = new HoconWriter.Builder().build(output);
-		writer.writeHoconObject(config);
+		HoconWriter writer = new HoconWriter();
+		writer.writeConfig(config, output);
 		System.out.println("Written:");
 		System.out.println(sw.toString());
 	}

@@ -2,181 +2,150 @@ package com.electronwill.nightconfig.hocon;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.serialization.CharacterOutput;
+import com.electronwill.nightconfig.core.serialization.ConfigWriter;
 import com.electronwill.nightconfig.core.serialization.SerializationException;
 import com.electronwill.nightconfig.core.serialization.Utils;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
- * A JSON Writer that does line breaks, spacing and indentation. It can be configured.
+ * A configurable HOCON writer.
  *
  * @author TheElectronWill
  */
-public final class HoconWriter {
+public final class HoconWriter implements ConfigWriter {
 	private static final char[] NULL_CHARS = {'n', 'u', 'l', 'l'};
-	private static final char[] TRUE_CHARS = {'t', 'r', 'u', 'e'};
-	private static final char[] FALSE_CHARS = {'f', 'a', 'l', 's', 'e'};
+	private static final char[] TRUE_CHARS = {'t', 'r', 'u', 'e'}, FALSE_CHARS = {'f', 'a', 'l', 's', 'e'};
 	private static final char[] TO_ESCAPE = {'"', '\n', '\r', '\t', '\\'};
 	private static final char[] ESCAPED = {'"', 'n', 'r', 't', '\\'};
+	private static final char[] EMPTY_OBJECT = {'{', '}'}, EMPTY_ARRAY = {'[', ']'};
+	private static final char[] VALUE_SEPARATOR = {',', ' '};
 	private static final char[] FORBIDDEN_IN_UNQUOTED = {'$', '"', '{', '}', '[', ']', ':', '=', ',', '+',
 		'#', '`', '^', '?', '!', '@', '*', '&', '\\'};
 
-	private final CharacterOutput output;
-	private final char[] indent, newline;
-	private final char keyValueSeparator;
-	private final boolean indentObjects, indentArrays, spaceArrays;
-	private final boolean newlineBeforeObject, newlineBeforeArray;
-	private int indentation = 0;
+	private Predicate<Config> indentObjectElementsPredicate = c -> true;
+	private Predicate<Collection> indentArrayElementsPredicate = c -> true;
+	private boolean newlineAfterObjectStart = false, newlineAfterArrayStart = false;
+	private char[] indent = {'\t'}, entrySeparator = {':', ' '};
+	private char[] newline = System.getProperty("line.separator").toCharArray();
+	private int currentIndentLevel;
 
 	/**
-	 * Constructs a new HoconWriter with the specified parameters.
-	 * <p>
-	 * Use a {@link Builder} to construct a HoconWriter easily
-	 * </p>
-	 *
-	 * @param output              the output to write to
-	 * @param indent              the indentation character(s), for instance {@code {' ', ' ', ' ', ' '}} is 4 spaces.
-	 * @param newline             the newline character(s), for instance {'\n'} is Unix linefeed
-	 * @param keyValueSeparator   the character between a key and its value
-	 * @param indentObjects       true to indent json objects
-	 * @param indentArrays        true to indent json arrays
-	 * @param spaceArrays         true to space json arrays
-	 * @param newlineBeforeObject true to write a newline before json objects
-	 * @param newlineBeforeArray  true to write a neline before json arrays
+	 * Writes a configuration as a HOCON object.
 	 */
-	public HoconWriter(CharacterOutput output, char[] indent, char[] newline, char keyValueSeparator, boolean indentObjects,
-					   boolean indentArrays, boolean spaceArrays, boolean newlineBeforeObject, boolean newlineBeforeArray) {
-		this.output = output;
-		this.indent = indent;
-		this.newline = newline;
-		this.keyValueSeparator = keyValueSeparator;
-		this.indentObjects = indentObjects;
-		this.indentArrays = indentArrays;
-		this.spaceArrays = spaceArrays;
-		this.newlineBeforeObject = newlineBeforeObject;
-		this.newlineBeforeArray = newlineBeforeArray;
+	@Override
+	public void writeConfig(Config config, CharacterOutput output) {
+		currentIndentLevel = 0;
+		writeObject(config, output, false);
 	}
 
-	public void writeHoconObject(Config config) {
-		writeObject(config, true);
-	}
-
-	private void indent() {
-		for (int i = 0; i < indentation; i++) {
-			output.write(indent);
+	private void writeObject(Config config, CharacterOutput output, boolean root) {
+		if (config.isEmpty()) {
+			output.write(EMPTY_OBJECT);
+			return;
 		}
-	}
-
-	private void writeObject(Config config) {
-		writeObject(config, false);
-	}
-
-	private void writeObject(Config config, boolean isRoot) {
-		if (newlineBeforeObject) {
-			output.write(newline);
-			indent();
-		}
-		if (indentObjects) {
-			indentation++;
-		}
-		if (!isRoot) output.write('{');
-		if (indentObjects) output.write(newline);
+		if (!root) output.write('{');//HOCON allows to omit the root braces
+		if (newlineAfterObjectStart) output.write(newline);
 		final Iterator<Map.Entry<String, Object>> it = config.asMap().entrySet().iterator();
-		do {
+		final boolean indentElements = indentObjectElementsPredicate.test(config);
+		if (indentElements) {
+			output.write(newline);
+			increaseIndentLevel();
+		}
+		while (true) {
 			final Map.Entry<String, Object> entry = it.next();
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
 
-			if (indentObjects) indent();
-			writeString(key);
-			if (!(value instanceof Config)) output.write(keyValueSeparator);
-
-			output.write(' ');
-			writeValue(value);
-			if (it.hasNext()) {
-				if (indentObjects)
-					output.write(newline);
-				else
-					output.write(',');
+			if (indentElements) writeIndent(output);//Indents the line
+			writeString(key, output);//key
+			if (value instanceof Config) {
+				output.write(' ');
 			} else {
-				break;
+				output.write(entrySeparator);//HOCON allows to omit the separator if the value is a config
 			}
-
-		} while (true);
-		if (indentObjects) {
-			output.write(newline);
-			indentation--;
-			indent();
-		}
-		if (!isRoot) output.write('}');
-	}
-
-	private void writeArray(Iterable<?> iterable) {
-		if (newlineBeforeArray) {
-			output.write(newline);
-			indent();
-		}
-		if (indentArrays) {
-			indentation++;
-		}
-		output.write('[');
-		if (indentArrays) output.write(newline);
-		final Iterator<?> it = iterable.iterator();
-		do {
-			Object value = it.next();
-			if (indentArrays) indent();
-			writeValue(value);
-			if (it.hasNext()) {
+			writeValue(value, output);//value
+			if (indentElements) {
+				output.write(newline);
+			} else {
 				output.write(',');
-				if (spaceArrays) output.write(' ');
-				if (indentArrays) output.write(newline);
-			} else {
-				break;
 			}
-		} while (true);
-		if (indentArrays) {
-			output.write(newline);
-			indentation--;
-			indent();
+			if (!it.hasNext()) break;
 		}
-		output.write(']');
+		if (indentElements) {
+			decreaseIndentLevel();
+			writeIndent(output);
+		}
+		if (!root) output.write('}');//HOCON allows to omit the root braces
 	}
 
-	private void writeValue(Object v) {
+	private void writeValue(Object v, CharacterOutput output) {
 		if (v == null)
-			writeNull();
-		else if (v instanceof CharSequence)
-			writeString((CharSequence)v);
+			output.write(NULL_CHARS);
+		else if (v instanceof String)
+			writeString((String)v, output);
 		else if (v instanceof Number)
 			output.write(v.toString());
 		else if (v instanceof Config)
-			writeObject((Config)v);
-		else if (v instanceof Iterable)
-			writeArray((Iterable)v);
+			writeObject((Config)v, output, false);
+		else if (v instanceof Collection)
+			writeArray((Collection<?>)v, output);
 		else if (v instanceof Boolean)
-			writeBoolean((boolean)v);
+			writeBoolean((boolean)v, output);
 		else
 			throw new SerializationException("Unsupported value type: " + v.getClass());
 	}
 
-	private void writeBoolean(boolean b) {
-		if (b)
-			output.write(TRUE_CHARS);
-		else
-			output.write(FALSE_CHARS);
+	private void writeArray(Collection<?> collection, CharacterOutput output) {
+		if (collection.isEmpty()) {
+			output.write(EMPTY_ARRAY);
+			return;
+		}
+		output.write('[');//open array
+		if (newlineAfterObjectStart) output.write(newline);
+		final Iterator<?> it = collection.iterator();
+		final boolean indentElements = indentArrayElementsPredicate.test(collection);
+		if (indentElements) {
+			output.write(newline);
+			increaseIndentLevel();
+		}
+		while (true) {
+			Object value = it.next();
+			if (indentElements) writeIndent(output);
+			writeValue(value, output);
+			if (it.hasNext()) {
+				output.write(VALUE_SEPARATOR);
+				if (indentElements) output.write(newline);
+			} else {
+				if (indentElements) output.write(newline);
+				break;
+			}
+		}
+		if (indentElements) {
+			decreaseIndentLevel();
+			writeIndent(output);
+		}
+		output.write(']');//close array
 	}
 
-	private void writeNull() {
-		output.write(NULL_CHARS);
+	private void writeBoolean(boolean b, CharacterOutput output) {
+		if (b) output.write(TRUE_CHARS);
+		else output.write(FALSE_CHARS);
 	}
 
-	private void writeString(CharSequence cs) {
-		output.write('"');
-		final int length = cs.length();
+	private void writeString(String s, CharacterOutput output) {
+		if (canBeUnquoted(s)) {
+			output.write(s);
+			return;
+		}
+		output.write('"');//open string
+		final int length = s.length();
 		for (int i = 0; i < length; i++) {
-			char c = cs.charAt(i);
+			char c = s.charAt(i);
 			int escapeIndex = Utils.arrayIndexOf(TO_ESCAPE, c);
-			if (escapeIndex != -1) {
+			if (escapeIndex != -1) {//the character must be escaped
 				char escaped = ESCAPED[escapeIndex];
 				output.write('\\');
 				output.write(escaped);
@@ -184,96 +153,97 @@ public final class HoconWriter {
 				output.write(c);
 			}
 		}
-		output.write('"');
+		output.write('"');//close string
 	}
 
-	/**
-	 * A builder for the HoconWriter.
-	 */
-	public static final class Builder {
-		private char[] indent = {'\t'}, newline = {'\n'};
-		private char keyValueSeparator = '=';
-		private boolean indentObjects = true, indentArrays = true, spaceArrays = false;
-		private boolean newlineBeforeObject = false, newlineBeforeArray = false;
-
-		/**
-		 * Creates a new builder with the following default parameters:
-		 * <ul>
-		 * <li>indent = the TAB character '\t'</li>
-		 * <li>newline = the LF character '\n'</li>
-		 * <li>indentObjects = true</li>
-		 * <li>indentArrays = true</li>
-		 * <li>spaceArrays = false</li>
-		 * <li>newlineBeforeObject = false</li>
-		 * <li>newlineBeforeArray = false</li>
-		 * </ul>
-		 */
-		public Builder() {}
-
-		/**
-		 * Creates a new HoconWriter that will write to the specified output.
-		 *
-		 * @param output the output to write to
-		 * @return a new HoconWriter
-		 */
-		public HoconWriter build(CharacterOutput output) {
-			return new HoconWriter(output, indent, newline, keyValueSeparator, indentObjects, indentArrays,
-				spaceArrays, newlineBeforeObject, newlineBeforeArray);
+	private boolean canBeUnquoted(CharSequence s) {
+		final int length = s.length();
+		for (int i = 0; i < length; i++) {
+			if (Utils.arrayContains(FORBIDDEN_IN_UNQUOTED, s.charAt(i)))
+				return false;
 		}
-
-		public Builder keyValueSeparator(char keyValueSeparator) {
-			if (keyValueSeparator != '=' && keyValueSeparator != ':') {
-				throw new IllegalArgumentException("Invalid key/value separator '" + keyValueSeparator +
-					"', only '=' and ':' are allowed in HOCON.");
-			}
-			this.keyValueSeparator = keyValueSeparator;
-			return this;
-		}
-
-		public Builder indent(char[] indent) {
-			this.indent = indent;
-			return this;
-		}
-
-		public Builder indent(String indent) {
-			this.indent = indent.toCharArray();
-			return this;
-		}
-
-		public Builder newline(char[] newline) {
-			this.newline = newline;
-			return this;
-		}
-
-		public Builder newline(String newline) {
-			this.newline = newline.toCharArray();
-			return this;
-		}
-
-		public Builder indentObjects(boolean indentObjects) {
-			this.indentObjects = indentObjects;
-			return this;
-		}
-
-		public Builder indentArrays(boolean indentArrays) {
-			this.indentArrays = indentArrays;
-			return this;
-		}
-
-		public Builder spaceArrays(boolean spaceArrays) {
-			this.spaceArrays = spaceArrays;
-			return this;
-		}
-
-		public Builder newlineBeforeObject(boolean newlineBeforeObject) {
-			this.newlineBeforeObject = newlineBeforeObject;
-			return this;
-		}
-
-		public Builder newlineBeforeArray(boolean newlineBeforeArray) {
-			this.newlineBeforeArray = newlineBeforeArray;
-			return this;
-		}
+		return true;
 	}
 
+	public Predicate<Config> getIndentObjectElementsPredicate() {
+		return indentObjectElementsPredicate;
+	}
+
+	public void setIndentObjectElementsPredicate(Predicate<Config> indentObjectElementsPredicate) {
+		this.indentObjectElementsPredicate = indentObjectElementsPredicate;
+	}
+
+	public Predicate<Collection> getIndentArrayElementsPredicate() {
+		return indentArrayElementsPredicate;
+	}
+
+	public void setIndentArrayElementsPredicate(Predicate<Collection> indentArrayElementsPredicate) {
+		this.indentArrayElementsPredicate = indentArrayElementsPredicate;
+	}
+
+	public boolean isNewlineAfterObjectStart() {
+		return newlineAfterObjectStart;
+	}
+
+	public void setNewlineAfterObjectStart(boolean newlineAfterObjectStart) {
+		this.newlineAfterObjectStart = newlineAfterObjectStart;
+	}
+
+	public boolean isNewlineAfterArrayStart() {
+		return newlineAfterArrayStart;
+	}
+
+	public void setNewlineAfterArrayStart(boolean newlineAfterArrayStart) {
+		this.newlineAfterArrayStart = newlineAfterArrayStart;
+	}
+
+	public char[] getIndent() {
+		return indent;
+	}
+
+	public void setIndent(char[] indent) {
+		this.indent = indent;
+	}
+
+	public void setIndent(String indent) {
+		setIndent(indent.toCharArray());
+	}
+
+	public char[] getNewline() {
+		return newline;
+	}
+
+	public void setNewline(char[] newline) {
+		this.newline = newline;
+	}
+
+	public void setNewline(String newline) {
+		setNewline(newline.toCharArray());
+	}
+
+	public char[] getEntrySeparator() {
+		return entrySeparator;
+	}
+
+	public void setEntrySeparator(char[] newline) {
+		this.entrySeparator = entrySeparator;
+	}
+
+	public void setEntrySeparator(String newline) {
+		setEntrySeparator(newline.toCharArray());
+	}
+
+	void increaseIndentLevel() {
+		currentIndentLevel++;
+	}
+
+	void decreaseIndentLevel() {
+		currentIndentLevel--;
+	}
+
+	void writeIndent(CharacterOutput output) {
+		for (int i = 0; i < currentIndentLevel; i++) {
+			output.write(indent);
+		}
+	}
 }
