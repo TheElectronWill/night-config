@@ -388,8 +388,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		 * @param initialCapacity the initial capacity
 		 */
 		public Builder(int initialCapacity) {
-			initialCapacity = Math.min(2, initialCapacity);
-			this.data = new char[initialCapacity];
+			this.data = new char[Math.min(2, initialCapacity)];
 		}
 
 		/**
