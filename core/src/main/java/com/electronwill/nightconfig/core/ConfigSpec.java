@@ -318,7 +318,7 @@ public final class ConfigSpec {
 	 *
 	 * @return {@code true} if it has been defined, {@code false} otherwise
 	 */
-	private boolean isDefined(List<String> path) {
+	public boolean isDefined(List<String> path) {
 		return storage.containsValue(path);
 	}
 
@@ -378,7 +378,6 @@ public final class ConfigSpec {
 		//Second step: checks for unspecified value
 		for (Map.Entry<String, Object> configEntry : configMap.entrySet()) {
 			final String key = configEntry.getKey();
-			final Object configValue = configEntry.getValue();
 			final Object specValue = specMap.get(key);
 			if (specValue == null)//Unspecified value that shouldn't exist
 				return false;
@@ -447,24 +446,29 @@ public final class ConfigSpec {
 			final Object specValue = specEntry.getValue();
 			final Object configValue = configMap.get(key);
 			if (specValue instanceof Config) {//sublevel that contains ValueSpecs, or other sublevels
-				if (!(configValue instanceof Config)) {//Missing or invalid sublevel in config
-					Object newValue = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);//Creates the sublevel
-					configMap.put(key, newValue);//Corrects the config value
-
+				if (configValue instanceof Config) {//Existing sublevel
+					// Checks the sublevel recursively:
+					parentPath.add(key);
+					Map<String, Object> configValueMap = ((Config)configValue).asMap();
+					Map<String, Object> specValueMap = ((Config)specValue).asMap();
+					count += correct(configValueMap, specValueMap, parentPath, listener);
+					parentPath.remove(parentPath.size() - 1);
+				} else {// Missing or invalid (ie not a Config) sublevel
+					// Creates the sublevel in the config:
+					Object newValue = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
+					configMap.put(key, newValue);
+					// Notifies the listener:
 					CorrectionAction correctionAction = (configValue == null) ? ADD : REPLACE;
 					handleCorrection(parentPath, key, configValue, newValue, listener, correctionAction);
 					count++;
 				}
-				parentPath.add(key);
-				count += correct(((Config)configValue).asMap(), ((Config)specValue).asMap(), parentPath,
-					listener);//Recursive call
-				parentPath.remove(parentPath.size() - 1);
 			} else {
 				ValueSpec valueSpec = (ValueSpec)specValue;
 				if (!valueSpec.validator.test(configValue)) {
+					// Corrects the value in the config:
 					Object newValue = valueSpec.defaultValueSupplier.get();//Gets the corrected value
-					configMap.put(key, newValue);//Corrects the config value
-
+					configMap.put(key, newValue);
+					// Notifies the listener:
 					CorrectionAction correctionAction = (configValue == null) ? ADD : REPLACE;
 					handleCorrection(parentPath, key, configValue, newValue, listener, correctionAction);
 					count++;
@@ -477,7 +481,8 @@ public final class ConfigSpec {
 			final Object configValue = configEntry.getValue();
 			final Object specValue = specMap.get(key);
 			if (specValue == null) {
-				configMap.remove(key);//Corrects the config value
+				// Removes the value and notifies the listener:
+				configMap.remove(key);
 				handleCorrection(parentPath, key, configValue, null, listener, REMOVE);
 				count++;
 			}
@@ -501,7 +506,7 @@ public final class ConfigSpec {
 	 * {@link #correct(Config, CorrectionListener)}.
 	 */
 	@FunctionalInterface
-	public static interface CorrectionListener {
+	public interface CorrectionListener {
 		/**
 		 * Called when a config value is added, modified or removed by the correction.
 		 *
@@ -516,7 +521,7 @@ public final class ConfigSpec {
 
 	}
 
-	public static enum CorrectionAction {
+	public enum CorrectionAction {
 		/**
 		 * Means that the value was added to the config. In that case, {@code incorrectValue} is {@code
 		 * null}.
