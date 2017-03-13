@@ -28,7 +28,7 @@ config.readFrom(file);
 String str = config.getValue("a.b.c");// Dot-separated string as path
 String str2 = config.getValue(Arrays.asList("127.0.0.1"));// List of strings as path, in case you need dots in the path 
 List<Integer> list = config.getValue("list");// No need to cast the returned value!
-Optional<Boolean> bool = config.getOptional("enabled");// Supports Optional gets
+Optional<Boolean> bool = config.getOptionalValue("enabled");// Supports Optional gets
 
 config.setValue("a.b.c", str);
 config.setValue(Array.asList("127.0.0.1"), str2);
