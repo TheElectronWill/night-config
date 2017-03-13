@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core.serialization;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 /**
@@ -368,6 +369,9 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 
 			@Override
 			public Character next() {
+				if (index >= limit) {
+					throw new NoSuchElementException("Index beyond limit: " + index);
+				}
 				return chars[index++];
 			}
 		};
