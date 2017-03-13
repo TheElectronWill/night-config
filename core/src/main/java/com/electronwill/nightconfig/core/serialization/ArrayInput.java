@@ -62,9 +62,9 @@ public final class ArrayInput extends AbstractInput {
 	public CharsWrapper read(int n) {
 		// Overriden method to provide better performance: use arraycopy instead of taking the characters
 		// one by one.
-		n = Math.min(n, limit - cursor + deque.size());
-		final int offset = Math.min(deque.size(), n);
-		final char[] array = new char[n];
+		final int size = Math.min(n, limit - cursor + deque.size());
+		final int offset = Math.min(deque.size(), size);
+		final char[] array = new char[size];
 		for (int i = 0; i < offset; i++) {
 			int next = deque.removeFirst();
 			if (next == EOS) {
@@ -72,8 +72,8 @@ public final class ArrayInput extends AbstractInput {
 			}
 			array[i] = (char)next;
 		}
-		System.arraycopy(chars, cursor, array, offset, n - offset);
-		cursor += n;
+		System.arraycopy(chars, cursor, array, offset, size - offset);
+		cursor += size;
 		return new CharsWrapper(array);
 	}
 
