@@ -35,7 +35,7 @@ config.setValue(Array.asList("127.0.0.1"), str2);
 config.setValue("list", list);
 
 config.removeValue("a.b.c");
-config.setValue(Array.asList("127.0.0.1"));
+config.removeValue(Array.asList("127.0.0.1"));
 ```
 
 ## Saving a TOML configuration to a file
