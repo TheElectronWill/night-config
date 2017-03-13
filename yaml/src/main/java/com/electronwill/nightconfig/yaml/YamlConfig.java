@@ -3,38 +3,23 @@ package com.electronwill.nightconfig.yaml;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.MapConfig;
 import com.electronwill.nightconfig.core.serialization.FileConfig;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.yaml.snakeyaml.Yaml;
 
 /**
  * @author TheElectronWill
  */
 public final class YamlConfig extends MapConfig implements FileConfig {
-	private static final ThreadLocal<Yaml> localYaml = ThreadLocal.withInitial(Yaml::new);
+	private static final ThreadLocal<YamlWriter> LOCAL_WRITER = ThreadLocal.withInitial(YamlWriter::new);
+	private static final ThreadLocal<YamlParser> LOCAL_PARSER = ThreadLocal.withInitial(YamlParser::new);
 
 	public YamlConfig() {}
 
 	public YamlConfig(Map<String, Object> map) {
 		super(map);
-	}
-
-	public void writeTo(File file) throws IOException {
-		Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),
-			StandardCharsets.UTF_8));
-		Map<String, Object> dataMap = ConfigUnwrapper.unwrap(this);
-		localYaml.get().dump(dataMap, writer);
-	}
-
-	public void readFrom(File file) throws IOException {
-		InputStream inputStream = new FileInputStream(file);
-		Map<String, Object> loadedMap = localYaml.get().loadAs(inputStream, Map.class);
-		Map<String, Object> currentMap = asMap();
-		currentMap.clear();
-		currentMap.putAll(loadedMap);
 	}
 
 	protected YamlConfig createSubConfig() {
@@ -54,5 +39,16 @@ public final class YamlConfig extends MapConfig implements FileConfig {
 			|| Set.class.isAssignableFrom(type)
 			|| List.class.isAssignableFrom(type)
 			|| Config.class.isAssignableFrom(type);
+	}
+
+	@Override
+	public void writeTo(File file, boolean append) throws IOException {
+		LOCAL_WRITER.get().writeConfig(this, file, append);
+	}
+
+	@Override
+	public void readFrom(File file, boolean merge) throws IOException {
+		if (!merge) asMap().clear();
+		LOCAL_PARSER.get().parseConfig(file, this);
 	}
 }

@@ -2,7 +2,6 @@ package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
-import com.electronwill.nightconfig.core.serialization.CharacterOutput;
 import com.electronwill.nightconfig.core.serialization.FileConfig;
 import com.electronwill.nightconfig.core.serialization.WriterOutput;
 import java.io.*;
@@ -18,16 +17,16 @@ public class JsonConfigTest {
 
 	{
 		Config config2 = new SimpleConfig();
-		config2.setBoolean("boolean", true);
-		config2.setBoolean("false", false);
+		config2.setValue("boolean", true);
+		config2.setValue("false", false);
 
-		config.setString("string", "This is a string with a lot of characters to escape \n\r\t \\ \" ");
-		config.setInt("int", 123456);
-		config.setLong("long", 1234567890l);
-		config.setFloat("float", 0.123456f);
-		config.setDouble("double", 0.123456d);
-		config.setConfig("config", config2);
-		config.setList("list", Arrays.asList("a", "b", 3, null, true, false, 17.5));
+		config.setValue("string", "This is a string with a lot of characters to escape \n\r\t \\ \" ");
+		config.setValue("int", 123456);
+		config.setValue("long", 1234567890l);
+		config.setValue("float", 0.123456f);
+		config.setValue("double", 0.123456d);
+		config.setValue("config", config2);
+		config.setValue("list", Arrays.asList("a", "b", 3, null, true, false, 17.5));
 		config.setValue("null", null);
 	}
 
@@ -47,14 +46,18 @@ public class JsonConfigTest {
 	@Test
 	public void testFancyWriter() throws IOException {
 		try (Writer fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
-			CharacterOutput output = new WriterOutput(fileWriter);
-			FancyJsonWriter.Builder builder = new FancyJsonWriter.Builder();
-			builder.newline("\r").indent("    ");
-			builder.indentArrays(false).indentObjects(true);
-			builder.newlineBeforeObject(true);
-			builder.spaceArrays(true);
-			FancyJsonWriter jsonWriter = builder.build(output);
-			jsonWriter.writeJsonObject(config);
+			FancyJsonWriter jsonWriter = new FancyJsonWriter();
+			jsonWriter.setNewline("\r");
+			jsonWriter.setIndent("    ");
+			jsonWriter.writeConfig(config, fileWriter);
 		}//finally closes the writer
+	}
+
+	@Test
+	public void testMinimalWriter() {
+		StringWriter sw = new StringWriter();
+		MinimalJsonWriter writer = new MinimalJsonWriter();
+		writer.writeJsonObject(config, new WriterOutput(sw));
+		System.out.println("Written:\n" + sw.toString());
 	}
 }

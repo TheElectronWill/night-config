@@ -40,19 +40,19 @@ final class StringWriter {
 			case '\"':
 				output.write(ESCAPED_QUOTE);
 				break;
-			case 'b':
+			case '\b':
 				output.write(ESCAPED_B);
 				break;
-			case 'f':
+			case '\f':
 				output.write(ESCAPED_F);
 				break;
-			case 'n':
+			case '\n':
 				output.write(ESCAPED_N);
 				break;
-			case 'r':
+			case '\r':
 				output.write(ESCAPED_R);
 				break;
-			case 't':
+			case '\t':
 				output.write(ESCAPED_T);
 				break;
 			default:

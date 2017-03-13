@@ -38,8 +38,7 @@ final class TableParser {
 		}
 	}
 
-	static TomlConfig parseNormal(CharacterInput input, TomlParser parser) {
-		TomlConfig config = new TomlConfig();
+	static TomlConfig parseNormal(CharacterInput input, TomlParser parser, TomlConfig config) {
 		while (true) {
 			int keyFirst = Toml.readUseful(input);
 			if (keyFirst == -1 || keyFirst == '[') return config;//EOS or beginning of an other table
@@ -61,6 +60,10 @@ final class TableParser {
 					key + "\" = " + value);
 			}
 		}
+	}
+
+	static TomlConfig parseNormal(CharacterInput input, TomlParser parser) {
+		return parseNormal(input, parser, new TomlConfig());
 	}
 
 	static List<String> parseTableName(CharacterInput input, TomlParser parser) {
@@ -94,22 +97,18 @@ final class TableParser {
 			return StringParser.parseLiteral(input, parser);
 		} else {
 			CharsWrapper restOfKey = input.readCharsUntil(KEY_END);
-			CharsWrapper bareKey = new CharsWrapper.Builder(parser.getInitialStringBuilderCapacity())
+			CharsWrapper bareKey = new CharsWrapper.Builder(restOfKey.length() + 1)
 				.append(firstChar).append(restOfKey).build();
 			// Check that the bare key is conform to the specification
 			if (bareKey.isEmpty()) {
 				throw new ParsingException("Empty bare keys aren't allowed.");
 			}
 			for (char c : bareKey) {
-				if (!isValidInBareKey(c))
+				if (!Toml.isValidInBareKey(c, parser.isLenientWithBareKeys()))
 					throw new ParsingException("Forbidden character in bare key: '" + c + "'");
 			}
 			return bareKey.toString();
 		}
-	}
-
-	private static boolean isValidInBareKey(char c) {
-		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_';
 	}
 
 	private TableParser() {}

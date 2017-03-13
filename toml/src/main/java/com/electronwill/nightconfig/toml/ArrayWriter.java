@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * @author TheElectronWill
  */
-class ArrayWriter {
+final class ArrayWriter {
 	private static final char[] EMPTY_ARRAY = {'[', ']'}, ELEMENT_SEPARATOR = {',', ' '};
 
 	static void writeArray(List<?> values, CharacterOutput output) {
@@ -28,4 +28,6 @@ class ArrayWriter {
 			}
 		}
 	}
+
+	private ArrayWriter() {}
 }

@@ -1,169 +1,171 @@
 package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.serialization.CharacterOutput;
-import com.electronwill.nightconfig.core.serialization.SerializationException;
-import com.electronwill.nightconfig.core.serialization.Utils;
-import java.util.Iterator;
-import java.util.Map;
+import com.electronwill.nightconfig.core.serialization.*;
+import java.io.IOException;
+import java.io.Writer;
+import java.lang.reflect.Array;
+import java.util.*;
+import java.util.function.Predicate;
+
+import static com.electronwill.nightconfig.json.MinimalJsonWriter.*;
 
 /**
- * A JSON Writer that does line breaks, spacing and indentation. It can be configured.
+ * A configurable JSON writer.
  *
  * @author TheElectronWill
  */
-public final class FancyJsonWriter {
-	private static final char[] NULL_CHARS = JsonWriter.NULL_CHARS;
-	private static final char[] TRUE_CHARS = JsonWriter.TRUE_CHARS;
-	private static final char[] FALSE_CHARS = JsonWriter.FALSE_CHARS;
-	private static final char[] TO_ESCAPE = JsonWriter.TO_ESCAPE;
-	private static final char[] ESCAPED = JsonWriter.ESCAPED;
+public final class FancyJsonWriter implements ConfigWriter<Config> {
+	private static final char[] ENTRY_SEPARATOR = {':', ' '}, VALUE_SEPARATOR = {',', ' '};
 
-	private final CharacterOutput output;
-	private final char[] indent, newline;
-	private final boolean indentObjects, indentArrays, spaceArrays;
-	private final boolean newlineBeforeObject, newlineBeforeArray;
-	private int indentation = 0;
+	private Predicate<Config> indentObjectElementsPredicate = c -> true;
+	private Predicate<Collection> indentArrayElementsPredicate = c -> true;
+	private boolean newlineAfterObjectStart = false, newlineAfterArrayStart = false;
+	private char[] indent = {'\t'};
+	private char[] newline = System.getProperty("line.separator").toCharArray();
+	private int currentIndentLevel;
 
-	/**
-	 * Constructs a new FancyJsonWriter with the specified parameters.
-	 * <p>
-	 * Use a {@link Builder} to construct a FancyJsonWriter easily
-	 * </p>
-	 *
-	 * @param output              the output to write to
-	 * @param indent              the indentation character(s), for instance {@code {' ', ' ', ' ', ' '}} is 4 spaces.
-	 * @param newline             the newline character(s), for instance {'\n'} is Unix linefeed
-	 * @param indentObjects       true to indent json objects
-	 * @param indentArrays        true to indent json arrays
-	 * @param spaceArrays         true to space json arrays
-	 * @param newlineBeforeObject true to write a newline before json objects
-	 * @param newlineBeforeArray  true to write a neline before json arrays
-	 */
-	public FancyJsonWriter(CharacterOutput output, char[] indent, char[] newline, boolean indentObjects,
-						   boolean indentArrays, boolean spaceArrays, boolean newlineBeforeObject, boolean newlineBeforeArray) {
-		this.output = output;
-		this.indent = indent;
-		this.newline = newline;
-		this.indentObjects = indentObjects;
-		this.indentArrays = indentArrays;
-		this.spaceArrays = spaceArrays;
-		this.newlineBeforeObject = newlineBeforeObject;
-		this.newlineBeforeArray = newlineBeforeArray;
+	@Override
+	public void writeConfig(Config config, Writer writer) throws IOException {
+		currentIndentLevel = 0;
+		writeObject(config, new WriterOutput(writer));
 	}
 
-	public void writeJsonObject(Config config) {
-		writeObject(config);
-	}
-
-	private void indent() {
-		for (int i = 0; i < indentation; i++) {
-			output.write(indent);
+	private void writeObject(Config config, CharacterOutput output) {
+		if (config.isEmpty()) {
+			output.write(EMPTY_OBJECT);
+			return;
 		}
-	}
-
-	private void writeObject(Config config) {
-		if (newlineBeforeObject) {
+		Iterator<Map.Entry<String, Object>> it = config.asMap().entrySet().iterator();
+		output.write('{');//open object
+		if (newlineAfterObjectStart) output.write(newline);
+		boolean indentElements = indentObjectElementsPredicate.test(config);
+		if (indentElements) {
 			output.write(newline);
-			indent();
+			increaseIndentLevel();
 		}
-		if (indentObjects) {
-			indentation++;
-		}
-		output.write('{');
-		if (indentObjects) output.write(newline);
-		final Iterator<Map.Entry<String, Object>> it = config.asMap().entrySet().iterator();
-		do {
+		while (true) {
 			final Map.Entry<String, Object> entry = it.next();
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
-			if (indentObjects) indent();
-			writeString(key);
-			output.write(':');
-			output.write(' ');
-			writeValue(value);
+
+			if (indentElements) writeIndent(output);//Indents the line
+			writeString(key, output);//key
+			output.write(ENTRY_SEPARATOR);//separator
+			writeValue(value, output);//value
 			if (it.hasNext()) {
 				output.write(',');
-				if (indentObjects) output.write(newline);
+				if (indentElements) output.write(newline);
 			} else {
+				if (indentElements) output.write(newline);
 				break;
 			}
-
-		} while (true);
-		if (indentObjects) {
-			output.write(newline);
-			indentation--;
-			indent();
 		}
-		output.write('}');
+		if (indentElements) {
+			decreaseIndentLevel();
+			writeIndent(output);
+		}
+		output.write('}');//close object
 	}
 
-	private void writeArray(Iterable<?> iterable) {
-		if (newlineBeforeArray) {
-			output.write(newline);
-			indent();
-		}
-		if (indentArrays) {
-			indentation++;
-		}
-		output.write('[');
-		if (indentArrays) output.write(newline);
-		final Iterator<?> it = iterable.iterator();
-		do {
-			Object value = it.next();
-			if (indentArrays) indent();
-			writeValue(value);
-			if (it.hasNext()) {
-				output.write(',');
-				if (spaceArrays) output.write(' ');
-				if (indentArrays) output.write(newline);
-			} else {
-				break;
-			}
-		} while (true);
-		if (indentArrays) {
-			output.write(newline);
-			indentation--;
-			indent();
-		}
-		output.write(']');
-	}
-
-	private void writeValue(Object v) {
+	/**
+	 * Writes some value in the JSON format.
+	 *
+	 * @param v      the value to write
+	 * @param output the output to write to
+	 */
+	public void writeValue(Object v, CharacterOutput output) {
 		if (v == null)
-			writeNull();
+			output.write(NULL_CHARS);
 		else if (v instanceof CharSequence)
-			writeString((CharSequence)v);
+			writeString((CharSequence)v, output);
 		else if (v instanceof Number)
 			output.write(v.toString());
 		else if (v instanceof Config)
-			writeObject((Config)v);
-		else if (v instanceof Iterable)
-			writeArray((Iterable)v);
+			writeObject((Config)v, output);
+		else if (v instanceof Collection)
+			writeArray((Collection<?>)v, output);
 		else if (v instanceof Boolean)
-			writeBoolean((boolean)v);
+			writeBoolean((boolean)v, output);
+		else if (v.getClass().isArray())
+			writeArray(v, output);
 		else
-			throw new SerializationException("Unsupported value type: " + v.getClass());
+			throw new WritingException("Unsupported value type: " + v.getClass());
 	}
 
-	private void writeBoolean(boolean b) {
-		if (b)
-			output.write(TRUE_CHARS);
-		else
-			output.write(FALSE_CHARS);
+	/**
+	 * Writes a Collection as a JSON array.
+	 *
+	 * @param collection the Collection to write
+	 * @param output     the output to write to
+	 */
+	public void writeArray(Collection<?> collection, CharacterOutput output) {
+		if (collection.isEmpty()) {
+			output.write(EMPTY_ARRAY);
+			return;
+		}
+		Iterator<?> it = collection.iterator();
+		output.write('[');//open array
+		if (newlineAfterObjectStart) output.write(newline);
+		boolean indentElements = indentArrayElementsPredicate.test(collection);
+		if (indentElements) {
+			output.write(newline);
+			increaseIndentLevel();
+		}
+		while (true) {
+			Object value = it.next();
+			if (indentElements) writeIndent(output);
+			writeValue(value, output);
+			if (it.hasNext()) {
+				output.write(VALUE_SEPARATOR);
+				if (indentElements) output.write(newline);
+			} else {
+				if (indentElements) output.write(newline);
+				break;
+			}
+		}
+		if (indentElements) {
+			decreaseIndentLevel();
+			writeIndent(output);
+		}
+		output.write(']');//close array
 	}
 
-	private void writeNull() {
-		output.write(NULL_CHARS);
+	private void writeArray(Object array, CharacterOutput output) {
+		//Converts the array into a List:
+		int length = Array.getLength(array);
+		List<Object> list = new ArrayList<>(length);
+		for (int i = 0; i < length; i++) {
+			list.add(Array.get(array, i));
+		}
+		//Then, writes the list as a JSON array:
+		writeArray(list, output);
 	}
 
-	private void writeString(CharSequence s) {
-		output.write('"');
+	/**
+	 * Writes a boolean in the JSON format.
+	 *
+	 * @param b      the boolean to write
+	 * @param output the output to write to
+	 */
+	public void writeBoolean(boolean b, CharacterOutput output) {
+		if (b) output.write(TRUE_CHARS);
+		else output.write(FALSE_CHARS);
+	}
+
+	/**
+	 * Writes a String in the JSON format.
+	 *
+	 * @param s      the String to write
+	 * @param output the output to write to
+	 */
+	public void writeString(CharSequence s, CharacterOutput output) {
+		output.write('"');//open string
 		final int length = s.length();
 		for (int i = 0; i < length; i++) {
 			char c = s.charAt(i);
 			int escapeIndex = Utils.arrayIndexOf(TO_ESCAPE, c);
-			if (escapeIndex != -1) {
+			if (escapeIndex != -1) {//the character must be escaped
 				char escaped = ESCAPED[escapeIndex];
 				output.write('\\');
 				output.write(escaped);
@@ -171,85 +173,76 @@ public final class FancyJsonWriter {
 				output.write(c);
 			}
 		}
-		output.write('"');
+		output.write('"');//close string
 	}
 
-	/**
-	 * A builder for the FancyJsonWriter.
-	 */
-	public static final class Builder {
-		private char[] indent = {'\t'}, newline = {'\n'};
-		private boolean indentObjects = true, indentArrays = true, spaceArrays = false;
-		private boolean newlineBeforeObject = false, newlineBeforeArray = false;
-
-		/**
-		 * Creates a new builder with the following default parameters:
-		 * <ul>
-		 * <li>indent = the TAB character '\t'</li>
-		 * <li>newline = the LF character '\n'</li>
-		 * <li>indentObjects = true</li>
-		 * <li>indentArrays = true</li>
-		 * <li>spaceArrays = false</li>
-		 * <li>newlineBeforeObject = false</li>
-		 * <li>newlineBeforeArray = false</li>
-		 * </ul>
-		 */
-		public Builder() {}
-
-		/**
-		 * Creates a new FancyJsonWriter that will write to the specified output.
-		 *
-		 * @param output the output to write to
-		 * @return a new FancyJsonWriter
-		 */
-		public FancyJsonWriter build(CharacterOutput output) {
-			return new FancyJsonWriter(output, indent, newline, indentObjects, indentArrays, spaceArrays, newlineBeforeObject, newlineBeforeArray);
-		}
-
-		public Builder indent(char[] indent) {
-			this.indent = indent;
-			return this;
-		}
-
-		public Builder indent(String indent) {
-			this.indent = indent.toCharArray();
-			return this;
-		}
-
-		public Builder newline(char[] newline) {
-			this.newline = newline;
-			return this;
-		}
-
-		public Builder newline(String newline) {
-			this.newline = newline.toCharArray();
-			return this;
-		}
-
-		public Builder indentObjects(boolean indentObjects) {
-			this.indentObjects = indentObjects;
-			return this;
-		}
-
-		public Builder indentArrays(boolean indentArrays) {
-			this.indentArrays = indentArrays;
-			return this;
-		}
-
-		public Builder spaceArrays(boolean spaceArrays) {
-			this.spaceArrays = spaceArrays;
-			return this;
-		}
-
-		public Builder newlineBeforeObject(boolean newlineBeforeObject) {
-			this.newlineBeforeObject = newlineBeforeObject;
-			return this;
-		}
-
-		public Builder newlineBeforeArray(boolean newlineBeforeArray) {
-			this.newlineBeforeArray = newlineBeforeArray;
-			return this;
-		}
+	public Predicate<Config> getIndentObjectElementsPredicate() {
+		return indentObjectElementsPredicate;
 	}
 
+	public void setIndentObjectElementsPredicate(Predicate<Config> indentObjectElementsPredicate) {
+		this.indentObjectElementsPredicate = indentObjectElementsPredicate;
+	}
+
+	public Predicate<Collection> getIndentArrayElementsPredicate() {
+		return indentArrayElementsPredicate;
+	}
+
+	public void setIndentArrayElementsPredicate(Predicate<Collection> indentArrayElementsPredicate) {
+		this.indentArrayElementsPredicate = indentArrayElementsPredicate;
+	}
+
+	public boolean isNewlineAfterObjectStart() {
+		return newlineAfterObjectStart;
+	}
+
+	public void setNewlineAfterObjectStart(boolean newlineAfterObjectStart) {
+		this.newlineAfterObjectStart = newlineAfterObjectStart;
+	}
+
+	public boolean isNewlineAfterArrayStart() {
+		return newlineAfterArrayStart;
+	}
+
+	public void setNewlineAfterArrayStart(boolean newlineAfterArrayStart) {
+		this.newlineAfterArrayStart = newlineAfterArrayStart;
+	}
+
+	public char[] getIndent() {
+		return indent;
+	}
+
+	public void setIndent(char[] indent) {
+		this.indent = indent;
+	}
+
+	public void setIndent(String indent) {
+		setIndent(indent.toCharArray());
+	}
+
+	public char[] getNewline() {
+		return newline;
+	}
+
+	public void setNewline(char[] newline) {
+		this.newline = newline;
+	}
+
+	public void setNewline(String newline) {
+		setNewline(newline.toCharArray());
+	}
+
+	void increaseIndentLevel() {
+		currentIndentLevel++;
+	}
+
+	void decreaseIndentLevel() {
+		currentIndentLevel--;
+	}
+
+	void writeIndent(CharacterOutput output) {
+		for (int i = 0; i < currentIndentLevel; i++) {
+			output.write(indent);
+		}
+	}
 }
