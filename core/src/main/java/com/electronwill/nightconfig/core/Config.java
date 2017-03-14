@@ -1,61 +1,18 @@
 package com.electronwill.nightconfig.core;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
 
 /**
- * A configuration that contains key-value mappings. Configurations are generally <b>not</b> thread-safe.
+ * A (modifiable) configuration that contains key/value mappings. Configurations are generally
+ * <b>not</b> thread-safe.
  *
  * @author TheElectronWill
  */
-public interface Config {
-
-	/**
-	 * Gets a value from the config.
-	 *
-	 * @param path the value's path, each part separated by a dot. Example "a.b.c"
-	 * @param <T>  the value's type
-	 * @return the value at the given path, or {@code null} if there is no such value.
-	 */
-	default <T> T getValue(String path) {
-		return getValue(split(path, '.'));
-	}
-
-	/**
-	 * Gets a value from the config.
-	 *
-	 * @param path the value's path, each element of the list is a different part of the path.
-	 * @param <T>  the value's type
-	 * @return the value at the given path, or {@code null} if there is no such value.
-	 */
-	<T> T getValue(List<String> path);
-
-	/**
-	 * Gets an optional value from the config.
-	 *
-	 * @param path the value's path, each part separated by a dot. Example "a.b.c"
-	 * @param <T>  the value's type
-	 * @return an Optional containing the value at the given path, or {@code Optional.empty()} if there is no
-	 * such value.
-	 */
-	default <T> Optional<T> getOptionalValue(String path) {
-		return getOptionalValue(split(path, '.'));
-	}
-
-	/**
-	 * Gets an optional value from the config.
-	 *
-	 * @param path the value's path, each element of the list is a different part of the path.
-	 * @param <T>  the value's type
-	 * @return an Optional containing the value at the given path, or {@code Optional.empty()} if there is no
-	 * such value.
-	 */
-	default <T> Optional<T> getOptionalValue(List<String> path) {
-		return Optional.ofNullable(getValue(path));
-	}
+public interface Config extends UnmodifiableConfig {
 
 	/**
 	 * Sets a config value.
@@ -92,46 +49,44 @@ public interface Config {
 	void removeValue(List<String> path);
 
 	/**
-	 * Checks if the config contains a value at some path.
+	 * Returns an Unmodifiable view of the config. Any change to the original (modifiable) config
+	 * is still reflected to the returned UnmodifiableConfig, so it's unmodifiable but not
+	 * immutable.
 	 *
-	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
-	 * @return {@code true} if the path is associated with a value, {@code false} if it's not.
+	 * @return an Unmodifiable view of the config.
 	 */
-	default boolean containsValue(String path) {
-		return containsValue(split(path, '.'));
+	default UnmodifiableConfig asUnmodifiable() {
+		return new UnmodifiableConfig() {
+			@Override
+			public <T> T getValue(List<String> path) {
+				return Config.this.getValue(path);
+			}
+
+			@Override
+			public boolean containsValue(List<String> path) {
+				return Config.this.containsValue(path);
+			}
+
+			@Override
+			public int size() {
+				return Config.this.size();
+			}
+
+			@Override
+			public Map<String, Object> asMap() {
+				return Collections.unmodifiableMap(Config.this.asMap());
+			}
+		};
 	}
 
 	/**
-	 * Checks if the config contains a value at some path.
-	 *
-	 * @param path the path to check, each element of the list is a different part of the path.
-	 * @return {@code true} if the path is associated with a value, {@code false} if it's not.
-	 */
-	boolean containsValue(List<String> path);
-
-	/**
-	 * Gets the size of this config.
-	 *
-	 * @return the number of top-level elements in this config.
-	 */
-	int size();
-
-	/**
-	 * Checks if the config is empty.
-	 *
-	 * @return {@code true} if the config is empty, {@code false} if it contains at least one element.
-	 */
-	default boolean isEmpty() {
-		return size() == 0;
-	}
-
-	/**
-	 * Returns a Map view of the config. Any change to the map is reflected in the config and vice-versa.
+	 * Returns a Map view of the config. Any change to the map is reflected in the config and
+	 * vice-versa.
 	 * <p>
-	 * The returned map is not required to (and likely doesn't) check if the values that you put into it are
-	 * supported by this configuration. It is also not required to perform any kind of synchronization or
-	 * anything to ensure thread-safety. The caller of this method is responsible for taking care of
-	 * these things.
+	 * The returned map is not required to (and likely doesn't) check if the values that you put
+	 * into it are supported by this configuration. It is also not required to perform any kind of
+	 * synchronization or anything to ensure thread-safety. The caller of this method is
+	 * responsible for taking care of these things.
 	 * </p>
 	 *
 	 * @return a Map view of the config.
@@ -139,15 +94,16 @@ public interface Config {
 	Map<String, Object> asMap();
 
 	/**
-	 * Checks if the given type is supported by this config. If the type is null, it checks if the config
-	 * supports null values.
+	 * Checks if the given type is supported by this config. If the type is null, it checks if the
+	 * config supports null values.
 	 * <p>
-	 * Please note that an implementation of the Config interface is <b>not</b> required to check the
-	 * type of the values that you add to it.
+	 * Please note that an implementation of the Config interface is <b>not</b> required to check
+	 * the type of the values that you add to it.
 	 * </p>
 	 *
 	 * @param type the type's class, or {@code null} to check if the config supports null values
 	 * @return {@code true} if it is supported, {@code false} if it isn't.
 	 */
 	boolean supportsType(Class<?> type);
+
 }
