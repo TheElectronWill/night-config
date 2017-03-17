@@ -80,6 +80,18 @@ public interface Config extends UnmodifiableConfig {
 	}
 
 	/**
+	 * Checks if the given type is supported by this config. If the type is null, it checks if the
+	 * config supports null values.
+	 * <p>
+	 * Please note that an implementation of the Config interface is <b>not</b> required to check
+	 * the type of the values that you add to it.
+	 *
+	 * @param type the type's class, or {@code null} to check if the config supports null values
+	 * @return {@code true} if it is supported, {@code false} if it isn't.
+	 */
+	boolean supportsType(Class<?> type);
+
+	/**
 	 * Returns a Map view of the config. Any change to the map is reflected in the config and
 	 * vice-versa.
 	 * <p>
@@ -87,23 +99,8 @@ public interface Config extends UnmodifiableConfig {
 	 * into it are supported by this configuration. It is also not required to perform any kind of
 	 * synchronization or anything to ensure thread-safety. The caller of this method is
 	 * responsible for taking care of these things.
-	 * </p>
 	 *
 	 * @return a Map view of the config.
 	 */
 	Map<String, Object> asMap();
-
-	/**
-	 * Checks if the given type is supported by this config. If the type is null, it checks if the
-	 * config supports null values.
-	 * <p>
-	 * Please note that an implementation of the Config interface is <b>not</b> required to check
-	 * the type of the values that you add to it.
-	 * </p>
-	 *
-	 * @param type the type's class, or {@code null} to check if the config supports null values
-	 * @return {@code true} if it is supported, {@code false} if it isn't.
-	 */
-	boolean supportsType(Class<?> type);
-
 }

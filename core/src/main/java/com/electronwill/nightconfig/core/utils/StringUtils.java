@@ -10,22 +10,24 @@ import java.util.List;
  */
 public final class StringUtils {
 
-	private StringUtils() {}//Utility class can't be constructed
+	private StringUtils() {}// StringUtils is a utility class and can't be constructed
 
 	/**
-	 * Splits a String around each occurence of the specified character. The result is <b>not</b> the same as
-	 * {@link String#split(String)}. In particular, this method never returns an empty list.
+	 * Splits a String around each occurence of the specified character. The result is <b>not</b>
+	 * the same as {@link String#split(String)}. In particular, this method never returns an
+	 * empty list.
 	 * <p>
 	 * Examples:
 	 * <ul>
 	 * <li>{@code split("a.b.c", '.')} gives {@code ["a", "b", "c"]}
 	 * <li>{@code split("", '.')} gives {@code [""]} (a list containing the empty string)
 	 * <li>{@code split(".", '.')} gives {@code ["", ""]} (a list containing two empty strings)
-	 * <li>{@code split("..", '.')} gives {@code ["", "", ""]} (a list containing three empty strings)
-	 * <li>{@code split(".a...b.", '.')} gives {@code ["", "a", "", "", "b", ""]} (a list containing an
+	 * <li>{@code split("..", '.')} gives {@code ["", "", ""]} (a list containing three empty
+	 * strings)
+	 * <li>{@code split(".a...b.", '.')} gives {@code ["", "a", "", "", "b", ""]} (a list containing
+	 * an
 	 * empty string, the string "a", two empty strings, the string "b", and an empty string)
 	 * </ul>
-	 * </p>
 	 *
 	 * @param str the String to split
 	 * @param sep the separator to use
@@ -33,25 +35,26 @@ public final class StringUtils {
 	 */
 	public static List<String> split(String str, char sep) {
 		List<String> list = new ArrayList<>(4);
-		split(str, sep, list);
+		StringUtils.split(str, sep, list);
 		return list;
 	}
 
 	/**
-	 * Splits a String around each occurence of the specified character, and puts the result in the given
-	 * List. The result is <b>not</b> the same as {@link String#split(String)}. In particular, this method
-	 * always add at least one element to the list.
+	 * Splits a String around each occurence of the specified character, and puts the result in the
+	 * given List. The result is <b>not</b> the same as {@link String#split(String)}. In
+	 * particular, this method always add at least one element to the list.
 	 * <p>
 	 * Examples:
 	 * <ul>
 	 * <li>{@code split("a.b.c", '.')} gives {@code ["a", "b", "c"]}
 	 * <li>{@code split("", '.')} gives {@code [""]} (a list containing the empty string)
 	 * <li>{@code split(".", '.')} gives {@code ["", ""]} (a list containing two empty strings)
-	 * <li>{@code split("..", '.')} gives {@code ["", "", ""]} (a list containing three empty strings)
-	 * <li>{@code split(".a...b.", '.')} gives {@code ["", "a", "", "", "b", ""]} (a list containing an
+	 * <li>{@code split("..", '.')} gives {@code ["", "", ""]} (a list containing three empty
+	 * strings)
+	 * <li>{@code split(".a...b.", '.')} gives {@code ["", "a", "", "", "b", ""]} (a list containing
+	 * an
 	 * empty string, the string "a", two empty strings, the string "b", and an empty string)
 	 * </ul>
-	 * </p>
 	 *
 	 * @param str  the String to split
 	 * @param sep  the separator to use

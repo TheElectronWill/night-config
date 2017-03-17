@@ -55,8 +55,9 @@ public abstract class MapConfig implements Config {
 				config = createSubConfig();
 				currentMap.put(currentKey, config);
 			} else if (!(currentValue instanceof Config)) {//incompatible intermediary level
-				throw new IllegalArgumentException("Cannot add an element to an intermediary value of " +
-					"type: " + currentValue.getClass());
+				throw new IllegalArgumentException(
+						"Cannot add an element to an intermediary value of type: "
+								+ currentValue.getClass());
 			} else {//existing intermediary level
 				config = (Config)currentValue;
 			}
@@ -115,9 +116,14 @@ public abstract class MapConfig implements Config {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == this) return true;
-		if (!(obj instanceof MapConfig)) return false;
+		if (obj == this) { return true; }
+		if (!(obj instanceof MapConfig)) { return false; }
 		MapConfig other = (MapConfig)obj;
 		return map.equals(other.map);
+	}
+
+	@Override
+	public String toString() {
+		return asMap().toString();
 	}
 }
