@@ -1,4 +1,4 @@
-package com.electronwill.nightconfig.core.reflection;
+package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
@@ -9,17 +9,17 @@ import org.junit.jupiter.api.Test;
 /**
  * @author TheElectronWill
  */
-public class ObjectToConfigMapperTest {
+public class ObjectConverterTest2 {
 
 	@Test
-	public void testWithSimpleConfig() throws Exception {
-		ObjectToConfigMapper mapper = new ObjectToConfigMapper();
+	public void testSupportBasic() throws Exception {
+		ObjectConverter converter = new ObjectConverter(null, null);
 		Config config = new SimpleConfig();
 		MyObject object = new MyObject();
-		mapper.map(object, config);
+		converter.toConfig(object, config);
 
-		System.out.println("MyObject mapped to a SimpleConfig:");
-		System.out.println(config.asMap());
+		System.out.println("MyObject mapped to a SimpleConfig with basic strategy:");
+		System.out.println(config);
 
 		assert config.<Integer>getValue("integer") == object.integer;
 		assert config.<Double>getValue("decimal") == object.decimal;
@@ -27,7 +27,7 @@ public class ObjectToConfigMapperTest {
 		assert config.<List<String>>getValue("stringList") == object.stringList;
 		assert config.<Config>getValue("config") == object.config;
 		assert config.getValue("subObject") instanceof Config;
-		Config sub = (Config)config.getValue("subObject");
+		Config sub = config.getValue("subObject");
 		assert sub.<Integer>getValue("integer") == 1234567890;
 		assert sub.<Double>getValue("decimal") == Math.PI;
 		assert sub.<String>getValue("string").equals("value");
@@ -38,14 +38,14 @@ public class ObjectToConfigMapperTest {
 	}
 
 	@Test
-	public void testWithMapConfig() throws Exception {
-		ObjectToConfigMapper mapper = new ObjectToConfigMapper();
+	public void testSupportAll() throws Exception {
+		ObjectConverter converter = new ObjectConverter(null, null);
 		Config config = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
 		MyObject object = new MyObject();
-		mapper.map(object, config);
+		converter.toConfig(object, config);
 
-		System.out.println("MyObject mapped to a MapConfig:");
-		System.out.println(config.asMap());
+		System.out.println("MyObject mapped to a SimpleConfig with support_all strategy:");
+		System.out.println(config);
 
 		assert config.<Integer>getValue("integer") == object.integer;
 		assert config.<Double>getValue("decimal") == object.decimal;
@@ -64,7 +64,7 @@ public class ObjectToConfigMapperTest {
 		MyObject subObject;
 
 		public MyObject(MyObject subObject) {
-			this.subObject = null;
+			this.subObject = subObject;
 			//empty config
 		}
 

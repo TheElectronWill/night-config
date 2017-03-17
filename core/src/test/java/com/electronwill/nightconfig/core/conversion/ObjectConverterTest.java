@@ -1,4 +1,4 @@
-package com.electronwill.nightconfig.core.reflection;
+package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author TheElectronWill
  */
-public class ConfigToObjectMapperTest {
+public class ObjectConverterTest {
 
 	private final Config config = new SimpleConfig();
 	private final List<String> list1 = Arrays.asList("a", "b", "c"), list2 = Arrays.asList("element");
@@ -31,12 +31,10 @@ public class ConfigToObjectMapperTest {
 
 	@Test
 	public void configToObjectToConfig() throws Exception {
-		ConfigToObjectMapper ctom = new ConfigToObjectMapper();
-		MyObject object = ctom.map(config, MyObject.class);
-
-		ObjectToConfigMapper otcm = new ObjectToConfigMapper();
+		ObjectConverter converter = new ObjectConverter(null, null);
+		MyObject object = converter.toObject(config, MyObject::new);
 		Config myConfig = new SimpleConfig();
-		otcm.map(object, myConfig);
+		converter.toConfig(object, myConfig);
 
 		System.out.println("Original config: " + config);
 		System.out.println("New config: " + myConfig);
@@ -87,8 +85,8 @@ public class ConfigToObjectMapperTest {
 	private void testConfigToObject(Config config, Object object) throws Exception {
 		System.out.println("Before: " + object);
 
-		ConfigToObjectMapper mapper = new ConfigToObjectMapper();
-		mapper.map(config, object);
+		ObjectConverter converter = new ObjectConverter(null, null);
+		converter.toObject(config, object);
 
 		System.out.println("After: " + object);
 	}
