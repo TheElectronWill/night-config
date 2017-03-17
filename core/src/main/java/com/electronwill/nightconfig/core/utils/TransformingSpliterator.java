@@ -6,7 +6,14 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
+ * A TransformingSpliterator applies "just in time" transformations to an {@code
+ * Spliterator<InternalV>} in order to make it like an {@code Spliterator<ExternalV>}.
+ * <p>
+ * The transformations are applied "just in time", that is, the values are converted only when
+ * they are used, not during the construction of the TransformingSpliterator.
+ *
  * @author TheElectronWill
+ * @see TransformingMap
  */
 public final class TransformingSpliterator<InternalV, ExternalV> implements Spliterator<ExternalV> {
 	private final Function<InternalV, ExternalV> readTransformation;

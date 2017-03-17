@@ -7,28 +7,33 @@ package com.electronwill.nightconfig.core.utils;
 import java.util.Objects;
 
 /**
- * A "transparent" wrapper that directly uses the equals, hashCode and toString methods of the object
- * its wrap.
+ * A "transparent" wrapper that directly uses the equals, hashCode and toString methods of the
+ * object its wrap.
  *
  * @param <T> the type of the wrapped object
  */
 public abstract class TransparentWrapper<T> {
-	protected final T wrapped;//the wrapped object, not null
+	/**
+	 * The wrapped object, not null.
+	 */
+	protected final T wrapped;
 
-	public TransparentWrapper(T wrapped) {this.wrapped = Objects.requireNonNull(wrapped);}
+	public TransparentWrapper(T wrapped) {
+		this.wrapped = Objects.requireNonNull(wrapped, "The wrapped object may not be null.");
+	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public final boolean equals(Object obj) {
 		return wrapped.equals(obj);
 	}
 
 	@Override
-	public int hashCode() {
+	public final int hashCode() {
 		return wrapped.hashCode();
 	}
 
 	@Override
-	public String toString() {
+	public final String toString() {
 		return wrapped.toString();
 	}
 }

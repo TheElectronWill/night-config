@@ -6,6 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Specifies that the value of a field must be in a certain range (inclusive).
+ *
  * @author TheElectronWill
  */
 @Retention(RetentionPolicy.RUNTIME)

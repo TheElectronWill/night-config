@@ -5,7 +5,14 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
+ * A TransformingIterator applies "just in time" transformations to an {@code Interator<InternalV>}
+ * in order to make it like an {@code Interator<ExternalV>}.
+ * <p>
+ * The transformations are applied "just in time", that is, the values are converted only when
+ * they are used, not during the construction of the TransformingIterator.
+ *
  * @author TheElectronWill
+ * @see TransformingMap
  */
 public final class TransformingIterator<InternalV, ExternalV> implements Iterator<ExternalV> {
 	private final Function<InternalV, ExternalV> readTransformation;

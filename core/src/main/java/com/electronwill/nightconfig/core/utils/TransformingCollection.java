@@ -9,7 +9,14 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
+ * A TransformingCollection applies "just in time" transformations to a {@code
+ * Collection<InternalV>} in order to make it like a {@code Collection<ExternalV>}.
+ * <p>
+ * The transformations are applied "just in time", that is, the values are converted only when
+ * they are used, not during the construction of the TransformingCollection.
+ *
  * @author TheElectronWill
+ * @see TransformingMap
  */
 public class TransformingCollection<InternalV, ExternalV> implements Collection<ExternalV> {
 	private final Function<InternalV, ExternalV> readTransformation;

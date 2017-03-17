@@ -6,7 +6,14 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
+ * A TransformingSet applies "just in time" transformations to an {@code Set<InternalV>} in order
+ * to make it like an {@code Set<ExternalV>}.
+ * <p>
+ * The transformations are applied "just in time", that is, the values are converted only when
+ * they are used, not during the construction of the TransformingSet.
+ *
  * @author TheElectronWill
+ * @see TransformingMap
  */
 public final class TransformingSet<InternalV, ExternalV>
 		extends TransformingCollection<InternalV, ExternalV> implements Set<ExternalV> {

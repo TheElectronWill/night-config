@@ -3,11 +3,19 @@ package com.electronwill.nightconfig.core.conversion;
 import java.lang.reflect.Field;
 
 /**
+ * Utility class for the @Spec(something) annotations.
+ *
  * @author TheElectronWill
  */
-final class AnnotationSpec {
-	private AnnotationSpec() {}
+final class AnnotationSpecs {
+	private AnnotationSpecs() {}
 
+	/**
+	 * Checks that the value of a field corresponds to its spec annotation, if any.
+	 *
+	 * @param field the field to check
+	 * @param value the field's value
+	 */
 	static void checkField(Field field, Object value) {
 		//--- Misc checks ---
 		SpecNotNull specNotNull = field.getDeclaredAnnotation(SpecNotNull.class);
@@ -137,8 +145,7 @@ final class AnnotationSpec {
 		checkNotNull(field, value);
 		Class<?> valueClass = value.getClass();
 		if (valueClass != expectedClass) {
-			throw new InvalidValueException("Invalid type %s for field %s, expected %s",
-											valueClass,
+			throw new InvalidValueException("Invalid type %s for field %s, expected %s", valueClass,
 											field, expectedClass);
 		}
 	}

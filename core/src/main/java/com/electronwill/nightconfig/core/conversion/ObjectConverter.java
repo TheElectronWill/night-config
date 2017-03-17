@@ -19,15 +19,33 @@ import java.util.function.Supplier;
 public final class ObjectConverter {
 	private final boolean bypassTransient, bypassFinal;
 
+	/**
+	 * Creates a new ObjectConverter with advanced parameters.
+	 *
+	 * @param bypassTransient {@code true} to use (read or write) a field even if it's transient
+	 * @param bypassFinal     {@code true} to write a field even if it's final
+	 */
 	public ObjectConverter(boolean bypassTransient, boolean bypassFinal) {
 		this.bypassTransient = bypassTransient;
 		this.bypassFinal = bypassFinal;
 	}
 
+	/**
+	 * Creates a new ObjectConverter with the default parameters. This is equivalent to {@code
+	 * new ObjectConverter(false, true)}.
+	 *
+	 * @see #ObjectConverter(boolean, boolean)
+	 */
 	public ObjectConverter() {
 		this(false, true);
 	}
 
+	/**
+	 * Converts an Object to a Config.
+	 *
+	 * @param o           the object to convert
+	 * @param destination the Config where to put the values into
+	 */
 	public void toConfig(Object o, Config destination) {
 		Objects.requireNonNull(o, "The object must not be null.");
 		Objects.requireNonNull(destination, "The config must not be null.");
@@ -43,12 +61,26 @@ public final class ObjectConverter {
 		}
 	}
 
+	/**
+	 * Converts an Object to a Config.
+	 *
+	 * @param o                   the object to convert
+	 * @param destinationSupplier a Supplier that provides the Config where to put the values into
+	 * @param <C>                 the ndestination's type
+	 * @return the Config obtained from the Supplier
+	 */
 	public <C extends Config> C toConfig(Object o, Supplier<C> destinationSupplier) {
 		C destination = destinationSupplier.get();
 		toConfig(o, destination);
 		return destination;
 	}
 
+	/**
+	 * Converts a Config to an Object.
+	 *
+	 * @param config      the config to convert
+	 * @param destination the Object where to put the values into
+	 */
 	public void toObject(Config config, Object destination) {
 		Objects.requireNonNull(config, "The config must not be null.");
 		Objects.requireNonNull(destination, "The object must not be null.");
@@ -64,12 +96,25 @@ public final class ObjectConverter {
 		}
 	}
 
+	/**
+	 * Converts a Config to an Object.
+	 *
+	 * @param config              the config to convert
+	 * @param destinationSupplier a Supplier that provides the Object where to put the values into
+	 * @param <O>                 the destination's type
+	 * @return the object obtained from the Supplier
+	 */
 	public <O> O toObject(Config config, Supplier<O> destinationSupplier) {
 		O destination = destinationSupplier.get();
 		toObject(config, destination);
 		return destination;
 	}
 
+	/**
+	 * Converts an Object annotated with {@link Configured} to a Config. Ony the fields that are
+	 * annotated with {@link Configured} are converted, the others are ignored. The
+	 * {@link #bypassTransient} setting applies.
+	 */
 	private void toConfigAnnotated(Object o, Config destination) {
 		for (Field field : o.getClass().getDeclaredFields()) {
 			if (!field.isAccessible()) {
@@ -88,7 +133,7 @@ public final class ObjectConverter {
 			} catch (IllegalAccessException e) {// Unexpected: setAccessible is called if needed
 				throw new RuntimeException("Unable to read the field " + field, e);
 			}
-			AnnotationSpec.checkField(field, value);/* Checks that the value is conform to an
+			AnnotationSpecs.checkField(field, value);/* Checks that the value is conform to an
 														eventual @SpecSometing annotation */
 			String[] configuredPath = fieldConf.path();// The path in @Configured
 			List<String> path;
@@ -109,6 +154,10 @@ public final class ObjectConverter {
 		}
 	}
 
+	/**
+	 * Converts an Object not annotated with {@link Configured} to a Config. The
+	 * {@link #bypassTransient} setting applies.
+	 */
 	private void toConfigNotAnnotated(Object o, Config destination) {
 		for (Field field : o.getClass().getDeclaredFields()) {
 			if (!field.isAccessible()) {
@@ -123,7 +172,7 @@ public final class ObjectConverter {
 			} catch (IllegalAccessException e) {// Unexpected: setAccessible is called if needed
 				throw new RuntimeException("Unable to read the field " + field, e);
 			}
-			AnnotationSpec.checkField(field, value);/* Checks that the value is conform to an
+			AnnotationSpecs.checkField(field, value);/* Checks that the value is conform to an
 														eventual @SpecSometing annotation */
 			List<String> path = Collections.singletonList(field.getName());
 			if (value != null && !destination.supportsType(value.getClass())) {
@@ -137,6 +186,10 @@ public final class ObjectConverter {
 		}
 	}
 
+	/**
+	 * Converts a Config to an Object annotated with {@link Configured}. The
+	 * {@link #bypassTransient} and {@link #bypassFinal} settings apply.
+	 */
 	private void toObjectAnnotated(Config config, Object destination) {
 		for (Field field : destination.getClass().getDeclaredFields()) {
 			if (!field.isAccessible()) {
@@ -172,7 +225,7 @@ public final class ObjectConverter {
 					toObjectAnnotated((Config)value, fieldValue);
 				} else {
 					// Reads as a plain value
-					AnnotationSpec.checkField(field, value);// Checks that the value is conform
+					AnnotationSpecs.checkField(field, value);// Checks that the value is conform
 					field.set(destination, value);
 				}
 			} catch (ReflectiveOperationException ex) {
@@ -181,6 +234,17 @@ public final class ObjectConverter {
 		}
 	}
 
+	/**
+	 * Creates a generic instance of the specified class, using its constructor that requires no
+	 * argument.
+	 *
+	 * @param tClass the class to create an instance of
+	 * @param <T>    the class's type
+	 * @return a new instance of the class
+	 *
+	 * @throws RuntimeException if the class doesn't have a constructor without arguments, or if
+	 *                          the constructor cannot be accessed, or for another reason.
+	 */
 	private <T> T createInstance(Class<T> tClass) {
 		try {
 			Constructor<T> constructor = tClass.getDeclaredConstructor();//constructor without
@@ -194,6 +258,10 @@ public final class ObjectConverter {
 		}
 	}
 
+	/**
+	 * Converts a Config to an Object not annotated with {@link Configured}. The
+	 * {@link #bypassTransient} and {@link #bypassFinal} settings apply.
+	 */
 	private void toObjectNotAnnotated(Config config, Object destination) {
 		for (Field field : destination.getClass().getDeclaredFields()) {
 			if (!field.isAccessible()) {
@@ -222,7 +290,7 @@ public final class ObjectConverter {
 					toObjectNotAnnotated((Config)value, fieldValue);
 				} else {
 					// Reads as a plain value
-					AnnotationSpec.checkField(field, value);// Checks that the value is conform
+					AnnotationSpecs.checkField(field, value);// Checks that the value is conform
 					field.set(destination, value);
 				}
 			} catch (ReflectiveOperationException ex) {
