@@ -1,4 +1,4 @@
-package com.electronwill.nightconfig.core.serialization;
+package com.electronwill.nightconfig.core.io;
 
 /**
  * Abstract base class for CharacterInputs.

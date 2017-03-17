@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.serialization.CharacterOutput;
+import com.electronwill.nightconfig.core.io.CharacterOutput;
 import java.time.temporal.Temporal;
 import java.util.List;
 

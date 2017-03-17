@@ -1,8 +1,8 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.serialization.CharacterInput;
-import com.electronwill.nightconfig.core.serialization.ConfigParser;
-import com.electronwill.nightconfig.core.serialization.ReaderInput;
+import com.electronwill.nightconfig.core.io.CharacterInput;
+import com.electronwill.nightconfig.core.io.ConfigParser;
+import com.electronwill.nightconfig.core.io.ReaderInput;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;

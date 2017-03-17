@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.yaml;
 
-import com.electronwill.nightconfig.core.serialization.ConfigParser;
+import com.electronwill.nightconfig.core.io.ConfigParser;
 import java.io.Reader;
 import java.util.Map;
 import org.yaml.snakeyaml.LoaderOptions;

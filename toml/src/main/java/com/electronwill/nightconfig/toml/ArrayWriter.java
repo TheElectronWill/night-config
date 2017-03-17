@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.serialization.CharacterOutput;
+import com.electronwill.nightconfig.core.io.CharacterOutput;
 import java.util.Iterator;
 import java.util.List;
 

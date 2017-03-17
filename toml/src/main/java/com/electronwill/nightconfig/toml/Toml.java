@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.serialization.CharacterInput;
-import com.electronwill.nightconfig.core.serialization.Utils;
+import com.electronwill.nightconfig.core.io.CharacterInput;
+import com.electronwill.nightconfig.core.io.Utils;
 
 /**
  * @author TheElectronWill

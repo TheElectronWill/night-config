@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.json;
 
-import com.electronwill.nightconfig.core.serialization.*;
+import com.electronwill.nightconfig.core.io.*;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;

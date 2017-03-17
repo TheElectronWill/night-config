@@ -2,7 +2,7 @@ package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.MapConfig;
-import com.electronwill.nightconfig.core.serialization.FileConfig;
+import com.electronwill.nightconfig.core.io.FileConfig;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;

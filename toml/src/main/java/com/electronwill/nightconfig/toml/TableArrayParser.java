@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.serialization.CharacterInput;
-import com.electronwill.nightconfig.core.serialization.ParsingException;
+import com.electronwill.nightconfig.core.io.CharacterInput;
+import com.electronwill.nightconfig.core.io.ParsingException;
 import java.util.ArrayList;
 import java.util.List;
 

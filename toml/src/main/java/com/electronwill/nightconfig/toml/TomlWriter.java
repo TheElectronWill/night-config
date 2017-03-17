@@ -1,9 +1,9 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.serialization.CharacterOutput;
-import com.electronwill.nightconfig.core.serialization.ConfigWriter;
-import com.electronwill.nightconfig.core.serialization.WriterOutput;
+import com.electronwill.nightconfig.core.io.CharacterOutput;
+import com.electronwill.nightconfig.core.io.ConfigWriter;
+import com.electronwill.nightconfig.core.io.WriterOutput;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;

@@ -1,8 +1,8 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.serialization.CharacterOutput;
-import com.electronwill.nightconfig.core.serialization.WritingException;
+import com.electronwill.nightconfig.core.io.CharacterOutput;
+import com.electronwill.nightconfig.core.io.WritingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

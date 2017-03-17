@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.yaml;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.serialization.ConfigWriter;
+import com.electronwill.nightconfig.core.io.ConfigWriter;
 import java.io.IOException;
 import java.io.Writer;
 import org.yaml.snakeyaml.DumperOptions;

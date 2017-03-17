@@ -1,8 +1,6 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.serialization.CharacterOutput;
-import com.electronwill.nightconfig.core.serialization.WriterOutput;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.time.ZonedDateTime;

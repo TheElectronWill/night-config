@@ -2,8 +2,8 @@ package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
-import com.electronwill.nightconfig.core.serialization.FileConfig;
-import com.electronwill.nightconfig.core.serialization.WriterOutput;
+import com.electronwill.nightconfig.core.io.FileConfig;
+import com.electronwill.nightconfig.core.io.WriterOutput;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;

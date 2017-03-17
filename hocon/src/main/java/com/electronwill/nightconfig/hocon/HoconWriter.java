@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.hocon;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.serialization.*;
+import com.electronwill.nightconfig.core.io.*;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;

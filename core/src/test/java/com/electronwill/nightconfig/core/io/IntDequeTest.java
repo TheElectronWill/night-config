@@ -1,6 +1,5 @@
-package com.electronwill.nightconfig.core.serialization;
+package com.electronwill.nightconfig.core.io;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

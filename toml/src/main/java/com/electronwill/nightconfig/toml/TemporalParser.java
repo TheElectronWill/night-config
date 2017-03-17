@@ -1,8 +1,8 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.serialization.CharsWrapper;
-import com.electronwill.nightconfig.core.serialization.ParsingException;
-import com.electronwill.nightconfig.core.serialization.Utils;
+import com.electronwill.nightconfig.core.io.CharsWrapper;
+import com.electronwill.nightconfig.core.io.ParsingException;
+import com.electronwill.nightconfig.core.io.Utils;
 import java.time.*;
 import java.time.temporal.Temporal;
 

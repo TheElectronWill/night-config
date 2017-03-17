@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.hocon;
 
-import com.electronwill.nightconfig.core.serialization.ConfigParser;
+import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.typesafe.config.*;
 import java.io.Reader;
 import java.util.Map;
