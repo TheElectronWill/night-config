@@ -6,8 +6,8 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 
 /**
- * A simple, efficient implementation of CharSequence, designed to avoid data copying and to maximize
- * performance.
+ * A simple, efficient implementation of CharSequence, designed to avoid data copying and to
+ * maximize performance.
  *
  * @author TheElectronWill
  */
@@ -41,8 +41,8 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	}
 
 	/**
-	 * Creates a new CharsWrapper containing the same characters as the specified String. The data is
-	 * copied and the new CharsWrapper is completely independent.
+	 * Creates a new CharsWrapper containing the same characters as the specified String. The data
+	 * is copied and the new CharsWrapper is completely independent.
 	 *
 	 * @param str the String to copy
 	 */
@@ -51,7 +51,8 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	}
 
 	/**
-	 * Creates a new CharsWrapper containing the same characters as the specified String. The data is
+	 * Creates a new CharsWrapper containing the same characters as the specified String. The data
+	 * is
 	 * copied and the new CharsWrapper is completely independent.
 	 *
 	 * @param str   the String to copy
@@ -66,8 +67,8 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	}
 
 	/**
-	 * Creates a new CharsWrapper containing the same characters as the specified CharSequence. The data is
-	 * copied and the new CharsWrapper is completely independent.
+	 * Creates a new CharsWrapper containing the same characters as the specified CharSequence. The
+	 * data is copied and the new CharsWrapper is completely independent.
 	 *
 	 * @param csq the sequence to copy
 	 */
@@ -76,8 +77,8 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	}
 
 	/**
-	 * Creates a new CharsWrapper containing the same characters as the specified CharSequence. The data is
-	 * copied and the new CharsWrapper is completely independent.
+	 * Creates a new CharsWrapper containing the same characters as the specified CharSequence. The
+	 * data is copied and the new CharsWrapper is completely independent.
 	 *
 	 * @param csq   the sequence to copy
 	 * @param begin index of the first character to copy from csq
@@ -149,8 +150,9 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	 */
 	public void replaceAll(char ch, char replacement) {
 		for (int i = offset; i < limit; i++) {
-			if (chars[i] == ch)
+			if (chars[i] == ch) {
 				chars[i] = replacement;
+			}
 		}
 	}
 
@@ -165,31 +167,34 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	}
 
 	/**
-	 * Returns the index within this CharsWrapper of the first occurrence of the specified character.
-	 * Returns -1 if this CharsWrapper doesn't contain the character.
+	 * Returns the index within this CharsWrapper of the first occurrence of the specified
+	 * character. Returns -1 if this CharsWrapper doesn't contain the character.
 	 *
 	 * @param c the character to look for
 	 * @return the index of the first occurence of {@code c}, or {@code -1} if not found.
 	 */
 	public int indexOf(char c) {
 		for (int i = offset; i < limit; i++) {
-			if (chars[i] == c)
+			if (chars[i] == c) {
 				return i - offset;
+			}
 		}
 		return -1;
 	}
 
 	/**
-	 * Returns the index within this CharsWrapper of the first occurrence of one of the specified characters.
-	 * Returns -1 if this CharsWrapper doesn't contain any of these characters.
+	 * Returns the index within this CharsWrapper of the first occurrence of one of the specified
+	 * characters. Returns -1 if this CharsWrapper doesn't contain any of these characters.
 	 *
 	 * @param ch the characters to look for
-	 * @return the index of the first occurence of a character of {@code ch}, or {@code -1} if not found.
+	 * @return the index of the first occurence of a character of {@code ch}, or {@code -1} if not
+	 * found.
 	 */
 	public int indexOfFirst(char... ch) {
 		for (int i = offset; i < limit; i++) {
-			if (Utils.arrayContains(ch, chars[i]))
+			if (Utils.arrayContains(ch, chars[i])) {
 				return i - offset;
+			}
 		}
 		return -1;
 	}
@@ -204,7 +209,6 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		if (length() != l) {
 			return false;
 		}
-
 		for (int i = 0; i < l; i++) {
 			char c = chars[offset + i];
 			char co = other.chars[other.offset + i];
@@ -219,6 +223,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	 * @param cs the CharSequence to compare with this CharsWrapper
 	 * @return true if cs isn't null and contains the same characters as this CharsWrapper, ignoring
 	 * case considerations.
+	 *
 	 * @see String#equalsIgnoreCase(String)
 	 */
 	public boolean equalsIgnoreCase(CharSequence cs) {
@@ -238,15 +243,18 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	 *
 	 * @param cs the CharSequence to compare with this CharsWrapper
 	 * @return true if cs isn't null and contains the same characters as this CharsWrapper
+	 *
 	 * @see String#contentEquals(CharSequence)
 	 */
 	public boolean contentEquals(CharSequence cs) {
 		final int l = length();
-		if (cs == null || cs.length() != l) return false;
-
+		if (cs == null || cs.length() != l) {
+			return false;
+		}
 		for (int i = 0; i < l; i++) {
-			if (chars[offset + i] != cs.charAt(i))
+			if (chars[offset + i] != cs.charAt(i)) {
 				return false;
+			}
 		}
 		return true;
 	}
@@ -259,11 +267,13 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	 */
 	public boolean contentEquals(char[] array) {
 		final int l = length();
-		if (array == null || array.length != l) return false;
-
+		if (array == null || array.length != l) {
+			return false;
+		}
 		for (int i = 0; i < l; i++) {
-			if (chars[offset + i] != array[i])
+			if (chars[offset + i] != array[i]) {
 				return false;
+			}
 		}
 		return true;
 	}
@@ -271,9 +281,8 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	/**
 	 * {@inheritDoc}
 	 * <p>
-	 * This method copies the data so the returned CharsWrapper doesn't share its array with this CharsWrapper
-	 * and is completely independant.
-	 * </p>
+	 * This method copies the data so the returned CharsWrapper doesn't share its array with this
+	 * CharsWrapper and is completely independant.
 	 */
 	@Override
 	public CharsWrapper subSequence(int start, int end) {
@@ -281,8 +290,8 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	}
 
 	/**
-	 * Creates a view of a part of this CharsWrapper. Any modification to the view is reflected in the
-	 * original CharsWrapper and vice-versa.
+	 * Creates a view of a part of this CharsWrapper. Any modification to the view is reflected in
+	 * the original CharsWrapper and vice-versa.
 	 *
 	 * @param start the start index, inclusive
 	 * @param end   the end index, exclusive
@@ -293,8 +302,8 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	}
 
 	/**
-	 * Creates a view of a part of this CharsWrapper. Any modification to the view is reflected in the
-	 * original CharsWrapper and vice-versa.
+	 * Creates a view of a part of this CharsWrapper. Any modification to the view is reflected in
+	 * the original CharsWrapper and vice-versa.
 	 *
 	 * @param start the start index, inclusive
 	 * @return a new CharsWrapper that is a view of a part of this CharsWrapper
@@ -304,10 +313,12 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	}
 
 	/**
-	 * Creates a trimmed view of this CharsWrapper, with any leading and trailing whitespace removed. Any
-	 * modification to the view is reflected in the original CharsWrapper and vice-versa.
+	 * Creates a trimmed view of this CharsWrapper, with any leading and trailing whitespace
+	 * removed. Any modification to the view is reflected in the original CharsWrapper and
+	 * vice-versa.
 	 *
 	 * @return a new CharsWrapper that is a trimmed view of this CharsWrapper
+	 *
 	 * @see String#trim()
 	 */
 	public CharsWrapper trimmedView() {
@@ -328,13 +339,13 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 
 	/**
 	 * Calculates the hash code of this CharsWrapper.
-	 * <h2>Relation to String's hash code</h2>
+	 * <h1>Relation to String's hash code</h1>
 	 * The hash code calculated by this method is guaranteed to return the same thing as
-	 * {@code wrapper.toString().hashCode()}. That is, if a String and a CharsWrapper contain exactly the
-	 * same characters then they will have the same hash code (provided the CharsWrapper isn't modified
-	 * during the hash operation).
+	 * {@code wrapper.toString().hashCode()}. That is, if a String and a CharsWrapper contain
+	 * exactly the same characters then they will have the same hash code.
 	 *
 	 * @return a hash code for the current content of this CharsWrapper
+	 *
 	 * @see String#hashCode()
 	 */
 	@Override
@@ -347,8 +358,8 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	}
 
 	/**
-	 * Creates and returns a copy of this CharsWrapper. The underlying char array is copied and used to
-	 * create a new instance of CharsWrapper.
+	 * Creates and returns a copy of this CharsWrapper. The underlying char array is copied and used
+	 * to create a new instance of CharsWrapper.
 	 *
 	 * @return a copy of this CharsWrapper
 	 */
@@ -386,7 +397,8 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		private int cursor = 0;
 
 		/**
-		 * Creates a new CharsWrapper's builder with the specified initial capacity. If the specified
+		 * Creates a new CharsWrapper's builder with the specified initial capacity. If the
+		 * specified
 		 * capacity is less than 2 then 2 will be used instead.
 		 *
 		 * @param initialCapacity the initial capacity
@@ -498,8 +510,8 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		}
 
 		/**
-		 * Appends the string representation of an object to this builder. This is equivalent to {@code
-		 * append(String.valueOf(o))}.
+		 * Appends the string representation of an object to this builder. This is equivalent to
+		 * {@code append(String.valueOf(o))}.
 		 *
 		 * @param o the object to append, may be null
 		 * @return this builder
@@ -512,8 +524,8 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		}
 
 		/**
-		 * Appends multiple objects to this builder. This is equivalent to calling {@code append(String
-		 * .valueOf(o))} in a loop.
+		 * Appends multiple objects to this builder. This is equivalent to calling {@code
+		 * append(String.valueOf(o))} in a loop.
 		 *
 		 * @param objects the objects to append, may be null
 		 * @return this builder
@@ -560,8 +572,8 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		}
 
 		/**
-		 * Gets the underlying array of this builder. Please note that its size may not be equal to the
-		 * length of the builder.
+		 * Gets the underlying array of this builder. Please note that its size may not be equal to
+		 * the length of the builder.
 		 *
 		 * @return the array containing the characters of this builder.
 		 */
@@ -584,8 +596,10 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		 * @param ch    the character value to set
 		 */
 		public void set(int index, char ch) {
-			if (index >= cursor) throw new IndexOutOfBoundsException("Index must not be larger than the " +
-				"builder's length");
+			if (index >= cursor) {
+				throw new IndexOutOfBoundsException(
+						"Index must not be larger than the builder's length");
+			}
 			data[index] = ch;
 		}
 
@@ -593,13 +607,12 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		 * Compacts this builder, minimizing its size in memory.
 		 */
 		public void compact() {
-			if (cursor != data.length)
-				data = Arrays.copyOf(data, cursor);
+			if (cursor != data.length) data = Arrays.copyOf(data, cursor);
 		}
 
 		/**
-		 * Builds a CharsWrapper with the content of this builder. The builder's content is directly used
-		 * to create a new CharsWrapper.
+		 * Builds a CharsWrapper with the content of this builder. The builder's content is directly
+		 * used to create a new CharsWrapper.
 		 *
 		 * @return a new CharsWrapper with the content of this builder
 		 */
@@ -608,27 +621,30 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		}
 
 		/**
-		 * Builds a CharsWrapper with the content of this builder. The builder's content is directly used
-		 * to create a new CharsWrapper.
+		 * Builds a CharsWrapper with the content of this builder. The builder's content is directly
+		 * used to create a new CharsWrapper.
 		 *
 		 * @param start index of the 1st character to use
 		 * @return a new CharsWrapper with the content of this builder
 		 */
 		public CharsWrapper build(int start) {
-			return new CharsWrapper(data, start, cursor);//directly use this, no need to bound check here
+			return new CharsWrapper(data, start,
+									cursor);//directly use this, no need to bound check here
 		}
 
 		/**
-		 * Builds a CharsWrapper with the content of this builder. The builder's content is directly used
-		 * to create a new CharsWrapper.
+		 * Builds a CharsWrapper with the content of this builder. The builder's content is directly
+		 * used to create a new CharsWrapper.
 		 *
 		 * @param start index of the 1st character to use
 		 * @param end   index after the last character to use
 		 * @return a new CharsWrapper with the content of this builder
 		 */
 		public CharsWrapper build(int start, int end) {
-			if (end > cursor) throw new IndexOutOfBoundsException("Specified end index is larger than the " +
-				"builder's length!");
+			if (end > cursor) {
+				throw new IndexOutOfBoundsException(
+						"Specified end index is larger than the builder's length!");
+			}
 			return new CharsWrapper(data, start, end);
 		}
 
@@ -648,9 +664,9 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		 * @return a new CharsWrapper with a copy of the content of this builder
 		 */
 		public CharsWrapper copyAndBuild(int start) {
-			return new CharsWrapper(Arrays.copyOfRange(data, start, cursor));//directly use this, no need to bound check here
+			return new CharsWrapper(Arrays.copyOfRange(data, start,
+													   cursor));//directly use this, no need to bound check here
 		}
-
 
 		/**
 		 * Builds a CharsWrapper with <b>a copy of</b> the content of this builder.
@@ -660,11 +676,12 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		 * @return a new CharsWrapper with a copy of the content of this builder
 		 */
 		public CharsWrapper copyAndBuild(int start, int end) {
-			if (end > cursor) throw new IndexOutOfBoundsException("Specified end index is larger than the " +
-				"builder's length!");
+			if (end > cursor) {
+				throw new IndexOutOfBoundsException(
+						"Specified end index is larger than the builder's length!");
+			}
 			return new CharsWrapper(Arrays.copyOfRange(data, start, end));
 		}
-
 
 		@Override
 		public String toString() {
@@ -676,8 +693,10 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		}
 
 		public String toString(int start, int end) {
-			if (end > cursor) throw new IndexOutOfBoundsException("Specified end index is larger than the " +
-				"builder's length!");
+			if (end > cursor) {
+				throw new IndexOutOfBoundsException(
+						"Specified end index is larger than the builder's length!");
+			}
 			return new String(data, start, end);
 		}
 	}

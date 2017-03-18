@@ -6,9 +6,8 @@ package com.electronwill.nightconfig.core.io;
  * The readXXX() and peek() methods do not throw any exception when the end of the available data
  * is reached, but return special non-null values.
  * <p>
- * The readCharXXX() and peekChar() methods do throw a RuntimeException when the end of the available
- * data is reached.
- * </p>
+ * The readCharXXX() and peekChar() methods do throw a RuntimeException when the end of the
+ * available data is reached.
  *
  * @author TheElectronWill
  */
@@ -24,16 +23,18 @@ public interface CharacterInput {
 	 * Reads the next character, throwing an exception if there is no more available data.
 	 *
 	 * @return the next character
+	 *
 	 * @throws ParsingException if there is no more available data
 	 */
 	char readChar();
 
 	/**
-	 * Reads the next characters, skipping some characters. Returns the next character that is not in the
-	 * given array.
+	 * Reads the next characters, skipping some characters. Returns the next character that is not
+	 * in the given array.
 	 *
 	 * @param toSkip the characters to skip
-	 * @return the next character that is not in {@code toSkip}, or -1 if there is no more available data
+	 * @return the next character that is not in {@code toSkip}, or -1 if there is no more available
+	 * data
 	 */
 	default int readAndSkip(char[] toSkip) {
 		int c;
@@ -44,11 +45,12 @@ public interface CharacterInput {
 	}
 
 	/**
-	 * Reads the next characters, skipping some characters. Returns the next character that is not in the
-	 * given array. This method throws an exception if there is no more available data.
+	 * Reads the next characters, skipping some characters. Returns the next character that is not
+	 * in the given array. This method throws an exception if there is no more available data.
 	 *
 	 * @param toSkip the characters to skip
 	 * @return the next character that is not in {@code toSkip}
+	 *
 	 * @throws ParsingException if there is no more available data
 	 */
 	default char readCharAndSkip(char[] toSkip) {
@@ -60,8 +62,8 @@ public interface CharacterInput {
 	}
 
 	/**
-	 * Reads the next n characters, if possible. If there are less than n available characters, return all
-	 * the remaining characters.
+	 * Reads the next n characters, if possible. If there are less than n available characters,
+	 * return all the remaining characters.
 	 *
 	 * @param n the number of characters to read
 	 * @return an array containing at most n characters, not null
@@ -71,17 +73,19 @@ public interface CharacterInput {
 		for (int i = 0; i < n; i++) {
 			int next = read();
 			if (next == -1)//EOS
-				break;
+			{ break; }
 			builder.append((char)next);
 		}
 		return builder.build();
 	}
 
 	/**
-	 * Reads the next n characters. If there isn't n available characters, this method throws an exception.
+	 * Reads the next n characters. If there isn't n available characters, this method throws an
+	 * exception.
 	 *
 	 * @param n the number of characters to read
 	 * @return an array containing the next n characters, not null
+	 *
 	 * @throws ParsingException if there is no more available data
 	 */
 	default CharsWrapper readChars(int n) {
@@ -97,22 +101,23 @@ public interface CharacterInput {
 	}
 
 	/**
-	 * Reads all the character until a character containde in {@code stop} is reached or there is no more
-	 * available data, and returns the {@link CharsWrapper} that contains all the characters before the
-	 * stop (or the end of the data).
+	 * Reads all the character until a character containde in {@code stop} is reached or there is no
+	 * more available data, and returns the {@link CharsWrapper} that contains all the characters
+	 * before the stop (or the end of the data).
 	 *
 	 * @param stop the characters to stop at
-	 * @return a CharsWrapper that contains all the characters read before the stop (or the end of the
-	 * data), not null
+	 * @return a CharsWrapper that contains all the characters read before the stop (or the end of
+	 * the data), not null
 	 */
 	CharsWrapper readUntil(char[] stop);
 
 	/**
-	 * Reads all the characters until a character contained in {@code stop} is reached, and returns the
-	 * {@link CharsWrapper} that contains all the characters before the stop.
+	 * Reads all the characters until a character contained in {@code stop} is reached, and returns
+	 * the {@link CharsWrapper} that contains all the characters before the stop.
 	 *
 	 * @param stop the characters to stop at
 	 * @return a CharsWrapper that contains all the characters read before the stop
+	 *
 	 * @throws ParsingException if the end of the data is reached before a stop character
 	 */
 	CharsWrapper readCharsUntil(char[] stop);
@@ -122,7 +127,6 @@ public interface CharacterInput {
 	 * {@code peek()}, the method {@link #read()} will return the exact same character.
 	 * <p>
 	 * This method behaves exactly like {@code peek(0)}
-	 * </p>
 	 *
 	 * @return the next character, or -1 if there is no more available data
 	 */
@@ -134,6 +138,7 @@ public interface CharacterInput {
 	 *
 	 * @param n the position to peek
 	 * @return the next (n+1)th character
+	 *
 	 * @throws ParsingException if there is no (n+1)th character
 	 */
 	int peek(int n);
@@ -143,11 +148,11 @@ public interface CharacterInput {
 	 * {@code peek()}, the method {@link #read()} will return the exact same character.
 	 * <p>
 	 * This method behaves exactly like {@code peekChar(0)}
-	 * </p><p>
+	 * <p>
 	 * This method throws an exception if there is no more available data.
-	 * </p>
 	 *
 	 * @return the next character
+	 *
 	 * @throws ParsingException if there is no more available data
 	 */
 	char peekChar();
@@ -157,10 +162,10 @@ public interface CharacterInput {
 	 * The next character is n=0, then it's n=1 and so on.
 	 * <p>
 	 * This method throws an exception if there is no more available data.
-	 * </p>
 	 *
 	 * @param n the position to peek
 	 * @return the next (n+1)th character
+	 *
 	 * @throws ParsingException if there is no (n+1)th character
 	 */
 	char peekChar(int n);
@@ -171,7 +176,8 @@ public interface CharacterInput {
 	void skipPeeks();
 
 	/**
-	 * Pushes a character back to the input, so that it will be returned by the next reading operation.
+	 * Pushes a character back to the input, so that it will be returned by the next reading
+	 * operation.
 	 *
 	 * @param c the character to push back
 	 */

@@ -3,8 +3,8 @@ package com.electronwill.nightconfig.core.io;
 import java.util.NoSuchElementException;
 
 /**
- * A deque of integers that increases its capacity as necessary. Since it's a deque, it can be used as a
- * FIFO (First-In-First-Out) queue and as a LIFO (Last-In-First-Out) stack.
+ * A deque of integers that increases its capacity as necessary. Since it's a deque, it can be used
+ * as a FIFO (First-In-First-Out) queue and as a LIFO (Last-In-First-Out) stack.
  *
  * @author TheElectronWill
  * @see java.util.Deque
@@ -39,26 +39,27 @@ public final class IntDeque {
 	}
 
 	/**
-	 * Creates a new IntDeque with the specified initial capacity. The capacity must be positive and non-zero.
+	 * Creates a new IntDeque with the specified initial capacity. The capacity must be positive and
+	 * non-zero.
 	 *
 	 * @param initialCapacity the initial capacity, strictly positive
 	 */
 	public IntDeque(int initialCapacity) {
-		if (initialCapacity <= 0)
+		if (initialCapacity <= 0) {
 			throw new IllegalArgumentException("The capacity must be positive and non-zero.");
-		if (!isPowerOfTwo(initialCapacity))
+		}
+		if (!isPowerOfTwo(initialCapacity)) {
 			initialCapacity = nextPowerOfTwo(initialCapacity);
-
+		}
 		data = new int[initialCapacity];
 		mask = initialCapacity - 1;
 	}
 
 	private boolean isPowerOfTwo(int n) {
-		return (n & -n) == n;//clever check based on how the numbers are represented
+		return (n & -n) == n;// clever check based on how the numbers are represented
 	}
 
 	/**
-	 * @param n
 	 * @return the smallest power of two that is strictly greater than n
 	 */
 	private int nextPowerOfTwo(int n) {
@@ -84,8 +85,9 @@ public final class IntDeque {
 	 * @return the size of the deque
 	 */
 	public int size() {
-		if (tail >= head)
+		if (tail >= head) {
 			return tail - head;
+		}
 		return data.length - head + tail;
 	}
 
@@ -100,18 +102,19 @@ public final class IntDeque {
 			mask = 0;
 			return;
 		}
-
 		final int size = size();
-		int newCapacity = size + 1;//+1 because the array is never kept full
-		if (!isPowerOfTwo(newCapacity))
+		int newCapacity = size + 1;// +1 because the array is never kept full
+		if (!isPowerOfTwo(newCapacity)) {
 			newCapacity = nextPowerOfTwo(newCapacity);
+		}
 		final int[] newData = new int[newCapacity];
 		if (tail > head) {
 			System.arraycopy(data, head, newData, 0, tail - head);
 		} else {
-			int lenght1 = data.length - head;//length of the part from the head to the end of the array
-			System.arraycopy(data, head, newData, 0, lenght1);//head to end
-			System.arraycopy(data, 0, newData, lenght1, tail);//start to tail
+			int lenght1 =
+					data.length - head;// length of the part from the head to the end of the array
+			System.arraycopy(data, head, newData, 0, lenght1);// head to end
+			System.arraycopy(data, 0, newData, lenght1, tail);// start to tail
 		}
 		head = 0;
 		tail = size;
@@ -124,14 +127,13 @@ public final class IntDeque {
 	 */
 	private void grow() {
 		final int newSize = data.length << 1;//double the size
-		if (newSize < 0)//overflow!
+		if (newSize < 0) {// overflow!
 			throw new IllegalStateException("IntDeque too big");
-
-		final int[] newData = new int[newSize];//double the size
-		final int lenght1 = data.length - head;//length of the part from the head to the end of the array
-		System.arraycopy(data, head, newData, 0, lenght1);//head to end
-		System.arraycopy(data, 0, newData, lenght1, tail);//start to tail
-
+		}
+		final int[] newData = new int[newSize];// double the size
+		final int lenght1 = data.length - head;// length of the part from the head to the end of the array
+		System.arraycopy(data, head, newData, 0, lenght1);// head to end
+		System.arraycopy(data, 0, newData, lenght1, tail);// start to tail
 		head = 0;
 		tail = data.length;
 		data = newData;
@@ -139,15 +141,17 @@ public final class IntDeque {
 	}
 
 	/**
-	 * Inserts an element before the head of this deque. The deque increases its capacity if necessary.
+	 * Inserts an element before the head of this deque. The deque increases its capacity if
+	 * necessary.
 	 *
 	 * @param element the element to add
 	 */
 	public void addFirst(int element) {
 		head = (head - 1) & mask;
 		data[head] = element;
-		if (head == tail)//deque full
+		if (head == tail) {//deque full
 			grow();
+		}
 	}
 
 	/**
@@ -158,16 +162,16 @@ public final class IntDeque {
 	public void addLast(int element) {
 		data[tail] = element;
 		tail = (tail + 1) & mask;
-		if (tail == head)//deque full
+		if (tail == head) {// deque full
 			grow();
+		}
 	}
 
 	/**
 	 * Gets the element at the specified index of this deque, without removing it.
 	 * <p>
-	 * The index is relative to the head: the first element is at index 0, the next element is at index 1,
-	 * etc.
-	 * </p>
+	 * The index is relative to the head: the first element is at index 0, the next element is at
+	 * index 1, etc.
 	 *
 	 * @param index the index of the element, relative to the head
 	 * @return the element at the specified index
@@ -175,8 +179,9 @@ public final class IntDeque {
 	 * @throws NoSuchElementException if the deque contains less than {@code index+1} elements
 	 */
 	public int get(int index) {
-		if (index >= size())
+		if (index >= size()) {
 			throw new NoSuchElementException("No element at index " + index);
+		}
 		return data[(head + index) & mask];
 	}
 
@@ -188,8 +193,9 @@ public final class IntDeque {
 	 * @throws NoSuchElementException if the deque is empty
 	 */
 	public int getFirst() {
-		if (tail == head)
+		if (tail == head) {
 			throw new NoSuchElementException("Empty deque");
+		}
 		return data[head];
 	}
 
@@ -201,8 +207,9 @@ public final class IntDeque {
 	 * @throws NoSuchElementException if the deque is empty
 	 */
 	public int getLast() {
-		if (tail == head)
+		if (tail == head) {
 			throw new NoSuchElementException("Empty deque");
+		}
 		return data[(tail - 1) & mask];
 	}
 
@@ -214,8 +221,9 @@ public final class IntDeque {
 	 * @throws NoSuchElementException if the deque is empty
 	 */
 	public int removeFirst() {
-		if (tail == head)
+		if (tail == head) {
 			throw new NoSuchElementException("Empty deque");
+		}
 		int element = data[head];
 		head = (head + 1) & mask;
 		return element;
@@ -229,8 +237,9 @@ public final class IntDeque {
 	 * @throws NoSuchElementException if the deque is empty
 	 */
 	public int removeLast() {
-		if (tail == head)
+		if (tail == head) {
 			throw new NoSuchElementException("Empty deque");
+		}
 		tail = (tail - 1) & mask;
 		return data[tail];
 	}

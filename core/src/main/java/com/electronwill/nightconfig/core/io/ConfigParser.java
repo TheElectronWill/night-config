@@ -1,7 +1,13 @@
 package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.Config;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
@@ -58,8 +64,8 @@ public interface ConfigParser<T extends Config> {
 	 * @return a config containing the read data
 	 */
 	default T parseConfig(File file) throws IOException {
-		try (Reader reader = new BufferedReader(new InputStreamReader(
-			new FileInputStream(file), StandardCharsets.UTF_8))) {
+		try (Reader reader = new BufferedReader(
+				new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
 			return parseConfig(reader);
 		}
 	}
@@ -71,8 +77,8 @@ public interface ConfigParser<T extends Config> {
 	 * @param destination the config to put the data to
 	 */
 	default void parseConfig(File file, T destination) throws IOException {
-		try (Reader reader = new BufferedReader(new InputStreamReader(
-			new FileInputStream(file), StandardCharsets.UTF_8))) {
+		try (Reader reader = new BufferedReader(
+				new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
 			parseConfig(reader, destination);
 		}
 	}

@@ -10,7 +10,7 @@ import java.util.List;
  */
 public final class StringUtils {
 
-	private StringUtils() {}// StringUtils is a utility class and can't be constructed
+	private StringUtils() {}// Utility class that can't be constructed
 
 	/**
 	 * Splits a String around each occurence of the specified character. The result is <b>not</b>
@@ -34,7 +34,7 @@ public final class StringUtils {
 	 * @return a non-empty list of strings
 	 */
 	public static List<String> split(String str, char sep) {
-		List<String> list = new ArrayList<>(4);
+		List<String> list = new ArrayList<>(4);// usually the paths are small
 		StringUtils.split(str, sep, list);
 		return list;
 	}
@@ -63,11 +63,11 @@ public final class StringUtils {
 	public static void split(String str, char sep, List<String> list) {
 		int pos0 = 0;
 		for (int i = 0; i < str.length(); i++) {
-			if (str.charAt(i) == sep) {//separator found
+			if (str.charAt(i) == sep) {// separator found
 				list.add(str.substring(pos0, i));
 				pos0 = i + 1;
 			}
 		}
-		list.add(str.substring(pos0, str.length()));//adds the last part
+		list.add(str.substring(pos0, str.length()));// adds the last part
 	}
 }

@@ -21,6 +21,7 @@ public abstract class AbstractInput implements CharacterInput {
 	 * Tries to read the next character without taking care of the peek deque.
 	 *
 	 * @return the next character
+	 *
 	 * @throws ParsingException if the EOS has been reached
 	 */
 	protected abstract char directReadChar();
@@ -37,8 +38,9 @@ public abstract class AbstractInput implements CharacterInput {
 	public char readChar() {
 		if (!deque.isEmpty()) {
 			int next = deque.removeFirst();
-			if (next == EOS)
+			if (next == EOS) {
 				throw ParsingException.notEnoughData();
+			}
 			return (char)next;
 		}
 		return directReadChar();
@@ -61,8 +63,9 @@ public abstract class AbstractInput implements CharacterInput {
 			for (int i = 0; i <= diff; i++) {
 				int read = directRead();
 				deque.addLast(read);
-				if (read == EOS)
+				if (read == EOS) {
 					return EOS;//it's useless to continue reading of the EOS has been reached
+				}
 			}
 		}
 		return deque.get(n);
@@ -71,16 +74,18 @@ public abstract class AbstractInput implements CharacterInput {
 	@Override
 	public char peekChar() {
 		int c = peek();
-		if (c == EOS)
+		if (c == EOS) {
 			throw ParsingException.notEnoughData();
+		}
 		return (char)c;
 	}
 
 	@Override
 	public char peekChar(int n) {
 		int c = peek(n);
-		if (c == EOS)
+		if (c == EOS) {
 			throw ParsingException.notEnoughData();
+		}
 		return (char)c;
 	}
 

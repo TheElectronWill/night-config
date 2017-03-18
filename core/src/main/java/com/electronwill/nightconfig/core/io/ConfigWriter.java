@@ -1,7 +1,13 @@
 package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.Config;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
@@ -50,8 +56,9 @@ public interface ConfigWriter<T extends Config> {
 	 * @param file   the file to write it to
 	 */
 	default void writeConfig(T config, File file, boolean append) throws IOException {
-		try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-			new FileOutputStream(file, append), StandardCharsets.UTF_8))) {
+		try (Writer writer = new BufferedWriter(
+				new OutputStreamWriter(new FileOutputStream(file, append),
+									   StandardCharsets.UTF_8))) {
 			writeConfig(config, writer);
 		}
 	}
@@ -66,8 +73,8 @@ public interface ConfigWriter<T extends Config> {
 		URLConnection connection = url.openConnection();
 		String encoding = connection.getContentEncoding();
 		Charset charset = (encoding == null) ? StandardCharsets.UTF_8 : Charset.forName(encoding);
-		try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-			connection.getOutputStream(), charset))) {
+		try (Writer writer = new BufferedWriter(
+				new OutputStreamWriter(connection.getOutputStream(), charset))) {
 			writeConfig(config, writer);
 		}
 	}

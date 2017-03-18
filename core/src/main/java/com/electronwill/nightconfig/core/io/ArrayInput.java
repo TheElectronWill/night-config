@@ -21,8 +21,8 @@ public final class ArrayInput extends AbstractInput {
 	}
 
 	/**
-	 * Creates a new ArrayInput based on the specified array. Any modification to the array is reflected in
-	 * the input.
+	 * Creates a new ArrayInput based on the specified array. Any modification to the array is
+	 * reflected in the input.
 	 *
 	 * @param chars the char array to use as an input
 	 */
@@ -31,8 +31,8 @@ public final class ArrayInput extends AbstractInput {
 	}
 
 	/**
-	 * Creates a new ArrayInput based on the specified array. Any modification to the array is reflected in
-	 * the input.
+	 * Creates a new ArrayInput based on the specified array. Any modification to the array is
+	 * reflected in the input.
 	 *
 	 * @param chars  the char array to use as an input
 	 * @param offset the index to begin at (inclusive index)
@@ -46,15 +46,17 @@ public final class ArrayInput extends AbstractInput {
 
 	@Override
 	protected int directRead() {
-		if (cursor >= limit)
+		if (cursor >= limit) {
 			return EOS;
+		}
 		return chars[cursor++];
 	}
 
 	@Override
 	protected char directReadChar() throws ParsingException {
-		if (cursor >= limit)
+		if (cursor >= limit) {
 			throw ParsingException.notEnoughData();
+		}
 		return chars[cursor++];
 	}
 

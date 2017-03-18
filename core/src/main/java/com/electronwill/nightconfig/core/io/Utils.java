@@ -8,7 +8,7 @@ package com.electronwill.nightconfig.core.io;
 public final class Utils {
 	private static final char[] EMPTY_CHAR_ARRAY = new char[0];
 
-	private Utils() {}//Utility class can't be constructed
+	private Utils() {}// Utility class that can't be constructed
 
 	/**
 	 * Checks if an array contains the specified element.
@@ -19,15 +19,16 @@ public final class Utils {
 	 */
 	public static boolean arrayContains(char[] array, char element) {
 		for (char c : array) {
-			if (c == element)
+			if (c == element) {
 				return true;
+			}
 		}
 		return false;
 	}
 
 	/**
-	 * Returns the index, within the specified array, of the first occurrence of the specified character.
-	 * Returns -1 if the array doesn't contains the character.
+	 * Returns the index, within the specified array, of the first occurrence of the specified
+	 * character. Returns -1 if the array doesn't contains the character.
 	 *
 	 * @param array   the array
 	 * @param element the element to search
@@ -35,8 +36,9 @@ public final class Utils {
 	 */
 	public static int arrayIndexOf(char[] array, char element) {
 		for (int i = 0; i < array.length; i++) {
-			if (array[i] == element)
+			if (array[i] == element) {
 				return i;
+			}
 		}
 		return -1;
 	}
@@ -49,7 +51,7 @@ public final class Utils {
 	 * @return the long value represented by the CharsWrapper
 	 */
 	public static long parseLong(CharsWrapper chars, int base) {
-		//Optimized lightweight parsing
+		// Optimized lightweight parsing
 		int offset = chars.getOffset();
 		boolean negative = false;
 		char firstChar = chars.charAt(0);
