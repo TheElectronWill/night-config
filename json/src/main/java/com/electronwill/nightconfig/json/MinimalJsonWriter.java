@@ -1,15 +1,23 @@
 package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.io.*;
+import com.electronwill.nightconfig.core.io.CharacterOutput;
+import com.electronwill.nightconfig.core.io.ConfigWriter;
+import com.electronwill.nightconfig.core.io.Utils;
+import com.electronwill.nightconfig.core.io.WriterOutput;
+import com.electronwill.nightconfig.core.io.WritingException;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
- * A simple JSON writer that produces a minimized output: no line breaks, no spaces, no indentation. Use
- * the {@link FancyJsonWriter} if you want a nicer output.
+ * A simple JSON writer that produces a minimized output: no line breaks, no spaces, no indentation.
+ * Use the {@link FancyJsonWriter} if you want a nicer output.
  *
  * @author TheElectronWill
  */
@@ -38,21 +46,21 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 			return;
 		}
 		Iterator<Map.Entry<String, Object>> it = config.asMap().entrySet().iterator();
-		output.write('{');//open object
+		output.write('{');
 		while (true) {
 			final Map.Entry<String, Object> entry = it.next();
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
-			writeString(key, output);//key
-			output.write(':');//separator
-			writeJsonValue(value, output);//value
+			writeString(key, output);// key
+			output.write(':');// separator
+			writeJsonValue(value, output);// value
 			if (it.hasNext()) {
 				output.write(',');
 			} else {
 				break;
 			}
 		}
-		output.write('}');//close object
+		output.write('}');
 	}
 
 	/**
@@ -62,22 +70,24 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 	 * @param output the output to write to
 	 */
 	public void writeJsonValue(Object v, CharacterOutput output) {
-		if (v == null)
+		if (v == null) {
 			output.write(NULL_CHARS);
-		else if (v instanceof CharSequence)
+		} else if (v instanceof CharSequence) {
 			writeString((CharSequence)v, output);
-		else if (v instanceof Number)
+		} else if (v instanceof Number) {
 			output.write(v.toString());
-		else if (v instanceof Config)
+		} else if (v instanceof Config) {
 			writeJsonObject((Config)v, output);
-		else if (v instanceof Collection)
+		} else if (v instanceof Collection) {
 			writeJsonArray((Collection<?>)v, output);
-		else if (v instanceof Boolean)
+		} else if (v instanceof Boolean) {
 			writeBoolean((boolean)v, output);
-		else if (v.getClass().isArray())
+		} else if (v.getClass().isArray()) {
 			writeArray(v, output);
-		else
+		} else {
 			throw new WritingException("Unsupported value type: " + v.getClass());
+		}
+
 	}
 
 	/**
@@ -92,27 +102,27 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 			return;
 		}
 		Iterator<?> it = collection.iterator();
-		output.write('[');//open array
+		output.write('[');
 		while (true) {
 			Object value = it.next();
-			writeJsonValue(value, output);//the value
+			writeJsonValue(value, output);// the value
 			if (it.hasNext()) {
-				output.write(',');//the separator
+				output.write(',');// the separator
 			} else {
 				break;
 			}
 		}
-		output.write(']');//close array
+		output.write(']');
 	}
 
 	private void writeArray(Object array, CharacterOutput output) {
-		//Converts the array into a List:
+		// Converts the array into a List
 		int length = Array.getLength(array);
 		List<Object> list = new ArrayList<>(length);
 		for (int i = 0; i < length; i++) {
 			list.add(Array.get(array, i));
 		}
-		//Then, writes the list as a JSON array:
+		// Then, writes the list as a JSON array
 		writeJsonArray(list, output);
 	}
 
@@ -123,8 +133,11 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 	 * @param output the output to write to
 	 */
 	public void writeBoolean(boolean b, CharacterOutput output) {
-		if (b) output.write(TRUE_CHARS);
-		else output.write(FALSE_CHARS);
+		if (b) {
+			output.write(TRUE_CHARS);
+		} else {
+			output.write(FALSE_CHARS);
+		}
 	}
 
 	/**
@@ -134,19 +147,19 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 	 * @param output the output to write to
 	 */
 	public void writeString(CharSequence s, CharacterOutput output) {
-		output.write('"');//open string
+		output.write('"');
 		final int length = s.length();
 		for (int i = 0; i < length; i++) {
 			char c = s.charAt(i);
 			int escapeIndex = Utils.arrayIndexOf(TO_ESCAPE, c);
-			if (escapeIndex != -1) {//the character must be escaped
+			if (escapeIndex == -1) {
+				output.write(c);
+			} else {// the character must be escaped
 				char escaped = ESCAPED[escapeIndex];
 				output.write('\\');
 				output.write(escaped);
-			} else {
-				output.write(c);
 			}
 		}
-		output.write('"');//close string
+		output.write('"');
 	}
 }

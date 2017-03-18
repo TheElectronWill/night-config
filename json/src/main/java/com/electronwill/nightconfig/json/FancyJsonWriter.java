@@ -1,11 +1,19 @@
 package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.io.*;
+import com.electronwill.nightconfig.core.io.CharacterOutput;
+import com.electronwill.nightconfig.core.io.ConfigWriter;
+import com.electronwill.nightconfig.core.io.Utils;
+import com.electronwill.nightconfig.core.io.WriterOutput;
+import com.electronwill.nightconfig.core.io.WritingException;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.electronwill.nightconfig.json.MinimalJsonWriter.*;
@@ -18,13 +26,15 @@ import static com.electronwill.nightconfig.json.MinimalJsonWriter.*;
 public final class FancyJsonWriter implements ConfigWriter<Config> {
 	private static final char[] ENTRY_SEPARATOR = {':', ' '}, VALUE_SEPARATOR = {',', ' '};
 
+	// --- Writer's settings ---
 	private Predicate<Config> indentObjectElementsPredicate = c -> true;
-	private Predicate<Collection> indentArrayElementsPredicate = c -> true;
-	private boolean newlineAfterObjectStart = false, newlineAfterArrayStart = false;
-	private char[] indent = {'\t'};
+	private Predicate<Collection<?>> indentArrayElementsPredicate = c -> true;
+	private boolean newlineAfterObjectStart, newlineAfterArrayStart;
 	private char[] newline = System.getProperty("line.separator").toCharArray();
+	private char[] indent = {'\t'};
 	private int currentIndentLevel;
 
+	// --- Writer's methods --
 	@Override
 	public void writeConfig(Config config, Writer writer) throws IOException {
 		currentIndentLevel = 0;
@@ -38,7 +48,9 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 		}
 		Iterator<Map.Entry<String, Object>> it = config.asMap().entrySet().iterator();
 		output.write('{');//open object
-		if (newlineAfterObjectStart) output.write(newline);
+		if (newlineAfterObjectStart) {
+			output.write(newline);
+		}
 		boolean indentElements = indentObjectElementsPredicate.test(config);
 		if (indentElements) {
 			output.write(newline);
@@ -49,7 +61,9 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
 
-			if (indentElements) writeIndent(output);//Indents the line
+			if (indentElements) {
+				writeIndent(output);//Indents the line
+			}
 			writeString(key, output);//key
 			output.write(ENTRY_SEPARATOR);//separator
 			writeValue(value, output);//value
@@ -75,22 +89,23 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 	 * @param output the output to write to
 	 */
 	public void writeValue(Object v, CharacterOutput output) {
-		if (v == null)
+		if (v == null) {
 			output.write(NULL_CHARS);
-		else if (v instanceof CharSequence)
+		} else if (v instanceof CharSequence) {
 			writeString((CharSequence)v, output);
-		else if (v instanceof Number)
+		} else if (v instanceof Number) {
 			output.write(v.toString());
-		else if (v instanceof Config)
+		} else if (v instanceof Config) {
 			writeObject((Config)v, output);
-		else if (v instanceof Collection)
+		} else if (v instanceof Collection) {
 			writeArray((Collection<?>)v, output);
-		else if (v instanceof Boolean)
+		} else if (v instanceof Boolean) {
 			writeBoolean((boolean)v, output);
-		else if (v.getClass().isArray())
+		} else if (v.getClass().isArray()) {
 			writeArray(v, output);
-		else
+		} else {
 			throw new WritingException("Unsupported value type: " + v.getClass());
+		}
 	}
 
 	/**
@@ -105,8 +120,10 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 			return;
 		}
 		Iterator<?> it = collection.iterator();
-		output.write('[');//open array
-		if (newlineAfterObjectStart) output.write(newline);
+		output.write('[');
+		if (newlineAfterObjectStart) {
+			output.write(newline);
+		}
 		boolean indentElements = indentArrayElementsPredicate.test(collection);
 		if (indentElements) {
 			output.write(newline);
@@ -114,13 +131,19 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 		}
 		while (true) {
 			Object value = it.next();
-			if (indentElements) writeIndent(output);
+			if (indentElements) {
+				writeIndent(output);
+			}
 			writeValue(value, output);
 			if (it.hasNext()) {
 				output.write(VALUE_SEPARATOR);
-				if (indentElements) output.write(newline);
+				if (indentElements) {
+					output.write(newline);
+				}
 			} else {
-				if (indentElements) output.write(newline);
+				if (indentElements) {
+					output.write(newline);
+				}
 				break;
 			}
 		}
@@ -128,17 +151,17 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 			decreaseIndentLevel();
 			writeIndent(output);
 		}
-		output.write(']');//close array
+		output.write(']');
 	}
 
 	private void writeArray(Object array, CharacterOutput output) {
-		//Converts the array into a List:
+		// Converts the array into a List:
 		int length = Array.getLength(array);
 		List<Object> list = new ArrayList<>(length);
 		for (int i = 0; i < length; i++) {
 			list.add(Array.get(array, i));
 		}
-		//Then, writes the list as a JSON array:
+		// Then, writes the list as a JSON array:
 		writeArray(list, output);
 	}
 
@@ -149,8 +172,7 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 	 * @param output the output to write to
 	 */
 	public void writeBoolean(boolean b, CharacterOutput output) {
-		if (b) output.write(TRUE_CHARS);
-		else output.write(FALSE_CHARS);
+		if (b) { output.write(TRUE_CHARS); } else output.write(FALSE_CHARS);
 	}
 
 	/**
@@ -160,22 +182,37 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 	 * @param output the output to write to
 	 */
 	public void writeString(CharSequence s, CharacterOutput output) {
-		output.write('"');//open string
+		output.write('"');
 		final int length = s.length();
 		for (int i = 0; i < length; i++) {
 			char c = s.charAt(i);
 			int escapeIndex = Utils.arrayIndexOf(TO_ESCAPE, c);
-			if (escapeIndex != -1) {//the character must be escaped
+			if (escapeIndex == -1) {
+				output.write(c);
+			} else {//the character must be escaped
 				char escaped = ESCAPED[escapeIndex];
 				output.write('\\');
 				output.write(escaped);
-			} else {
-				output.write(c);
 			}
 		}
-		output.write('"');//close string
+		output.write('"');
 	}
 
+	void increaseIndentLevel() {
+		currentIndentLevel++;
+	}
+
+	void decreaseIndentLevel() {
+		currentIndentLevel--;
+	}
+
+	void writeIndent(CharacterOutput output) {
+		for (int i = 0; i < currentIndentLevel; i++) {
+			output.write(indent);
+		}
+	}
+
+	// --- Getters/Setters for the settings ---
 	public Predicate<Config> getIndentObjectElementsPredicate() {
 		return indentObjectElementsPredicate;
 	}
@@ -184,11 +221,12 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 		this.indentObjectElementsPredicate = indentObjectElementsPredicate;
 	}
 
-	public Predicate<Collection> getIndentArrayElementsPredicate() {
+	public Predicate<Collection<?>> getIndentArrayElementsPredicate() {
 		return indentArrayElementsPredicate;
 	}
 
-	public void setIndentArrayElementsPredicate(Predicate<Collection> indentArrayElementsPredicate) {
+	public void setIndentArrayElementsPredicate(
+			Predicate<Collection<?>> indentArrayElementsPredicate) {
 		this.indentArrayElementsPredicate = indentArrayElementsPredicate;
 	}
 
@@ -230,19 +268,5 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 
 	public void setNewline(String newline) {
 		setNewline(newline.toCharArray());
-	}
-
-	void increaseIndentLevel() {
-		currentIndentLevel++;
-	}
-
-	void decreaseIndentLevel() {
-		currentIndentLevel--;
-	}
-
-	void writeIndent(CharacterOutput output) {
-		for (int i = 0; i < currentIndentLevel; i++) {
-			output.write(indent);
-		}
 	}
 }
