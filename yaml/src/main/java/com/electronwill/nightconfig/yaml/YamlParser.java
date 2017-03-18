@@ -1,6 +1,5 @@
 package com.electronwill.nightconfig.yaml;
 
-import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import java.io.Reader;
