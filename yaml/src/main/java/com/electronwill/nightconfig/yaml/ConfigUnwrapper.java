@@ -25,16 +25,16 @@ final class ConfigUnwrapper {
 	}
 
 	/**
-	 * Unwraps a value: a Config is unwrapped into its map and an Entry is converted into an UnwrappedEntry
-	 * . Any other value is returned as it is.
+	 * Unwraps a value: a Config is unwrapped into its map and an Entry is converted into an
+	 * UnwrappedEntry. Any other value is returned as it is.
 	 *
 	 * @param value the value to unwrap
 	 * @param <T>   the value's type
 	 * @return the unwrapped value
 	 */
 	private static <T> T unwrap(T value) {
-		if (value instanceof Config) return (T)unwrap((Config)value);
-		if (value instanceof Entry) return (T)new UnwrappedEntry((Entry)value);
+		if (value instanceof Config) { return (T)unwrap((Config)value); }
+		if (value instanceof Entry) { return (T)new UnwrappedEntry((Entry)value); }
 		return value;
 	}
 
@@ -48,10 +48,11 @@ final class ConfigUnwrapper {
 	private static <T> T[] unwrap(T[] array) {
 		for (int i = 0; i < array.length; i++) {
 			Object element = array[i];
-			if (element instanceof Config)
+			if (element instanceof Config) {
 				array[i] = (T)((Config)element).asMap();
-			else if (element instanceof Entry)
+			} else if (element instanceof Entry) {
 				array[i] = (T)new UnwrappedEntry((Entry)element);
+			}
 		}
 		return array;
 	}
@@ -61,8 +62,8 @@ final class ConfigUnwrapper {
 	 *
 	 * @param optional the Optional to unwrap
 	 * @param <T>      the optional's type
-	 * @return a new Optional containing the unwrapped value, or {@code Optional.empty()} if the given
-	 * optional is empty
+	 * @return a new Optional containing the unwrapped value, or {@code Optional.empty()} if the
+	 * given optional is empty
 	 */
 	private static <T> Optional<T> unwrap(Optional<T> optional) {
 		if (optional.isPresent()) {
@@ -72,7 +73,7 @@ final class ConfigUnwrapper {
 	}
 
 	private static final class UnwrappedMap extends TransparentWrapper<Map<String, Object>>
-		implements Map<String, Object> {
+			implements Map<String, Object> {
 
 		public UnwrappedMap(Map<String, Object> wrapped) {super(wrapped);}
 
@@ -177,23 +178,28 @@ final class ConfigUnwrapper {
 		}
 
 		@Override
-		public Object computeIfPresent(String key, BiFunction<? super String, ? super Object, ?> remappingFunction) {
-			return unwrap(wrapped.computeIfPresent(key, (s, o) -> remappingFunction.apply(s, unwrap(o))));
+		public Object computeIfPresent(String key,
+									   BiFunction<? super String, ? super Object, ?> remappingFunction) {
+			return unwrap(
+					wrapped.computeIfPresent(key, (s, o) -> remappingFunction.apply(s, unwrap(o))));
 		}
 
 		@Override
-		public Object compute(String key, BiFunction<? super String, ? super Object, ?> remappingFunction) {
+		public Object compute(String key,
+							  BiFunction<? super String, ? super Object, ?> remappingFunction) {
 			return unwrap(wrapped.compute(key, (s, o) -> remappingFunction.apply(s, unwrap(o))));
 		}
 
 		@Override
-		public Object merge(String key, Object value, BiFunction<? super Object, ? super Object, ?> remappingFunction) {
-			return unwrap(wrapped.merge(key, unwrap(value), (o, o2) -> remappingFunction.apply(unwrap(o), unwrap(o2))));
+		public Object merge(String key, Object value,
+							BiFunction<? super Object, ? super Object, ?> remappingFunction) {
+			return unwrap(wrapped.merge(key, unwrap(value),
+										(o, o2) -> remappingFunction.apply(unwrap(o), unwrap(o2))));
 		}
 	}
 
-	private static final class UnwrappedValueCollection extends TransparentWrapper<Collection<Object>>
-		implements Collection<Object> {
+	private static final class UnwrappedValueCollection
+			extends TransparentWrapper<Collection<Object>> implements Collection<Object> {
 
 		public UnwrappedValueCollection(Collection<Object> wrapped) {super(wrapped);}
 
@@ -288,8 +294,9 @@ final class ConfigUnwrapper {
 		}
 	}
 
-	private static final class UnwrappedEntrySet extends TransparentWrapper<Set<Entry<String, Object>>>
-		implements Set<Entry<String, Object>> {
+	private static final class UnwrappedEntrySet
+			extends TransparentWrapper<Set<Entry<String, Object>>>
+			implements Set<Entry<String, Object>> {
 
 		public UnwrappedEntrySet(Set<Entry<String, Object>> wrapped) {super(wrapped);}
 
@@ -385,7 +392,7 @@ final class ConfigUnwrapper {
 	}
 
 	private static final class UnwrappedStream<E> extends TransparentWrapper<Stream<E>>
-		implements Stream<E> {
+			implements Stream<E> {
 
 		public UnwrappedStream(Stream<E> wrapped) {super(wrapped);}
 
@@ -486,7 +493,8 @@ final class ConfigUnwrapper {
 
 		@Override
 		public E reduce(E identity, BinaryOperator<E> accumulator) {
-			E e = wrapped.reduce(unwrap(identity), (t, u) -> accumulator.apply(unwrap(t), unwrap(u)));
+			E e = wrapped.reduce(unwrap(identity),
+								 (t, u) -> accumulator.apply(unwrap(t), unwrap(u)));
 			return unwrap(e);
 		}
 
@@ -497,12 +505,15 @@ final class ConfigUnwrapper {
 		}
 
 		@Override
-		public <U> U reduce(U identity, BiFunction<U, ? super E, U> accumulator, BinaryOperator<U> combiner) {
-			return wrapped.reduce(unwrap(identity), (u, e) -> accumulator.apply(u, unwrap(e)), combiner);
+		public <U> U reduce(U identity, BiFunction<U, ? super E, U> accumulator,
+							BinaryOperator<U> combiner) {
+			return wrapped.reduce(unwrap(identity), (u, e) -> accumulator.apply(u, unwrap(e)),
+								  combiner);
 		}
 
 		@Override
-		public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super E> accumulator, BiConsumer<R, R> combiner) {
+		public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super E> accumulator,
+							 BiConsumer<R, R> combiner) {
 			return wrapped.collect(supplier, (r, e) -> accumulator.accept(r, unwrap(e)), combiner);
 		}
 
@@ -594,8 +605,8 @@ final class ConfigUnwrapper {
 		}
 	}
 
-	private static final class UnwrappedCollector<E, A, R> extends TransparentWrapper<Collector<? super E, A, R>>
-		implements Collector<E, A, R> {
+	private static final class UnwrappedCollector<E, A, R>
+			extends TransparentWrapper<Collector<? super E, A, R>> implements Collector<E, A, R> {
 
 		public UnwrappedCollector(Collector<? super E, A, R> wrapped) {super(wrapped);}
 
@@ -626,7 +637,7 @@ final class ConfigUnwrapper {
 	}
 
 	private static final class UnwrappedSpliterator<E> extends TransparentWrapper<Spliterator<E>>
-		implements Spliterator<E> {
+			implements Spliterator<E> {
 
 		public UnwrappedSpliterator(Spliterator<E> wrapped) {super(wrapped);}
 
@@ -672,7 +683,7 @@ final class ConfigUnwrapper {
 	}
 
 	private static final class UnwrappedIterator<E> extends TransparentWrapper<Iterator<E>>
-		implements Iterator<E> {
+			implements Iterator<E> {
 
 		public UnwrappedIterator(Iterator<E> wrapped) {super(wrapped);}
 
@@ -693,7 +704,7 @@ final class ConfigUnwrapper {
 	}
 
 	private static final class UnwrappedAction<T> extends TransparentWrapper<Consumer<? super T>>
-		implements Consumer<T> {
+			implements Consumer<T> {
 
 		private UnwrappedAction(Consumer<? super T> consumer) {super(consumer);}
 
@@ -704,7 +715,7 @@ final class ConfigUnwrapper {
 	}
 
 	private static final class UnwrappedEntry extends TransparentWrapper<Entry<String, Object>>
-		implements Entry<String, Object> {
+			implements Entry<String, Object> {
 
 		private UnwrappedEntry(Entry<String, Object> entry) {super(entry);}
 

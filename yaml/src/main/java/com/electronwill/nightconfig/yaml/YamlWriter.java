@@ -13,11 +13,17 @@ import org.yaml.snakeyaml.Yaml;
 public final class YamlWriter implements ConfigWriter<Config> {
 	private final Yaml yaml;
 
-	public YamlWriter() {this(new Yaml());}
+	public YamlWriter() {
+		this(new Yaml());
+	}
 
-	public YamlWriter(Yaml yaml) {this.yaml = yaml;}
+	public YamlWriter(Yaml yaml) {
+		this.yaml = yaml;
+	}
 
-	public YamlWriter(DumperOptions options) {this(new Yaml(options));}
+	public YamlWriter(DumperOptions options) {
+		this(new Yaml(options));
+	}
 
 	@Override
 	public void writeConfig(Config config, Writer writer) throws IOException {
