@@ -21,13 +21,13 @@ public final class HoconConfig extends MapConfig implements FileConfig {
 	@Override
 	public boolean supportsType(Class<?> type) {
 		return type == Integer.class
-			|| type == Long.class
-			|| type == Float.class
-			|| type == Double.class
-			|| type == Boolean.class
-			|| type == String.class
-			|| List.class.isAssignableFrom(type)
-			|| Config.class.isAssignableFrom(type);
+				|| type == Long.class
+				|| type == Float.class
+				|| type == Double.class
+				|| type == Boolean.class
+				|| type == String.class
+				|| List.class.isAssignableFrom(type)
+				|| Config.class.isAssignableFrom(type);
 	}
 
 	@Override
@@ -42,7 +42,9 @@ public final class HoconConfig extends MapConfig implements FileConfig {
 
 	@Override
 	public void readFrom(File file, boolean merge) throws IOException {
-		if (!merge) asMap().clear();
+		if (!merge) {
+			asMap().clear();
+		}
 		new HoconParser().parseConfig(file, this);
 	}
 }

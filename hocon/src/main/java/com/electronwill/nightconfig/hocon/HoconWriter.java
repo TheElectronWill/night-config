@@ -1,7 +1,11 @@
 package com.electronwill.nightconfig.hocon;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.io.*;
+import com.electronwill.nightconfig.core.io.CharacterOutput;
+import com.electronwill.nightconfig.core.io.ConfigWriter;
+import com.electronwill.nightconfig.core.io.Utils;
+import com.electronwill.nightconfig.core.io.WriterOutput;
+import com.electronwill.nightconfig.core.io.WritingException;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
@@ -15,22 +19,30 @@ import java.util.function.Predicate;
  * @author TheElectronWill
  */
 public final class HoconWriter implements ConfigWriter<Config> {
+	// --- Constant char arrays ---
 	private static final char[] NULL_CHARS = {'n', 'u', 'l', 'l'};
-	private static final char[] TRUE_CHARS = {'t', 'r', 'u', 'e'}, FALSE_CHARS = {'f', 'a', 'l', 's', 'e'};
+	private static final char[] TRUE_CHARS = {'t', 'r', 'u', 'e'};
+	private static final char[] FALSE_CHARS = {'f', 'a', 'l', 's', 'e'};
+	private static final char[] EMPTY_OBJECT = {'{', '}'}, EMPTY_ARRAY = {'[', ']'};
+
 	private static final char[] TO_ESCAPE = {'"', '\n', '\r', '\t', '\\'};
 	private static final char[] ESCAPED = {'"', 'n', 'r', 't', '\\'};
-	private static final char[] EMPTY_OBJECT = {'{', '}'}, EMPTY_ARRAY = {'[', ']'};
-	private static final char[] VALUE_SEPARATOR = {',', ' '};
-	private static final char[] FORBIDDEN_IN_UNQUOTED = {'$', '"', '{', '}', '[', ']', ':', '=', ',', '+',
-		'#', '`', '^', '?', '!', '@', '*', '&', '\\'};
 
+	private static final char[] VALUE_SEPARATOR = {',', ' '};
+	private static final char[] FORBIDDEN_IN_UNQUOTED = {'$', '"', '{', '}', '[', ']', ':', '=',
+														 ',', '+', '#', '`', '^', '?', '!', '@',
+														 '*', '&', '\\'};
+
+	// --- Writer's settings ---
 	private Predicate<Config> indentObjectElementsPredicate = c -> true;
-	private Predicate<Collection> indentArrayElementsPredicate = c -> true;
-	private boolean newlineAfterObjectStart = false, newlineAfterArrayStart = false;
-	private char[] indent = {'\t'}, entrySeparator = {':', ' '};
+	private Predicate<Collection<?>> indentArrayElementsPredicate = c -> true;
+	private boolean newlineAfterObjectStart, newlineAfterArrayStart;
 	private char[] newline = System.getProperty("line.separator").toCharArray();
+	private char[] entrySeparator = {':', ' '};
+	private char[] indent = {'\t'};
 	private int currentIndentLevel;
 
+	// --- Writer's methods ---
 	@Override
 	public void writeConfig(Config config, Writer writer) throws IOException {
 		currentIndentLevel = 0;
@@ -42,8 +54,12 @@ public final class HoconWriter implements ConfigWriter<Config> {
 			output.write(EMPTY_OBJECT);
 			return;
 		}
-		if (!root) output.write('{');//HOCON allows to omit the root braces
-		if (newlineAfterObjectStart) output.write(newline);
+		if (!root) {
+			output.write('{');// HOCON allows to omit the root braces
+		}
+		if (newlineAfterObjectStart) {
+			output.write(newline);
+		}
 		final Iterator<Map.Entry<String, Object>> it = config.asMap().entrySet().iterator();
 		final boolean indentElements = indentObjectElementsPredicate.test(config);
 		if (indentElements) {
@@ -54,15 +70,17 @@ public final class HoconWriter implements ConfigWriter<Config> {
 			final Map.Entry<String, Object> entry = it.next();
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
-
-			if (indentElements) writeIndent(output);//Indents the line
-			writeString(key, output);//key
+			if (indentElements) {
+				writeIndent(output);// Indents the line
+			}
+			writeString(key, output);// key
 			if (value instanceof Config) {
 				output.write(' ');
 			} else {
-				output.write(entrySeparator);//HOCON allows to omit the separator if the value is a config
+				output.write(entrySeparator);
+				// HOCON allows to omit the separator if the value is a config
 			}
-			writeValue(value, output);//value
+			writeValue(value, output);// value
 			if (indentElements) {
 				output.write(newline);
 			} else {
@@ -74,24 +92,23 @@ public final class HoconWriter implements ConfigWriter<Config> {
 			decreaseIndentLevel();
 			writeIndent(output);
 		}
-		if (!root) output.write('}');//HOCON allows to omit the root braces
+		if (!root) {
+			output.write('}');// HOCON allows to omit the root braces
+		}
 	}
 
 	private void writeValue(Object v, CharacterOutput output) {
-		if (v == null)
-			output.write(NULL_CHARS);
-		else if (v instanceof String)
+		if (v == null) { output.write(NULL_CHARS); } else if (v instanceof String) {
 			writeString((String)v, output);
-		else if (v instanceof Number)
+		} else if (v instanceof Number) {
 			output.write(v.toString());
-		else if (v instanceof Config)
+		} else if (v instanceof Config) {
 			writeObject((Config)v, output, false);
-		else if (v instanceof Collection)
+		} else if (v instanceof Collection) {
 			writeArray((Collection<?>)v, output);
-		else if (v instanceof Boolean)
-			writeBoolean((boolean)v, output);
-		else
+		} else if (v instanceof Boolean) { writeBoolean((boolean)v, output); } else {
 			throw new WritingException("Unsupported value type: " + v.getClass());
+		}
 	}
 
 	private void writeArray(Collection<?> collection, CharacterOutput output) {
@@ -99,8 +116,10 @@ public final class HoconWriter implements ConfigWriter<Config> {
 			output.write(EMPTY_ARRAY);
 			return;
 		}
-		output.write('[');//open array
-		if (newlineAfterObjectStart) output.write(newline);
+		output.write('[');// Opens the array
+		if (newlineAfterObjectStart) {
+			output.write(newline);
+		}
 		final Iterator<?> it = collection.iterator();
 		final boolean indentElements = indentArrayElementsPredicate.test(collection);
 		if (indentElements) {
@@ -109,26 +128,35 @@ public final class HoconWriter implements ConfigWriter<Config> {
 		}
 		while (true) {
 			Object value = it.next();
-			if (indentElements) writeIndent(output);
+			if (indentElements) {
+				writeIndent(output);
+			}
 			writeValue(value, output);
 			if (it.hasNext()) {
 				output.write(VALUE_SEPARATOR);
-				if (indentElements) output.write(newline);
+				if (indentElements) {
+					output.write(newline);
+				}
 			} else {
-				if (indentElements) output.write(newline);
-				break;
+				if (indentElements) {
+					output.write(newline);
+				}
+				break;// Nothing else to write
 			}
 		}
 		if (indentElements) {
 			decreaseIndentLevel();
 			writeIndent(output);
 		}
-		output.write(']');//close array
+		output.write(']');// Closes the array
 	}
 
 	private void writeBoolean(boolean b, CharacterOutput output) {
-		if (b) output.write(TRUE_CHARS);
-		else output.write(FALSE_CHARS);
+		if (b) {
+			output.write(TRUE_CHARS);
+		} else {
+			output.write(FALSE_CHARS);
+		}
 	}
 
 	private void writeString(String s, CharacterOutput output) {
@@ -136,31 +164,47 @@ public final class HoconWriter implements ConfigWriter<Config> {
 			output.write(s);
 			return;
 		}
-		output.write('"');//open string
+		output.write('"');
 		final int length = s.length();
 		for (int i = 0; i < length; i++) {
 			char c = s.charAt(i);
 			int escapeIndex = Utils.arrayIndexOf(TO_ESCAPE, c);
-			if (escapeIndex != -1) {//the character must be escaped
+			if (escapeIndex == -1) {
+				output.write(c);
+			} else {// the character must be escaped
 				char escaped = ESCAPED[escapeIndex];
 				output.write('\\');
 				output.write(escaped);
-			} else {
-				output.write(c);
 			}
 		}
-		output.write('"');//close string
+		output.write('"');
 	}
 
 	private boolean canBeUnquoted(CharSequence s) {
 		final int length = s.length();
 		for (int i = 0; i < length; i++) {
-			if (Utils.arrayContains(FORBIDDEN_IN_UNQUOTED, s.charAt(i)))
+			if (Utils.arrayContains(FORBIDDEN_IN_UNQUOTED, s.charAt(i))) {
 				return false;
+			}
 		}
 		return true;
 	}
 
+	private void increaseIndentLevel() {
+		currentIndentLevel++;
+	}
+
+	private void decreaseIndentLevel() {
+		currentIndentLevel--;
+	}
+
+	private void writeIndent(CharacterOutput output) {
+		for (int i = 0; i < currentIndentLevel; i++) {
+			output.write(indent);
+		}
+	}
+
+	// --- Getters/Setters for the settings ---
 	public Predicate<Config> getIndentObjectElementsPredicate() {
 		return indentObjectElementsPredicate;
 	}
@@ -169,11 +213,12 @@ public final class HoconWriter implements ConfigWriter<Config> {
 		this.indentObjectElementsPredicate = indentObjectElementsPredicate;
 	}
 
-	public Predicate<Collection> getIndentArrayElementsPredicate() {
+	public Predicate<Collection<?>> getIndentArrayElementsPredicate() {
 		return indentArrayElementsPredicate;
 	}
 
-	public void setIndentArrayElementsPredicate(Predicate<Collection> indentArrayElementsPredicate) {
+	public void setIndentArrayElementsPredicate(
+			Predicate<Collection<?>> indentArrayElementsPredicate) {
 		this.indentArrayElementsPredicate = indentArrayElementsPredicate;
 	}
 
@@ -227,19 +272,5 @@ public final class HoconWriter implements ConfigWriter<Config> {
 
 	public void setEntrySeparator(String newline) {
 		setEntrySeparator(newline.toCharArray());
-	}
-
-	void increaseIndentLevel() {
-		currentIndentLevel++;
-	}
-
-	void decreaseIndentLevel() {
-		currentIndentLevel--;
-	}
-
-	void writeIndent(CharacterOutput output) {
-		for (int i = 0; i < currentIndentLevel; i++) {
-			output.write(indent);
-		}
 	}
 }
