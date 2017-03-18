@@ -13,10 +13,12 @@ final class StringParser {
 	private static final char[] SINGLE_QUOTE = {'\''};
 
 	/**
-	 * Parses a basic string (surrounded by "). The opening quote must be read before calling this method.
+	 * Parses a basic string (surrounded by "). The opening quote must be read before calling this
+	 * method.
 	 */
 	static String parseBasic(CharacterInput input, TomlParser parser) {
-		CharsWrapper.Builder builder = new CharsWrapper.Builder(parser.getInitialStringBuilderCapacity());
+		CharsWrapper.Builder builder = new CharsWrapper.Builder(
+				parser.getInitialStringBuilderCapacity());
 		boolean escape = false;
 		char c;
 		while ((c = input.readChar()) != '\"' || escape) {
@@ -33,7 +35,8 @@ final class StringParser {
 	}
 
 	/**
-	 * Parses a literal string (surrounded by '). The opening quote must be read before calling this method.
+	 * Parses a literal string (surrounded by '). The opening quote must be read before calling this
+	 * method.
 	 */
 	static String parseLiteral(CharacterInput input, TomlParser parser) {
 		String str = input.readCharsUntil(SINGLE_QUOTE).toString();
@@ -42,8 +45,8 @@ final class StringParser {
 	}
 
 	/**
-	 * Builds a multiline string with the content of a Builder. Trims the first line break if it's at
-	 * the beginning of the string.
+	 * Builds a multiline string with the content of a Builder. Trims the first line break if it's
+	 * at the beginning of the string.
 	 */
 	private static String buildMultilineString(CharsWrapper.Builder builder) {
 		if (builder.get(0) == '\n') {
@@ -60,20 +63,21 @@ final class StringParser {
 	 * calling this method.
 	 */
 	static String parseMultiBasic(CharacterInput input, TomlParser parser) {
-		CharsWrapper.Builder builder = new CharsWrapper.Builder(parser.getInitialStringBuilderCapacity());
+		CharsWrapper.Builder builder = new CharsWrapper.Builder(
+				parser.getInitialStringBuilderCapacity());
 		char c;
 		while ((c = input.readChar()) != '\"' || input.peek() != '\"' || input.peek(1) != '\"') {
 			if (c == '\\') {
-				// TOML ignores the line break if the last non-whitespace character of the line is a backslash
+				/* TOML ignores the line break if the last non-whitespace character of the line
+				   is a backslash */
 				final char next = input.peekChar();
 				if (next == '\n' || next == '\r' && input.peekChar(1) == '\n') {
-					continue;//ignore the newline
+					continue;// ignores the newline
 				} else if (isWhitespace(next)) {
 					CharsWrapper restOfLine = input.readCharsUntil(Toml.NEWLINE);
-					if (isWhitespace(restOfLine))
-						continue;//ignore the newline
-					else
-						throw new ParsingException("Invalid escapement: \\" + next);
+					if (isWhitespace(restOfLine)) {
+						continue;// ignores the newline
+					} else { throw new ParsingException("Invalid escapement: \\" + next); }
 				}
 				builder.write(escape(c, input));
 			} else {
@@ -84,11 +88,13 @@ final class StringParser {
 	}
 
 	/**
-	 * Parses a multiline literal string (surrounded by '''). The 3 opening quotes must be read before
+	 * Parses a multiline literal string (surrounded by '''). The 3 opening quotes must be read
+	 * before
 	 * calling this method.
 	 */
 	static String parseMultiLiteral(CharacterInput input, TomlParser parser) {
-		CharsWrapper.Builder builder = new CharsWrapper.Builder(parser.getInitialStringBuilderCapacity());
+		CharsWrapper.Builder builder = new CharsWrapper.Builder(
+				parser.getInitialStringBuilderCapacity());
 		char c;
 		while ((c = input.readChar()) != '\'' || input.peek() != '\'' || input.peek(1) != '\'') {
 			builder.append(c);
@@ -134,8 +140,9 @@ final class StringParser {
 	 */
 	static boolean isWhitespace(CharSequence csq) {
 		for (int i = 0; i < csq.length(); i++) {
-			if (!isWhitespace(csq.charAt(i)))
+			if (!isWhitespace(csq.charAt(i))) {
 				return false;
+			}
 		}
 		return true;
 	}
@@ -149,5 +156,5 @@ final class StringParser {
 		return c == '\t' || c == ' ';
 	}
 
-	private StringParser() {}//Utility class with static method only
+	private StringParser() {}
 }

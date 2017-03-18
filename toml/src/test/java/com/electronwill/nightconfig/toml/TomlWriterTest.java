@@ -38,6 +38,6 @@ public class TomlWriterTest {
 
 		new TomlWriter().writeConfig(config, writer);
 		System.out.println("Written:");
-		System.out.println(writer.toString());
+		System.out.println(writer);
 	}
 }

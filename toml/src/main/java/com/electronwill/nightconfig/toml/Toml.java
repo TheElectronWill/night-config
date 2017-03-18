@@ -47,14 +47,17 @@ final class Toml {
 	}
 
 	static boolean isValidInBareKey(char c, boolean lenient) {
-		if (lenient) return c > ' ' && !Utils.arrayContains(FORBIDDEN_IN_ALL_BARE_KEYS, c);
-		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_';
+		if (lenient) { return c > ' ' && !Utils.arrayContains(FORBIDDEN_IN_ALL_BARE_KEYS, c); }
+		return (c >= 'a' && c <= 'z')
+			   || (c >= 'A' && c <= 'Z')
+			   || (c >= '0' && c <= '9')
+			   || c == '-'
+			   || c == '_';
 	}
 
 	static boolean isValidBareKey(CharSequence csq, boolean lenient) {
 		for (int i = 0; i < csq.length(); i++) {
-			if (!isValidInBareKey(csq.charAt(i), lenient))
-				return false;
+			if (!isValidInBareKey(csq.charAt(i), lenient)) { return false; }
 		}
 		return true;
 	}

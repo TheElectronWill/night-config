@@ -13,9 +13,12 @@ import java.util.Map;
  */
 final class TableWriter {
 
-	private static final char[] KEY_VALUE_SEPARATOR = {' ', '=', ' '}, AFTER_INLINE_ENTRY = {',', ' '},
-		ARRAY_OF_TABLES_NAME_BEGIN = {'[', '['}, ARRAY_OF_TABLES_NAME_END = {']', ']'},
-		TABLE_NAME_BEGIN = {'['}, TABLE_NAME_END = {']'};
+	private static final char[] KEY_VALUE_SEPARATOR = {' ', '=', ' '},
+								AFTER_INLINE_ENTRY = {',', ' '},
+								ARRAY_OF_TABLES_NAME_BEGIN = {'[', '['},
+								ARRAY_OF_TABLES_NAME_END = {']', ']'},
+								TABLE_NAME_BEGIN = {'['},
+								TABLE_NAME_END = {']'};
 
 	static void writeInline(Config config, CharacterOutput output, TomlWriter writer) {
 		output.write('{');
@@ -34,16 +37,18 @@ final class TableWriter {
 		output.write('}');
 	}
 
-	static void writeNormal(Config config, List<String> configKey, CharacterOutput output, TomlWriter writer) {
+	private static void writeNormal(Config config, List<String> configKey, CharacterOutput output,
+									TomlWriter writer) {
 		List<Map.Entry<String, Object>> tablesEntries = new ArrayList<>();
 		List<Map.Entry<String, Object>> tableArraysEntries = new ArrayList<>();
 
-		//Writes the "simple" values:
-		writer.increaseIndentLevel();//Indent++
+		// Writes the "simple" values:
+		writer.increaseIndentLevel();// Indent++
 		for (Map.Entry<String, Object> entry : config.asMap().entrySet()) {
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
-			if (value instanceof Config && !writer.getWriteTableInlinePredicate().test((Config)value)) {
+			if (value instanceof Config && !writer.getWriteTableInlinePredicate()
+												  .test((Config)value)) {
 				tablesEntries.add(entry);
 				continue;
 			} else if (value instanceof List) {
@@ -53,7 +58,7 @@ final class TableWriter {
 					continue;
 				}
 			}
-			writer.writeIndent(output);//Indents the line.
+			writer.writeIndent(output);// Indents the line.
 			if (Toml.isValidBareKey(key, writer.isLenientWithBareKeys())) {
 				output.write(key);
 			} else {
@@ -66,7 +71,7 @@ final class TableWriter {
 		}
 		output.write(writer.getNewline());
 
-		//Writes the tables:
+		// Writes the tables:
 		for (Map.Entry<String, Object> entry : tablesEntries) {
 			configKey.add(entry.getKey());
 			writeTableName(configKey, output, writer);
@@ -75,7 +80,7 @@ final class TableWriter {
 			configKey.remove(configKey.size() - 1);
 		}
 
-		//Writes the arrays of tables:
+		// Writes the arrays of tables:
 		for (Map.Entry<String, Object> entry : tableArraysEntries) {
 			configKey.add(entry.getKey());
 			List<Config> tableArray = (List<Config>)entry.getValue();
@@ -86,19 +91,20 @@ final class TableWriter {
 			}
 			configKey.remove(configKey.size() - 1);
 		}
-		writer.decreaseIndentLevel();//Indent--
+		writer.decreaseIndentLevel();// Indent--
 	}
 
-	static void writeTableArrayName(List<String> name, CharacterOutput output, TomlWriter writer) {
+	private static void writeTableArrayName(List<String> name, CharacterOutput output,
+											TomlWriter writer) {
 		writeTableName(name, output, writer, ARRAY_OF_TABLES_NAME_BEGIN, ARRAY_OF_TABLES_NAME_END);
 	}
 
-	static void writeTableName(List<String> name, CharacterOutput output, TomlWriter writer) {
+	private static void writeTableName(List<String> name, CharacterOutput output, TomlWriter writer) {
 		writeTableName(name, output, writer, TABLE_NAME_BEGIN, TABLE_NAME_END);
 	}
 
-	private static void writeTableName(List<String> name, CharacterOutput output, TomlWriter writer, char[] begin,
-									   char[] end) {
+	private static void writeTableName(List<String> name, CharacterOutput output, TomlWriter writer,
+									   char[] begin, char[] end) {
 		if (name.isEmpty()) {
 			throw new WritingException("Invalid empty table name.");
 		}
@@ -123,7 +129,8 @@ final class TableWriter {
 		output.write(end);
 	}
 
-	static void writeSmartly(Config config, List<String> key, CharacterOutput output, TomlWriter writer) {
+	static void writeSmartly(Config config, List<String> key, CharacterOutput output,
+							 TomlWriter writer) {
 		if (writer.getWriteTableInlinePredicate().test(config)) {
 			writeInline(config, output, writer);
 		} else {

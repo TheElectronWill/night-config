@@ -7,9 +7,13 @@ import com.electronwill.nightconfig.core.io.CharsWrapper;
  * @author TheElectronWill
  */
 final class StringWriter {
-	private static final char[] ESCAPED_B = {'\\', 'b'}, ESCAPED_F = {'\\', 'f'}, ESCAPED_N = {'\\', 'n'},
-		ESCAPED_R = {'\\', 'r'}, ESCAPED_T = {'\\', 't'}, ESCAPED_BACKSLASH = {'\\', '\\'}, ESCAPED_QUOTE =
-		{'\\', '\"'};
+	private static final char[] ESCAPED_B = {'\\', 'b'},
+								ESCAPED_F = {'\\', 'f'},
+								ESCAPED_N = {'\\', 'n'},
+								ESCAPED_R = {'\\', 'r'},
+								ESCAPED_T = {'\\', 't'},
+								ESCAPED_BACKSLASH = {'\\', '\\'},
+								ESCAPED_QUOTE = {'\\', '\"'};
 
 	static void writeBasic(CharSequence csq, CharacterOutput output) {
 		output.write('\"');

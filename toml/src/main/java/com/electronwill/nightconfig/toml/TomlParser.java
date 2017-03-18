@@ -14,9 +14,11 @@ import java.util.List;
  * @see <a href="https://github.com/toml-lang/toml">TOML specification</a>
  */
 public final class TomlParser implements ConfigParser<TomlConfig> {
+	// --- Parser's settings ---
 	private int initialStringBuilderCapacity = 16, initialListCapacity = 10;
 	private boolean lenientBareKeys = false;
 
+	// --- Parser's methods ---
 	@Override
 	public TomlConfig parseConfig(Reader reader) {
 		return parseConfig(new ReaderInput(reader), new TomlConfig());
@@ -50,6 +52,7 @@ public final class TomlParser implements ConfigParser<TomlConfig> {
 		return rootTable;
 	}
 
+	// --- Getters/setters for the settings ---
 	public boolean isLenientWithBareKeys() {
 		return lenientBareKeys;
 	}

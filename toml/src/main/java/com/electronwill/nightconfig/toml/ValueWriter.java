@@ -10,7 +10,6 @@ import java.util.List;
  */
 final class ValueWriter {
 	static void writeValue(Object value, CharacterOutput output, TomlWriter writer) {
-		//System.out.println("writeValue: (" + value.getClass() + ") " + value);//TODO debug
 		if (value instanceof Config) {
 			TableWriter.writeInline((Config)value, output, writer);
 		} else if (value instanceof List) {
@@ -32,7 +31,7 @@ final class ValueWriter {
 		} else if (value instanceof Temporal) {
 			TemporalWriter.write((Temporal)value, output);
 		} else {
-			//Note: TOML doesn't support null values
+			// Note: TOML doesn't support null values
 			output.write(value.toString());
 		}
 	}

@@ -18,7 +18,6 @@ final class ValueParser {
 	private static final char[] ONLY_IN_FP_NUMBER = {'.', 'e', 'E'};
 
 	static Object parseValue(CharacterInput input, char firstChar, TomlParser parser) {
-		//System.out.println("parseValue(" + firstChar + ")");//TODO debug
 		switch (firstChar) {
 			case '{':
 				return TableParser.parseInline(input, parser);
@@ -50,8 +49,9 @@ final class ValueParser {
 
 	private static Object parseNumberOrDateTime(CharacterInput input) {
 		CharsWrapper valueChars = input.readCharsUntil(END_OF_VALUE);
-		if (TemporalParser.shouldBeTemporal(valueChars))
+		if (TemporalParser.shouldBeTemporal(valueChars)) {
 			return TemporalParser.parseTemporal(valueChars);
+		}
 		return parseNumber(valueChars);
 	}
 
@@ -66,14 +66,17 @@ final class ValueParser {
 		}
 		long longValue = Utils.parseLong(valueChars, 10);
 		int intValue = (int)longValue;
-		if (intValue == longValue) return intValue;//returns an int if it is enough
+		if (intValue == longValue) {
+			return intValue;// returns an int if it is enough to represent the value correctly
+		}
 		return longValue;
 	}
 
 	private static Boolean parseFalse(CharacterInput input) {
 		CharsWrapper remaining = input.readCharsUntil(END_OF_VALUE);
 		if (!remaining.contentEquals(FALSE_END)) {
-			throw new ParsingException("Invalid value f" + remaining + " - Expected the boolean value false.");
+			throw new ParsingException(
+					"Invalid value f" + remaining + " - Expected the boolean value false.");
 		}
 		return false;
 	}
@@ -81,7 +84,8 @@ final class ValueParser {
 	private static Boolean parseTrue(CharacterInput input) {
 		CharsWrapper remaining = input.readCharsUntil(END_OF_VALUE);
 		if (!remaining.contentEquals(TRUE_END)) {
-			throw new ParsingException("Invalid value t" + remaining + " - Expected the boolean value true.");
+			throw new ParsingException(
+					"Invalid value t" + remaining + " - Expected the boolean value true.");
 		}
 		return true;
 	}

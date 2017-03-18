@@ -73,7 +73,9 @@ final class TemporalWriter {
 		String str = Integer.toString(value);
 		int length = str.length();
 		for (int i = length - 1; i >= 1; i--) {
-			if (str.charAt(i) == '0') length--;
+			if (str.charAt(i) == '0') {
+				length--;
+			}
 		}
 		output.write(str, 0, length);
 	}
