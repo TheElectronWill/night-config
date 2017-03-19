@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.yaml;
 
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import java.io.Reader;
@@ -8,9 +9,11 @@ import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 /**
+ * A YAML parser that uses the snakeYaml library.
+ *
  * @author TheElectronWill
  */
-public final class YamlParser implements ConfigParser<YamlConfig> {
+public final class YamlParser implements ConfigParser<YamlConfig, Config> {
 	private final Yaml yaml;
 
 	public YamlParser() {
@@ -33,7 +36,7 @@ public final class YamlParser implements ConfigParser<YamlConfig> {
 	}
 
 	@Override
-	public void parseConfig(Reader reader, YamlConfig destination) {
+	public void parseConfig(Reader reader, Config destination) {
 		Map<String, Object> wrappedMap = wrap(yaml.loadAs(reader, Map.class));
 		destination.asMap().putAll(wrappedMap);
 	}
