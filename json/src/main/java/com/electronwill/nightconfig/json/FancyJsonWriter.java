@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -101,6 +102,8 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 			writeArray((Collection<?>)v, output);
 		} else if (v instanceof Boolean) {
 			writeBoolean((boolean)v, output);
+		} else if (v instanceof Object[]) {
+			writeArray(Arrays.asList((Object[])v), output);
 		} else if (v.getClass().isArray()) {
 			writeArray(v, output);
 		} else {
