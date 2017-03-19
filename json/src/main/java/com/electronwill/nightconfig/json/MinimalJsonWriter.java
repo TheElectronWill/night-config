@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -82,12 +83,24 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 			writeJsonArray((Collection<?>)v, output);
 		} else if (v instanceof Boolean) {
 			writeBoolean((boolean)v, output);
-		} else if (v.getClass().isArray()) {
-			writeArray(v, output);
+		} else if (v instanceof Object[]) {
+			List<Object> list = Arrays.asList((Object[])v);
+			writeJsonArray(list, output);
+		} else if (v instanceof long[]) {
+			output.write(Arrays.toString((long[])v));
+		} else if (v instanceof int[]) {
+			output.write(Arrays.toString((int[])v));
+		} else if (v instanceof double[]) {
+			output.write(Arrays.toString((double[])v));
+		} else if (v instanceof float[]) {
+			output.write(Arrays.toString((float[])v));
+		} else if (v instanceof short[]) {
+			output.write(Arrays.toString((short[])v));
+		} else if (v instanceof byte[]) {
+			output.write(Arrays.toString((byte[])v));
 		} else {
 			throw new WritingException("Unsupported value type: " + v.getClass());
 		}
-
 	}
 
 	/**
@@ -113,17 +126,6 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 			}
 		}
 		output.write(']');
-	}
-
-	private void writeArray(Object array, CharacterOutput output) {
-		// Converts the array into a List
-		int length = Array.getLength(array);
-		List<Object> list = new ArrayList<>(length);
-		for (int i = 0; i < length; i++) {
-			list.add(Array.get(array, i));
-		}
-		// Then, writes the list as a JSON array
-		writeJsonArray(list, output);
 	}
 
 	/**
