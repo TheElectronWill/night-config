@@ -93,7 +93,7 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 	 * @param v      the value to write
 	 * @param output the output to write to
 	 */
-	public void writeValue(Object v, CharacterOutput output) {
+	private void writeValue(Object v, CharacterOutput output) {
 		if (v == null) {
 			output.write(NULL_CHARS);
 		} else if (v instanceof CharSequence) {
@@ -121,7 +121,7 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 	 * @param collection the Collection to write
 	 * @param output     the output to write to
 	 */
-	public void writeArray(Collection<?> collection, CharacterOutput output) {
+	private void writeArray(Collection<?> collection, CharacterOutput output) {
 		if (collection.isEmpty()) {
 			output.write(EMPTY_ARRAY);
 			return;
@@ -178,7 +178,7 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 	 * @param b      the boolean to write
 	 * @param output the output to write to
 	 */
-	public void writeBoolean(boolean b, CharacterOutput output) {
+	private void writeBoolean(boolean b, CharacterOutput output) {
 		if (b) {
 			output.write(TRUE_CHARS);
 		} else {
@@ -192,7 +192,7 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 	 * @param s      the String to write
 	 * @param output the output to write to
 	 */
-	public void writeString(CharSequence s, CharacterOutput output) {
+	private void writeString(CharSequence s, CharacterOutput output) {
 		output.write('"');
 		final int length = s.length();
 		for (int i = 0; i < length; i++) {
@@ -209,15 +209,15 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 		output.write('"');
 	}
 
-	void increaseIndentLevel() {
+	private void increaseIndentLevel() {
 		currentIndentLevel++;
 	}
 
-	void decreaseIndentLevel() {
+	private void decreaseIndentLevel() {
 		currentIndentLevel--;
 	}
 
-	void writeIndent(CharacterOutput output) {
+	private void writeIndent(CharacterOutput output) {
 		for (int i = 0; i < currentIndentLevel; i++) {
 			output.write(indent);
 		}
@@ -261,7 +261,7 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 		return indent;
 	}
 
-	public void setIndent(char[] indent) {
+	private void setIndent(char[] indent) {
 		this.indent = indent;
 	}
 
@@ -273,7 +273,7 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 		return newline;
 	}
 
-	public void setNewline(char[] newline) {
+	private void setNewline(char[] newline) {
 		this.newline = newline;
 	}
 

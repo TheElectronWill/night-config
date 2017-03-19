@@ -6,10 +6,7 @@ import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.Utils;
 import com.electronwill.nightconfig.core.io.WriterOutput;
 import com.electronwill.nightconfig.core.io.WritingException;
-import java.io.IOException;
 import java.io.Writer;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -30,18 +27,36 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 	static final char[] ESCAPED = {'"', 'n', 'r', 't', '\\'};
 	static final char[] EMPTY_OBJECT = {'{', '}'}, EMPTY_ARRAY = {'[', ']'};
 
+	/**
+	 * Writes a configuration in the JSON object format.
+	 */
 	@Override
-	public void writeConfig(Config config, Writer writer) throws IOException {
-		writeJsonObject(config, new WriterOutput(writer));
+	public void writeConfig(Config config, Writer writer) {
+		writeConfig(config, new WriterOutput(writer));
 	}
 
 	/**
-	 * Writes a configuration as a JSON object.
-	 *
-	 * @param config the config to write
-	 * @param output the output to write to
+	 * Writes a Collection in the JSON array format.
 	 */
-	public void writeJsonObject(Config config, CharacterOutput output) {
+	public void writeCollection(Collection<?> collection, Writer writer) {
+		writeCollection(collection, new WriterOutput(writer));
+	}
+
+	/**
+	 * Writes a String in the JSON string format.
+	 */
+	public void writeString(CharSequence csq, Writer writer) {
+		writeString(csq, new WriterOutput(writer));
+	}
+
+	/**
+	 * Writes a value in the JSON format.
+	 */
+	public void writeValue(Object value, Writer writer) {
+		writeValue(value, new WriterOutput(writer));
+	}
+
+	private void writeConfig(Config config, CharacterOutput output) {
 		if (config.isEmpty()) {
 			output.write(EMPTY_OBJECT);
 			return;
@@ -54,7 +69,7 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 			final Object value = entry.getValue();
 			writeString(key, output);// key
 			output.write(':');// separator
-			writeJsonValue(value, output);// value
+			writeValue(value, output);// value
 			if (it.hasNext()) {
 				output.write(',');
 			} else {
@@ -64,13 +79,7 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 		output.write('}');
 	}
 
-	/**
-	 * Writes some value in the JSON format.
-	 *
-	 * @param v      the value to write
-	 * @param output the output to write to
-	 */
-	public void writeJsonValue(Object v, CharacterOutput output) {
+	private void writeValue(Object v, CharacterOutput output) {
 		if (v == null) {
 			output.write(NULL_CHARS);
 		} else if (v instanceof CharSequence) {
@@ -78,14 +87,14 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 		} else if (v instanceof Number) {
 			output.write(v.toString());
 		} else if (v instanceof Config) {
-			writeJsonObject((Config)v, output);
+			writeConfig((Config)v, output);
 		} else if (v instanceof Collection) {
-			writeJsonArray((Collection<?>)v, output);
+			writeCollection((Collection<?>)v, output);
 		} else if (v instanceof Boolean) {
 			writeBoolean((boolean)v, output);
 		} else if (v instanceof Object[]) {
 			List<Object> list = Arrays.asList((Object[])v);
-			writeJsonArray(list, output);
+			writeCollection(list, output);
 		} else if (v instanceof long[]) {
 			output.write(Arrays.toString((long[])v));
 		} else if (v instanceof int[]) {
@@ -103,13 +112,7 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 		}
 	}
 
-	/**
-	 * Writes a Collection as a JSON array.
-	 *
-	 * @param collection the Collection to write
-	 * @param output     the output to write to
-	 */
-	public void writeJsonArray(Collection<?> collection, CharacterOutput output) {
+	private void writeCollection(Collection<?> collection, CharacterOutput output) {
 		if (collection.isEmpty()) {
 			output.write(EMPTY_ARRAY);
 			return;
@@ -118,7 +121,7 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 		output.write('[');
 		while (true) {
 			Object value = it.next();
-			writeJsonValue(value, output);// the value
+			writeValue(value, output);// the value
 			if (it.hasNext()) {
 				output.write(',');// the separator
 			} else {
@@ -128,13 +131,7 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 		output.write(']');
 	}
 
-	/**
-	 * Writes a boolean in the JSON format.
-	 *
-	 * @param b      the boolean to write
-	 * @param output the output to write to
-	 */
-	public void writeBoolean(boolean b, CharacterOutput output) {
+	private void writeBoolean(boolean b, CharacterOutput output) {
 		if (b) {
 			output.write(TRUE_CHARS);
 		} else {
@@ -142,17 +139,11 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 		}
 	}
 
-	/**
-	 * Writes a String in the JSON format.
-	 *
-	 * @param s      the String to write
-	 * @param output the output to write to
-	 */
-	public void writeString(CharSequence s, CharacterOutput output) {
+	private void writeString(CharSequence csq, CharacterOutput output) {
 		output.write('"');
-		final int length = s.length();
+		final int length = csq.length();
 		for (int i = 0; i < length; i++) {
-			char c = s.charAt(i);
+			char c = csq.charAt(i);
 			int escapeIndex = Utils.arrayIndexOf(TO_ESCAPE, c);
 			if (escapeIndex == -1) {
 				output.write(c);
