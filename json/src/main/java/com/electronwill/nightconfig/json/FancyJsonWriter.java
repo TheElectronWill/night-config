@@ -48,7 +48,7 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 			return;
 		}
 		Iterator<Map.Entry<String, Object>> it = config.asMap().entrySet().iterator();
-		output.write('{');//open object
+		output.write('{');
 		if (newlineAfterObjectStart) {
 			output.write(newline);
 		}
@@ -63,16 +63,20 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 			final Object value = entry.getValue();
 
 			if (indentElements) {
-				writeIndent(output);//Indents the line
+				writeIndent(output);// Indents the line
 			}
-			writeString(key, output);//key
-			output.write(ENTRY_SEPARATOR);//separator
-			writeValue(value, output);//value
+			writeString(key, output);// key
+			output.write(ENTRY_SEPARATOR);// separator
+			writeValue(value, output);// value
 			if (it.hasNext()) {
 				output.write(',');
-				if (indentElements) output.write(newline);
+				if (indentElements) {
+					output.write(newline);
+				}
 			} else {
-				if (indentElements) output.write(newline);
+				if (indentElements) {
+					output.write(newline);
+				}
 				break;
 			}
 		}
@@ -80,7 +84,7 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 			decreaseIndentLevel();
 			writeIndent(output);
 		}
-		output.write('}');//close object
+		output.write('}');
 	}
 
 	/**
@@ -175,7 +179,11 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 	 * @param output the output to write to
 	 */
 	public void writeBoolean(boolean b, CharacterOutput output) {
-		if (b) { output.write(TRUE_CHARS); } else output.write(FALSE_CHARS);
+		if (b) {
+			output.write(TRUE_CHARS);
+		} else {
+			output.write(FALSE_CHARS);
+		}
 	}
 
 	/**
@@ -192,7 +200,7 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 			int escapeIndex = Utils.arrayIndexOf(TO_ESCAPE, c);
 			if (escapeIndex == -1) {
 				output.write(c);
-			} else {//the character must be escaped
+			} else {// This character must be escaped
 				char escaped = ESCAPED[escapeIndex];
 				output.write('\\');
 				output.write(escaped);
