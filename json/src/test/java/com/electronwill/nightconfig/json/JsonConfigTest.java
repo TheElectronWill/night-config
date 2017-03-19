@@ -3,7 +3,6 @@ package com.electronwill.nightconfig.json;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
-import com.electronwill.nightconfig.core.io.WriterOutput;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -65,7 +64,7 @@ public class JsonConfigTest {
 	public void testMinimalWriter() {
 		StringWriter sw = new StringWriter();
 		MinimalJsonWriter writer = new MinimalJsonWriter();
-		writer.writeJsonObject(config, new WriterOutput(sw));
-		System.out.println("Written:\n" + sw.toString());
+		writer.writeConfig(config, sw);
+		System.out.println("Written:\n" + sw);
 	}
 }
