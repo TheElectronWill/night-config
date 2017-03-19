@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.json;
 
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.CharacterInput;
 import com.electronwill.nightconfig.core.io.CharsWrapper;
 import com.electronwill.nightconfig.core.io.ConfigParser;
@@ -15,29 +16,21 @@ import java.util.List;
  *
  * @author TheElectronWill
  */
-public final class JsonParser implements ConfigParser<JsonConfig> {
+public final class JsonParser implements ConfigParser<JsonConfig, Config> {
 	private static final char[] SPACES = {' ', '\t', '\n', '\r'};
 	private static final char[] TRUE_LAST = {'r', 'u', 'e'}, FALSE_LAST = {'a', 'l', 's', 'e'};
 	private static final char[] NULL_LAST = {'u', 'l', 'l'};
 	private static final char[] NUMBER_END = {',', '}', ']', ' ', '\t', '\n', '\r'};
 
-	@Override
-	public JsonConfig parseConfig(Reader reader) {
-		return parseJsonObject(new ReaderInput(reader));
-	}
-
-	@Override
-	public void parseConfig(Reader reader, JsonConfig destination) {
-		parseJsonObject(new ReaderInput(reader), destination);
-	}
-
 	/**
-	 * Parses a JSON document, either a JSON object or a JSON array.
+	 * Parses a JSON document, either a JSON object (parsed to a JsonConfig) or a JSON array
+	 * (parsed to a List).
 	 *
-	 * @param input the input to read the data from
-	 * @return a JsonConfig or a List, depending of the document's type
+	 * @param reader the Reader to parse
+	 * @return either a JsonConfig or a List, depending on the document's type
 	 */
-	public Object parseJsonDocument(CharacterInput input) {
+	public Object parseDocument(Reader reader) {
+		CharacterInput input = new ReaderInput(reader);
 		char firstChar = input.readCharAndSkip(SPACES);
 		if (firstChar == '{') {
 			return parseObject(input, new JsonConfig());
@@ -49,23 +42,21 @@ public final class JsonParser implements ConfigParser<JsonConfig> {
 	}
 
 	/**
-	 * Parses the next JSON object and puts it in a new JsonConfig.
-	 *
-	 * @return the next JSON object.
+	 * Parses a JSON object to a Config.
 	 */
-	public JsonConfig parseJsonObject(CharacterInput input) {
+	@Override
+	public JsonConfig parseConfig(Reader reader) {
 		JsonConfig config = new JsonConfig();
-		parseJsonObject(input, config);
+		parseConfig(reader, config);
 		return config;
 	}
 
 	/**
-	 * Parses the next JSON object and puts it in the specified configuration. The object's entries
-	 * are added to the configuration. Any previous entry with a conflicting name is replaced.
-	 *
-	 * @param destination the config where the JSON object will be stored
+	 * Parses a JSON object to a Config.
 	 */
-	public void parseJsonObject(CharacterInput input, JsonConfig destination) {
+	@Override
+	public void parseConfig(Reader reader, Config destination) {
+		CharacterInput input = new ReaderInput(reader);
 		char firstChar = input.readCharAndSkip(SPACES);
 		if (firstChar != '{') {
 			throw new ParsingException("Invalid first character for a json object: " + firstChar);
@@ -73,13 +64,26 @@ public final class JsonParser implements ConfigParser<JsonConfig> {
 		parseObject(input, destination);
 	}
 
-	public List<Object> parseJsonArray(CharacterInput input) {
+	/**
+	 * Parses a JSON array to a List.
+	 *
+	 * @param reader the Reader to parse
+	 * @return a List with the content of the read array
+	 */
+	public List<Object> parseList(Reader reader) {
 		List<Object> list = new ArrayList<>();
-		parseJsonArray(input, list);
+		parseList(reader, list);
 		return list;
 	}
 
-	public void parseJsonArray(CharacterInput input, List<Object> destination) {
+	/**
+	 * Parses a JSON array to a List.
+	 *
+	 * @param reader      the Reader to parse
+	 * @param destination the List where to put the data
+	 */
+	public void parseList(Reader reader, List<?> destination) {
+		CharacterInput input = new ReaderInput(reader);
 		char firstChar = input.readCharAndSkip(SPACES);
 		if (firstChar != '[') {
 			throw new ParsingException("Invalid first character for a json array: " + firstChar);
@@ -87,7 +91,7 @@ public final class JsonParser implements ConfigParser<JsonConfig> {
 		parseArray(input, destination);
 	}
 
-	private JsonConfig parseObject(CharacterInput input, JsonConfig config) {
+	private <T extends Config> T parseObject(CharacterInput input, T config) {
 		while (true) {
 			char keyFirst = input.readCharAndSkip(SPACES);// the first character of the key
 			if (keyFirst != '"') {
@@ -113,12 +117,11 @@ public final class JsonParser implements ConfigParser<JsonConfig> {
 		}
 	}
 
-	private List<Object> parseArray(CharacterInput input, List<Object> list) {
+	private <T> List<T> parseArray(CharacterInput input, List<T> list) {
 		while (true) {
 			char valueFirst = input.readCharAndSkip(SPACES);// the first character of the value
-			Object value = parseValue(input, valueFirst);
+			T value = (T)parseValue(input, valueFirst);
 			list.add(value);
-
 			char next = input.readCharAndSkip(SPACES);// the next character, should be ']' or ','
 			if (next == ']') {// end of the array
 				return list;
