@@ -112,7 +112,5 @@ public class IntDequeTest {
 			System.out.println("removed " + e);
 			assert e == n - i;
 		}
-
 	}
-
 }

@@ -84,5 +84,4 @@ public class StringUtilsTest {
 	private String arrayToString(String[] array) {
 		return (array.length == 0) ? "∅" : Arrays.toString(array);
 	}
-
 }

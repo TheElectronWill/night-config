@@ -25,8 +25,7 @@ public final class StringUtils {
 	 * <li>{@code split("..", '.')} gives {@code ["", "", ""]} (a list containing three empty
 	 * strings)
 	 * <li>{@code split(".a...b.", '.')} gives {@code ["", "a", "", "", "b", ""]} (a list containing
-	 * an
-	 * empty string, the string "a", two empty strings, the string "b", and an empty string)
+	 * an empty string, the string "a", two empty strings, the string "b", and an empty string)
 	 * </ul>
 	 *
 	 * @param str the String to split
@@ -52,8 +51,7 @@ public final class StringUtils {
 	 * <li>{@code split("..", '.')} gives {@code ["", "", ""]} (a list containing three empty
 	 * strings)
 	 * <li>{@code split(".a...b.", '.')} gives {@code ["", "a", "", "", "b", ""]} (a list containing
-	 * an
-	 * empty string, the string "a", two empty strings, the string "b", and an empty string)
+	 * an empty string, the string "a", two empty strings, the string "b", and an empty string)
 	 * </ul>
 	 *
 	 * @param str  the String to split
