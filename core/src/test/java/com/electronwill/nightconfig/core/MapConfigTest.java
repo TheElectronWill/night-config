@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 public class MapConfigTest {
 
 	@Test
-	public void basicTest() throws Exception {
+	public void basicTest() {
 		MapConfig config = new SimpleConfig();
 		config.setValue("true", true);
 		config.setValue("false", false);
@@ -40,7 +40,7 @@ public class MapConfigTest {
 		config.setValue("stringList", stringList);
 		assert config.<List<String>>getValue("stringList") == stringList;
 
-		Config subConfig = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
+		Config subConfig = new SimpleConfig(type -> true);
 		subConfig.setValue("string", "test!");
 		subConfig.setValue("subSubConfig.string", "another test!");
 		config.setValue("subConfig", subConfig);
@@ -56,14 +56,14 @@ public class MapConfigTest {
 	}
 
 	@Test
-	public void specialCase() throws Exception {
+	public void specialCase() {
 		List<String> split = StringUtils.split(".a...a.", '.');
 		System.out.println("StringUtils:  " + split);
 
 		String[] jsplit = ".a...a.".split("\\.");
 		System.out.println("String#split: " + Arrays.toString(jsplit));
 
-		MapConfig config = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
+		MapConfig config = new SimpleConfig(type -> true);
 		config.setValue(".a...a.", "value");
 		assert config.containsValue(".a...a.");
 		assert config.<String>getValue(".a...a.").equals("value");
@@ -80,12 +80,12 @@ public class MapConfigTest {
 	}
 
 	@Test
-	public void size() throws Exception {
-		MapConfig config = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
+	public void size() {
+		MapConfig config = new SimpleConfig(type -> true);
 		config.setValue("a.b.c", "value");
 		config.setValue("pi", Math.PI);
 
-		Config subConfig = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
+		Config subConfig = new SimpleConfig(type -> true);
 		subConfig.setValue("string", "test!");
 		config.setValue("subConfig", subConfig);
 
@@ -94,8 +94,8 @@ public class MapConfigTest {
 	}
 
 	@Test
-	public void asMap() throws Exception {
-		MapConfig config = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
+	public void asMap() {
+		MapConfig config = new SimpleConfig(type -> true);
 		config.setValue("a.b.c", "value");
 		config.setValue("pi", Math.PI);
 
@@ -114,8 +114,8 @@ public class MapConfigTest {
 	}
 
 	@Test
-	public void containsValue() throws Exception {
-		MapConfig config = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
+	public void containsValue() {
+		MapConfig config = new SimpleConfig(type -> true);
 		config.setValue("a.b.c", "value");
 		assert config.containsValue("a");
 
@@ -128,5 +128,4 @@ public class MapConfigTest {
 		config.setValue("int", 12);
 		assert config.containsValue("int");
 	}
-
 }
