@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.toml;
 
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.CharacterInput;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ReaderInput;
@@ -13,7 +14,7 @@ import java.util.List;
  * @author TheElectronWill
  * @see <a href="https://github.com/toml-lang/toml">TOML specification</a>
  */
-public final class TomlParser implements ConfigParser<TomlConfig> {
+public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 	// --- Parser's settings ---
 	private int initialStringBuilderCapacity = 16, initialListCapacity = 10;
 	private boolean lenientBareKeys = false;
@@ -25,12 +26,12 @@ public final class TomlParser implements ConfigParser<TomlConfig> {
 	}
 
 	@Override
-	public void parseConfig(Reader reader, TomlConfig destination) {
+	public void parseConfig(Reader reader, Config destination) {
 		parseConfig(new ReaderInput(reader), destination);
 	}
 
-	private TomlConfig parseConfig(CharacterInput input, TomlConfig destination) {
-		TomlConfig rootTable = TableParser.parseNormal(input, this, destination);
+	private <T extends Config> T parseConfig(CharacterInput input, T destination) {
+		T rootTable = TableParser.parseNormal(input, this, destination);
 		int next;
 		while ((next = input.peek()) != -1) {
 			if (next == '[') {//[[ element of an array of tables

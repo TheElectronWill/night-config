@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.toml;
 
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.CharacterInput;
 import com.electronwill.nightconfig.core.io.CharsWrapper;
 import com.electronwill.nightconfig.core.io.ParsingException;
@@ -45,7 +46,7 @@ final class TableParser {
 		}
 	}
 
-	static TomlConfig parseNormal(CharacterInput input, TomlParser parser, TomlConfig config) {
+	static <T extends Config> T parseNormal(CharacterInput input, TomlParser parser, T config) {
 		while (true) {
 			int keyFirst = Toml.readUseful(input);
 			if (keyFirst == -1 || keyFirst == '[') {
