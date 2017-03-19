@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core.conversion;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -12,8 +13,9 @@ import org.junit.jupiter.api.Test;
 public class ObjectConverterTest {
 
 	private final Config config = new SimpleConfig();
-	private final List<String> list1 = Arrays.asList("a", "b", "c"), list2 = Arrays.asList("element");
-	private final Config config1 = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL), config2 = new SimpleConfig();
+	private final List<String> list1 = Arrays.asList("a", "b", "c");
+	private final List<String> list2 = Collections.singletonList("element");
+	private final Config config1 = new SimpleConfig(type -> true), config2 = new SimpleConfig();
 
 	{
 		config.setValue("integer", 1234568790);
@@ -101,7 +103,21 @@ public class ObjectConverterTest {
 
 		@Override
 		public String toString() {
-			return "MyObject{" + "integer=" + integer + ", decimal=" + decimal + ", string='" + string + '\'' + ", stringList=" + stringList + ", config=" + config + ", subObject=" + subObject + '}';
+			return "MyObject{"
+				   + "integer="
+				   + integer
+				   + ", decimal="
+				   + decimal
+				   + ", string='"
+				   + string
+				   + '\''
+				   + ", stringList="
+				   + stringList
+				   + ", config="
+				   + config
+				   + ", subObject="
+				   + subObject
+				   + '}';
 		}
 	}
 
@@ -121,7 +137,8 @@ public class ObjectConverterTest {
 		Not necessary for the mapper to work, but necessary to prevent the compiler from inlining the use
 		of the primitive fields. This allows us to print the changes correctly.
 		 */
-		public MyObjectFinal(int integer, double decimal, String string, List<String> stringList, Config config, MyObjectFinal subObject) {
+		public MyObjectFinal(int integer, double decimal, String string, List<String> stringList,
+							 Config config, MyObjectFinal subObject) {
 			this.integer = integer;
 			this.decimal = decimal;
 			this.string = string;
@@ -132,8 +149,21 @@ public class ObjectConverterTest {
 
 		@Override
 		public String toString() {
-			return "MyObjectFinal{" + "integer=" + integer + ", decimal=" + decimal + ", string='" + string + '\'' + ", stringList=" + stringList + ", config=" + config + ", subObject=" + subObject + '}';
+			return "MyObjectFinal{"
+				   + "integer="
+				   + integer
+				   + ", decimal="
+				   + decimal
+				   + ", string='"
+				   + string
+				   + '\''
+				   + ", stringList="
+				   + stringList
+				   + ", config="
+				   + config
+				   + ", subObject="
+				   + subObject
+				   + '}';
 		}
 	}
-
 }

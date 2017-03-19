@@ -75,15 +75,21 @@ public class ObjectConverterTest2 {
 
 		@Override
 		public String toString() {
-			return "MyObject{" +
-				"integer=" + integer +
-				", decimal=" + decimal +
-				", string='" + string + '\'' +
-				", stringList=" + stringList +
-				", config=" + config +
-				", subObject=" + subObject +
-				'}';
+			return "MyObject{"
+				   + "integer="
+				   + integer
+				   + ", decimal="
+				   + decimal
+				   + ", string='"
+				   + string
+				   + '\''
+				   + ", stringList="
+				   + stringList
+				   + ", config="
+				   + config
+				   + ", subObject="
+				   + subObject
+				   + '}';
 		}
 	}
-
 }
