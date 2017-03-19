@@ -65,7 +65,7 @@ import static com.electronwill.nightconfig.core.utils.StringUtils.split;
  * @author TheElectronWill
  */
 public final class ConfigSpec {
-	private final Config storage = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
+	private final Config storage = new SimpleConfig(type -> true);
 
 	/**
 	 * Defines an entry. To be correct, the type of the config value must be of the same as or a
