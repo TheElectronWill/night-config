@@ -36,6 +36,6 @@ public class HoconWriterTest {
 		HoconWriter writer = new HoconWriter();
 		writer.writeConfig(config, sw);
 		System.out.println("Written:");
-		System.out.println(sw.toString());
+		System.out.println(sw);
 	}
 }
