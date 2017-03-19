@@ -13,7 +13,7 @@ public class ObjectConverterTest2 {
 
 	@Test
 	public void testSupportBasic() throws Exception {
-		ObjectConverter converter = new ObjectConverter(null, null);
+		ObjectConverter converter = new ObjectConverter();
 		Config config = new SimpleConfig();
 		MyObject object = new MyObject();
 		converter.toConfig(object, config);
@@ -39,8 +39,8 @@ public class ObjectConverterTest2 {
 
 	@Test
 	public void testSupportAll() throws Exception {
-		ObjectConverter converter = new ObjectConverter(null, null);
-		Config config = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
+		ObjectConverter converter = new ObjectConverter();
+		Config config = new SimpleConfig(type -> true);
 		MyObject object = new MyObject();
 		converter.toConfig(object, config);
 
@@ -60,7 +60,7 @@ public class ObjectConverterTest2 {
 		double decimal = Math.PI;
 		String string = "value";
 		List<String> stringList = Arrays.asList("a", "b", "c");
-		Config config = new SimpleConfig(SimpleConfig.STRATEGY_SUPPORT_ALL);
+		Config config = new SimpleConfig(type -> true);
 		MyObject subObject;
 
 		public MyObject(MyObject subObject) {

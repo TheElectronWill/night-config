@@ -31,7 +31,7 @@ public class ObjectConverterTest {
 
 	@Test
 	public void configToObjectToConfig() throws Exception {
-		ObjectConverter converter = new ObjectConverter(null, null);
+		ObjectConverter converter = new ObjectConverter();
 		MyObject object = converter.toObject(config, MyObject::new);
 		Config myConfig = new SimpleConfig();
 		converter.toConfig(object, myConfig);
@@ -85,7 +85,7 @@ public class ObjectConverterTest {
 	private void testConfigToObject(Config config, Object object) throws Exception {
 		System.out.println("Before: " + object);
 
-		ObjectConverter converter = new ObjectConverter(null, null);
+		ObjectConverter converter = new ObjectConverter();
 		converter.toObject(config, object);
 
 		System.out.println("After: " + object);
