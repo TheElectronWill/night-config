@@ -39,7 +39,8 @@ public final class JsonConfig extends MapConfig implements FileConfig {
 				|| type == Boolean.class
 				|| type == String.class
 				|| Collection.class.isAssignableFrom(type)
-				|| Config.class.isAssignableFrom(type);
+				|| Config.class.isAssignableFrom(type)
+				|| type.isArray();
 	}
 
 	@Override
