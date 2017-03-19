@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.hocon;
 
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.ConfigParser;
-import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigParseOptions;
 import com.typesafe.config.ConfigSyntax;
@@ -10,40 +10,37 @@ import java.io.Reader;
 import java.util.Map;
 
 /**
- * HoconParser that uses the typesafe config library.
+ * A HOCON parser that uses the typesafehub config library.
  *
  * @author TheElectronWill
+ * @see <a href="https://github.com/typesafehub/config/blob/master/HOCON.md">HOCON spec by
+ * typesafehub</a>
  */
-public final class HoconParser implements ConfigParser<HoconConfig> {
+public final class HoconParser implements ConfigParser<HoconConfig, Config> {
 	private static final ConfigParseOptions OPTIONS = ConfigParseOptions.defaults()
 																		.setAllowMissing(false)
 																		.setSyntax(
 																				ConfigSyntax.CONF);
-
-	private static HoconConfig convert(Config typesafeConfig) {
+	@Override
+	public HoconConfig parseConfig(Reader reader) {
 		HoconConfig config = new HoconConfig();
-		put(typesafeConfig, config);
+		put(ConfigFactory.parseReader(reader, OPTIONS).resolve(), config);
 		return config;
 	}
 
-	private static void put(Config typesafeConfig, HoconConfig config) {
-		Map<String, Object> map = config.asMap();
+	@Override
+	public void parseConfig(Reader reader, Config destination) {
+		put(ConfigFactory.parseReader(reader, OPTIONS).resolve(), destination);
+	}
+
+	private static void put(com.typesafe.config.Config typesafeConfig, Config destination) {
+		Map<String, Object> map = destination.asMap();
 		for (Map.Entry<String, ConfigValue> entry : typesafeConfig.entrySet()) {
 			Object value = entry.getValue().unwrapped();
 			if (value instanceof Map) {
-				value = new HoconConfig((Map)value);
+				value = new HoconConfig((Map<String, Object>)value);
 			}
 			map.put(entry.getKey(), value);
 		}
-	}
-
-	@Override
-	public HoconConfig parseConfig(Reader reader) {
-		return convert(ConfigFactory.parseReader(reader, OPTIONS).resolve());
-	}
-
-	@Override
-	public void parseConfig(Reader reader, HoconConfig destination) {
-		put(ConfigFactory.parseReader(reader, OPTIONS).resolve(), destination);
 	}
 }
