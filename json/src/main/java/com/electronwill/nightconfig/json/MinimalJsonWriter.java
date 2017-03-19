@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.RandomAccess;
 
 /**
  * A simple JSON writer that produces a minimized output: no line breaks, no spaces, no indentation.
@@ -117,15 +118,26 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 			output.write(EMPTY_ARRAY);
 			return;
 		}
-		Iterator<?> it = collection.iterator();
 		output.write('[');
-		while (true) {
-			Object value = it.next();
-			writeValue(value, output);// the value
-			if (it.hasNext()) {
-				output.write(',');// the separator
-			} else {
-				break;
+		if (collection instanceof RandomAccess) {
+			List<?> list = (List<?>)collection;// A class implementing RandomAccess should be a List
+			int lastIndex = list.size() - 1;
+			for (int i = 0; i < lastIndex; i++) {
+				Object value = list.get(i);
+				writeValue(value, output);
+				output.write(',');
+			}
+			writeValue(list.get(lastIndex), output);
+		} else {
+			Iterator<?> it = collection.iterator();
+			while (true) {
+				Object value = it.next();
+				writeValue(value, output);// the value
+				if (it.hasNext()) {
+					output.write(',');// the separator
+				} else {
+					break;
+				}
 			}
 		}
 		output.write(']');
