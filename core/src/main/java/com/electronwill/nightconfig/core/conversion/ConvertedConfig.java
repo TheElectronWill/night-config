@@ -82,6 +82,11 @@ public final class ConvertedConfig implements Config {
 	}
 
 	@Override
+	public void clear() {
+		config.clear();
+	}
+
+	@Override
 	public int size() {
 		return config.size();
 	}

@@ -180,6 +180,11 @@ public final class ConversionTable {
 			}
 
 			@Override
+			public void clear() {
+				config.clear();
+			}
+
+			@Override
 			public int size() {
 				return config.size();
 			}
@@ -224,6 +229,11 @@ public final class ConversionTable {
 			@Override
 			public boolean containsValue(List<String> path) {
 				return config.containsValue(path);
+			}
+
+			@Override
+			public void clear() {
+				config.clear();
 			}
 
 			@Override

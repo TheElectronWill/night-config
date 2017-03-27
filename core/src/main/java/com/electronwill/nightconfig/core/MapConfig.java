@@ -100,6 +100,11 @@ public abstract class MapConfig implements Config {
 	}
 
 	@Override
+	public void clear() {
+		map.clear();
+	}
+
+	@Override
 	public int size() {
 		return map.size();
 	}
