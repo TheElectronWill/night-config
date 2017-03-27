@@ -49,6 +49,11 @@ public interface Config extends UnmodifiableConfig {
 	void removeValue(List<String> path);
 
 	/**
+	 * Removes all values from the config.
+	 */
+	void clear();
+
+	/**
 	 * Returns an Unmodifiable view of the config. Any change to the original (modifiable) config
 	 * is still reflected to the returned UnmodifiableConfig, so it's unmodifiable but not
 	 * immutable.
