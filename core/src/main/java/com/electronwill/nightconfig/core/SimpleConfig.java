@@ -7,6 +7,15 @@ import java.util.function.Predicate;
  * A simple configuration that allows the user to specify which types of value it supports.
  */
 public final class SimpleConfig extends MapConfig {
+	public static final Predicate<Class<?>> BASIC_SUPPORT_PREDICATE = type -> type == Integer.class
+																		  || type == Long.class
+																		  || type == Float.class
+																		  || type == Double.class
+																		  || type == Boolean.class
+																		  || type == String.class
+																		  || List.class.isAssignableFrom(type)
+																		  || Config.class.isAssignableFrom(type);
+
 	private final Predicate<Class<?>> supportPredicate;
 
 	/**
@@ -20,14 +29,7 @@ public final class SimpleConfig extends MapConfig {
 	 * </ul>
 	 */
 	public SimpleConfig() {
-		this.supportPredicate = type -> type == Integer.class
-				|| type == Long.class
-				|| type == Float.class
-				|| type == Double.class
-				|| type == Boolean.class
-				|| type == String.class
-				|| List.class.isAssignableFrom(type)
-				|| Config.class.isAssignableFrom(type);
+		this.supportPredicate = BASIC_SUPPORT_PREDICATE;
 	}
 
 	/**
