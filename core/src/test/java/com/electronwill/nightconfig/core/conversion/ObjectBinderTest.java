@@ -13,7 +13,8 @@ class ObjectBinderTest {
 
 	@Test
 	public void writeToObjectTest() {
-		MyObjectFinal object = new MyObjectFinal();
+		MyObjectFinal subObject = new MyObjectFinal(0, 3.14159265358, "", null, null, null);
+		MyObjectFinal object = new MyObjectFinal(123, 1.23, "initialV", list2, config2, subObject);
 		ObjectBinder binder = new ObjectBinder();
 		Config config = binder.bind(object);
 		config.setValue("integer", 1234568790);
