@@ -128,9 +128,14 @@ public final class ObjectBinder {
 				fieldInfos = new FieldInfos(field, null);
 			} else {
 				try {
-					BoundConfig subConfig = bindAnnotated(field.get(object), fieldType,
-														  supportTypePredicate);
-					fieldInfos = new FieldInfos(field, subConfig);
+					Object fieldValue = field.get(object);
+					if(fieldValue == null) {
+						fieldInfos = new FieldInfos(field, null);
+					} else {
+						BoundConfig subConfig = bindNotAnnotated(field.get(object), fieldType,
+																 supportTypePredicate);
+						fieldInfos = new FieldInfos(field, subConfig);
+					}
 				} catch (IllegalAccessException e) {
 					throw new RuntimeException();//TODO better exception
 				}
@@ -171,9 +176,14 @@ public final class ObjectBinder {
 				fieldInfos = new FieldInfos(field, null);
 			} else {
 				try {
-					BoundConfig subConfig = bindAnnotated(field.get(object), fieldType,
-														  supportTypePredicate);
-					fieldInfosConfig.setValue(path, subConfig);
+					Object fieldValue = field.get(object);
+					if(fieldValue == null) {
+						fieldInfos = new FieldInfos(field, null);
+					} else {
+						BoundConfig subConfig = bindAnnotated(field.get(object), fieldType,
+																 supportTypePredicate);
+						fieldInfos = new FieldInfos(field, subConfig);
+					}
 				} catch (IllegalAccessException e) {
 					throw new RuntimeException();//TODO better exception
 				}
