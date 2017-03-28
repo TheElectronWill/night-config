@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -112,7 +113,7 @@ public final class ObjectBinder {
 	 */
 	private BoundConfig bindNotAnnotated(Object object, Class<?> clazz,
 										 Predicate<Class<?>> supportTypePredicate) {
-		Config fieldInfosConfig = new SimpleConfig();
+		final BoundConfig boundConfig = new BoundConfig(object, supportTypePredicate, bypassFinal);
 		for (Field field : clazz.getDeclaredFields()) {
 			if (!field.isAccessible()) {
 				field.setAccessible(true);// Enforces field access if needed
@@ -134,9 +135,9 @@ public final class ObjectBinder {
 					throw new RuntimeException();//TODO better exception
 				}
 			}
-			fieldInfosConfig.setValue(path, fieldInfos);
+			boundConfig.registerField(fieldInfos, path);
 		}
-		return new BoundConfig(object, fieldInfosConfig, supportTypePredicate, bypassFinal);
+		return boundConfig;
 	}
 
 	/**
@@ -144,7 +145,7 @@ public final class ObjectBinder {
 	 */
 	private BoundConfig bindAnnotated(Object object, Class<?> clazz,
 									  Predicate<Class<?>> supportTypePredicate) {
-		Config fieldInfosConfig = new SimpleConfig();
+		final BoundConfig boundConfig = new BoundConfig(object, supportTypePredicate, bypassFinal);
 		for (Field field : clazz.getDeclaredFields()) {
 			if (!field.isAccessible()) {
 				field.setAccessible(true);// Enforces field access if needed
@@ -165,9 +166,9 @@ public final class ObjectBinder {
 				path = Arrays.asList(configuredPath);
 			}
 			Class<?> fieldType = field.getType();
-			if (supportTypePredicate.test(fieldType)) {
-				FieldInfos fieldInfos = new FieldInfos(field, null);
-				fieldInfosConfig.setValue(path, fieldInfos);
+			FieldInfos fieldInfos;
+			if (supportTypePredicate.test(field.getType())) {
+				fieldInfos = new FieldInfos(field, null);
 			} else {
 				try {
 					BoundConfig subConfig = bindAnnotated(field.get(object), fieldType,
@@ -177,9 +178,9 @@ public final class ObjectBinder {
 					throw new RuntimeException();//TODO better exception
 				}
 			}
-
+			boundConfig.registerField(fieldInfos, path);
 		}
-		return new BoundConfig(object, fieldInfosConfig, supportTypePredicate, bypassFinal);
+		return boundConfig;
 	}
 
 	/**
@@ -187,68 +188,125 @@ public final class ObjectBinder {
 	 */
 	private static final class BoundConfig implements Config {
 		private Object object;// may be null
-		private final Config dataConfig;// contains FieldInfos and subconfigs
+		private final Map<String, Object> dataMap;// contains FieldInfos and subconfigs
 		private final Predicate<Class<?>> supportPredicate;
 		private final boolean bypassFinal;
 
-		private BoundConfig(Object object, Config dataConfig, Predicate<Class<?>> supportPredicate,
-							boolean bypassFinal) {
+		private BoundConfig(Object object, Map<String, Object> dataMap,
+							Predicate<Class<?>> supportPredicate, boolean bypassFinal) {
 			this.object = object;
-			this.dataConfig = dataConfig;
+			this.dataMap = dataMap;
 			this.supportPredicate = supportPredicate;
 			this.bypassFinal = bypassFinal;
 		}
 
+		private BoundConfig(Object object, Predicate<Class<?>> supportPredicate,
+							boolean bypassFinal) {
+			this(object, new HashMap<>(), supportPredicate, bypassFinal);
+		}
+
+		private void registerField(FieldInfos fieldInfos, List<String> path) {
+			final int lastIndex = path.size() - 1;
+			Map<String, Object> currentMap = dataMap;
+			for (String currentKey : path.subList(0, lastIndex)) {
+				final Object currentValue = currentMap.get(currentKey);
+				final BoundConfig config;
+				if (currentValue == null) {// missing intermediary level
+					config = new BoundConfig(null, new HashMap<>(0), supportPredicate, bypassFinal);
+					currentMap.put(currentKey, config);
+				} else if (!(currentValue instanceof BoundConfig)) {// incompatible intermediary level
+					throw new IllegalArgumentException(
+							"Cannot add an element to an intermediary value of type: "
+							+ currentValue.getClass());
+				} else {// existing intermediary level
+					config = (BoundConfig)currentValue;
+				}
+				currentMap = config.dataMap;
+			}
+			String lastKey = path.get(lastIndex);
+			currentMap.put(lastKey, fieldInfos);
+		}
+
+		private BoundSearchResult searchInfosOrConfig(List<String> path) {
+			final int lastIndex = path.size() - 1;
+			BoundConfig currentConfig = this;
+			for (String key : path.subList(0, lastIndex)) {// Walks down the config hierarchy
+				Object v = currentConfig.dataMap.get(key);
+				if (v == null) {
+					return null;
+				} else if (v instanceof BoundConfig) {
+					currentConfig = (BoundConfig)v;
+				} else {// then (v instanceof FieldInfos) must be true
+					FieldInfos fieldInfos = (FieldInfos)v;
+					BoundConfig boundConfig = fieldInfos.boundConfig;
+					if (boundConfig == null) {
+						throw new UnsupportedOperationException(
+								"Cannot add elements to a bound config");
+					}
+					boundConfig.object = fieldInfos.getValue(
+							currentConfig.object);// Updates the object
+					currentConfig = boundConfig;
+				}
+			}
+			final String lastKey = path.get(lastIndex);
+			final Object data = currentConfig.dataMap.get(lastKey);
+			return new BoundSearchResult(currentConfig, data);
+		}
+
 		@Override
-		public void setValue(List<String> path, Object value) {
-			Object currentData = dataConfig.getValue(path);
-			if (currentData instanceof FieldInfos) {
-				setFieldValue((FieldInfos)currentData, value);
+		public <T> T getValue(List<String> path) {
+			final BoundSearchResult searchResult = searchInfosOrConfig(path);
+			if (searchResult == null) {
+				return null;
+			} else if (searchResult.hasFieldInfos()) {
+				return (T)searchResult.fieldInfos.getValue(searchResult.parentConfig.object);
 			} else {
-				throw new UnsupportedOperationException();//TODO msg
+				return (T)searchResult.subConfig;
 			}
 		}
-		//TODO aussi revoir les exceptions de CharacterInput et CharacterOutpout
+
+		@Override
+		public boolean containsValue(List<String> path) {
+			return searchInfosOrConfig(path) != null;
+		}
+
+		@Override
+		public void setValue(List<String> path, Object value) {
+			final BoundSearchResult searchResult = searchInfosOrConfig(path);
+			if (searchResult == null) {
+				throw new UnsupportedOperationException("Cannot add elements to a bound config");
+			} else if (searchResult.hasFieldInfos()) {
+				searchResult.fieldInfos.setValue(searchResult.parentConfig.object, value,
+												 bypassFinal);
+			} else {
+				throw new UnsupportedOperationException(
+						"Cannot modify non-field elements of a bound config");
+			}
+		}
 
 		@Override
 		public void removeValue(List<String> path) {
-			Object data = dataConfig.getValue(path);
-			if (data instanceof FieldInfos) {
-				removeFieldValue((FieldInfos)data);
-			} else if (data instanceof Config) {
-				((Config)data).clear();
-			}
-			dataConfig.removeValue(path);
-		}
-
-		private void removeFieldValue(FieldInfos fieldInfos) {
-			setFieldValue(fieldInfos, null);
-			if (fieldInfos.boundConfig != null) {
-				fieldInfos.boundConfig.clear();
-			}
-		}
-
-		private void setFieldValue(FieldInfos fieldInfos, Object value) {
-			Field field = fieldInfos.field;
-			if (!bypassFinal && Modifier.isFinal(field.getModifiers())) {
-				throw new UnsupportedOperationException();//TODO msg
-			}
-			try {
-				fieldInfos.field.set(object, null);
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
+			final BoundSearchResult searchResult = searchInfosOrConfig(path);
+			if (searchResult == null) {
+				return;// Nothing to do
+			} else if (searchResult.hasFieldInfos()) {
+				searchResult.fieldInfos.removeValue(searchResult.parentConfig.object, bypassFinal);
+			} else {
+				searchResult.subConfig.clear();
 			}
 		}
 
 		@Override
 		public void clear() {
-			for (Map.Entry<String, Object> dataEntry : dataConfig.asMap().entrySet()) {
+			for (Map.Entry<String, Object> dataEntry : dataMap.entrySet()) {
 				final Object value = dataEntry.getValue();
 				if (value instanceof FieldInfos) {
-					removeFieldValue((FieldInfos)value);
+					((FieldInfos)value).removeValue(object, bypassFinal);
+				} else if (value instanceof BoundConfig) {
+					((BoundConfig)value).clear();
 				}
 			}
-			dataConfig.clear();
+			dataMap.clear();
 		}
 
 		@Override
@@ -274,40 +332,39 @@ public final class ObjectBinder {
 				}
 				return o;
 			};
-			return new TransformingMap<>(dataConfig.asMap(), readConversion, o -> o, o -> o);
+			return new TransformingMap<>(dataMap, readConversion, o -> o, o -> o);
 			// TODO better search conversion
 		}
 
 		@Override
-		public <T> T getValue(List<String> path) {
-			Object data = dataConfig.getValue(path);
+		public int size() {
+			return dataMap.size();
+		}
+
+		@Override
+		public String toString() {
+			return "BoundConfig{" + "object=" + object + ", dataMap=" + dataMap + '}';
+		}
+	}
+
+	private static final class BoundSearchResult {
+		final BoundConfig parentConfig;
+		final FieldInfos fieldInfos;
+		final BoundConfig subConfig;
+
+		BoundSearchResult(BoundConfig parentConfig, Object data) {
+			this.parentConfig = parentConfig;
 			if (data instanceof FieldInfos) {
-				FieldInfos fieldInfos = (FieldInfos)data;
-				Object fieldValue;
-				try {
-					fieldValue = fieldInfos.field.get(object);
-				} catch (IllegalAccessException e) {
-					throw new RuntimeException(e);
-				}
-				if (fieldInfos.boundConfig != null) {
-					BoundConfig boundConfig = fieldInfos.boundConfig;
-					boundConfig.object = fieldValue;// Updates the object
-					return (T)boundConfig;
-				}
-				return (T)fieldValue;
+				this.fieldInfos = (FieldInfos)data;
+				this.subConfig = null;
 			} else {
-				return (T)data;
+				this.fieldInfos = null;
+				this.subConfig = (BoundConfig)data;
 			}
 		}
 
-		@Override
-		public boolean containsValue(List<String> path) {
-			return dataConfig.containsValue(path);
-		}
-
-		@Override
-		public int size() {
-			return dataConfig.size();
+		boolean hasFieldInfos() {
+			return fieldInfos != null;
 		}
 	}
 
