@@ -12,10 +12,11 @@ import org.junit.jupiter.api.Test;
  */
 public class ObjectConverterTest {
 
+	static final List<String> list1 = Arrays.asList("a", "b", "c");
+	static final List<String> list2 = Collections.singletonList("element");
+	static final Config config1 = new SimpleConfig(type -> true), config2 = new SimpleConfig();
+
 	private final Config config = new SimpleConfig();
-	private final List<String> list1 = Arrays.asList("a", "b", "c");
-	private final List<String> list2 = Collections.singletonList("element");
-	private final Config config1 = new SimpleConfig(type -> true), config2 = new SimpleConfig();
 
 	{
 		config.setValue("integer", 1234568790);
@@ -121,7 +122,7 @@ public class ObjectConverterTest {
 		}
 	}
 
-	private static class MyObjectFinal {
+	static class MyObjectFinal {
 		final int integer;
 		final double decimal;
 		final String string;
