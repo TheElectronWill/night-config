@@ -322,5 +322,45 @@ public final class ObjectBinder {
 			this.field = field;
 			this.boundConfig = boundConfig;
 		}
+
+		void setValue(Object fieldObject, Object value, boolean bypassFinal) {
+			if (!bypassFinal && Modifier.isFinal(field.getModifiers())) {
+				throw new UnsupportedOperationException();// TODO msg
+			}
+			try {
+				field.set(fieldObject, value);
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		void removeValue(Object fieldObject, boolean bypassFinal) {
+			if (field.getType().isPrimitive()) {
+				setValue(fieldObject, (byte)0, bypassFinal);
+			} else {
+				setValue(fieldObject, null, bypassFinal);
+				if (boundConfig != null) {
+					boundConfig.clear();
+				}
+			}
+		}
+
+		Object getValue(Object fieldObject) {
+			try {
+				return field.get(fieldObject);
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		BoundConfig getUpdatedConfig(Object fieldObject) {
+			boundConfig.object = getValue(fieldObject);
+			return boundConfig;
+		}
+
+		@Override
+		public String toString() {
+			return "FieldInfos{" + "field=" + field + ", boundConfig=" + boundConfig + '}';
+		}
 	}
 }
