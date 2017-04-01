@@ -44,6 +44,18 @@ public class TomlParserTest {
 		assertThrows(ParsingException.class, this::testAlreadyDefinedTable);
 		assertThrows(ParsingException.class, this::testAlreadyDefinedTable2);
 		assertThrows(ParsingException.class, this::testAlreadyDefinedKey);
+		assertThrows(ParsingException.class, this::testInvalidKeyValueSeparator);
+		assertThrows(ParsingException.class, this::testInvalidArrayValueSeparator);
+		assertThrows(ParsingException.class, this::testInvalidInlineEntrySeparator);
+		assertThrows(ParsingException.class, this::testInvalidTableDeclaration);
+		assertThrows(ParsingException.class, this::testInvalidTableDeclaration2);
+		assertThrows(ParsingException.class, this::testInvalidTableDeclaration3);
+		assertThrows(ParsingException.class, this::testInvalidTableDeclaration4);
+		assertThrows(ParsingException.class, this::testInvalidTableDeclaration5);
+		assertThrows(ParsingException.class, this::testInvalidTableDeclaration6);
+		assertThrows(ParsingException.class, this::testInvalidTableDeclaration7);
+		assertThrows(ParsingException.class, this::testInvalidTableArrayDeclaration);
+		assertThrows(ParsingException.class, this::testInvalidTableArrayDeclaration2);
 	}
 
 	private void testAlreadyDefinedTable() {
@@ -72,4 +84,63 @@ public class TomlParserTest {
 		parseAndPrint(toml);
 	}
 
+	private void testInvalidKeyValueSeparator() {
+		String toml = "string : \"value\"\n";
+		parseAndPrint(toml);
+	}
+
+	private void testInvalidArrayValueSeparator() {
+		String toml = "array = [0,1,2,3;4]\n";
+		parseAndPrint(toml);
+	}
+
+	private void testInvalidInlineEntrySeparator() {
+		String toml = "inlineTable = {a = 1; b = 2}\n";
+		parseAndPrint(toml);
+	}
+
+	private void testInvalidTableDeclaration() {
+		String toml = "[missing.closing.bracket \n";
+		parseAndPrint(toml);
+	}
+
+	private void testInvalidTableDeclaration2() {
+		String toml = "[]\n";
+		parseAndPrint(toml);
+	}
+
+	private void testInvalidTableDeclaration3() {
+		String toml = "[.]\n";
+		parseAndPrint(toml);
+	}
+
+	private void testInvalidTableDeclaration4() {
+		String toml = "[a.]\n";
+		parseAndPrint(toml);
+	}
+
+	private void testInvalidTableDeclaration5() {
+		String toml = "[.a]\n";
+		parseAndPrint(toml);
+	}
+
+	private void testInvalidTableDeclaration6() {
+		String toml = "[a.b..'']\n";
+		parseAndPrint(toml);
+	}
+
+	private void testInvalidTableDeclaration7() {
+		String toml = "[ 	]\n";
+		parseAndPrint(toml);
+	}
+
+	private void testInvalidTableArrayDeclaration() {
+		String toml = "[[missing.closing.brackets \n";
+		parseAndPrint(toml);
+	}
+
+	private void testInvalidTableArrayDeclaration2() {
+		String toml = "[[missing.closing.bracket] \n";
+		parseAndPrint(toml);
+	}
 }
