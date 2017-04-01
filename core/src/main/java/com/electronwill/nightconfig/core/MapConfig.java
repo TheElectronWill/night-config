@@ -120,4 +120,9 @@ public abstract class MapConfig implements Config {
 		MapConfig other = (MapConfig)obj;
 		return map.equals(other.map);
 	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + asMap();
+	}
 }

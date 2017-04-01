@@ -49,14 +49,14 @@ final class ValueParser {
 	}
 
 	private static Object parseNumberOrDateTime(CharacterInput input) {
-		CharsWrapper valueChars = input.readCharsUntil(END_OF_VALUE);
+		CharsWrapper valueChars = input.readUntil(END_OF_VALUE);
 		if (TemporalParser.shouldBeTemporal(valueChars))
 			return TemporalParser.parseTemporal(valueChars);
 		return parseNumber(valueChars);
 	}
 
 	private static Number parseNumber(CharacterInput input) {
-		CharsWrapper valueChars = input.readCharsUntil(END_OF_VALUE);
+		CharsWrapper valueChars = input.readUntil(END_OF_VALUE);
 		return parseNumber(valueChars);
 	}
 
@@ -71,7 +71,7 @@ final class ValueParser {
 	}
 
 	private static Boolean parseFalse(CharacterInput input) {
-		CharsWrapper remaining = input.readCharsUntil(END_OF_VALUE);
+		CharsWrapper remaining = input.readUntil(END_OF_VALUE);
 		if (!remaining.contentEquals(FALSE_END)) {
 			throw new ParsingException("Invalid value f" + remaining + " - Expected the boolean value false.");
 		}
@@ -79,7 +79,7 @@ final class ValueParser {
 	}
 
 	private static Boolean parseTrue(CharacterInput input) {
-		CharsWrapper remaining = input.readCharsUntil(END_OF_VALUE);
+		CharsWrapper remaining = input.readUntil(END_OF_VALUE);
 		if (!remaining.contentEquals(TRUE_END)) {
 			throw new ParsingException("Invalid value t" + remaining + " - Expected the boolean value true.");
 		}
