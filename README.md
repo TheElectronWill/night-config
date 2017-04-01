@@ -14,6 +14,10 @@ NightConfig is managed with gradle. It is divided in several modules, the "core"
 
 The project isn't available in a big repository (like Maven central) yet. You can use [jitpack](https://jitpack.io/#TheElectronWill/Night-Config) to build it from github more easily.
 
+The repository has two branches:
+- [stable-1.x](https://github.com/TheElectronWill/Night-Config/tree/stable-1.x) contains the stable version v1. Only bugfixes will occur on this branch, the API won't change.
+- [master](https://github.com/TheElectronWill/Night-Config/tree/master) contains the latest in-development branch. Anything can change without notice!
+
 # Code examples
 Read the [wiki](https://github.com/TheElectronWill/Night-Config/wiki) to learn how to use NightConfig.
 
