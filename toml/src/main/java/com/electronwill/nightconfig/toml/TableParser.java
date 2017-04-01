@@ -24,14 +24,8 @@ final class TableParser {
 			}
 			String key = parseKey(input, keyFirst, parser);
 			char sep = Toml.readNonSpaceChar(input);
-			if (sep != '=') {
-				throw new ParsingException("Invalid separator '"
-										   + sep
-										   + "' after key \""
-										   + key
-										   + "\" in inline "
-										   + "table.");
-			}
+			checkInvalidSeparator(sep, key);
+
 			Object value = ValueParser.parseValue(input, parser);
 			Object previous = config.asMap().putIfAbsent(key, value);/* bypasses path parsing (in
 																		order to be faster) */
@@ -56,10 +50,8 @@ final class TableParser {
 			}
 			String key = parseKey(input, (char)keyFirst, parser);
 			char sep = Toml.readNonSpaceChar(input);
-			if (sep != '=') {
-				throw new ParsingException(
-						"Invalid separator '" + sep + "'after key \"" + key + "\" in " + "table.");
-			}
+			checkInvalidSeparator(sep, key);
+
 			Object value = ValueParser.parseValue(input, parser);
 			Object previous = config.asMap().putIfAbsent(key, value);/* bypasses path parsing (in
 																		order to be faster) */
@@ -88,6 +80,14 @@ final class TableParser {
 					"Invalid TOML data: entry \"" + key + "\" defined twice" + " in its table.");
 		}
 	}
+
+	private static void checkInvalidSeparator(char sep, String key) {
+		if (sep != '=') {
+			throw new ParsingException(
+					"Invalid separator '" + sep + "'after key \"" + key + "\" in some table.");
+		}
+	}
+
 	static TomlConfig parseNormal(CharacterInput input, TomlParser parser) {
 		return parseNormal(input, parser, new TomlConfig());
 	}
