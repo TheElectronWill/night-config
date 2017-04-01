@@ -26,14 +26,14 @@ final class TableParser {
 			char sep = Toml.readNonSpaceChar(input);
 			if (sep != '=') {
 				throw new ParsingException("Invalid separator '"
-												   + sep
-												   + "'after key \""
-												   + key
-												   + "\" in inline "
-												   + "table.");
+										   + sep
+										   + "' after key \""
+										   + key
+										   + "\" in inline "
+										   + "table.");
 			}
 			Object value = ValueParser.parseValue(input, parser);
-			config.asMap().put(key, value);// bypasses the path parsing (in order to be faster)
+			config.asMap().put(key, value);// bypasses path parsing (in order to be faster)
 
 			char after = Toml.readNonSpaceChar(input);
 			if (after == '}') {
@@ -41,7 +41,7 @@ final class TableParser {
 			}
 			if (after != ',') {
 				throw new ParsingException(
-						"Invalid entry separator '" + after + "' in inline " + "table.");
+						"Invalid entry separator '" + after + "' in inline table.");
 			}
 		}
 	}
@@ -55,14 +55,16 @@ final class TableParser {
 			String key = parseKey(input, (char)keyFirst, parser);
 			char sep = Toml.readNonSpaceChar(input);
 			if (sep != '=') {
-				throw new ParsingException("Invalid separator '" + sep + "'after key \"" + key + "\" in " +
-					"table.");
+				throw new ParsingException(
+						"Invalid separator '" + sep + "'after key \"" + key + "\" in " + "table.");
 			}
 			Object value = ValueParser.parseValue(input, parser);
 			Object previous = config.asMap().putIfAbsent(key, value);/* bypasses path parsing (in
-																		order to be faster */
-			if(previous != null) {
-				throw new ParsingException("Invalid TOML data: entry \"" + key + "\" defined twice"
+																		order to be faster) */
+			if (previous != null) {
+				throw new ParsingException("Invalid TOML data: entry \""
+										   + key
+										   + "\" defined twice"
 										   + " in its table.");
 			}
 			int after = Toml.readNonSpace(input);
@@ -73,11 +75,11 @@ final class TableParser {
 				Toml.skipComment(input);
 			} else if (after != '\n' && after != '\r') {
 				throw new ParsingException("Invalid character '"
-												   + (char)after
-												   + "' after table entry \""
-												   + key
-												   + "\" = "
-												   + value);
+										   + (char)after
+										   + "' after table entry \""
+										   + key
+										   + "\" = "
+										   + value);
 			}
 		}
 	}
@@ -104,9 +106,8 @@ final class TableParser {
 			}
 			if (before != '.') {
 				throw new ParsingException("Found invalid table name: unexpected character '"
-												   + before
-												   + "'"
-												   + " after a part of the name.");
+										   + before
+										   + "' after a part of the name.");
 			}
 			char next = input.readChar();
 			String key = parseKey(input, next, parser);
@@ -115,8 +116,8 @@ final class TableParser {
 	}
 
 	static String parseKey(CharacterInput input, char firstChar, TomlParser parser) {
-		//Note that a key can't be multiline
-		//Empty keys are allowed if and only if they are quoted (with double or single quotes)
+		// Note that a key can't be multiline
+		// Empty keys are allowed if and only if they are quoted (with double or single quotes)
 		if (firstChar == '\"') {
 			return StringParser.parseBasic(input, parser);
 		} else if (firstChar == '\'') {
@@ -125,7 +126,7 @@ final class TableParser {
 			CharsWrapper restOfKey = input.readCharsUntil(KEY_END);
 			CharsWrapper bareKey = new CharsWrapper.Builder(restOfKey.length() + 1).append(
 					firstChar).append(restOfKey).build();
-			// Check that the bare key is conform to the specification
+			// Checks that the bare key is conform to the specification
 			if (bareKey.isEmpty()) {
 				throw new ParsingException("Empty bare keys aren't allowed.");
 			}
