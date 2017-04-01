@@ -50,6 +50,7 @@ public class TomlParserTest {
 		assertThrows(ParsingException.class, this::testAlreadyDefinedTable);
 		assertThrows(ParsingException.class, this::testAlreadyDefinedTable2);
 		assertThrows(ParsingException.class, this::testAlreadyDefinedKey);
+		assertThrows(ParsingException.class, this::testAlreadyDefinedKeyInline);
 		assertThrows(ParsingException.class, this::testInvalidKeyValueSeparator);
 		assertThrows(ParsingException.class, this::testInvalidArrayValueSeparator);
 		assertThrows(ParsingException.class, this::testInvalidInlineEntrySeparator);
@@ -87,6 +88,12 @@ public class TomlParserTest {
 		String toml = "string = \"value\"\n"
 					  + "test = 'success'\n"
 					  + "test = 'already defined!'";
+		parseAndPrint(toml);
+	}
+
+	private void testAlreadyDefinedKeyInline() {
+		String toml = "string = \"value\"\n"
+					  + "inline = {test = 'success', test = 'already defined!'}";
 		parseAndPrint(toml);
 	}
 
