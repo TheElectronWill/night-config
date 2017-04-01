@@ -59,8 +59,12 @@ final class TableParser {
 					"table.");
 			}
 			Object value = ValueParser.parseValue(input, parser);
-			config.asMap().put(key, value);// bypasses path parsing (in order to be faster)
-
+			Object previous = config.asMap().putIfAbsent(key, value);/* bypasses path parsing (in
+																		order to be faster */
+			if(previous != null) {
+				throw new ParsingException("Invalid TOML data: entry \"" + key + "\" defined twice"
+										   + " in its table.");
+			}
 			int after = Toml.readNonSpace(input);
 			if (after == -1) {// End of the stream
 				return config;
