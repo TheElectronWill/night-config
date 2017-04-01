@@ -33,7 +33,9 @@ final class TableParser {
 										   + "table.");
 			}
 			Object value = ValueParser.parseValue(input, parser);
-			config.asMap().put(key, value);// bypasses path parsing (in order to be faster)
+			Object previous = config.asMap().putIfAbsent(key, value);/* bypasses path parsing (in
+																		order to be faster) */
+			checkDuplicateKey(key, previous);
 
 			char after = Toml.readNonSpaceChar(input);
 			if (after == '}') {
@@ -61,12 +63,8 @@ final class TableParser {
 			Object value = ValueParser.parseValue(input, parser);
 			Object previous = config.asMap().putIfAbsent(key, value);/* bypasses path parsing (in
 																		order to be faster) */
-			if (previous != null) {
-				throw new ParsingException("Invalid TOML data: entry \""
-										   + key
-										   + "\" defined twice"
-										   + " in its table.");
-			}
+			checkDuplicateKey(key, previous);
+
 			int after = Toml.readNonSpace(input);
 			if (after == -1) {// End of the stream
 				return config;
@@ -84,6 +82,12 @@ final class TableParser {
 		}
 	}
 
+	private static void checkDuplicateKey(String key, Object previousValue) {
+		if (previousValue != null) {
+			throw new ParsingException(
+					"Invalid TOML data: entry \"" + key + "\" defined twice" + " in its table.");
+		}
+	}
 	static TomlConfig parseNormal(CharacterInput input, TomlParser parser) {
 		return parseNormal(input, parser, new TomlConfig());
 	}
