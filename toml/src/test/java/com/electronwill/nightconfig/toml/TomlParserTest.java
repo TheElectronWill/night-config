@@ -35,7 +35,13 @@ public class TomlParserTest {
 					  + "[table.subTable.subDefinedFirst]\n"
 					  + "   test = 'this is valid TOML'\n"
 					  + "[table.subTable]\n"
-					  + "    \"subkey\"=2017-02-25T12:00:01.123456789   \n";
+					  + "    \"subkey\"=2017-02-25T12:00:01.123456789   \n"
+					  + "[[array.ofTables]]\n"
+					  + "    a = false\n"
+					  + "[[array.ofTables]]\n"
+					  + "    a = [,]\n"
+					  + "[[array.ofTables]]\n"
+					  + "    a = true";
 		parseAndPrint(toml);
 	}
 
