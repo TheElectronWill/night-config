@@ -26,6 +26,8 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 *
 	 * @param reader the reader to parse
 	 * @return a Config
+	 *
+	 * @throws ParsingException if an error occurs
 	 */
 	C parseConfig(Reader reader);
 
@@ -42,8 +44,10 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 *
 	 * @param input the input to parse
 	 * @return a Config
+	 *
+	 * @throws ParsingException if an error occurs
 	 */
-	default C parseConfig(InputStream input) throws IOException {
+	default C parseConfig(InputStream input) {
 		Reader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8));
 		return parseConfig(reader);
 	}
@@ -53,8 +57,9 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 *
 	 * @param input       the input to parse
 	 * @param destination the config where to put the data
+	 * @throws ParsingException if an error occurs
 	 */
-	default void parseConfig(InputStream input, D destination) throws IOException {
+	default void parseConfig(InputStream input, D destination) {
 		Reader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8));
 		parseConfig(reader, destination);
 	}
@@ -64,11 +69,15 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 *
 	 * @param file the file to parse
 	 * @return a Config
+	 *
+	 * @throws ParsingException if an error occurs
 	 */
-	default C parseConfig(File file) throws IOException {
+	default C parseConfig(File file) {
 		try (Reader reader = new BufferedReader(
 				new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
 			return parseConfig(reader);
+		} catch (IOException e) {
+			throw new WritingException("An I/O error occured", e);
 		}
 	}
 
@@ -77,11 +86,14 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 *
 	 * @param file        the file to parse
 	 * @param destination the config where to put the data
+	 * @throws ParsingException if an error occurs
 	 */
-	default void parseConfig(File file, D destination) throws IOException {
+	default void parseConfig(File file, D destination) {
 		try (Reader reader = new BufferedReader(
 				new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
 			parseConfig(reader, destination);
+		} catch (IOException e) {
+			throw new WritingException("An I/O error occured", e);
 		}
 	}
 
@@ -90,13 +102,22 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 *
 	 * @param url the url to parse
 	 * @return a Config
+	 *
+	 * @throws ParsingException if an error occurs
 	 */
-	default C parseConfig(URL url) throws IOException {
-		URLConnection connection = url.openConnection();
+	default C parseConfig(URL url) {
+		URLConnection connection;
+		try {
+			connection = url.openConnection();
+		} catch (IOException e) {
+			throw new WritingException("Unable to connect to the URL", e);
+		}
 		String encoding = connection.getContentEncoding();
 		Charset charset = (encoding == null) ? StandardCharsets.UTF_8 : Charset.forName(encoding);
 		try (Reader reader = new BufferedReader(new InputStreamReader(url.openStream(), charset))) {
 			return parseConfig(reader);
+		} catch (IOException e) {
+			throw new WritingException("An I/O error occured", e);
 		}
 	}
 
@@ -105,13 +126,21 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 *
 	 * @param url         the url to parse
 	 * @param destination the config where to put the data
+	 * @throws ParsingException if an error occurs
 	 */
-	default void parseConfig(URL url, D destination) throws IOException {
-		URLConnection connection = url.openConnection();
+	default void parseConfig(URL url, D destination) {
+		URLConnection connection;
+		try {
+			connection = url.openConnection();
+		} catch (IOException e) {
+			throw new WritingException("Unable to connect to the URL", e);
+		}
 		String encoding = connection.getContentEncoding();
 		Charset charset = (encoding == null) ? StandardCharsets.UTF_8 : Charset.forName(encoding);
 		try (Reader reader = new BufferedReader(new InputStreamReader(url.openStream(), charset))) {
 			parseConfig(reader, destination);
+		} catch (IOException e) {
+			throw new WritingException("An I/O error occured", e);
 		}
 	}
 }

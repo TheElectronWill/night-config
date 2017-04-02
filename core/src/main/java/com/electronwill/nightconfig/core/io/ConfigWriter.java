@@ -24,16 +24,18 @@ public interface ConfigWriter<T extends Config> {
 	 *
 	 * @param config the config to write
 	 * @param writer the writer to write it to
+	 * @throws WritingException if an error occurs
 	 */
-	void writeConfig(T config, Writer writer) throws IOException;
+	void writeConfig(T config, Writer writer);
 
 	/**
 	 * Writes a configuration.
 	 *
 	 * @param config the config to write
 	 * @param output the output to write it to
+	 * @throws WritingException if an error occurs
 	 */
-	default void writeConfig(T config, OutputStream output) throws IOException {
+	default void writeConfig(T config, OutputStream output) {
 		Writer writer = new BufferedWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8));
 		writeConfig(config, writer);
 	}
@@ -44,8 +46,9 @@ public interface ConfigWriter<T extends Config> {
 	 *
 	 * @param config the config to write
 	 * @param file   the file to write it to
+	 * @throws WritingException if an error occurs
 	 */
-	default void writeConfig(T config, File file) throws IOException {
+	default void writeConfig(T config, File file) {
 		writeConfig(config, file, false);
 	}
 
@@ -54,12 +57,15 @@ public interface ConfigWriter<T extends Config> {
 	 *
 	 * @param config the config to write
 	 * @param file   the file to write it to
+	 * @throws WritingException if an error occurs
 	 */
-	default void writeConfig(T config, File file, boolean append) throws IOException {
+	default void writeConfig(T config, File file, boolean append) {
 		try (Writer writer = new BufferedWriter(
 				new OutputStreamWriter(new FileOutputStream(file, append),
 									   StandardCharsets.UTF_8))) {
 			writeConfig(config, writer);
+		} catch (IOException e) {
+			throw new WritingException("An I/O error occured", e);
 		}
 	}
 
@@ -68,14 +74,22 @@ public interface ConfigWriter<T extends Config> {
 	 *
 	 * @param config the config to write
 	 * @param url    the url to write it to
+	 * @throws WritingException if an error occurs
 	 */
-	default void writeConfig(T config, URL url) throws IOException {
-		URLConnection connection = url.openConnection();
+	default void writeConfig(T config, URL url) {
+		URLConnection connection;
+		try {
+			connection = url.openConnection();
+		} catch (IOException e) {
+			throw new WritingException("Unable to connect to the URL", e);
+		}
 		String encoding = connection.getContentEncoding();
 		Charset charset = (encoding == null) ? StandardCharsets.UTF_8 : Charset.forName(encoding);
 		try (Writer writer = new BufferedWriter(
 				new OutputStreamWriter(connection.getOutputStream(), charset))) {
 			writeConfig(config, writer);
+		} catch (IOException e) {
+			throw new WritingException("An I/O error occured", e);
 		}
 	}
 }

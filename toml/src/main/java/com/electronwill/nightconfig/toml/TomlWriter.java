@@ -25,7 +25,7 @@ public final class TomlWriter implements ConfigWriter<Config> {
 
 	// --- Writer's methods ---
 	@Override
-	public void writeConfig(Config config, Writer writer) throws IOException {
+	public void writeConfig(Config config, Writer writer) {
 		currentIndentLevel = -1;//-1 to make the root entries not indented
 		TableWriter.writeSmartly(config, new ArrayList<>(), new WriterOutput(writer), this);
 	}
