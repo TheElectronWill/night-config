@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.hocon;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.ConfigParser;
+import com.electronwill.nightconfig.core.io.ParsingException;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigParseOptions;
 import com.typesafe.config.ConfigSyntax;
@@ -21,16 +22,21 @@ public final class HoconParser implements ConfigParser<HoconConfig, Config> {
 																		.setAllowMissing(false)
 																		.setSyntax(
 																				ConfigSyntax.CONF);
+
 	@Override
 	public HoconConfig parseConfig(Reader reader) {
 		HoconConfig config = new HoconConfig();
-		put(ConfigFactory.parseReader(reader, OPTIONS).resolve(), config);
+		parseConfig(reader, config);
 		return config;
 	}
 
 	@Override
 	public void parseConfig(Reader reader, Config destination) {
-		put(ConfigFactory.parseReader(reader, OPTIONS).resolve(), destination);
+		try {
+			put(ConfigFactory.parseReader(reader, OPTIONS).resolve(), destination);
+		} catch (Exception e) {
+			throw new ParsingException("HOCON parsing failed", e);
+		}
 	}
 
 	private static void put(com.typesafe.config.Config typesafeConfig, Config destination) {
