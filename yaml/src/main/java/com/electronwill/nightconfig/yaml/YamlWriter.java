@@ -2,8 +2,8 @@ package com.electronwill.nightconfig.yaml;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
+import com.electronwill.nightconfig.core.io.WritingException;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
-import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
 import org.yaml.snakeyaml.DumperOptions;
@@ -29,8 +29,12 @@ public final class YamlWriter implements ConfigWriter<Config> {
 
 	@Override
 	public void writeConfig(Config config, Writer writer) {
-		Map<String, Object> unwrappedMap = unwrap(config);
-		yaml.dump(unwrappedMap, writer);
+		try {
+			Map<String, Object> unwrappedMap = unwrap(config);
+			yaml.dump(unwrappedMap, writer);
+		} catch (Exception e) {
+			throw new WritingException("YAML writing failed", e);
+		}
 	}
 
 	private static Map<String, Object> unwrap(Config config) {

@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.yaml;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.ConfigParser;
+import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import java.io.Reader;
 import java.util.Map;
@@ -37,8 +38,12 @@ public final class YamlParser implements ConfigParser<YamlConfig, Config> {
 
 	@Override
 	public void parseConfig(Reader reader, Config destination) {
-		Map<String, Object> wrappedMap = wrap(yaml.loadAs(reader, Map.class));
-		destination.asMap().putAll(wrappedMap);
+		try {
+			Map<String, Object> wrappedMap = wrap(yaml.loadAs(reader, Map.class));
+			destination.asMap().putAll(wrappedMap);
+		} catch (Exception e) {
+			throw new ParsingException("YAML parsing failed", e);
+		}
 	}
 
 	private static Map<String, Object> wrap(Map<String, Object> map) {
