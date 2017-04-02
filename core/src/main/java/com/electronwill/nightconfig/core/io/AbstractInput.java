@@ -11,14 +11,14 @@ public abstract class AbstractInput implements CharacterInput {
 	protected final IntDeque deque = new IntDeque();
 
 	/**
-	 * Tries to read the next character without taking care of the peek deque.
+	 * Tries to parse the next character without taking care of the peek deque.
 	 *
 	 * @return the next character, or -1 if the EOS has been reached
 	 */
 	protected abstract int directRead();
 
 	/**
-	 * Tries to read the next character without taking care of the peek deque.
+	 * Tries to parse the next character without taking care of the peek deque.
 	 *
 	 * @return the next character
 	 *

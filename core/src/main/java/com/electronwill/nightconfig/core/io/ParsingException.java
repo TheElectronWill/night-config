@@ -13,7 +13,7 @@ public class ParsingException extends RuntimeException {
 	}
 
 	public static ParsingException readFailed(Throwable cause) {
-		return new ParsingException("Failed to read data from Reader", cause);
+		return new ParsingException("Failed to parse data from Reader", cause);
 	}
 
 	public static ParsingException notEnoughData() {

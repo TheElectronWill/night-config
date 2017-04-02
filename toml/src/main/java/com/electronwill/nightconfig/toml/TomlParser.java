@@ -23,16 +23,16 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 
 	// --- Parser's methods ---
 	@Override
-	public TomlConfig parseConfig(Reader reader) {
-		return parseConfig(new ReaderInput(reader), new TomlConfig());
+	public TomlConfig parse(Reader reader) {
+		return parse(new ReaderInput(reader), new TomlConfig());
 	}
 
 	@Override
-	public void parseConfig(Reader reader, Config destination) {
-		parseConfig(new ReaderInput(reader), destination);
+	public void parse(Reader reader, Config destination) {
+		parse(new ReaderInput(reader), destination);
 	}
 
-	private <T extends Config> T parseConfig(CharacterInput input, T destination) {
+	private <T extends Config> T parse(CharacterInput input, T destination) {
 		T rootTable = TableParser.parseNormal(input, this, destination);
 		int next;
 		while ((next = input.peek()) != -1) {

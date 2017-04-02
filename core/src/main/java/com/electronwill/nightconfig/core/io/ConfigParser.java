@@ -29,7 +29,7 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 *
 	 * @throws ParsingException if an error occurs
 	 */
-	C parseConfig(Reader reader);
+	C parse(Reader reader);
 
 	/**
 	 * Parses a configuration.
@@ -37,7 +37,7 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param reader      the reader to parse
 	 * @param destination the config where to put the data
 	 */
-	void parseConfig(Reader reader, D destination);
+	void parse(Reader reader, D destination);
 
 	/**
 	 * Parses a configuration.
@@ -47,9 +47,9 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 *
 	 * @throws ParsingException if an error occurs
 	 */
-	default C parseConfig(InputStream input) {
+	default C parse(InputStream input) {
 		Reader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8));
-		return parseConfig(reader);
+		return parse(reader);
 	}
 
 	/**
@@ -59,9 +59,9 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param destination the config where to put the data
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parseConfig(InputStream input, D destination) {
+	default void parse(InputStream input, D destination) {
 		Reader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8));
-		parseConfig(reader, destination);
+		parse(reader, destination);
 	}
 
 	/**
@@ -72,10 +72,10 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 *
 	 * @throws ParsingException if an error occurs
 	 */
-	default C parseConfig(File file) {
+	default C parse(File file) {
 		try (Reader reader = new BufferedReader(
 				new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-			return parseConfig(reader);
+			return parse(reader);
 		} catch (IOException e) {
 			throw new WritingException("An I/O error occured", e);
 		}
@@ -88,10 +88,10 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param destination the config where to put the data
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parseConfig(File file, D destination) {
+	default void parse(File file, D destination) {
 		try (Reader reader = new BufferedReader(
 				new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-			parseConfig(reader, destination);
+			parse(reader, destination);
 		} catch (IOException e) {
 			throw new WritingException("An I/O error occured", e);
 		}
@@ -105,7 +105,7 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 *
 	 * @throws ParsingException if an error occurs
 	 */
-	default C parseConfig(URL url) {
+	default C parse(URL url) {
 		URLConnection connection;
 		try {
 			connection = url.openConnection();
@@ -115,7 +115,7 @@ public interface ConfigParser<C extends D, D extends Config> {
 		String encoding = connection.getContentEncoding();
 		Charset charset = (encoding == null) ? StandardCharsets.UTF_8 : Charset.forName(encoding);
 		try (Reader reader = new BufferedReader(new InputStreamReader(url.openStream(), charset))) {
-			return parseConfig(reader);
+			return parse(reader);
 		} catch (IOException e) {
 			throw new WritingException("An I/O error occured", e);
 		}
@@ -128,7 +128,7 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param destination the config where to put the data
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parseConfig(URL url, D destination) {
+	default void parse(URL url, D destination) {
 		URLConnection connection;
 		try {
 			connection = url.openConnection();
@@ -138,7 +138,7 @@ public interface ConfigParser<C extends D, D extends Config> {
 		String encoding = connection.getContentEncoding();
 		Charset charset = (encoding == null) ? StandardCharsets.UTF_8 : Charset.forName(encoding);
 		try (Reader reader = new BufferedReader(new InputStreamReader(url.openStream(), charset))) {
-			parseConfig(reader, destination);
+			parse(reader, destination);
 		} catch (IOException e) {
 			throw new WritingException("An I/O error occured", e);
 		}

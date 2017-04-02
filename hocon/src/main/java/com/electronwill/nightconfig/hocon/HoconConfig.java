@@ -36,15 +36,15 @@ public final class HoconConfig extends MapConfig implements FileConfig {
 	}
 
 	@Override
-	public void writeTo(File file, boolean append) throws IOException {
+	public void write(File file, boolean append) throws IOException {
 		new HoconWriter().writeConfig(this, file, append);
 	}
 
 	@Override
-	public void readFrom(File file, boolean merge) throws IOException {
+	public void parse(File file, boolean merge) throws IOException {
 		if (!merge) {
 			asMap().clear();
 		}
-		new HoconParser().parseConfig(file, this);
+		new HoconParser().parse(file, this);
 	}
 }

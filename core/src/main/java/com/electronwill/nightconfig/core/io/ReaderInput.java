@@ -40,7 +40,7 @@ public final class ReaderInput extends AbstractInput {
 
 	@Override
 	public CharsWrapper read(int n) {
-		/* Overriden method to provide better performance: use read(char[], ...) instead of
+		/* Overriden method to provide better performance: use parse(char[], ...) instead of
 		   taking the characters one by one. */
 		final char[] array = new char[n];
 		final int offset = Math.min(deque.size(), n);

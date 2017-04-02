@@ -141,11 +141,11 @@ public final class ConversionTable {
 	}
 
 	/**
-	 * Returns an Config that converts "just-in-time" the values that are read from the specified
+	 * Returns an Config that converts "just-in-time" the values that are parse from the specified
 	 * Config.
 	 *
 	 * @param config the config to wrap
-	 * @return a wrapper that converts the values read from the config
+	 * @return a wrapper that converts the values parse from the config
 	 */
 	public Config wrapRead(Config config) {
 		return new Config() {

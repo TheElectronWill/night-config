@@ -22,7 +22,7 @@ public final class ObjectConverter {
 	/**
 	 * Creates a new ObjectConverter with advanced parameters.
 	 *
-	 * @param bypassTransient {@code true} to use (read or write) a field even if it's transient
+	 * @param bypassTransient {@code true} to use (parse or write) a field even if it's transient
 	 * @param bypassFinal     {@code true} to write a field even if it's final
 	 */
 	public ObjectConverter(boolean bypassTransient, boolean bypassFinal) {
@@ -131,7 +131,7 @@ public final class ObjectConverter {
 			try {
 				value = field.get(o);
 			} catch (IllegalAccessException e) {// Unexpected: setAccessible is called if needed
-				throw new RuntimeException("Unable to read the field " + field, e);
+				throw new RuntimeException("Unable to parse the field " + field, e);
 			}
 			AnnotationSpecs.checkField(field, value);/* Checks that the value is conform to an
 														eventual @SpecSometing annotation */
@@ -170,7 +170,7 @@ public final class ObjectConverter {
 			try {
 				value = field.get(o);
 			} catch (IllegalAccessException e) {// Unexpected: setAccessible is called if needed
-				throw new RuntimeException("Unable to read the field " + field, e);
+				throw new RuntimeException("Unable to parse the field " + field, e);
 			}
 			AnnotationSpecs.checkField(field, value);/* Checks that the value is conform to an
 														eventual @SpecSometing annotation */

@@ -65,7 +65,7 @@ public interface CharacterInput {
 	 * Reads the next n characters, if possible. If there are less than n available characters,
 	 * return all the remaining characters.
 	 *
-	 * @param n the number of characters to read
+	 * @param n the number of characters to parse
 	 * @return an array containing at most n characters, not null
 	 */
 	default CharsWrapper read(int n) {
@@ -83,7 +83,7 @@ public interface CharacterInput {
 	 * Reads the next n characters. If there isn't n available characters, this method throws an
 	 * exception.
 	 *
-	 * @param n the number of characters to read
+	 * @param n the number of characters to parse
 	 * @return an array containing the next n characters, not null
 	 *
 	 * @throws ParsingException if there is no more available data
@@ -106,7 +106,7 @@ public interface CharacterInput {
 	 * before the stop (or the end of the data).
 	 *
 	 * @param stop the characters to stop at
-	 * @return a CharsWrapper that contains all the characters read before the stop (or the end of
+	 * @return a CharsWrapper that contains all the characters parse before the stop (or the end of
 	 * the data), not null
 	 */
 	CharsWrapper readUntil(char[] stop);
@@ -116,7 +116,7 @@ public interface CharacterInput {
 	 * the {@link CharsWrapper} that contains all the characters before the stop.
 	 *
 	 * @param stop the characters to stop at
-	 * @return a CharsWrapper that contains all the characters read before the stop
+	 * @return a CharsWrapper that contains all the characters parse before the stop
 	 *
 	 * @throws ParsingException if the end of the data is reached before a stop character
 	 */
@@ -171,7 +171,7 @@ public interface CharacterInput {
 	char peekChar(int n);
 
 	/**
-	 * Skips all the character that have been peeked and not read yead.
+	 * Skips all the character that have been peeked and not parse yead.
 	 */
 	void skipPeeks();
 

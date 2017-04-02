@@ -24,7 +24,7 @@ public final class ObjectBinder {
 	/**
 	 * Creates a new ObjectBinder with advanced parameters.
 	 *
-	 * @param bypassTransient {@code true} to use (read or write) a field even if it's transient
+	 * @param bypassTransient {@code true} to use (parse or write) a field even if it's transient
 	 * @param bypassFinal     {@code true} to write a field even if it's final
 	 */
 	public ObjectBinder(boolean bypassTransient, boolean bypassFinal) {

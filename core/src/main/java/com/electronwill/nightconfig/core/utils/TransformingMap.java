@@ -19,8 +19,8 @@ import java.util.function.Function;
  * "just in time" to integers, you use a {@code TransformingMap<String, String, Integer>}.
  * To get one, you create these three functions:
  * <ul>
- * <li>one that converts a String to an Integer: that's the read transformation. It converts an
- * Integer read from the internal map to a String.
+ * <li>one that converts a String to an Integer: that's the parse transformation. It converts an
+ * Integer parse from the internal map to a String.
  * <li>one that converts an Integer to a String: that's the write transformation. It converts a
  * String given to the TransformingMap to an Integer.
  * <li>one that converts an Object to another Object: that's the search transformation. It is used
@@ -41,7 +41,7 @@ public final class TransformingMap<K, InternalV, ExternalV> extends AbstractMap<
 	 * Create a new TransformingMap.
 	 *
 	 * @param map                  the internal map to use
-	 * @param readTransformation   the read transformation (see javadoc of the class)
+	 * @param readTransformation   the parse transformation (see javadoc of the class)
 	 * @param writeTransformation  the write transformation (see javadoc of the class)
 	 * @param searchTransformation the search transformation (see javadoc of the class)
 	 */

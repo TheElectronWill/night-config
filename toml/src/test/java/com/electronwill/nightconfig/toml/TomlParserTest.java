@@ -19,7 +19,7 @@ public class TomlParserTest {
 
 	private static void parseAndPrint(String tomlString) {
 		TomlParser parser = new TomlParser();
-		TomlConfig parsed = parser.parseConfig(new StringReader(tomlString));
+		TomlConfig parsed = parser.parse(new StringReader(tomlString));
 		System.out.println("parsed: " + parsed);
 	}
 

@@ -13,7 +13,7 @@ final class StringParser {
 	private static final char[] SINGLE_QUOTE = {'\''};
 
 	/**
-	 * Parses a basic string (surrounded by "). The opening quote must be read before calling this
+	 * Parses a basic string (surrounded by "). The opening quote must be parse before calling this
 	 * method.
 	 */
 	static String parseBasic(CharacterInput input, TomlParser parser) {
@@ -35,7 +35,7 @@ final class StringParser {
 	}
 
 	/**
-	 * Parses a literal string (surrounded by '). The opening quote must be read before calling this
+	 * Parses a literal string (surrounded by '). The opening quote must be parse before calling this
 	 * method.
 	 */
 	static String parseLiteral(CharacterInput input, TomlParser parser) {
@@ -59,7 +59,7 @@ final class StringParser {
 	}
 
 	/**
-	 * Parses a multiline basic string (surrounded by """). The 3 opening quotes must be read before
+	 * Parses a multiline basic string (surrounded by """). The 3 opening quotes must be parse before
 	 * calling this method.
 	 */
 	static String parseMultiBasic(CharacterInput input, TomlParser parser) {
@@ -88,7 +88,7 @@ final class StringParser {
 	}
 
 	/**
-	 * Parses a multiline literal string (surrounded by '''). The 3 opening quotes must be read
+	 * Parses a multiline literal string (surrounded by '''). The 3 opening quotes must be parse
 	 * before
 	 * calling this method.
 	 */

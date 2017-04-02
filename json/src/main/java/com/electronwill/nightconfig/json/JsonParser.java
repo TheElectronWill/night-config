@@ -45,9 +45,9 @@ public final class JsonParser implements ConfigParser<JsonConfig, Config> {
 	 * Parses a JSON object to a Config.
 	 */
 	@Override
-	public JsonConfig parseConfig(Reader reader) {
+	public JsonConfig parse(Reader reader) {
 		JsonConfig config = new JsonConfig();
-		parseConfig(reader, config);
+		parse(reader, config);
 		return config;
 	}
 
@@ -55,7 +55,7 @@ public final class JsonParser implements ConfigParser<JsonConfig, Config> {
 	 * Parses a JSON object to a Config.
 	 */
 	@Override
-	public void parseConfig(Reader reader, Config destination) {
+	public void parse(Reader reader, Config destination) {
 		CharacterInput input = new ReaderInput(reader);
 		char firstChar = input.readCharAndSkip(SPACES);
 		if (firstChar != '{') {
@@ -68,7 +68,7 @@ public final class JsonParser implements ConfigParser<JsonConfig, Config> {
 	 * Parses a JSON array to a List.
 	 *
 	 * @param reader the Reader to parse
-	 * @return a List with the content of the read array
+	 * @return a List with the content of the parse array
 	 */
 	public List<Object> parseList(Reader reader) {
 		List<Object> list = new ArrayList<>();

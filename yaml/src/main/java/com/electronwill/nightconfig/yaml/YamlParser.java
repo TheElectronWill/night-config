@@ -30,14 +30,14 @@ public final class YamlParser implements ConfigParser<YamlConfig, Config> {
 	}
 
 	@Override
-	public YamlConfig parseConfig(Reader reader) {
+	public YamlConfig parse(Reader reader) {
 		YamlConfig config = new YamlConfig();
-		parseConfig(reader, config);
+		parse(reader, config);
 		return config;
 	}
 
 	@Override
-	public void parseConfig(Reader reader, Config destination) {
+	public void parse(Reader reader, Config destination) {
 		try {
 			Map<String, Object> wrappedMap = wrap(yaml.loadAs(reader, Map.class));
 			destination.asMap().putAll(wrappedMap);

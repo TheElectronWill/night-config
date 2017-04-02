@@ -24,14 +24,14 @@ public final class HoconParser implements ConfigParser<HoconConfig, Config> {
 																				ConfigSyntax.CONF);
 
 	@Override
-	public HoconConfig parseConfig(Reader reader) {
+	public HoconConfig parse(Reader reader) {
 		HoconConfig config = new HoconConfig();
-		parseConfig(reader, config);
+		parse(reader, config);
 		return config;
 	}
 
 	@Override
-	public void parseConfig(Reader reader, Config destination) {
+	public void parse(Reader reader, Config destination) {
 		try {
 			put(ConfigFactory.parseReader(reader, OPTIONS).resolve(), destination);
 		} catch (Exception e) {

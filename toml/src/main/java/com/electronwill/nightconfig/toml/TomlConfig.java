@@ -38,13 +38,13 @@ public class TomlConfig extends MapConfig implements FileConfig {
 	}
 
 	@Override
-	public void writeTo(File file, boolean append) throws IOException {
+	public void write(File file, boolean append) throws IOException {
 		new TomlWriter().writeConfig(this, file, append);
 	}
 
 	@Override
-	public void readFrom(File file, boolean merge) throws IOException {
+	public void parse(File file, boolean merge) throws IOException {
 		if (!merge) { asMap().clear(); }
-		new TomlParser().parseConfig(file, this);
+		new TomlParser().parse(file, this);
 	}
 }

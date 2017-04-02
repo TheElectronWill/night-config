@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Interface for configurations that can be read from files and written to files.
+ * Interface for configurations that can be parse from files and written to files.
  *
  * @author TheElectronWill
  */
@@ -13,13 +13,13 @@ public interface FileConfig extends Config {
 
 	/**
 	 * Writes the config to a file. The content of the file is overwritten. This method is
-	 * equivalent to <pre>writeTo(file, false)</pre>
+	 * equivalent to <pre>write(file, false)</pre>
 	 *
 	 * @param file the file to write to
 	 * @throws IOException if an I/O error occurs
 	 */
-	default void writeTo(File file) throws IOException {
-		writeTo(file, false);
+	default void write(File file) throws IOException {
+		write(file, false);
 	}
 
 	/**
@@ -29,26 +29,26 @@ public interface FileConfig extends Config {
 	 * @param append {@code true} to append the data to the file, {@code false} to overwrite the file.
 	 * @throws IOException if an I/O error occurs
 	 */
-	void writeTo(File file, boolean append) throws IOException;
+	void write(File file, boolean append) throws IOException;
 
 	/**
-	 * Reads the config from a file. The content of the config is replaced by the read one. This
-	 * method is equivalent to <pre>readFrom(file, false)</pre>
+	 * Parses the config from a file. The content of the config is replaced by the parse one. This
+	 * method is equivalent to <pre>parse(file, false)</pre>
 	 *
-	 * @param file the file to read
+	 * @param file the file to parse
 	 * @throws IOException if an I/O error occurs
 	 */
-	default void readFrom(File file) throws IOException {
-		readFrom(file, false);
+	default void parse(File file) throws IOException {
+		parse(file, false);
 	}
 
 	/**
-	 * Reads the config from a file.
+	 * Parses the config from a file.
 	 *
-	 * @param file  the file to read
-	 * @param merge {@code true} to merge the current data with the read one, {@code false} to
-	 *              replace the current data with the read one.
+	 * @param file  the file to parse
+	 * @param merge {@code true} to merge the current data with the parse one, {@code false} to
+	 *              replace the current data with the parse one.
 	 * @throws IOException if an I/O error occurs
 	 */
-	void readFrom(File file, boolean merge) throws IOException;
+	void parse(File file, boolean merge) throws IOException;
 }

@@ -40,12 +40,12 @@ public class JsonConfigTest {
 
 	@Test
 	public void testWrite() throws IOException {
-		config.writeTo(file);
+		config.write(file);
 	}
 
 	@Test
 	public void testRead() throws IOException {
-		config.readFrom(file);
+		config.parse(file);
 		System.out.println(config);
 	}
 
