@@ -4,7 +4,6 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.MapConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
 import java.io.File;
-import java.io.IOException;
 import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Map;
@@ -38,12 +37,12 @@ public class TomlConfig extends MapConfig implements FileConfig {
 	}
 
 	@Override
-	public void write(File file, boolean append) throws IOException {
+	public void write(File file, boolean append) {
 		new TomlWriter().writeConfig(this, file, append);
 	}
 
 	@Override
-	public void parse(File file, boolean merge) throws IOException {
+	public void parse(File file, boolean merge) {
 		if (!merge) { asMap().clear(); }
 		new TomlParser().parse(file, this);
 	}

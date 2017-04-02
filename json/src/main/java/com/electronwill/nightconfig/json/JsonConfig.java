@@ -4,7 +4,6 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.MapConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -49,12 +48,12 @@ public final class JsonConfig extends MapConfig implements FileConfig {
 	}
 
 	@Override
-	public void write(File file, boolean append) throws IOException {
+	public void write(File file, boolean append) {
 		new MinimalJsonWriter().writeConfig(this, file, append);
 	}
 
 	@Override
-	public void parse(File file, boolean merge) throws IOException {
+	public void parse(File file, boolean merge) {
 		if (!merge) {
 			this.asMap().clear();// clears the config
 		}
