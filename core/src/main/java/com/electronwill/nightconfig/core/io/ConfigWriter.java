@@ -26,7 +26,7 @@ public interface ConfigWriter<T extends Config> {
 	 * @param writer the writer to write it to
 	 * @throws WritingException if an error occurs
 	 */
-	void writeConfig(T config, Writer writer);
+	void write(T config, Writer writer);
 
 	/**
 	 * Writes a configuration.
@@ -35,21 +35,21 @@ public interface ConfigWriter<T extends Config> {
 	 * @param output the output to write it to
 	 * @throws WritingException if an error occurs
 	 */
-	default void writeConfig(T config, OutputStream output) {
+	default void write(T config, OutputStream output) {
 		Writer writer = new BufferedWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8));
-		writeConfig(config, writer);
+		write(config, writer);
 	}
 
 	/**
 	 * Writes a configuration. The content of the file is overwritten. This method is equivalent to
-	 * <pre>writeConfig(config, file, false)</pre>
+	 * <pre>write(config, file, false)</pre>
 	 *
 	 * @param config the config to write
 	 * @param file   the file to write it to
 	 * @throws WritingException if an error occurs
 	 */
-	default void writeConfig(T config, File file) {
-		writeConfig(config, file, false);
+	default void write(T config, File file) {
+		write(config, file, false);
 	}
 
 	/**
@@ -59,11 +59,11 @@ public interface ConfigWriter<T extends Config> {
 	 * @param file   the file to write it to
 	 * @throws WritingException if an error occurs
 	 */
-	default void writeConfig(T config, File file, boolean append) {
+	default void write(T config, File file, boolean append) {
 		try (Writer writer = new BufferedWriter(
 				new OutputStreamWriter(new FileOutputStream(file, append),
 									   StandardCharsets.UTF_8))) {
-			writeConfig(config, writer);
+			write(config, writer);
 		} catch (IOException e) {
 			throw new WritingException("An I/O error occured", e);
 		}
@@ -76,7 +76,7 @@ public interface ConfigWriter<T extends Config> {
 	 * @param url    the url to write it to
 	 * @throws WritingException if an error occurs
 	 */
-	default void writeConfig(T config, URL url) {
+	default void write(T config, URL url) {
 		URLConnection connection;
 		try {
 			connection = url.openConnection();
@@ -87,7 +87,7 @@ public interface ConfigWriter<T extends Config> {
 		Charset charset = (encoding == null) ? StandardCharsets.UTF_8 : Charset.forName(encoding);
 		try (Writer writer = new BufferedWriter(
 				new OutputStreamWriter(connection.getOutputStream(), charset))) {
-			writeConfig(config, writer);
+			write(config, writer);
 		} catch (IOException e) {
 			throw new WritingException("An I/O error occured", e);
 		}

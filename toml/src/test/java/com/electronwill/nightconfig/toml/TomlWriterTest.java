@@ -36,7 +36,7 @@ public class TomlWriterTest {
 		config.setValue("table_array", tableArray);
 		StringWriter writer = new StringWriter();
 
-		new TomlWriter().writeConfig(config, writer);
+		new TomlWriter().write(config, writer);
 		System.out.println("Written:");
 		System.out.println(writer);
 	}

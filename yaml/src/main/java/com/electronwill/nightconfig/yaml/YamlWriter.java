@@ -28,7 +28,7 @@ public final class YamlWriter implements ConfigWriter<Config> {
 	}
 
 	@Override
-	public void writeConfig(Config config, Writer writer) {
+	public void write(Config config, Writer writer) {
 		try {
 			Map<String, Object> unwrappedMap = unwrap(config);
 			yaml.dump(unwrappedMap, writer);

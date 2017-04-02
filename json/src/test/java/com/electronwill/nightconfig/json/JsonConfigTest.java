@@ -56,7 +56,7 @@ public class JsonConfigTest {
 			FancyJsonWriter jsonWriter = new FancyJsonWriter();
 			jsonWriter.setNewline("\r");
 			jsonWriter.setIndent("    ");
-			jsonWriter.writeConfig(config, fileWriter);
+			jsonWriter.write(config, fileWriter);
 		}// finally closes the writer
 	}
 
@@ -64,7 +64,7 @@ public class JsonConfigTest {
 	public void testMinimalWriter() {
 		StringWriter sw = new StringWriter();
 		MinimalJsonWriter writer = new MinimalJsonWriter();
-		writer.writeConfig(config, sw);
+		writer.write(config, sw);
 		System.out.println("Written:\n" + sw);
 	}
 }

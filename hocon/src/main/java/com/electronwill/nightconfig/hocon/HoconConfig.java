@@ -36,7 +36,7 @@ public final class HoconConfig extends MapConfig implements FileConfig {
 
 	@Override
 	public void write(File file, boolean append) {
-		new HoconWriter().writeConfig(this, file, append);
+		new HoconWriter().write(this, file, append);
 	}
 
 	@Override

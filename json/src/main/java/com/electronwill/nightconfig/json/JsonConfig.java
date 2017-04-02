@@ -49,7 +49,7 @@ public final class JsonConfig extends MapConfig implements FileConfig {
 
 	@Override
 	public void write(File file, boolean append) {
-		new MinimalJsonWriter().writeConfig(this, file, append);
+		new MinimalJsonWriter().write(this, file, append);
 	}
 
 	@Override

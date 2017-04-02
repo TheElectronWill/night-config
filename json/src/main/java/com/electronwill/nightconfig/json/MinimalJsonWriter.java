@@ -32,7 +32,7 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 	 * Writes a configuration in the JSON object format.
 	 */
 	@Override
-	public void writeConfig(Config config, Writer writer) {
+	public void write(Config config, Writer writer) {
 		writeConfig(config, new WriterOutput(writer));
 	}
 

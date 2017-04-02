@@ -42,7 +42,7 @@ public final class YamlConfig extends MapConfig implements FileConfig {
 
 	@Override
 	public void write(File file, boolean append) {
-		LOCAL_WRITER.get().writeConfig(this, file, append);
+		LOCAL_WRITER.get().write(this, file, append);
 	}
 
 	@Override

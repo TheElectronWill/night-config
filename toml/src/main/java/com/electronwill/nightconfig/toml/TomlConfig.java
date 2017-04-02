@@ -38,7 +38,7 @@ public class TomlConfig extends MapConfig implements FileConfig {
 
 	@Override
 	public void write(File file, boolean append) {
-		new TomlWriter().writeConfig(this, file, append);
+		new TomlWriter().write(this, file, append);
 	}
 
 	@Override
