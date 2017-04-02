@@ -6,7 +6,6 @@ import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.Utils;
 import com.electronwill.nightconfig.core.io.WriterOutput;
 import com.electronwill.nightconfig.core.io.WritingException;
-import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Array;
 import java.util.ArrayList;

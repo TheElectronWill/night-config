@@ -52,7 +52,7 @@ public final class YamlParser implements ConfigParser<YamlConfig, Config> {
 
 	private static Object wrap(Object value) {
 		if (value instanceof Map) {
-			return wrap((Map<String, Object>)value);
+			return wrap((Map)value);
 		}
 		return value;
 	}

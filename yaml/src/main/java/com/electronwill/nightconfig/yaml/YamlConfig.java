@@ -13,10 +13,8 @@ import java.util.Set;
  * @author TheElectronWill
  */
 public final class YamlConfig extends MapConfig implements FileConfig {
-	private static final ThreadLocal<YamlWriter> LOCAL_WRITER = ThreadLocal.withInitial(
-			YamlWriter::new);
-	private static final ThreadLocal<YamlParser> LOCAL_PARSER = ThreadLocal.withInitial(
-			YamlParser::new);
+	private static final ThreadLocal<YamlWriter> LOCAL_WRITER = ThreadLocal.withInitial(YamlWriter::new);
+	private static final ThreadLocal<YamlParser> LOCAL_PARSER = ThreadLocal.withInitial(YamlParser::new);
 
 	public YamlConfig() {}
 

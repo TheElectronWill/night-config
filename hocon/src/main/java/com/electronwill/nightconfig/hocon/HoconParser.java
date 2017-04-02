@@ -44,7 +44,7 @@ public final class HoconParser implements ConfigParser<HoconConfig, Config> {
 		for (Map.Entry<String, ConfigValue> entry : typesafeConfig.entrySet()) {
 			Object value = entry.getValue().unwrapped();
 			if (value instanceof Map) {
-				value = new HoconConfig((Map<String, Object>)value);
+				value = new HoconConfig((Map)value);
 			}
 			map.put(entry.getKey(), value);
 		}

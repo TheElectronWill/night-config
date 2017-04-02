@@ -4,7 +4,6 @@ import com.electronwill.nightconfig.core.Config;
 import org.junit.jupiter.api.Test;
 
 import static com.electronwill.nightconfig.core.conversion.ObjectConverterTest.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author TheElectronWill

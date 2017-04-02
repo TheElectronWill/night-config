@@ -29,14 +29,14 @@ final class TableArrayParser {
 				if (input.readChar() != ']') {
 					throw new ParsingException(
 							"Invalid declaration of an element of an array of tables: "
-									+ "missing closing bracket at the end of the name.");
+							+ "missing closing bracket at the end of the name.");
 				}
 				return list;
 			}
 			if (before != '.') {
 				throw new ParsingException("Found invalid table name: unexpected character '"
-												   + before
-												   + "' after a part of the name.");
+										   + before
+										   + "' after a part of the name.");
 			}
 			char next = input.readChar();
 			String key = TableParser.parseKey(input, next, parser);

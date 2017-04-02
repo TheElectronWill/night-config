@@ -99,7 +99,8 @@ final class TableWriter {
 		writeTableName(name, output, writer, ARRAY_OF_TABLES_NAME_BEGIN, ARRAY_OF_TABLES_NAME_END);
 	}
 
-	private static void writeTableName(List<String> name, CharacterOutput output, TomlWriter writer) {
+	private static void writeTableName(List<String> name, CharacterOutput output,
+									   TomlWriter writer) {
 		writeTableName(name, output, writer, TABLE_NAME_BEGIN, TABLE_NAME_END);
 	}
 

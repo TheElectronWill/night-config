@@ -1,7 +1,5 @@
 package com.electronwill.nightconfig.core.utils;
 
-import java.util.AbstractSet;
-import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
 
