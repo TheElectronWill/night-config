@@ -13,6 +13,6 @@ public class WritingException extends RuntimeException {
 	}
 
 	public static WritingException writeFailed(Throwable cause) {
-		return new WritingException("Failed to write data", cause);
+		return new WritingException("Failed to write data to Writer", cause);
 	}
 }
