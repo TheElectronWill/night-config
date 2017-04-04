@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.io.CharacterInput;
+import com.electronwill.nightconfig.core.io.CharsWrapper;
 import com.electronwill.nightconfig.core.io.Utils;
 
 /**
@@ -29,9 +30,6 @@ final class Toml {
 		return input.readCharAndSkip(WHITESPACE);
 	}
 
-	static void skipComment(CharacterInput input) {
-		input.readCharsUntil(NEWLINE);
-	}
 
 	static int readUseful(CharacterInput input) {
 		int next = input.readAndSkip(WHITESPACE_OR_NEWLINE);
@@ -44,6 +42,13 @@ final class Toml {
 
 	static int readNonSpace(CharacterInput input) {
 		return input.readAndSkip(WHITESPACE);
+	}
+
+	/**
+	 * Reads all the characters before the next newline.
+	 */
+	static CharsWrapper readLine(CharacterInput input) {
+		return input.readCharsUntil(NEWLINE);
 	}
 
 	static boolean isValidInBareKey(char c, boolean lenient) {

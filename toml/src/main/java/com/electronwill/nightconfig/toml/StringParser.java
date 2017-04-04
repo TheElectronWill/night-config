@@ -75,6 +75,7 @@ final class StringParser {
 					continue;// ignores the newline
 				} else if (isWhitespace(next)) {
 					CharsWrapper restOfLine = input.readCharsUntil(Toml.NEWLINE);
+					CharsWrapper restOfLine = Toml.readLine(input);
 					if (isWhitespace(restOfLine)) {
 						continue;// ignores the newline
 					} else {

@@ -62,7 +62,7 @@ final class TableParser {
 				return config;
 			}
 			if (after == '#') {
-				Toml.skipComment(input);
+				Toml.readLine(input);
 			} else if (after != '\n' && after != '\r') {
 				throw new ParsingException("Invalid character '"
 										   + (char)after
