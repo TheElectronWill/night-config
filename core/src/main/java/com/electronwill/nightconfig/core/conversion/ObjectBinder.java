@@ -329,17 +329,12 @@ public final class ObjectBinder {
 			Function<Object, Object> readConversion = o -> {
 				if (o instanceof FieldInfos) {
 					FieldInfos fieldInfos = (FieldInfos)o;
-					try {
-						if (fieldInfos.boundConfig != null) {
-							BoundConfig boundConfig = fieldInfos.boundConfig;
-							boundConfig.object = fieldInfos.field.get(object);// Updates the object
-							return boundConfig;
-						}
-						return fieldInfos.field.get(object);
-					} catch (IllegalAccessException e) {
-						throw new ReflectionException(
-								"Failed to get field from infos " + fieldInfos, e);
+					if (fieldInfos.boundConfig != null) {
+						BoundConfig boundConfig = fieldInfos.boundConfig;
+						boundConfig.object = fieldInfos.getValue(object);// Updates the object
+						return boundConfig;
 					}
+					return fieldInfos.getValue(object);
 				}
 				return o;
 			};
@@ -386,7 +381,7 @@ public final class ObjectBinder {
 		final Field field;// always non-null
 		final BoundConfig boundConfig;// non-null iff the field is a sub config
 
-		private FieldInfos(Field field, BoundConfig boundConfig) {
+		FieldInfos(Field field, BoundConfig boundConfig) {
 			this.field = field;
 			this.boundConfig = boundConfig;
 		}
