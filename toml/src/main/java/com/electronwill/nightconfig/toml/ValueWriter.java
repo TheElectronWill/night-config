@@ -17,12 +17,12 @@ final class ValueWriter {
 			TableWriter.writeInline((Config)value, output, writer);
 		} else if (value instanceof List) {
 			List<?> list = (List<?>)value;
-			if (!list.isEmpty() && list.get(0) instanceof Config) {
+			if (!list.isEmpty() && list.get(0) instanceof Config) {// Array of tables
 				for (Object table : list) {
 					TableWriter.writeInline((Config)table, output, writer);
 				}
-			} else {
-				ArrayWriter.writeArray((List<?>)value, output);
+			} else {// Normal array
+				ArrayWriter.writeArray((List<?>)value, output, writer);
 			}
 		} else if (value instanceof String) {
 			String string = (String)value;
