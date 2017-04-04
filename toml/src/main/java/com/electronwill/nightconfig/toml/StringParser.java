@@ -64,18 +64,20 @@ final class StringParser {
 		char c;
 		while ((c = input.readChar()) != '\"' || input.peek() != '\"' || input.peek(1) != '\"') {
 			if (c == '\\') {
-				// TOML ignores the line break if the last non-whitespace character of the line is a backslash
-				final char next = input.peekChar();
+				/* TOML ignores the line break if the last non-whitespace character of the line
+				   is a backslash */
+				final char next = input.readChar();
 				if (next == '\n' || next == '\r' && input.peekChar(1) == '\n') {
 					continue;//ignore the newline
 				} else if (isWhitespace(next)) {
 					CharsWrapper restOfLine = input.readCharsUntil(Toml.NEWLINE);
-					if (isWhitespace(restOfLine))
-						continue;//ignore the newline
-					else
+					if (isWhitespace(restOfLine)) {
+						continue;// ignores the newline
+					} else {
 						throw new ParsingException("Invalid escapement: \\" + next);
+					}
 				}
-				builder.write(escape(c, input));
+				builder.write(escape(next, input));
 			} else {
 				builder.write(c);
 			}
