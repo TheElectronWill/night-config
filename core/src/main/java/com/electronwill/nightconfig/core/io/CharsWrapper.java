@@ -697,7 +697,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 				throw new IndexOutOfBoundsException(
 						"Specified end index is larger than the builder's length!");
 			}
-			return new String(data, start, end);
+			return new String(data, start, end - start);
 		}
 	}
 }
