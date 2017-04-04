@@ -265,11 +265,11 @@ public final class HoconWriter implements ConfigWriter<Config> {
 		return entrySeparator;
 	}
 
-	public void setEntrySeparator(char[] newline) {
+	public void setEntrySeparator(char[] entrySeparator) {
 		this.entrySeparator = entrySeparator;
 	}
 
-	public void setEntrySeparator(String newline) {
-		setEntrySeparator(newline.toCharArray());
+	public void setEntrySeparator(String entrySeparator) {
+		setEntrySeparator(entrySeparator.toCharArray());
 	}
 }
