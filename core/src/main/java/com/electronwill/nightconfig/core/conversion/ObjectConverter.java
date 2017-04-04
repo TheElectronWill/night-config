@@ -143,8 +143,8 @@ public final class ObjectConverter {
 			} else {
 				path = Arrays.asList(configuredPath);
 			}
-			if (value != null && !destination.supportsType(value.getClass())) {
-				// TODO @ForceBreakdown to break down objects even when the config supports them
+			if (value != null && (!destination.supportsType(value.getClass())
+								  || field.isAnnotationPresent(ForceBreakdown.class))) {
 				Config subConfig = new SimpleConfig(destination::supportsType);
 				toConfigAnnotated(value, subConfig);// Writes as a subconfig
 				destination.setValue(path, subConfig);
