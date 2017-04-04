@@ -21,12 +21,12 @@ final class ValueParser {
 	 * Parses a TOML value. The value's type is determinated with the first character, and with
 	 * the next ones if necessary.
 	 */
-	static Object parseValue(CharacterInput input, char firstChar, TomlParser parser) {
+	static Object parse(CharacterInput input, char firstChar, TomlParser parser) {
 		switch (firstChar) {
 			case '{':
 				return TableParser.parseInline(input, parser);
 			case '[':
-				return ArrayParser.parseArray(input, parser);
+				return ArrayParser.parse(input, parser);
 			case '\'':
 				if (input.peek() == '\'' && input.peek(1) == '\'') {
 					input.skipPeeks();// Don't include the opening quotes in the String
@@ -53,14 +53,14 @@ final class ValueParser {
 		}
 	}
 
-	static Object parseValue(CharacterInput input, TomlParser parser) {
-		return parseValue(input, Toml.readNonSpaceChar(input), parser);
+	static Object parse(CharacterInput input, TomlParser parser) {
+		return parse(input, Toml.readNonSpaceChar(input), parser);
 	}
 
 	private static Object parseNumberOrDateTime(CharacterInput input) {
 		CharsWrapper valueChars = input.readUntil(END_OF_VALUE);
 		if (TemporalParser.shouldBeTemporal(valueChars)) {
-			return TemporalParser.parseTemporal(valueChars);
+			return TemporalParser.parse(valueChars);
 		}
 		return parseNumber(valueChars);
 	}

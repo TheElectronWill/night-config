@@ -34,7 +34,7 @@ final class TemporalParser {
 	 * @param chars the CharsWrapper to parse, <b>must be trimmed</b>
 	 * @return a Temporal value
 	 */
-	static Temporal parseTemporal(CharsWrapper chars) {
+	static Temporal parse(CharsWrapper chars) {
 		if (chars.get(2) == ':') {// LocalTime
 			return parseTime(chars);
 		}

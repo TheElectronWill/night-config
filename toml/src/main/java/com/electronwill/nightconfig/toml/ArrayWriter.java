@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.io.CharacterOutput;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -10,7 +9,10 @@ import java.util.List;
 final class ArrayWriter {
 	private static final char[] EMPTY_ARRAY = {'[', ']'}, ELEMENT_SEPARATOR = {',', ' '};
 
-	static void writeArray(List<?> values, CharacterOutput output, TomlWriter writer) {
+	/**
+	 * Writes a plain array, not an array of tables.
+	 */
+	static void write(List<?> values, CharacterOutput output, TomlWriter writer) {
 		if (values.isEmpty()) {
 			output.write(EMPTY_ARRAY);
 			return;

@@ -10,14 +10,17 @@ import java.util.List;
  * @see <a href="https://github.com/toml-lang/toml#user-content-array">TOML specification - Arrays</a>
  */
 final class ArrayParser {
-	static List<?> parseArray(CharacterInput input, TomlParser parser) {
+	/**
+	 * Parses a plain array, not an array of tables.
+	 */
+	static List<?> parse(CharacterInput input, TomlParser parser) {
 		List<Object> list = new ArrayList<>(parser.getInitialListCapacity());
 		while (true) {
 			char firstChar = Toml.readUsefulChar(input);
 			if (firstChar == ']') {// End of the array
 				return list;// handle [] and [v1,v2,... ,]
 			}
-			Object value = ValueParser.parseValue(input, firstChar, parser);
+			Object value = ValueParser.parse(input, firstChar, parser);
 			list.add(value);
 			char after = Toml.readUsefulChar(input);
 			if (after == ']') {// End of the array

@@ -26,7 +26,7 @@ final class TableParser {
 			char sep = Toml.readNonSpaceChar(input);
 			checkInvalidSeparator(sep, key);
 
-			Object value = ValueParser.parseValue(input, parser);
+			Object value = ValueParser.parse(input, parser);
 			Object previous = config.asMap().putIfAbsent(key, value);/* bypasses path parsing (in
 																		order to be faster) */
 			checkDuplicateKey(key, previous);
@@ -52,7 +52,7 @@ final class TableParser {
 			char sep = Toml.readNonSpaceChar(input);
 			checkInvalidSeparator(sep, key);
 
-			Object value = ValueParser.parseValue(input, parser);
+			Object value = ValueParser.parse(input, parser);
 			Object previous = config.asMap().putIfAbsent(key, value);/* bypasses path parsing (in
 																		order to be faster) */
 			checkDuplicateKey(key, previous);

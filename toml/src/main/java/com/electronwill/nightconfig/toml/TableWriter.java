@@ -31,7 +31,7 @@ final class TableWriter {
 				StringWriter.writeBasic(key, output);
 			}
 			output.write(KEY_VALUE_SEPARATOR);
-			ValueWriter.writeValue(value, output, writer);
+			ValueWriter.write(value, output, writer);
 			output.write(AFTER_INLINE_ENTRY);
 		}
 		output.write('}');
@@ -65,7 +65,7 @@ final class TableWriter {
 				StringWriter.writeBasic(key, output);
 			}
 			output.write(KEY_VALUE_SEPARATOR);
-			ValueWriter.writeValue(value, output, writer);
+			ValueWriter.write(value, output, writer);
 			writer.writeNewline(output);
 
 		}
