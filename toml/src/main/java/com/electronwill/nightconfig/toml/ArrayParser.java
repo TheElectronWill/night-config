@@ -14,17 +14,16 @@ final class ArrayParser {
 		List<Object> list = new ArrayList<>(parser.getInitialListCapacity());
 		while (true) {
 			char firstChar = Toml.readUsefulChar(input);
-			if (firstChar == ']') {
+			if (firstChar == ']') {// End of the array
 				return list;// handle [] and [v1,v2,... ,]
 			}
 			Object value = ValueParser.parseValue(input, firstChar, parser);
 			list.add(value);
-
 			char after = Toml.readUsefulChar(input);
-			if (after == ']') {
+			if (after == ']') {// End of the array
 				return list;
 			}
-			if (after != ',') {
+			if (after != ',') {// Invalid character between two elements of the array
 				throw new ParsingException("Invalid separator '" + after + "' in array.");
 			}
 		}

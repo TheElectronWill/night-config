@@ -22,7 +22,7 @@ final class ArrayWriter {
 			output.write(next.toString());
 			if (it.hasNext()) {
 				output.write(ELEMENT_SEPARATOR);
-			} else {
+			} else {// End of the array
 				output.write(']');
 				return;
 			}

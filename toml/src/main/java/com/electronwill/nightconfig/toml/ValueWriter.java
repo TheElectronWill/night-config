@@ -9,6 +9,9 @@ import java.util.List;
  * @author TheElectronWill
  */
 final class ValueWriter {
+	/**
+	 * Writes a value. This method calls the correct writing method based on the value's type.
+	 */
 	static void writeValue(Object value, CharacterOutput output, TomlWriter writer) {
 		if (value instanceof Config) {
 			TableWriter.writeInline((Config)value, output, writer);

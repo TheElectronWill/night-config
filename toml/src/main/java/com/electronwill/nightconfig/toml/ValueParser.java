@@ -17,6 +17,10 @@ final class ValueParser {
 	private static final char[] TRUE_END = {'r', 'u', 'e'}, FALSE_END = {'a', 'l', 's', 'e'};
 	private static final char[] ONLY_IN_FP_NUMBER = {'.', 'e', 'E'};
 
+	/**
+	 * Parses a TOML value. The value's type is determinated with the first character, and with
+	 * the next ones if necessary.
+	 */
 	static Object parseValue(CharacterInput input, char firstChar, TomlParser parser) {
 		switch (firstChar) {
 			case '{':
@@ -47,6 +51,10 @@ final class ValueParser {
 				input.pushBack(firstChar);
 				return parseNumberOrDateTime(input);
 		}
+	}
+
+	static Object parseValue(CharacterInput input, TomlParser parser) {
+		return parseValue(input, Toml.readNonSpaceChar(input), parser);
 	}
 
 	private static Object parseNumberOrDateTime(CharacterInput input) {
@@ -90,11 +98,6 @@ final class ValueParser {
 					"Invalid value t" + remaining + " - Expected the boolean value true.");
 		}
 		return true;
-	}
-
-	static Object parseValue(CharacterInput input, TomlParser parser) {
-		char firstChar = Toml.readNonSpaceChar(input);
-		return parseValue(input, firstChar, parser);
 	}
 
 	private ValueParser() {}
