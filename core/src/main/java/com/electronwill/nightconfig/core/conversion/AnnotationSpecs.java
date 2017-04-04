@@ -60,7 +60,6 @@ final class AnnotationSpecs {
 		SpecIntInRange specIntInRange = field.getDeclaredAnnotation(SpecIntInRange.class);
 		if (specIntInRange != null) {
 			checkFieldSpec(field, value, specIntInRange);
-			return;
 		}
 	}
 
