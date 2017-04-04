@@ -35,12 +35,12 @@ final class StringParser {
 	}
 
 	/**
-	 * Parses a literal string (surrounded by '). The opening quote must be parse before calling this
-	 * method.
+	 * Parses a literal string (surrounded by '). The opening quote must be read before calling
+	 * this method.
 	 */
 	static String parseLiteral(CharacterInput input, TomlParser parser) {
 		String str = input.readCharsUntil(SINGLE_QUOTE).toString();
-		input.readChar();//skips the last single quote
+		input.readChar();// skips the last single quote
 		return str;
 	}
 
@@ -59,8 +59,8 @@ final class StringParser {
 	}
 
 	/**
-	 * Parses a multiline basic string (surrounded by """). The 3 opening quotes must be parse before
-	 * calling this method.
+	 * Parses a multiline basic string (surrounded by """). The 3 opening quotes must be read
+	 * before calling this method.
 	 */
 	static String parseMultiBasic(CharacterInput input, TomlParser parser) {
 		CharsWrapper.Builder builder = new CharsWrapper.Builder(
@@ -92,8 +92,7 @@ final class StringParser {
 
 	/**
 	 * Parses a multiline literal string (surrounded by '''). The 3 opening quotes must be parse
-	 * before
-	 * calling this method.
+	 * before calling this method.
 	 */
 	static String parseMultiLiteral(CharacterInput input, TomlParser parser) {
 		CharsWrapper.Builder builder = new CharsWrapper.Builder(
