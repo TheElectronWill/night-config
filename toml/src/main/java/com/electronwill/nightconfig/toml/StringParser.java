@@ -45,20 +45,6 @@ final class StringParser {
 	}
 
 	/**
-	 * Builds a multiline string with the content of a Builder. Trims the first line break if it's
-	 * at the beginning of the string.
-	 */
-	private static String buildMultilineString(CharsWrapper.Builder builder) {
-		if (builder.get(0) == '\n') {
-			return builder.toString(1);
-		}
-		if (builder.get(0) == '\r' && builder.get(1) == '\n') {
-			return builder.toString(2);
-		}
-		return builder.toString();
-	}
-
-	/**
 	 * Parses a multiline basic string (surrounded by """). The 3 opening quotes must be read
 	 * before calling this method.
 	 */
@@ -73,8 +59,7 @@ final class StringParser {
 				final char next = input.readChar();
 				if (next == '\n' || next == '\r' && input.peekChar(1) == '\n') {
 					continue;// ignores the newline
-				} else if (isWhitespace(next)) {
-					CharsWrapper restOfLine = input.readCharsUntil(Toml.NEWLINE);
+				} else if (next == '\t' || next == ' ') {
 					CharsWrapper restOfLine = Toml.readLine(input);
 					if (isWhitespace(restOfLine)) {
 						continue;// ignores the newline
@@ -107,11 +92,25 @@ final class StringParser {
 	}
 
 	/**
+	 * Builds a multiline string with the content of a Builder. Trims the first line break if it's
+	 * at the beginning of the string.
+	 */
+	private static String buildMultilineString(CharsWrapper.Builder builder) {
+		if (builder.get(0) == '\n') {
+			return builder.toString(1);
+		}
+		if (builder.get(0) == '\r' && builder.get(1) == '\n') {
+			return builder.toString(2);
+		}
+		return builder.toString();
+	}
+
+	/**
 	 * Parses an escape sequence.
 	 *
 	 * @param c the first character, ie the one just after the backslash.
 	 */
-	static char escape(char c, CharacterInput input) {
+	private static char escape(char c, CharacterInput input) {
 		switch (c) {
 			case '"':
 			case '\\':
@@ -142,22 +141,14 @@ final class StringParser {
 	 *
 	 * @return true iff it contains only whitespace characters or it is empty, false otherwise
 	 */
-	static boolean isWhitespace(CharSequence csq) {
+	private static boolean isWhitespace(CharSequence csq) {
 		for (int i = 0; i < csq.length(); i++) {
-			if (!isWhitespace(csq.charAt(i))) {
+			char c = csq.charAt(i);
+			if (!(c == '\t' || c == ' ')) {
 				return false;
 			}
 		}
 		return true;
-	}
-
-	/**
-	 * Checks if a character is a whitespace, according to the TOML specification.
-	 *
-	 * @return true iff it is a whitespace
-	 */
-	static boolean isWhitespace(char c) {
-		return c == '\t' || c == ' ';
 	}
 
 	private StringParser() {}
