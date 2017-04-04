@@ -34,10 +34,14 @@ public class TomlWriterTest {
 		config.setValue("bool_array", Arrays.asList(true, false, true, false));
 		config.setValue("config", subConfig);
 		config.setValue("table_array", tableArray);
-		StringWriter writer = new StringWriter();
 
-		new TomlWriter().write(config, writer);
+		StringWriter stringWriter = new StringWriter();
+		TomlWriter writer = new TomlWriter();
+		writer.setIndentArrayElementsPredicate(array -> array.size() > 3);
+		writer.setWriteTableInlinePredicate(table -> table.size() <= 2);
+		writer.write(config, stringWriter);
+
 		System.out.println("Written:");
-		System.out.println(writer);
+		System.out.println(stringWriter);
 	}
 }
