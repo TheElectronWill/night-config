@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.io.CharacterOutput;
-import com.electronwill.nightconfig.core.io.CharsWrapper;
 
 /**
  * @author TheElectronWill

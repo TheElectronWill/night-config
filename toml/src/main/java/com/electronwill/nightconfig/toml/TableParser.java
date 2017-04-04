@@ -136,7 +136,7 @@ final class TableParser {
 			}
 			for (char c : bareKey) {
 				if (!Toml.isValidInBareKey(c, parser.isLenientWithBareKeys())) {
-					throw new ParsingException("Forbidden character in bare key: '" + c + "'");
+					throw new ParsingException("Forbidden character in bare key: '" + c + '\'');
 				}
 			}
 			return bareKey.toString();
