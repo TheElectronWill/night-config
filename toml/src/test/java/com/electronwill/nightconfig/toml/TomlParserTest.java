@@ -41,7 +41,10 @@ public class TomlParserTest {
 					  + "[[array.ofTables]]\n"
 					  + "    a = [,]\n"
 					  + "[[array.ofTables]]\n"
-					  + "    a = true";
+					  + "    a = true\n"
+					  + "basicMultiline = \"\"\"\n" + "First line\n" + "\\tSecond line\\\n "
+					  + "Still second line\"\"\"\n"
+					  + "literalMultiline= \'\'\'\n" + "First line\n" + "Second line\'\'\'";
 		parseAndPrint(toml);
 	}
 
