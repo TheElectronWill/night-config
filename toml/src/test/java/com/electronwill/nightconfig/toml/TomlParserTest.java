@@ -36,12 +36,18 @@ public class TomlParserTest {
 					  + "   test = 'this is valid TOML'\n"
 					  + "[table.subTable]\n"
 					  + "    \"subkey\"=2017-02-25T12:00:01.123456789   \n"
+					  + "    date=2017-04-04\n"
+					  + "    time=16:41:20\n"
+					  + "    preciseTime=16:41:20.00700\n"
 					  + "[[array.ofTables]]\n"
 					  + "    a = false\n"
 					  + "[[array.ofTables]]\n"
 					  + "    a = [,]\n"
 					  + "[[array.ofTables]]\n"
-					  + "    a = true";
+					  + "    a = true\n"
+					  + "basicMultiline = \"\"\"\n" + "First line\n" + "\\tSecond line\\\n "
+					  + "Still second line\"\"\"\n"
+					  + "literalMultiline= \'\'\'\n" + "First line\n" + "Second line\'\'\'";
 		parseAndPrint(toml);
 	}
 
