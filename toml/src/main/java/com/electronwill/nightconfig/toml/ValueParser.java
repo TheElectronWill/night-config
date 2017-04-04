@@ -25,11 +25,13 @@ final class ValueParser {
 				return ArrayParser.parseArray(input, parser);
 			case '\'':
 				if (input.peek() == '\'' && input.peek(1) == '\'') {
+					input.skipPeeks();// Don't include the opening quotes in the String
 					return StringParser.parseMultiLiteral(input, parser);
 				}
 				return StringParser.parseLiteral(input, parser);
 			case '\"':
 				if (input.peek() == '\"' && input.peek(1) == '\"') {
+					input.skipPeeks();// Don't include the opening quotes in the String
 					return StringParser.parseMultiBasic(input, parser);
 				}
 				return StringParser.parseBasic(input, parser);
