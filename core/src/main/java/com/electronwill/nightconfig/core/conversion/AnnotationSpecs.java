@@ -92,8 +92,14 @@ final class AnnotationSpecs {
 	private static void checkFieldSpec(Field field, Object value, SpecStringInArray spec) {
 		checkClass(field, value, String.class);
 		String s = (String)value;
-		for (String acceptable : spec.acceptableValues()) {
-			if (s.equals(acceptable)) { return; }
+		if (spec.ignoreCase()) {
+			for (String acceptable : spec.acceptableValues()) {
+				if (s.equalsIgnoreCase(acceptable)) { return; }
+			}
+		} else {
+			for (String acceptable : spec.acceptableValues()) {
+				if (s.equals(acceptable)) { return; }
+			}
 		}
 		throw new InvalidValueException(
 				"Invalid value \"%s\" for field %s: it doesn't conform to %s", value, spec);
