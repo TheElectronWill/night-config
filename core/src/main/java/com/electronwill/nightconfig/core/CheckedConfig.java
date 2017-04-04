@@ -58,7 +58,7 @@ public final class CheckedConfig implements Config {
 
 	@Override
 	public Map<String, Object> asMap() {
-		return new TransformingMap<>(config.asMap(), v -> v, v -> checkedValue(v), v -> v);
+		return new TransformingMap<>(config.asMap(), v -> v, this::checkedValue, v -> v);
 	}
 
 	@Override

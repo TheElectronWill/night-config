@@ -1,9 +1,5 @@
 package com.electronwill.nightconfig.core.utils;
 
-/**
- * @author TheElectronWill
- */
-
 import java.util.Objects;
 
 /**
