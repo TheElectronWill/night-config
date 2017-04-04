@@ -277,7 +277,6 @@ public final class ObjectConverter {
 			List<String> path = Collections.singletonList(field.getName());
 			Object value = config.getValue(path);
 			Class<?> fieldType = field.getType();
-			System.out.printf("Field %s, path %s, got value %s\n", field.getName(), path, value);
 			try {
 				if (value instanceof Config && !(fieldType.isAssignableFrom(value.getClass()))) {
 					// Reads as a sub-object
@@ -286,7 +285,6 @@ public final class ObjectConverter {
 						fieldValue = createInstance(fieldType);
 						field.set(destination, fieldValue);
 					}
-					System.out.println("subConfig: " + value);
 					toObjectNotAnnotated((Config)value, fieldValue);
 				} else {
 					// Reads as a plain value
