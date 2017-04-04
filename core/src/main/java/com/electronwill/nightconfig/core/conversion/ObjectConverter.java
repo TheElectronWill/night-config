@@ -131,7 +131,7 @@ public final class ObjectConverter {
 			try {
 				value = field.get(o);
 			} catch (IllegalAccessException e) {// Unexpected: setAccessible is called if needed
-				throw new RuntimeException("Unable to parse the field " + field, e);
+				throw new ReflectionException("Unable to parse the field " + field, e);
 			}
 			AnnotationSpecs.checkField(field, value);/* Checks that the value is conform to an
 														eventual @SpecSometing annotation */
@@ -170,7 +170,7 @@ public final class ObjectConverter {
 			try {
 				value = field.get(o);
 			} catch (IllegalAccessException e) {// Unexpected: setAccessible is called if needed
-				throw new RuntimeException("Unable to parse the field " + field, e);
+				throw new ReflectionException("Unable to parse the field " + field, e);
 			}
 			AnnotationSpecs.checkField(field, value);/* Checks that the value is conform to an
 														eventual @SpecSometing annotation */
@@ -229,7 +229,7 @@ public final class ObjectConverter {
 					field.set(destination, value);
 				}
 			} catch (ReflectiveOperationException ex) {
-				throw new RuntimeException("Unable to work with field " + field, ex);
+				throw new ReflectionException("Unable to work with field " + field, ex);
 			}
 		}
 	}
@@ -242,7 +242,7 @@ public final class ObjectConverter {
 	 * @param <T>    the class's type
 	 * @return a new instance of the class
 	 *
-	 * @throws RuntimeException if the class doesn't have a constructor without arguments, or if
+	 * @throws ReflectionException if the class doesn't have a constructor without arguments, or if
 	 *                          the constructor cannot be accessed, or for another reason.
 	 */
 	private <T> T createInstance(Class<T> tClass) {
@@ -254,7 +254,7 @@ public final class ObjectConverter {
 			}
 			return constructor.newInstance();//calls the constructor
 		} catch (ReflectiveOperationException ex) {
-			throw new RuntimeException("Unable to create an instance of " + tClass, ex);
+			throw new ReflectionException("Unable to create an instance of " + tClass, ex);
 		}
 	}
 
@@ -294,7 +294,7 @@ public final class ObjectConverter {
 					field.set(destination, value);
 				}
 			} catch (ReflectiveOperationException ex) {
-				throw new RuntimeException("Unable to work with field " + field, ex);
+				throw new ReflectionException("Unable to work with field " + field, ex);
 			}
 		}
 	}

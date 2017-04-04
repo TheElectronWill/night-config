@@ -129,7 +129,7 @@ public final class ObjectBinder {
 			} else {
 				try {
 					Object fieldValue = field.get(object);
-					if(fieldValue == null) {
+					if (fieldValue == null) {
 						fieldInfos = new FieldInfos(field, null);
 					} else {
 						BoundConfig subConfig = bindNotAnnotated(field.get(object), fieldType,
@@ -137,7 +137,7 @@ public final class ObjectBinder {
 						fieldInfos = new FieldInfos(field, subConfig);
 					}
 				} catch (IllegalAccessException e) {
-					throw new RuntimeException();//TODO better exception
+					throw new ReflectionException("Failed to bind field " + field, e);
 				}
 			}
 			boundConfig.registerField(fieldInfos, path);
@@ -177,15 +177,15 @@ public final class ObjectBinder {
 			} else {
 				try {
 					Object fieldValue = field.get(object);
-					if(fieldValue == null) {
+					if (fieldValue == null) {
 						fieldInfos = new FieldInfos(field, null);
 					} else {
 						BoundConfig subConfig = bindAnnotated(field.get(object), fieldType,
-																 supportTypePredicate);
+															  supportTypePredicate);
 						fieldInfos = new FieldInfos(field, subConfig);
 					}
 				} catch (IllegalAccessException e) {
-					throw new RuntimeException();//TODO better exception
+					throw new ReflectionException("Failed to bind field " + field, e);
 				}
 			}
 			boundConfig.registerField(fieldInfos, path);
@@ -337,7 +337,8 @@ public final class ObjectBinder {
 						}
 						return fieldInfos.field.get(object);
 					} catch (IllegalAccessException e) {
-						throw new RuntimeException(e);
+						throw new ReflectionException(
+								"Failed to get field from infos " + fieldInfos, e);
 					}
 				}
 				return o;
@@ -392,12 +393,12 @@ public final class ObjectBinder {
 
 		void setValue(Object fieldObject, Object value, boolean bypassFinal) {
 			if (!bypassFinal && Modifier.isFinal(field.getModifiers())) {
-				throw new UnsupportedOperationException();// TODO msg
+				throw new UnsupportedOperationException("Cannot modify the field " + field);
 			}
 			try {
 				field.set(fieldObject, value);
 			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
+				throw new ReflectionException("Failed to set field " + field, e);
 			}
 		}
 
@@ -416,7 +417,7 @@ public final class ObjectBinder {
 			try {
 				return field.get(fieldObject);
 			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
+				throw new ReflectionException("Failed to get field " + field, e);
 			}
 		}
 
