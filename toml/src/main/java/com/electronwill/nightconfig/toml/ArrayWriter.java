@@ -22,7 +22,7 @@ final class ArrayWriter {
 		}
 		for (Object value : values) {
 			if (indent) {// Indents the first element
-				output.write(writer.getNewline());
+				writer.writeNewline(output);
 				writer.writeIndent(output);
 			}
 			output.write(value.toString());
@@ -30,7 +30,7 @@ final class ArrayWriter {
 		}
 		if (indent) {
 			writer.decreaseIndentLevel();
-			output.write(writer.getNewline());
+			writer.writeNewline(output);
 		}
 		output.write(']');
 	}

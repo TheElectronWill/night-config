@@ -86,6 +86,7 @@ public final class TomlWriter implements ConfigWriter<Config> {
 		setNewline(newline.toCharArray());
 	}
 
+	// --- Methods used by the writing classes ---
 	void increaseIndentLevel() {
 		currentIndentLevel++;
 	}
@@ -98,5 +99,9 @@ public final class TomlWriter implements ConfigWriter<Config> {
 		for (int i = 0; i < currentIndentLevel; i++) {
 			output.write(indent);
 		}
+	}
+
+	void writeNewline(CharacterOutput output) {
+		output.write(newline);
 	}
 }

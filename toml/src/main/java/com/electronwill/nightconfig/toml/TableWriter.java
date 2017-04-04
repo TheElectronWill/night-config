@@ -66,16 +66,16 @@ final class TableWriter {
 			}
 			output.write(KEY_VALUE_SEPARATOR);
 			ValueWriter.writeValue(value, output, writer);
-			output.write(writer.getNewline());
+			writer.writeNewline(output);
 
 		}
-		output.write(writer.getNewline());
+		writer.writeNewline(output);
 
 		// Writes the tables:
 		for (Map.Entry<String, Object> entry : tablesEntries) {
 			configKey.add(entry.getKey());
 			writeTableName(configKey, output, writer);
-			output.write(writer.getNewline());
+			writer.writeNewline(output);
 			writeNormal((Config)entry.getValue(), configKey, output, writer);
 			configKey.remove(configKey.size() - 1);
 		}
@@ -83,10 +83,10 @@ final class TableWriter {
 		// Writes the arrays of tables:
 		for (Map.Entry<String, Object> entry : tableArraysEntries) {
 			configKey.add(entry.getKey());
-			List<Config> tableArray = (List<Config>)entry.getValue();
+			List<Config> tableArray = (List)entry.getValue();
 			for (Config table : tableArray) {
 				writeTableArrayName(configKey, output, writer);
-				output.write(writer.getNewline());
+				writer.writeNewline(output);
 				writeNormal(table, configKey, output, writer);
 			}
 			configKey.remove(configKey.size() - 1);
