@@ -689,7 +689,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		}
 
 		public String toString(int start) {
-			return new String(data, start, cursor);//directly use this here
+			return new String(data, start, cursor - start);
 		}
 
 		public String toString(int start, int end) {
