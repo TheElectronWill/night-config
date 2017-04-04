@@ -30,12 +30,6 @@ final class StringWriter {
 		output.write('\'');
 	}
 
-	static void writeLiteral(CharsWrapper cw, CharacterOutput output) {
-		output.write('\'');
-		output.write(cw);
-		output.write('\'');
-	}
-
 	private static void writeBasicChar(char c, CharacterOutput output) {
 		switch (c) {
 			case '\\':
