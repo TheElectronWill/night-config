@@ -672,13 +672,13 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		}
 
 		public String toString(int start) {
-			return new String(data, start, cursor);//directly use this here
+			return new String(data, start, cursor - start);//directly use this here
 		}
 
 		public String toString(int start, int end) {
 			if (end > cursor) throw new IndexOutOfBoundsException("Specified end index is larger than the " +
 				"builder's length!");
-			return new String(data, start, end);
+			return new String(data, start, end - start);
 		}
 	}
 }
