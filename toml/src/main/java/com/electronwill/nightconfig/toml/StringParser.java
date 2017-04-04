@@ -86,6 +86,7 @@ final class StringParser {
 				builder.write(c);
 			}
 		}
+		input.skipPeeks();// Don't include the closing quotes in the String
 		return buildMultilineString(builder);
 	}
 
@@ -101,6 +102,7 @@ final class StringParser {
 		while ((c = input.readChar()) != '\'' || input.peek() != '\'' || input.peek(1) != '\'') {
 			builder.append(c);
 		}
+		input.skipPeeks();// Don't include the closing quotes in the String
 		return buildMultilineString(builder);
 	}
 
