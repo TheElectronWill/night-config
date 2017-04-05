@@ -31,6 +31,7 @@ import java.util.function.Function;
  *
  * @author TheElectronWill
  */
+@SuppressWarnings("unchecked")
 public final class TransformingMap<K, InternalV, ExternalV> extends AbstractMap<K, ExternalV> {
 	private final Function<InternalV, ExternalV> readTransformation;
 	private final Function<ExternalV, InternalV> writeTransformation;

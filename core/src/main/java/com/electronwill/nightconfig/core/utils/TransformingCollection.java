@@ -18,6 +18,7 @@ import java.util.stream.Stream;
  * @author TheElectronWill
  * @see TransformingMap
  */
+@SuppressWarnings("unchecked")
 public class TransformingCollection<InternalV, ExternalV> implements Collection<ExternalV> {
 	private final Function<InternalV, ExternalV> readTransformation;
 	private final Function<ExternalV, InternalV> writeTransformation;
