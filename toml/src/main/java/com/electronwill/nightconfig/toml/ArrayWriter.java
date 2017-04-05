@@ -27,7 +27,7 @@ final class ArrayWriter {
 				writer.writeNewline(output);
 				writer.writeIndent(output);
 			}
-			output.write(value.toString());
+			ValueWriter.write(value, output, writer);
 			output.write(ELEMENT_SEPARATOR);
 		}
 		if (indent) {
