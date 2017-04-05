@@ -19,6 +19,15 @@ final class ArrayParser {
 			char firstChar = Toml.readUsefulChar(input);
 			if (firstChar == ']') {// End of the array
 				return list;// handle [] and [v1,v2,... ,]
+			} else if (firstChar == ',') {// Handles [,] which is an empty array too
+				char nextChar = Toml.readUsefulChar(input);
+				if (nextChar == ']') {
+					return list;
+				}
+				throw new ParsingException("Unexpected character in array: '"
+										   + nextChar
+										   + "' - "
+										   + "Expected end of array because of the leading comma.");
 			}
 			Object value = ValueParser.parse(input, firstChar, parser);
 			list.add(value);
