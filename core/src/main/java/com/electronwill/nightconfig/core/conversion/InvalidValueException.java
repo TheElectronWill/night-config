@@ -15,6 +15,13 @@ public final class InvalidValueException extends RuntimeException {
 		super(message, cause);
 	}
 
+	/**
+	 * Creates a new InvalidException with a formatted message.
+	 *
+	 * @param messageFormat a format string
+	 * @param args          the arguments
+	 * @see String#format(String, Object...)
+	 */
 	public InvalidValueException(String messageFormat, Object... args) {
 		super(String.format(messageFormat, args));
 	}

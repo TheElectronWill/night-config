@@ -1,6 +1,8 @@
 package com.electronwill.nightconfig.core.io;
 
 /**
+ * Thrown whan a writing operation fails.
+ *
  * @author TheElectronWill
  */
 public class WritingException extends RuntimeException {

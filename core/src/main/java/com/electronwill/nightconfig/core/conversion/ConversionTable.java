@@ -15,6 +15,9 @@ import java.util.function.Predicate;
  * @author TheElectronWill
  */
 public final class ConversionTable {
+	/**
+	 * Maps a class (of a value) to its conversion function.
+	 */
 	private final Map<Class<?>, Function<?, Object>> conversionMap;
 
 	/**

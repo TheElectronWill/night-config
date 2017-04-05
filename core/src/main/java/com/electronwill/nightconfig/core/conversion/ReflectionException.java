@@ -1,6 +1,8 @@
 package com.electronwill.nightconfig.core.conversion;
 
 /**
+ * Thrown when an important reflective operation fails.
+ *
  * @author TheElectronWill
  */
 public class ReflectionException extends RuntimeException {

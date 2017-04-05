@@ -13,6 +13,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface SpecIntInRange {
+	/** @return the minimum possible value, inclusive */
 	int min();
+
+	/** @return the maximum possible value, inclusive */
 	int max();
 }

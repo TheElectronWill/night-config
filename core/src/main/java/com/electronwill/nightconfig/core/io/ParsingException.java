@@ -1,6 +1,8 @@
 package com.electronwill.nightconfig.core.io;
 
 /**
+ * Thrown when a parsing operation fails.
+ *
  * @author TheElectronWill
  */
 public class ParsingException extends RuntimeException {

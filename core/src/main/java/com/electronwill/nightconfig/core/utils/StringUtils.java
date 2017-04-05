@@ -34,7 +34,7 @@ public final class StringUtils {
 	 */
 	public static List<String> split(String str, char sep) {
 		List<String> list = new ArrayList<>(4);// usually the paths are small
-		StringUtils.split(str, sep, list);
+		split(str, sep, list);
 		return list;
 	}
 

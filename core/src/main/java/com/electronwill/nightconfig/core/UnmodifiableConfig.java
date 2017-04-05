@@ -7,7 +7,7 @@ import java.util.Optional;
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
 
 /**
- * An unmodifiable (parse-only) configuration that contains key/value mappings.
+ * An unmodifiable (read-only) configuration that contains key/value mappings.
  *
  * @author TheElectronWill
  */

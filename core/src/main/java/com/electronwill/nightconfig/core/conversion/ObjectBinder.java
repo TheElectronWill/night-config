@@ -124,13 +124,13 @@ public final class ObjectBinder {
 			List<String> path = Collections.singletonList(field.getName());
 			Class<?> fieldType = field.getType();
 			FieldInfos fieldInfos;
-			if (supportTypePredicate.test(field.getType())) {
+			if (supportTypePredicate.test(field.getType())) {// Plain value
 				fieldInfos = new FieldInfos(field, null);
-			} else {
+			} else {// Subconfig
 				try {
 					Object fieldValue = field.get(object);
 					if (fieldValue == null) {
-						fieldInfos = new FieldInfos(field, null);
+						fieldInfos = new FieldInfos(field, null);// No value yet
 					} else {
 						BoundConfig subConfig = bindNotAnnotated(field.get(object), fieldType,
 																 supportTypePredicate);
@@ -172,13 +172,13 @@ public final class ObjectBinder {
 			}
 			Class<?> fieldType = field.getType();
 			FieldInfos fieldInfos;
-			if (supportTypePredicate.test(field.getType())) {
+			if (supportTypePredicate.test(field.getType())) {// Plain value
 				fieldInfos = new FieldInfos(field, null);
-			} else {
+			} else {// Subconfig
 				try {
 					Object fieldValue = field.get(object);
 					if (fieldValue == null) {
-						fieldInfos = new FieldInfos(field, null);
+						fieldInfos = new FieldInfos(field, null);// No value yet
 					} else {
 						BoundConfig subConfig = bindAnnotated(field.get(object), fieldType,
 															  supportTypePredicate);
@@ -210,11 +210,17 @@ public final class ObjectBinder {
 			this.bypassFinal = bypassFinal;
 		}
 
+		/**
+		 * Creates a new BoundConfig with an empty HashMap.
+		 */
 		private BoundConfig(Object object, Predicate<Class<?>> supportPredicate,
 							boolean bypassFinal) {
 			this(object, new HashMap<>(), supportPredicate, bypassFinal);
 		}
 
+		/**
+		 * Adds a FieldInfos to {@link #dataMap}, at the specified path.
+		 */
 		private void registerField(FieldInfos fieldInfos, List<String> path) {
 			final int lastIndex = path.size() - 1;
 			Map<String, Object> currentMap = dataMap;
@@ -222,7 +228,7 @@ public final class ObjectBinder {
 				final Object currentValue = currentMap.get(currentKey);
 				final BoundConfig config;
 				if (currentValue == null) {// missing intermediary level
-					config = new BoundConfig(null, new HashMap<>(0), supportPredicate, bypassFinal);
+					config = new BoundConfig(null, new HashMap<>(1), supportPredicate, bypassFinal);
 					currentMap.put(currentKey, config);
 				} else if (!(currentValue instanceof BoundConfig)) {// incompatible intermediary level
 					throw new IllegalArgumentException(
@@ -237,6 +243,13 @@ public final class ObjectBinder {
 			currentMap.put(lastKey, fieldInfos);
 		}
 
+		/**
+		 * Gets the data registered for the given path. Returns a BoundSearchResult that contains
+		 * a FieldInfos if the path points to a plain value, or a BoundSearchResult that contains
+		 * a BoundConfig if the path points to a subconfig.
+		 *
+		 * @return a BoundSearchResult containing either a FieldInfos or a BoundConfig
+		 */
 		private BoundSearchResult searchInfosOrConfig(List<String> path) {
 			final int lastIndex = path.size() - 1;
 			BoundConfig currentConfig = this;

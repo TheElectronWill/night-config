@@ -52,8 +52,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 
 	/**
 	 * Creates a new CharsWrapper containing the same characters as the specified String. The data
-	 * is
-	 * copied and the new CharsWrapper is completely independent.
+	 * is copied and the new CharsWrapper is completely independent.
 	 *
 	 * @param str   the String to copy
 	 * @param begin index of the first character to copy from str

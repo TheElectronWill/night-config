@@ -4,7 +4,7 @@ import com.electronwill.nightconfig.core.Config;
 import java.io.File;
 
 /**
- * Interface for configurations that can be parse from files and written to files.
+ * Interface for configurations that can be parsed from files and written to files.
  *
  * @author TheElectronWill
  */

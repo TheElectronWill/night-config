@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.Writer;
 
 /**
+ * Writes the characters in a {@link Writer}.
+ *
  * @author TheElectronWill
  */
 public final class WriterOutput implements CharacterOutput {
