@@ -71,6 +71,7 @@ final class ValueParser {
 	}
 
 	private static Number parseNumber(CharsWrapper valueChars) {
+		valueChars = simplifyNumber(valueChars);
 		if (valueChars.indexOfFirst(ONLY_IN_FP_NUMBER) != -1) {
 			return Utils.parseDouble(valueChars);
 		}
@@ -80,6 +81,34 @@ final class ValueParser {
 			return intValue;// returns an int if it is enough to represent the value correctly
 		}
 		return longValue;
+	}
+
+	private static CharsWrapper simplifyNumber(CharsWrapper numberChars) {
+		if (numberChars.charAt(0) == '_') {
+			throw new ParsingException("Invalid leading underscore in number " + numberChars);
+		}
+		if (numberChars.charAt(numberChars.length() - 1) == '_') {
+			throw new ParsingException("Invalid trailing underscore in number " + numberChars);
+		}
+		CharsWrapper.Builder builder = new CharsWrapper.Builder(16);
+		boolean nextCannotBeUnderscore = false;
+		for (char c : numberChars) {
+			if (c == '_') {
+				if (nextCannotBeUnderscore) {
+					throw new ParsingException("Invalid underscore followed by another one in "
+											   + "number "
+											   + numberChars);
+				} else {
+					nextCannotBeUnderscore = true;
+				}
+			} else {
+				if (nextCannotBeUnderscore) {
+					nextCannotBeUnderscore = false;
+				}
+				builder.append(c);
+			}
+		}
+		return builder.build();
 	}
 
 	private static Boolean parseFalse(CharacterInput input) {
