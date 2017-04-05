@@ -19,7 +19,7 @@ import java.util.function.Predicate;
 import static com.electronwill.nightconfig.json.MinimalJsonWriter.*;
 
 /**
- * A configurable JSON writer.
+ * A configurable <a href="http://www.json.org/">JSON</a> writer.
  *
  * @author TheElectronWill
  */
