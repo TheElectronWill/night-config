@@ -54,11 +54,12 @@ final class StringParser {
 		char c;
 		while ((c = input.readChar()) != '\"' || input.peek() != '\"' || input.peek(1) != '\"') {
 			if (c == '\\') {
-				/* TOML ignores the line break if the last non-whitespace character of the line
-				   is a backslash */
 				final char next = input.readChar();
 				if (next == '\n' || next == '\r' && input.peekChar(1) == '\n') {
-					continue;// ignores the newline
+					// Goes to the next non-space char (skips newlines too)
+					char nextNonSpace = Toml.readNonSpaceChar(input);
+					input.pushBack(nextNonSpace);
+					continue;
 				} else if (next == '\t' || next == ' ') {
 					CharsWrapper restOfLine = Toml.readLine(input);
 					if (isWhitespace(restOfLine)) {
