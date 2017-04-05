@@ -1,7 +1,9 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.io.ParsingException;
+import java.io.File;
 import java.io.StringReader;
+import java.io.StringWriter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -24,31 +26,20 @@ public class TomlParserTest {
 	}
 
 	@Test
-	public void readValidString() {
-		String toml = "string = \"value\"\n"
-					  + "integer = 2\n"
-					  + "long = 1234567890000\n"
-					  + "double = 1.2345678901\n"
-					  + "bool_array=[true, false, true, false,] # comment\n"
-					  + "[table] #comment	\n"
-					  + "	'key' = '\"literal string\"\\n\\t'\n"
-					  + "[table.subTable.subDefinedFirst]\n"
-					  + "   test = 'this is valid TOML'\n"
-					  + "[table.subTable]\n"
-					  + "    \"subkey\"=2017-02-25T12:00:01.123456789   \n"
-					  + "    date=2017-04-04\n"
-					  + "    time=16:41:20\n"
-					  + "    preciseTime=16:41:20.00700\n"
-					  + "[[array.ofTables]]\n"
-					  + "    a = false\n"
-					  + "[[array.ofTables]]\n"
-					  + "    a = [,]\n"
-					  + "[[array.ofTables]]\n"
-					  + "    a = true\n"
-					  + "basicMultiline = \"\"\"\n" + "First line\n" + "\\tSecond line\\\n "
-					  + "Still second line\"\"\"\n"
-					  + "literalMultiline= \'\'\'\n" + "First line\n" + "Second line\'\'\'";
-		parseAndPrint(toml);
+	public void readWriteReadAgain() {
+		File file = new File("test.toml");
+		TomlConfig parsed = new TomlParser().parse(file);
+
+		System.out.println("--- parsed --- \n" + parsed);
+		System.out.println("--------------------------------------------");
+		java.io.StringWriter sw = new StringWriter();
+		TomlWriter writer = new TomlWriter();
+		writer.write(parsed, sw);
+		System.out.println("--- written --- \n" + sw);
+		System.out.println("--------------------------------------------");
+
+		TomlConfig reparsed = new TomlParser().parse(new StringReader(sw.toString()));
+		System.out.println("--- reparsed --- \n" + reparsed);
 	}
 
 	@Test
@@ -91,9 +82,7 @@ public class TomlParserTest {
 	}
 
 	private void testAlreadyDefinedKey() {
-		String toml = "string = \"value\"\n"
-					  + "test = 'success'\n"
-					  + "test = 'already defined!'";
+		String toml = "string = \"value\"\n" + "test = 'success'\n" + "test = 'already defined!'";
 		parseAndPrint(toml);
 	}
 
