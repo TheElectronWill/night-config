@@ -13,7 +13,7 @@ import com.electronwill.nightconfig.core.io.Utils;
  */
 final class ValueParser {
 
-	private static final char[] END_OF_VALUE = {'\t', ' ', '\n', '\r', ','};
+	private static final char[] END_OF_VALUE = {'\t', ' ', '\n', '\r', ',', ']'};
 	private static final char[] TRUE_END = {'r', 'u', 'e'}, FALSE_END = {'a', 'l', 's', 'e'};
 	private static final char[] ONLY_IN_FP_NUMBER = {'.', 'e', 'E'};
 
