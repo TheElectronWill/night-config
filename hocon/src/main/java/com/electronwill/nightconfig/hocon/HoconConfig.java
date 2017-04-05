@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * A <a href=https://github.com/typesafehub/config/blob/master/HOCON.md>HOCON</a> configuration.
+ *
  * @author TheElectronWill
  */
 public final class HoconConfig extends MapConfig implements FileConfig {
@@ -20,13 +22,13 @@ public final class HoconConfig extends MapConfig implements FileConfig {
 	@Override
 	public boolean supportsType(Class<?> type) {
 		return type == Integer.class
-				|| type == Long.class
-				|| type == Float.class
-				|| type == Double.class
-				|| type == Boolean.class
-				|| type == String.class
-				|| List.class.isAssignableFrom(type)
-				|| Config.class.isAssignableFrom(type);
+			   || type == Long.class
+			   || type == Float.class
+			   || type == Double.class
+			   || type == Boolean.class
+			   || type == String.class
+			   || List.class.isAssignableFrom(type)
+			   || Config.class.isAssignableFrom(type);
 	}
 
 	@Override
