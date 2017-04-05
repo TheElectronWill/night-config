@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * A <a href="http://yaml.org/spec/current.html">YAML 1.1</a> configuration.
+ *
  * @author TheElectronWill
  */
 public final class YamlConfig extends MapConfig implements FileConfig {

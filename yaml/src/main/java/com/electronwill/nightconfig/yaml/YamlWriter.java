@@ -10,6 +10,8 @@ import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 /**
+ * A YAML writer that uses the snakeYaml library.
+ *
  * @author TheElectronWill
  */
 public final class YamlWriter implements ConfigWriter<Config> {
