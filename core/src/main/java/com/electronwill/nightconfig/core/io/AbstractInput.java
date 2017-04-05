@@ -6,8 +6,9 @@ package com.electronwill.nightconfig.core.io;
  * @author TheElectronWill
  */
 public abstract class AbstractInput implements CharacterInput {
-	protected static final int EOS = -1;
-
+	/**
+	 * Contains the peeked characters that haven't been read (by the read methods) yet.
+	 */
 	protected final IntDeque deque = new IntDeque();
 
 	/**
@@ -38,7 +39,7 @@ public abstract class AbstractInput implements CharacterInput {
 	public char readChar() {
 		if (!deque.isEmpty()) {
 			int next = deque.removeFirst();
-			if (next == EOS) {
+			if (next == -1) {
 				throw ParsingException.notEnoughData();
 			}
 			return (char)next;
@@ -63,8 +64,8 @@ public abstract class AbstractInput implements CharacterInput {
 			for (int i = 0; i <= diff; i++) {
 				int read = directRead();
 				deque.addLast(read);
-				if (read == EOS) {
-					return EOS;//it's useless to continue reading of the EOS has been reached
+				if (read == -1) {
+					return -1;//it's useless to continue reading of the EOS has been reached
 				}
 			}
 		}
@@ -74,7 +75,7 @@ public abstract class AbstractInput implements CharacterInput {
 	@Override
 	public char peekChar() {
 		int c = peek();
-		if (c == EOS) {
+		if (c == -1) {
 			throw ParsingException.notEnoughData();
 		}
 		return (char)c;
@@ -83,7 +84,7 @@ public abstract class AbstractInput implements CharacterInput {
 	@Override
 	public char peekChar(int n) {
 		int c = peek(n);
-		if (c == EOS) {
+		if (c == -1) {
 			throw ParsingException.notEnoughData();
 		}
 		return (char)c;
@@ -121,5 +122,28 @@ public abstract class AbstractInput implements CharacterInput {
 		}
 		deque.addFirst(c);//remember this char for later
 		return builder.build();
+	}
+
+	/**
+	 * Consumes the chars of the deque and put them in an array.
+	 *
+	 * @param array       the destination array
+	 * @param offset      the beginning index in the array
+	 * @param mustReadAll {@code true} to throw an exception if the array can't be fulled,
+	 *                    {@code false} to return a CharsWrapper containing the read characters.
+	 * @return a CharsWrapper containing the read characters if the array can't be fulled, or null
+	 */
+	protected CharsWrapper consumeDeque(char[] array, int offset, boolean mustReadAll) {
+		for (int i = 0; i < offset; i++) {
+			int next = deque.removeFirst();
+			if (next == -1) {
+				if (mustReadAll) {
+					throw ParsingException.notEnoughData();
+				}
+				return new CharsWrapper(array, 0, i);
+			}
+			array[i] = (char)next;
+		}
+		return null;
 	}
 }

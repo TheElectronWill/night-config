@@ -44,12 +44,9 @@ public final class ReaderInput extends AbstractInput {
 		   taking the characters one by one. */
 		final char[] array = new char[n];
 		final int offset = Math.min(deque.size(), n);
-		for (int i = 0; i < offset; i++) {
-			int next = deque.removeFirst();
-			if (next == EOS) {
-				return new CharsWrapper(array, 0, i);
-			}
-			array[i] = (char)next;
+		CharsWrapper smaller = consumeDeque(array, offset, false);
+		if (smaller != null) {// Less than n characters were read
+			return smaller;
 		}
 		int nRead;
 		try {
@@ -64,13 +61,7 @@ public final class ReaderInput extends AbstractInput {
 	public CharsWrapper readChars(int n) {
 		final char[] array = new char[n];
 		final int offset = Math.min(deque.size(), n);
-		for (int i = 0; i < offset; i++) {
-			int next = deque.removeFirst();
-			if (next == EOS) {
-				throw ParsingException.notEnoughData();
-			}
-			array[i] = (char)next;
-		}
+		consumeDeque(array, offset, true);
 		int length = n - offset;
 		int nRead;
 		try {
