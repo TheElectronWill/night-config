@@ -9,7 +9,8 @@ import java.util.List;
 
 /**
  * @author TheElectronWill
- * @see <a href="https://github.com/toml-lang/toml#user-content-table">TOML specification - Tables</a>
+ * @see <a href="https://github.com/toml-lang/toml#user-content-table">TOML specification -
+ * Tables</a>
  */
 final class TableParser {
 
@@ -94,29 +95,33 @@ final class TableParser {
 
 	static List<String> parseTableName(CharacterInput input, TomlParser parser) {
 		List<String> list = new ArrayList<>(parser.getInitialListCapacity());
-
-		// Special case for the first part because we need to forbid [] and [ <spaces here> ]
-		char first = input.readChar();
-		if (first == ']') {
-			throw new ParsingException("Table names must not be empty");
-		}
-		String firstKey = parseKey(input, first, parser);
-		list.add(firstKey);
-
 		while (true) {
-			char before = Toml.readNonSpaceChar(input);
-			if (before == ']') {
-				return list;
+			char firstChar = Toml.readNonSpaceChar(input);
+			if (firstChar == ']') {
+				throw new ParsingException("Tables names must not be empty.");
 			}
-			if (before != '.') {
-				throw new ParsingException("Found invalid table name: unexpected character '"
-										   + before
-										   + "' after a part of the name.");
-			}
-			char next = input.readChar();
-			String key = parseKey(input, next, parser);
+			String key = parseKey(input, firstChar, parser);
 			list.add(key);
+
+			char separator = Toml.readNonSpaceChar(input);
+			if (separator == ']') {// End of the declaration
+				return list;
+			} else if (separator != '.') {
+				throw new ParsingException("Invalid separator '" + separator + "' in table name.");
+			}
 		}
+	}
+
+	static List<String> parseTableArrayName(CharacterInput input, TomlParser parser) {
+		List<String> name = parseTableName(input, parser);
+		char after = input.readChar();
+		if (after != ']') {
+			throw new ParsingException("Invalid declaration of an element of an array of tables:"
+									   + " it ends by ]"
+									   + after
+									   + " but should end by ]]");
+		}
+		return name;
 	}
 
 	static String parseKey(CharacterInput input, char firstChar, TomlParser parser) {

@@ -38,7 +38,7 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 		while ((next = input.peek()) != -1) {
 			if (next == '[') {//[[ element of an array of tables
 				input.skipPeeks();
-				List<String> key = TableArrayParser.parseElementName(input, this);
+				List<String> key = TableParser.parseTableArrayName(input, this);
 				TomlConfig table = TableParser.parseNormal(input, this);
 				List<TomlConfig> arrayOfTables = rootTable.getValue(key);
 				if (arrayOfTables == null) {
