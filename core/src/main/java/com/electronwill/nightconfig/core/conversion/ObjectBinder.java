@@ -248,14 +248,7 @@ public final class ObjectBinder {
 					currentConfig = (BoundConfig)v;
 				} else {// then (v instanceof FieldInfos) must be true
 					FieldInfos fieldInfos = (FieldInfos)v;
-					BoundConfig boundConfig = fieldInfos.boundConfig;
-					if (boundConfig == null) {
-						throw new UnsupportedOperationException(
-								"Cannot add elements to a bound config");
-					}
-					boundConfig.object = fieldInfos.getValue(
-							currentConfig.object);// Updates the object
-					currentConfig = boundConfig;
+					currentConfig = fieldInfos.getUpdatedConfig(currentConfig.object);
 				}
 			}
 			final String lastKey = path.get(lastIndex);
@@ -330,9 +323,7 @@ public final class ObjectBinder {
 				if (o instanceof FieldInfos) {
 					FieldInfos fieldInfos = (FieldInfos)o;
 					if (fieldInfos.boundConfig != null) {
-						BoundConfig boundConfig = fieldInfos.boundConfig;
-						boundConfig.object = fieldInfos.getValue(object);// Updates the object
-						return boundConfig;
+						return fieldInfos.getUpdatedConfig(object);// Updates the object
 					}
 					return fieldInfos.getValue(object);
 				}
