@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.io.CharacterOutput;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -22,13 +23,17 @@ final class ArrayWriter {
 		if (indent) {
 			writer.increaseIndentLevel();
 		}
-		for (Object value : values) {
+		Iterator<?> iterator = values.iterator();
+		for (boolean hasNext = iterator.hasNext(); hasNext; ) {
+			Object value = iterator.next();
 			if (indent) {// Indents the first element
 				writer.writeNewline(output);
 				writer.writeIndent(output);
 			}
 			ValueWriter.write(value, output, writer);
-			output.write(ELEMENT_SEPARATOR);
+			if ((hasNext = iterator.hasNext())) {
+				output.write(ELEMENT_SEPARATOR);
+			}
 		}
 		if (indent) {
 			writer.decreaseIndentLevel();
