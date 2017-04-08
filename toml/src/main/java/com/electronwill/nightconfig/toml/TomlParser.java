@@ -38,47 +38,66 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 		while ((next = input.peek()) != -1) {
 			if (next == '[') {//[[ element of an array of tables
 				input.skipPeeks();
-				List<String> key = TableParser.parseTableArrayName(input, this);
+				List<String> path = TableParser.parseTableArrayName(input, this);
+				int lastIndex = path.size() - 1;
+				String lastKey = path.get(lastIndex);
+				Map<String, Object> parentMap = getSubTableMap(rootTable, path.subList(0, lastIndex));
+
 				TomlConfig table = TableParser.parseNormal(input, this);
-				List<TomlConfig> arrayOfTables = rootTable.getValue(key);
+				List<TomlConfig> arrayOfTables = (List)parentMap.get(lastKey);
 				if (arrayOfTables == null) {
 					arrayOfTables = new ArrayList<>(initialListCapacity);
-					rootTable.setValue(key, arrayOfTables);
+					parentMap.put(lastKey, arrayOfTables);
 				}
 				arrayOfTables.add(table);
 			} else {//[ a table
-				List<String> key = TableParser.parseTableName(input, this);
-				TomlConfig table = TableParser.parseNormal(input, this);
-				Object alreadyDefined = rootTable.getValue(key);
-				if (alreadyDefined instanceof TomlConfig) {
-					TomlConfig adTable = (TomlConfig)alreadyDefined;
-					for (Map.Entry<String, Object> entry : adTable.asMap().entrySet()) {
-						if (!(entry.getValue() instanceof TomlConfig)) {
-							throw new ParsingException("Invalid TOML data: table with path "
-													   + key
-													   + " has been declared twice.");
-						}
-					}
-					for (Map.Entry<String, Object> entry : table.asMap().entrySet()) {
-						if (adTable.asMap().containsKey(entry.getKey())) {
-							throw new ParsingException("Invalid TOML data: entry \""
-													   + entry.getKey()
-													   + "\" has been defined twice in path "
-													   + key);
-						} else {
-							adTable.asMap().put(entry.getKey(), entry.getValue());
-						}
-					}
-					adTable.asMap().putAll(table.asMap());// Merge the tables
-				} else if (alreadyDefined != null) {
-					throw new ParsingException(
-							"Invalid TOML data: entry " + key + " has been defined twice.");
+				List<String> path = TableParser.parseTableName(input, this);
+				int lastIndex = path.size() - 1;
+				String lastKey = path.get(lastIndex);
+				Map<String, Object> parentMap = getSubTableMap(rootTable, path.subList(0, lastIndex));
+
+				Object alreadyDeclared = parentMap.get(lastKey);
+				if (alreadyDeclared == null) {
+					TomlConfig table = TableParser.parseNormal(input, this);
+					parentMap.put(lastKey, table);
 				} else {
-					rootTable.setValue(key, table);
+					if (alreadyDeclared instanceof Config) {
+						TableParser.parseNormal(input, this, (Config)alreadyDeclared);
+					} else {
+						throw new ParsingException("Entry " + path + " has been defined twice.");
+					}
 				}
 			}
 		}
 		return rootTable;
+	}
+
+	private Map<String, Object> getSubTableMap(Config parentTable, List<String> path) {
+		if (path.isEmpty()) {
+			return parentTable.asMap();
+		}
+		Map<String, Object> currentMap = parentTable.asMap();
+		for (String key : path) {
+			Object value = currentMap.get(key);
+			if (value == null) {
+				Config sub = new TomlConfig();
+				currentMap.put(key, sub);
+				currentMap = sub.asMap();
+			} else if (value instanceof Config) {
+				currentMap = ((Config)value).asMap();
+			} else if (value instanceof List) {
+				List<?> list = (List<?>)value;
+				if (!list.isEmpty() && list.get(0) instanceof Config) {// Arrays of tables
+					int lastIndex = list.size() - 1;
+					currentMap = ((Config)list.get(lastIndex)).asMap();
+				} else {
+					return null;
+				}
+			} else {
+				return null;
+			}
+		}
+		return currentMap;
 	}
 
 	// --- Getters/setters for the settings ---
