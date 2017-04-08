@@ -19,9 +19,10 @@ public interface Config extends UnmodifiableConfig {
 	 *
 	 * @param path  the value's path, each part separated by a dot. Example "a.b.c"
 	 * @param value the value to set
+	 * @return the old value if any, or {@code null}
 	 */
-	default void setValue(String path, Object value) {
-		setValue(split(path, '.'), value);
+	default Object setValue(String path, Object value) {
+		return setValue(split(path, '.'), value);
 	}
 
 	/**
@@ -29,8 +30,9 @@ public interface Config extends UnmodifiableConfig {
 	 *
 	 * @param path  the value's path, each element of the list is a different part of the path.
 	 * @param value the value to set
+	 * @return the old value if any, or {@code null}
 	 */
-	void setValue(List<String> path, Object value);
+	Object setValue(List<String> path, Object value);
 
 	/**
 	 * Removes a value from the config.

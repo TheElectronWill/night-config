@@ -32,8 +32,8 @@ public final class CheckedConfig implements Config {
 	}
 
 	@Override
-	public void setValue(List<String> path, Object value) {
-		config.setValue(path, checkedValue(value));
+	public Object setValue(List<String> path, Object value) {
+		return config.setValue(path, checkedValue(value));
 	}
 
 	@Override

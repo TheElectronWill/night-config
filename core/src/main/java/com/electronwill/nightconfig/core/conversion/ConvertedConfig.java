@@ -51,8 +51,8 @@ public final class ConvertedConfig implements Config {
 	}
 
 	@Override
-	public void setValue(List<String> path, Object value) {
-		config.setValue(path, writeConversion.apply(value));
+	public Object setValue(List<String> path, Object value) {
+		return readConversion.apply(config.setValue(path, writeConversion.apply(value)));
 	}
 
 	@Override

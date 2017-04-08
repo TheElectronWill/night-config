@@ -45,7 +45,7 @@ public abstract class MapConfig implements Config {
 	}
 
 	@Override
-	public void setValue(List<String> path, Object value) {
+	public Object setValue(List<String> path, Object value) {
 		final int lastIndex = path.size() - 1;
 		Map<String, Object> currentMap = map;
 		for (String currentKey : path.subList(0, lastIndex)) {
@@ -64,7 +64,7 @@ public abstract class MapConfig implements Config {
 			currentMap = config.asMap();
 		}
 		String lastKey = path.get(lastIndex);
-		currentMap.put(lastKey, value);
+		return currentMap.put(lastKey, value);
 	}
 
 	protected abstract MapConfig createSubConfig();

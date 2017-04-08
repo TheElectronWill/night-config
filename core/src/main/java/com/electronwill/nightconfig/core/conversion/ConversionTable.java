@@ -153,8 +153,8 @@ public final class ConversionTable {
 	public Config wrapRead(Config config) {
 		return new Config() {
 			@Override
-			public void setValue(List<String> path, Object value) {
-				config.setValue(path, value);
+			public Object setValue(List<String> path, Object value) {
+				return convert(config.setValue(path, value));
 			}
 
 			@Override
@@ -204,8 +204,8 @@ public final class ConversionTable {
 	public Config wrapWrite(Config config, Predicate<Class<?>> supportValueTypePredicate) {
 		return new Config() {
 			@Override
-			public void setValue(List<String> path, Object value) {
-				config.setValue(path, convert(value));
+			public Object setValue(List<String> path, Object value) {
+				return config.setValue(path, convert(value));
 			}
 
 			@Override

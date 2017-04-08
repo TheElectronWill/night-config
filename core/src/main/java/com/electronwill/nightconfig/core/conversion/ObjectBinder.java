@@ -287,12 +287,12 @@ public final class ObjectBinder {
 		}
 
 		@Override
-		public void setValue(List<String> path, Object value) {
+		public Object setValue(List<String> path, Object value) {
 			final BoundSearchResult searchResult = searchInfosOrConfig(path);
 			if (searchResult == null) {
 				throw new UnsupportedOperationException("Cannot add elements to a bound config");
 			} else if (searchResult.hasFieldInfos()) {
-				searchResult.fieldInfos.setValue(searchResult.parentConfig.object, value,
+				return searchResult.fieldInfos.setValue(searchResult.parentConfig.object, value,
 												 bypassFinal);
 			} else {
 				throw new UnsupportedOperationException(
@@ -390,12 +390,14 @@ public final class ObjectBinder {
 			this.boundConfig = boundConfig;
 		}
 
-		void setValue(Object fieldObject, Object value, boolean bypassFinal) {
+		Object setValue(Object fieldObject, Object value, boolean bypassFinal) {
 			if (!bypassFinal && Modifier.isFinal(field.getModifiers())) {
 				throw new UnsupportedOperationException("Cannot modify the field " + field);
 			}
 			try {
+				Object previousValue = field.get(fieldObject);
 				field.set(fieldObject, value);
+				return previousValue;
 			} catch (IllegalAccessException e) {
 				throw new ReflectionException("Failed to set field " + field, e);
 			}
