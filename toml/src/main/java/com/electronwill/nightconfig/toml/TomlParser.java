@@ -42,7 +42,10 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 				int lastIndex = path.size() - 1;
 				String lastKey = path.get(lastIndex);
 				Map<String, Object> parentMap = getSubTableMap(rootTable, path.subList(0, lastIndex));
-
+				if (parentMap == null) {
+					throw new ParsingException("Cannot create entry " + path + " because of an invalid " +
+						"parent that isn't a table.");
+				}
 				TomlConfig table = TableParser.parseNormal(input, this);
 				List<TomlConfig> arrayOfTables = (List)parentMap.get(lastKey);
 				if (arrayOfTables == null) {
@@ -55,7 +58,10 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 				int lastIndex = path.size() - 1;
 				String lastKey = path.get(lastIndex);
 				Map<String, Object> parentMap = getSubTableMap(rootTable, path.subList(0, lastIndex));
-
+				if (parentMap == null) {
+					throw new ParsingException("Cannot create entry " + path + " because of an invalid " +
+						"parent that isn't a table.");
+				}
 				Object alreadyDeclared = parentMap.get(lastKey);
 				if (alreadyDeclared == null) {
 					TomlConfig table = TableParser.parseNormal(input, this);
