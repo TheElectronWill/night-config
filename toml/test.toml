@@ -1,0 +1,61 @@
+string = "value"
+integer = 2
+long = 1234567890000
+double = 1.2345678901
+spaces = 10_000_999.01_02_03 # this is valid!
+bool_array = [true, false, true, false,] # comment
+int_array = [0, 2]
+nested_arrays = [ [1], [true, false], ['a', "b"]]
+multilineArray = [
+    "string",
+    #comment
+    'string',
+    '''multiline
+    string''',
+    """multiline
+    string"""
+]
+
+basicMultiline = """
+First line
+\tSecond line_\
+       Still second line"""
+literalMultiline= '''
+First line
+Second line'''
+
+[table] #comment
+    'key' = '"literal string"\n\t'
+[table.subTable.subDefinedFirst]
+    test = 'this is valid TOML'
+[table.subTable]
+    "subkey"=2017-02-25T12:00:01.123456789
+    date=2017-04-04
+    time=16:41:20
+    preciseTime=16:41:20.00700
+
+[[  array  .  ofTables  ]]
+    a = false
+[[array.ofTables]]
+    a = [,]# This is an empty array
+[[array.ofTables]]
+    a = true
+
+[[fruit]]
+  name = "apple"
+
+  [fruit.physical]
+    color = "red"
+    shape = "round"
+
+  [[fruit.variety]]
+    name = "red delicious"
+
+  [[fruit.variety]]
+    name = "granny smith"
+
+[[fruit]]
+  name = "banana"
+
+  [[fruit.variety]]
+    name = "plantain"

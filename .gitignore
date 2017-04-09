@@ -18,6 +18,3 @@ nbproject
 *.iml
 .idea
 
-# Test files
-json/test.json
-toml/test.toml
