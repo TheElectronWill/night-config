@@ -1,10 +1,14 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.serialization.ParsingException;
+import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author TheElectronWill
@@ -24,31 +28,21 @@ public class TomlParserTest {
 	}
 
 	@Test
-	public void readValidString() {
-		String toml = "string = \"value\"\n"
-					  + "integer = 2\n"
-					  + "long = 1234567890000\n"
-					  + "double = 1.2345678901\n"
-					  + "bool_array=[true, false, true, false,] # comment\n"
-					  + "[table] #comment	\n"
-					  + "	'key' = '\"literal string\"\\n\\t'\n"
-					  + "[table.subTable.subDefinedFirst]\n"
-					  + "   test = 'this is valid TOML'\n"
-					  + "[table.subTable]\n"
-					  + "    \"subkey\"=2017-02-25T12:00:01.123456789   \n"
-					  + "    date=2017-04-04\n"
-					  + "    time=16:41:20\n"
-					  + "    preciseTime=16:41:20.00700\n"
-					  + "[[array.ofTables]]\n"
-					  + "    a = false\n"
-					  + "[[array.ofTables]]\n"
-					  + "    a = [,]\n"
-					  + "[[array.ofTables]]\n"
-					  + "    a = true\n"
-					  + "basicMultiline = \"\"\"\n" + "First line\n" + "\\tSecond line\\\n "
-					  + "Still second line\"\"\"\n"
-					  + "literalMultiline= \'\'\'\n" + "First line\n" + "Second line\'\'\'";
-		parseAndPrint(toml);
+	public void readValidString() throws IOException {
+		File file = new File("test.toml");
+		TomlConfig parsed = new TomlParser().parseConfig(file);
+
+		System.out.println("--- parsed --- \n" + parsed);
+		System.out.println("--------------------------------------------");
+		java.io.StringWriter sw = new java.io.StringWriter();
+		TomlWriter writer = new TomlWriter();
+		writer.writeConfig(parsed, sw);
+		System.out.println("--- written --- \n" + sw);
+		System.out.println("--------------------------------------------");
+
+		TomlConfig reparsed = new TomlParser().parseConfig(new StringReader(sw.toString()));
+		System.out.println("--- reparsed --- \n" + reparsed);
+		assertEquals(parsed, reparsed);
 	}
 
 	@Test

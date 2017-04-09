@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.serialization.CharacterInput;
+import com.electronwill.nightconfig.core.serialization.CharsWrapper;
 import com.electronwill.nightconfig.core.serialization.Utils;
 
 /**
@@ -8,10 +9,10 @@ import com.electronwill.nightconfig.core.serialization.Utils;
  */
 final class Toml {
 
-	static final char[] WHITESPACE_OR_NEWLINE = {'\t', ' ', '\n', '\r'};
-	static final char[] WHITESPACE = {'\t', ' '};
-	static final char[] NEWLINE = {'\n'};
-	static final char[] FORBIDDEN_IN_ALL_BARE_KEYS = {'.', '[', ']', '#', '='};
+	private static final char[] WHITESPACE_OR_NEWLINE = {'\t', ' ', '\n', '\r'};
+	private static final char[] WHITESPACE = {'\t', ' '};
+	private static final char[] NEWLINE = {'\n'};
+	private static final char[] FORBIDDEN_IN_ALL_BARE_KEYS = {'.', '[', ']', '#', '='};
 
 	/**
 	 * Returns the next "useful" character. Skips comments, spaces and newlines.
@@ -25,14 +26,9 @@ final class Toml {
 		return next;
 	}
 
-	static char readNonSpaceChar(CharacterInput input) {
-		return input.readCharAndSkip(WHITESPACE);
-	}
-
-	static void skipComment(CharacterInput input) {
-		input.readCharsUntil(NEWLINE);
-	}
-
+	/**
+	 * Returns the next "useful" character. Skips comments, spaces and newlines.
+	 */
 	static int readUseful(CharacterInput input) {
 		int next = input.readAndSkip(WHITESPACE_OR_NEWLINE);
 		while (next == '#') {
@@ -42,19 +38,39 @@ final class Toml {
 		return next;
 	}
 
+	/**
+	 * Reads the next non-space character. Doesn't skip comments.
+	 */
+	static char readNonSpaceChar(CharacterInput input) {
+		return input.readCharAndSkip(WHITESPACE);
+	}
+
+	/**
+	 * Reads the next non-space character. Doesn't skip comments.
+	 */
 	static int readNonSpace(CharacterInput input) {
 		return input.readAndSkip(WHITESPACE);
 	}
 
+	/**
+	 * Reads all the characters before the next newline.
+	 */
+	static CharsWrapper readLine(CharacterInput input) {
+		return input.readCharsUntil(NEWLINE);
+	}
+
 	static boolean isValidInBareKey(char c, boolean lenient) {
-		if (lenient) return c > ' ' && !Utils.arrayContains(FORBIDDEN_IN_ALL_BARE_KEYS, c);
-		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_';
+		if (lenient) { return c > ' ' && !Utils.arrayContains(FORBIDDEN_IN_ALL_BARE_KEYS, c); }
+		return (c >= 'a' && c <= 'z')
+			   || (c >= 'A' && c <= 'Z')
+			   || (c >= '0' && c <= '9')
+			   || c == '-'
+			   || c == '_';
 	}
 
 	static boolean isValidBareKey(CharSequence csq, boolean lenient) {
 		for (int i = 0; i < csq.length(); i++) {
-			if (!isValidInBareKey(csq.charAt(i), lenient))
-				return false;
+			if (!isValidInBareKey(csq.charAt(i), lenient)) { return false; }
 		}
 		return true;
 	}

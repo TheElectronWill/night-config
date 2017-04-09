@@ -10,18 +10,34 @@ import java.util.List;
  * @see <a href="https://github.com/toml-lang/toml#user-content-array">TOML specification - Arrays</a>
  */
 final class ArrayParser {
-	static List<?> parseArray(CharacterInput input, TomlParser parser) {
+	/**
+	 * Parses a plain array, not an array of tables.
+	 */
+	static List<?> parse(CharacterInput input, TomlParser parser) {
 		List<Object> list = new ArrayList<>(parser.getInitialListCapacity());
 		while (true) {
 			char firstChar = Toml.readUsefulChar(input);
-			if (firstChar == ']') return list;//handle [] and [v1,v2,... ,]
-
-			Object value = ValueParser.parseValue(input, firstChar, parser);
+			if (firstChar == ']') {// End of the array
+				return list;// handle [] and [v1,v2,... ,]
+			} else if (firstChar == ',') {// Handles [,] which is an empty array too
+				char nextChar = Toml.readUsefulChar(input);
+				if (nextChar == ']') {
+					return list;
+				}
+				throw new ParsingException("Unexpected character in array: '"
+										   + nextChar
+										   + "' - "
+										   + "Expected end of array because of the leading comma.");
+			}
+			Object value = ValueParser.parse(input, firstChar, parser);
 			list.add(value);
-
 			char after = Toml.readUsefulChar(input);
-			if (after == ']') return list;
-			if (after != ',') throw new ParsingException("Invalid separator '" + after + "' in array.");
+			if (after == ']') {// End of the array
+				return list;
+			}
+			if (after != ',') {// Invalid character between two elements of the array
+				throw new ParsingException("Invalid separator '" + after + "' in array.");
+			}
 		}
 	}
 

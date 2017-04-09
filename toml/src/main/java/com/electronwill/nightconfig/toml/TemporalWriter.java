@@ -50,13 +50,13 @@ final class TemporalWriter {
 			int nanos = temporal.get(ChronoField.NANO_OF_SECOND);
 			if (nanos != 0) {
 				output.write('.');
-				writeTrimmed(nanos, output);
+				writePaddedAndTrimmed(nanos, 9, output);
 			}
 		} else if (temporal.isSupported(ChronoField.MILLI_OF_SECOND)) {
 			int millis = temporal.get(ChronoField.MILLI_OF_SECOND);
 			if (millis != 0) {
 				output.write('.');
-				writeTrimmed(millis, output);
+				writePaddedAndTrimmed(millis, 6, output);
 			}
 		}
 	}
@@ -69,11 +69,16 @@ final class TemporalWriter {
 		output.write(str);
 	}
 
-	private static void writeTrimmed(int value, CharacterOutput output) {
+	private static void writePaddedAndTrimmed(int value, int numberOfDigits, CharacterOutput output) {
 		String str = Integer.toString(value);
 		int length = str.length();
+		for (int i = length; i < numberOfDigits; i++) {
+			output.write('0');
+		}
 		for (int i = length - 1; i >= 1; i--) {
-			if (str.charAt(i) == '0') length--;
+			if (str.charAt(i) == '0') {
+				length--;
+			}
 		}
 		output.write(str, 0, length);
 	}

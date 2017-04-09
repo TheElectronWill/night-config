@@ -1,15 +1,18 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.serialization.CharacterOutput;
-import com.electronwill.nightconfig.core.serialization.CharsWrapper;
 
 /**
  * @author TheElectronWill
  */
 final class StringWriter {
-	private static final char[] ESCAPED_B = {'\\', 'b'}, ESCAPED_F = {'\\', 'f'}, ESCAPED_N = {'\\', 'n'},
-		ESCAPED_R = {'\\', 'r'}, ESCAPED_T = {'\\', 't'}, ESCAPED_BACKSLASH = {'\\', '\\'}, ESCAPED_QUOTE =
-		{'\\', '\"'};
+	private static final char[] ESCAPED_B = {'\\', 'b'},
+								ESCAPED_F = {'\\', 'f'},
+								ESCAPED_N = {'\\', 'n'},
+								ESCAPED_R = {'\\', 'r'},
+								ESCAPED_T = {'\\', 't'},
+								ESCAPED_BACKSLASH = {'\\', '\\'},
+								ESCAPED_QUOTE = {'\\', '\"'};
 
 	static void writeBasic(CharSequence csq, CharacterOutput output) {
 		output.write('\"');
@@ -23,12 +26,6 @@ final class StringWriter {
 	static void writeLiteral(String str, CharacterOutput output) {
 		output.write('\'');
 		output.write(str);
-		output.write('\'');
-	}
-
-	static void writeLiteral(CharsWrapper cw, CharacterOutput output) {
-		output.write('\'');
-		output.write(cw);
 		output.write('\'');
 	}
 

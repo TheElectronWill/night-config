@@ -10,23 +10,36 @@ import java.util.List;
 final class ArrayWriter {
 	private static final char[] EMPTY_ARRAY = {'[', ']'}, ELEMENT_SEPARATOR = {',', ' '};
 
-	static void writeArray(List<?> values, CharacterOutput output) {
+	/**
+	 * Writes a plain array, not an array of tables.
+	 */
+	static void write(List<?> values, CharacterOutput output, TomlWriter writer) {
 		if (values.isEmpty()) {
 			output.write(EMPTY_ARRAY);
 			return;
 		}
 		output.write('[');
-		Iterator<?> it = values.iterator();
-		while (true) {
-			Object next = it.next();
-			output.write(next.toString());
-			if (it.hasNext()) {
+		boolean indent = writer.getIndentArrayElementsPredicate().test(values);
+		if (indent) {
+			writer.increaseIndentLevel();
+		}
+		Iterator<?> iterator = values.iterator();
+		for (boolean hasNext = iterator.hasNext(); hasNext; ) {
+			Object value = iterator.next();
+			if (indent) {// Indents the first element
+				writer.writeNewline(output);
+				writer.writeIndent(output);
+			}
+			ValueWriter.write(value, output, writer);
+			if ((hasNext = iterator.hasNext())) {
 				output.write(ELEMENT_SEPARATOR);
-			} else {
-				output.write(']');
-				return;
 			}
 		}
+		if (indent) {
+			writer.decreaseIndentLevel();
+			writer.writeNewline(output);
+		}
+		output.write(']');
 	}
 
 	private ArrayWriter() {}

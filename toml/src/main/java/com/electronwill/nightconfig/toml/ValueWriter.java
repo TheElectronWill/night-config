@@ -9,18 +9,20 @@ import java.util.List;
  * @author TheElectronWill
  */
 final class ValueWriter {
-	static void writeValue(Object value, CharacterOutput output, TomlWriter writer) {
-		//System.out.println("writeValue: (" + value.getClass() + ") " + value);//TODO debug
+	/**
+	 * Writes a value. This method calls the correct writing method based on the value's type.
+	 */
+	static void write(Object value, CharacterOutput output, TomlWriter writer) {
 		if (value instanceof Config) {
 			TableWriter.writeInline((Config)value, output, writer);
 		} else if (value instanceof List) {
 			List<?> list = (List<?>)value;
-			if (!list.isEmpty() && list.get(0) instanceof Config) {
+			if (!list.isEmpty() && list.get(0) instanceof Config) {// Array of tables
 				for (Object table : list) {
 					TableWriter.writeInline((Config)table, output, writer);
 				}
-			} else {
-				ArrayWriter.writeArray((List<?>)value, output);
+			} else {// Normal array
+				ArrayWriter.write((List<?>)value, output, writer);
 			}
 		} else if (value instanceof String) {
 			String string = (String)value;
@@ -32,7 +34,7 @@ final class ValueWriter {
 		} else if (value instanceof Temporal) {
 			TemporalWriter.write((Temporal)value, output);
 		} else {
-			//Note: TOML doesn't support null values
+			// Note: TOML doesn't support null values
 			output.write(value.toString());
 		}
 	}

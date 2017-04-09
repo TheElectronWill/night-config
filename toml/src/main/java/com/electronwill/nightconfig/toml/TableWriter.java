@@ -13,9 +13,12 @@ import java.util.Map;
  */
 final class TableWriter {
 
-	private static final char[] KEY_VALUE_SEPARATOR = {' ', '=', ' '}, AFTER_INLINE_ENTRY = {',', ' '},
-		ARRAY_OF_TABLES_NAME_BEGIN = {'[', '['}, ARRAY_OF_TABLES_NAME_END = {']', ']'},
-		TABLE_NAME_BEGIN = {'['}, TABLE_NAME_END = {']'};
+	private static final char[] KEY_VALUE_SEPARATOR = {' ', '=', ' '},
+								AFTER_INLINE_ENTRY = {',', ' '},
+								ARRAY_OF_TABLES_NAME_BEGIN = {'[', '['},
+								ARRAY_OF_TABLES_NAME_END = {']', ']'},
+								TABLE_NAME_BEGIN = {'['},
+								TABLE_NAME_END = {']'};
 
 	static void writeInline(Config config, CharacterOutput output, TomlWriter writer) {
 		output.write('{');
@@ -28,22 +31,24 @@ final class TableWriter {
 				StringWriter.writeBasic(key, output);
 			}
 			output.write(KEY_VALUE_SEPARATOR);
-			ValueWriter.writeValue(value, output, writer);
+			ValueWriter.write(value, output, writer);
 			output.write(AFTER_INLINE_ENTRY);
 		}
 		output.write('}');
 	}
 
-	static void writeNormal(Config config, List<String> configKey, CharacterOutput output, TomlWriter writer) {
+	private static void writeNormal(Config config, List<String> configKey, CharacterOutput output,
+									TomlWriter writer) {
 		List<Map.Entry<String, Object>> tablesEntries = new ArrayList<>();
 		List<Map.Entry<String, Object>> tableArraysEntries = new ArrayList<>();
 
-		//Writes the "simple" values:
-		writer.increaseIndentLevel();//Indent++
+		// Writes the "simple" values:
+		writer.increaseIndentLevel();// Indent++
 		for (Map.Entry<String, Object> entry : config.asMap().entrySet()) {
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
-			if (value instanceof Config && !writer.getWriteTableInlinePredicate().test((Config)value)) {
+			if (value instanceof Config && !writer.getWriteTableInlinePredicate()
+												  .test((Config)value)) {
 				tablesEntries.add(entry);
 				continue;
 			} else if (value instanceof List) {
@@ -53,52 +58,54 @@ final class TableWriter {
 					continue;
 				}
 			}
-			writer.writeIndent(output);//Indents the line.
+			writer.writeIndent(output);// Indents the line.
 			if (Toml.isValidBareKey(key, writer.isLenientWithBareKeys())) {
 				output.write(key);
 			} else {
 				StringWriter.writeBasic(key, output);
 			}
 			output.write(KEY_VALUE_SEPARATOR);
-			ValueWriter.writeValue(value, output, writer);
-			output.write(writer.getNewline());
+			ValueWriter.write(value, output, writer);
+			writer.writeNewline(output);
 
 		}
-		output.write(writer.getNewline());
+		writer.writeNewline(output);
 
-		//Writes the tables:
+		// Writes the tables:
 		for (Map.Entry<String, Object> entry : tablesEntries) {
 			configKey.add(entry.getKey());
 			writeTableName(configKey, output, writer);
-			output.write(writer.getNewline());
+			writer.writeNewline(output);
 			writeNormal((Config)entry.getValue(), configKey, output, writer);
 			configKey.remove(configKey.size() - 1);
 		}
 
-		//Writes the arrays of tables:
+		// Writes the arrays of tables:
 		for (Map.Entry<String, Object> entry : tableArraysEntries) {
 			configKey.add(entry.getKey());
-			List<Config> tableArray = (List<Config>)entry.getValue();
+			List<Config> tableArray = (List)entry.getValue();
 			for (Config table : tableArray) {
 				writeTableArrayName(configKey, output, writer);
-				output.write(writer.getNewline());
+				writer.writeNewline(output);
 				writeNormal(table, configKey, output, writer);
 			}
 			configKey.remove(configKey.size() - 1);
 		}
-		writer.decreaseIndentLevel();//Indent--
+		writer.decreaseIndentLevel();// Indent--
 	}
 
-	static void writeTableArrayName(List<String> name, CharacterOutput output, TomlWriter writer) {
+	private static void writeTableArrayName(List<String> name, CharacterOutput output,
+											TomlWriter writer) {
 		writeTableName(name, output, writer, ARRAY_OF_TABLES_NAME_BEGIN, ARRAY_OF_TABLES_NAME_END);
 	}
 
-	static void writeTableName(List<String> name, CharacterOutput output, TomlWriter writer) {
+	private static void writeTableName(List<String> name, CharacterOutput output,
+									   TomlWriter writer) {
 		writeTableName(name, output, writer, TABLE_NAME_BEGIN, TABLE_NAME_END);
 	}
 
-	private static void writeTableName(List<String> name, CharacterOutput output, TomlWriter writer, char[] begin,
-									   char[] end) {
+	private static void writeTableName(List<String> name, CharacterOutput output, TomlWriter writer,
+									   char[] begin, char[] end) {
 		if (name.isEmpty()) {
 			throw new WritingException("Invalid empty table name.");
 		}
@@ -123,7 +130,8 @@ final class TableWriter {
 		output.write(end);
 	}
 
-	static void writeSmartly(Config config, List<String> key, CharacterOutput output, TomlWriter writer) {
+	static void writeSmartly(Config config, List<String> key, CharacterOutput output,
+							 TomlWriter writer) {
 		if (writer.getWriteTableInlinePredicate().test(config)) {
 			writeInline(config, output, writer);
 		} else {

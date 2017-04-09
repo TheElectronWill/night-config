@@ -13,17 +13,20 @@ import com.electronwill.nightconfig.core.serialization.Utils;
  */
 final class ValueParser {
 
-	private static final char[] END_OF_VALUE = {'\t', ' ', '\n', '\r', ','};
+	private static final char[] END_OF_VALUE = {'\t', ' ', '\n', '\r', ',', ']'};
 	private static final char[] TRUE_END = {'r', 'u', 'e'}, FALSE_END = {'a', 'l', 's', 'e'};
 	private static final char[] ONLY_IN_FP_NUMBER = {'.', 'e', 'E'};
 
-	static Object parseValue(CharacterInput input, char firstChar, TomlParser parser) {
-		//System.out.println("parseValue(" + firstChar + ")");//TODO debug
+	/**
+	 * Parses a TOML value. The value's type is determinated with the first character, and with
+	 * the next ones if necessary.
+	 */
+	static Object parse(CharacterInput input, char firstChar, TomlParser parser) {
 		switch (firstChar) {
 			case '{':
 				return TableParser.parseInline(input, parser);
 			case '[':
-				return ArrayParser.parseArray(input, parser);
+				return ArrayParser.parse(input, parser);
 			case '\'':
 				if (input.peek() == '\'' && input.peek(1) == '\'') {
 					input.skipPeeks();// Don't include the opening quotes in the String
@@ -50,10 +53,15 @@ final class ValueParser {
 		}
 	}
 
+	static Object parse(CharacterInput input, TomlParser parser) {
+		return parse(input, Toml.readNonSpaceChar(input), parser);
+	}
+
 	private static Object parseNumberOrDateTime(CharacterInput input) {
 		CharsWrapper valueChars = input.readUntil(END_OF_VALUE);
-		if (TemporalParser.shouldBeTemporal(valueChars))
-			return TemporalParser.parseTemporal(valueChars);
+		if (TemporalParser.shouldBeTemporal(valueChars)) {
+			return TemporalParser.parse(valueChars);
+		}
 		return parseNumber(valueChars);
 	}
 
@@ -63,19 +71,51 @@ final class ValueParser {
 	}
 
 	private static Number parseNumber(CharsWrapper valueChars) {
+		valueChars = simplifyNumber(valueChars);
 		if (valueChars.indexOfFirst(ONLY_IN_FP_NUMBER) != -1) {
 			return Utils.parseDouble(valueChars);
 		}
 		long longValue = Utils.parseLong(valueChars, 10);
 		int intValue = (int)longValue;
-		if (intValue == longValue) return intValue;//returns an int if it is enough
+		if (intValue == longValue) {
+			return intValue;// returns an int if it is enough to represent the value correctly
+		}
 		return longValue;
+	}
+
+	private static CharsWrapper simplifyNumber(CharsWrapper numberChars) {
+		if (numberChars.charAt(0) == '_') {
+			throw new ParsingException("Invalid leading underscore in number " + numberChars);
+		}
+		if (numberChars.charAt(numberChars.length() - 1) == '_') {
+			throw new ParsingException("Invalid trailing underscore in number " + numberChars);
+		}
+		CharsWrapper.Builder builder = new CharsWrapper.Builder(16);
+		boolean nextCannotBeUnderscore = false;
+		for (char c : numberChars) {
+			if (c == '_') {
+				if (nextCannotBeUnderscore) {
+					throw new ParsingException("Invalid underscore followed by another one in "
+											   + "number "
+											   + numberChars);
+				} else {
+					nextCannotBeUnderscore = true;
+				}
+			} else {
+				if (nextCannotBeUnderscore) {
+					nextCannotBeUnderscore = false;
+				}
+				builder.append(c);
+			}
+		}
+		return builder.build();
 	}
 
 	private static Boolean parseFalse(CharacterInput input) {
 		CharsWrapper remaining = input.readUntil(END_OF_VALUE);
 		if (!remaining.contentEquals(FALSE_END)) {
-			throw new ParsingException("Invalid value f" + remaining + " - Expected the boolean value false.");
+			throw new ParsingException(
+					"Invalid value f" + remaining + " - Expected the boolean value false.");
 		}
 		return false;
 	}
@@ -83,14 +123,10 @@ final class ValueParser {
 	private static Boolean parseTrue(CharacterInput input) {
 		CharsWrapper remaining = input.readUntil(END_OF_VALUE);
 		if (!remaining.contentEquals(TRUE_END)) {
-			throw new ParsingException("Invalid value t" + remaining + " - Expected the boolean value true.");
+			throw new ParsingException(
+					"Invalid value t" + remaining + " - Expected the boolean value true.");
 		}
 		return true;
-	}
-
-	static Object parseValue(CharacterInput input, TomlParser parser) {
-		char firstChar = Toml.readNonSpaceChar(input);
-		return parseValue(input, firstChar, parser);
 	}
 
 	private ValueParser() {}

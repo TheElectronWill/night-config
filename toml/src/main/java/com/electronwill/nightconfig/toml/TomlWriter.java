@@ -14,6 +14,7 @@ import java.util.function.Predicate;
  * @author TheElectronWill
  */
 public final class TomlWriter implements ConfigWriter<Config> {
+	// --- Writer's settings ---
 	private boolean lenientBareKeys = false;
 	private Predicate<Config> writeTableInlinePredicate = Config::isEmpty;
 	private Predicate<String> writeStringLiteralPredicate = c -> false;
@@ -22,12 +23,14 @@ public final class TomlWriter implements ConfigWriter<Config> {
 	private char[] newline = System.getProperty("line.separator").toCharArray();
 	private int currentIndentLevel;
 
+	// --- Writer's methods ---
 	@Override
 	public void writeConfig(Config config, Writer writer) throws IOException {
 		currentIndentLevel = -1;//-1 to make the root entries not indented
 		TableWriter.writeSmartly(config, new ArrayList<>(), new WriterOutput(writer), this);
 	}
 
+	// --- Getters/setters for the settings ---
 	public boolean isLenientWithBareKeys() {
 		return lenientBareKeys;
 	}
@@ -84,6 +87,7 @@ public final class TomlWriter implements ConfigWriter<Config> {
 		setNewline(newline.toCharArray());
 	}
 
+	// --- Methods used by the writing classes ---
 	void increaseIndentLevel() {
 		currentIndentLevel++;
 	}
@@ -96,5 +100,9 @@ public final class TomlWriter implements ConfigWriter<Config> {
 		for (int i = 0; i < currentIndentLevel; i++) {
 			output.write(indent);
 		}
+	}
+
+	void writeNewline(CharacterOutput output) {
+		output.write(newline);
 	}
 }
