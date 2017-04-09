@@ -6,6 +6,15 @@ spaces = 10_000_999.01_02_03 # this is valid!
 bool_array = [true, false, true, false,] # comment
 int_array = [0, 2]
 nested_arrays = [ [1], [true, false], ['a', "b"]]
+multilineArray = [
+    "string",
+    #comment
+    'string',
+    '''multiline
+    string''',
+    """multiline
+    string"""
+]
 
 basicMultiline = """
 First line
