@@ -68,7 +68,9 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 					parentMap.put(lastKey, table);
 				} else {
 					if (alreadyDeclared instanceof Config) {
-						TableParser.parseNormal(input, this, (Config)alreadyDeclared);
+						Config table = (Config)alreadyDeclared;
+						checkContainsOnlySubtables(table, path);
+						TableParser.parseNormal(input, this, table);
 					} else {
 						throw new ParsingException("Entry " + path + " has been defined twice.");
 					}
@@ -104,6 +106,14 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 			}
 		}
 		return currentMap;
+	}
+
+	private void checkContainsOnlySubtables(Config table, List<String> path) {
+		for (Object value : table.asMap().values()) {
+			if (!(value instanceof Config)) {
+				throw new ParsingException("Table with path " + path + " has been declared twice.");
+			}
+		}
 	}
 
 	// --- Getters/setters for the settings ---
