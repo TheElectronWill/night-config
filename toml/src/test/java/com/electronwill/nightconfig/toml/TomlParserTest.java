@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 /**
  * @author TheElectronWill
  */
@@ -40,6 +42,7 @@ public class TomlParserTest {
 
 		TomlConfig reparsed = new TomlParser().parse(new StringReader(sw.toString()));
 		System.out.println("--- reparsed --- \n" + reparsed);
+		assertEquals(parsed, reparsed);
 	}
 
 	@Test
@@ -51,6 +54,9 @@ public class TomlParserTest {
 		assertThrows(ParsingException.class, this::testInvalidKeyValueSeparator);
 		assertThrows(ParsingException.class, this::testInvalidArrayValueSeparator);
 		assertThrows(ParsingException.class, this::testInvalidInlineEntrySeparator);
+		assertThrows(ParsingException.class, this::testInvalidNotAComment);
+		assertThrows(ParsingException.class, this::testInvalidNotAComment2);
+		assertThrows(ParsingException.class, this::testInvalidUnquotedString);
 		assertThrows(ParsingException.class, this::testInvalidTableDeclaration);
 		assertThrows(ParsingException.class, this::testInvalidTableDeclaration2);
 		assertThrows(ParsingException.class, this::testInvalidTableDeclaration3);
@@ -99,6 +105,21 @@ public class TomlParserTest {
 
 	private void testInvalidArrayValueSeparator() {
 		String toml = "array = [0,1,2,3;4]\n";
+		parseAndPrint(toml);
+	}
+
+	private void testInvalidNotAComment() {
+		String toml = "value = 'literal string' this is not a real comment";
+		parseAndPrint(toml);
+	}
+
+	private void testInvalidNotAComment2() {
+		String toml = "value = 2.7 this is not a real comment";
+		parseAndPrint(toml);
+	}
+
+	private void testInvalidUnquotedString() {
+		String toml = "string = this is invalid";
 		parseAndPrint(toml);
 	}
 
@@ -151,4 +172,5 @@ public class TomlParserTest {
 		String toml = "[[missing.closing.bracket] \n";
 		parseAndPrint(toml);
 	}
+
 }
