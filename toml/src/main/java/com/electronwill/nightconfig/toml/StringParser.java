@@ -55,7 +55,7 @@ final class StringParser {
 		while ((c = input.readChar()) != '\"' || input.peek() != '\"' || input.peek(1) != '\"') {
 			if (c == '\\') {
 				final char next = input.readChar();
-				if (next == '\n' || next == '\r' && input.peekChar(1) == '\n') {
+				if (next == '\n' || next == '\r' && input.peekChar() == '\n') {
 					// Goes to the next non-space char (skips newlines too)
 					char nextNonSpace = Toml.readNonSpaceChar(input);
 					input.pushBack(nextNonSpace);
