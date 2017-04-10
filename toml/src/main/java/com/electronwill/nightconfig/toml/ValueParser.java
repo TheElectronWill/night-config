@@ -54,7 +54,7 @@ final class ValueParser {
 	}
 
 	static Object parse(CharacterInput input, TomlParser parser) {
-		return parse(input, Toml.readNonSpaceChar(input), parser);
+		return parse(input, Toml.readNonSpaceChar(input, false), parser);
 	}
 
 	private static Object parseNumberOrDateTime(CharacterInput input) {

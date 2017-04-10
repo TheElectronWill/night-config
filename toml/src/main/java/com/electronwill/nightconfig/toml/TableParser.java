@@ -19,12 +19,12 @@ final class TableParser {
 	static TomlConfig parseInline(CharacterInput input, TomlParser parser) {
 		TomlConfig config = new TomlConfig();
 		while (true) {
-			char keyFirst = Toml.readNonSpaceChar(input);
+			char keyFirst = Toml.readNonSpaceChar(input, false);
 			if (keyFirst == '}') {
 				return config;// handles {} and {k1=v1,... ,}
 			}
 			String key = parseKey(input, keyFirst, parser);
-			char sep = Toml.readNonSpaceChar(input);
+			char sep = Toml.readNonSpaceChar(input, false);
 			checkInvalidSeparator(sep, key);
 
 			Object value = ValueParser.parse(input, parser);
@@ -32,7 +32,7 @@ final class TableParser {
 																		order to be faster) */
 			checkDuplicateKey(key, previous);
 
-			char after = Toml.readNonSpaceChar(input);
+			char after = Toml.readNonSpaceChar(input, false);
 			if (after == '}') {
 				return config;
 			}
@@ -50,7 +50,7 @@ final class TableParser {
 				return config;// No more data, or beginning of an other table
 			}
 			String key = parseKey(input, (char)keyFirst, parser);
-			char sep = Toml.readNonSpaceChar(input);
+			char sep = Toml.readNonSpaceChar(input, false);
 			checkInvalidSeparator(sep, key);
 
 			Object value = ValueParser.parse(input, parser);
@@ -58,7 +58,7 @@ final class TableParser {
 																		order to be faster) */
 			checkDuplicateKey(key, previous);
 
-			int after = Toml.readNonSpace(input);
+			int after = Toml.readNonSpace(input, false);
 			if (after == -1) {// End of the stream
 				return config;
 			}
@@ -96,14 +96,14 @@ final class TableParser {
 	static List<String> parseTableName(CharacterInput input, TomlParser parser) {
 		List<String> list = new ArrayList<>(parser.getInitialListCapacity());
 		while (true) {
-			char firstChar = Toml.readNonSpaceChar(input);
+			char firstChar = Toml.readNonSpaceChar(input, false);
 			if (firstChar == ']') {
 				throw new ParsingException("Tables names must not be empty.");
 			}
 			String key = parseKey(input, firstChar, parser);
 			list.add(key);
 
-			char separator = Toml.readNonSpaceChar(input);
+			char separator = Toml.readNonSpaceChar(input, false);
 			if (separator == ']') {// End of the declaration
 				return list;
 			} else if (separator != '.') {
