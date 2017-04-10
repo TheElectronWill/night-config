@@ -44,7 +44,7 @@ public final class HoconWriter implements ConfigWriter<Config> {
 	// --- Writer's methods ---
 	@Override
 	public void write(Config config, Writer writer) {
-		currentIndentLevel = 0;
+		currentIndentLevel = -1;
 		writeObject(config, new WriterOutput(writer), true);
 	}
 

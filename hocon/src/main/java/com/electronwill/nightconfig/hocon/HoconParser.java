@@ -1,13 +1,13 @@
 package com.electronwill.nightconfig.hocon;
 
+import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ParsingException;
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigParseOptions;
-import com.typesafe.config.ConfigSyntax;
-import com.typesafe.config.ConfigValue;
+import com.typesafe.config.*;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,22 +33,55 @@ public final class HoconParser implements ConfigParser<HoconConfig, Config> {
 	@Override
 	public void parse(Reader reader, Config destination) {
 		try {
-			put(ConfigFactory.parseReader(reader, OPTIONS).resolve(), destination);
+			com.typesafe.config.Config parsed = ConfigFactory.parseReader(reader, OPTIONS).resolve();
+			if (destination instanceof CommentedConfig) {
+				put(parsed, (CommentedConfig)destination);
+			} else {
+				put(parsed, destination);
+			}
 		} catch (Exception e) {
 			throw new ParsingException("HOCON parsing failed", e);
 		}
 	}
 
 	private static void put(com.typesafe.config.Config typesafeConfig, Config destination) {
-		Map<String, Object> map = destination.asMap();
 		for (Map.Entry<String, ConfigValue> entry : typesafeConfig.entrySet()) {
-			ConfigValue value = entry.getValue();
-			String comment = String.join("\n", value.origin().comments());
-			Object unwrapped = value.unwrapped();
-			if (unwrapped instanceof Map) {
-				unwrapped = new HoconConfig((Map)unwrapped);
-			}
-			map.put(entry.getKey(), unwrapped);
+			List<String> path = ConfigUtil.splitPath(entry.getKey());
+			destination.setValue(path, unwrap(entry.getValue().unwrapped()));
 		}
+	}
+
+	private static void put(com.typesafe.config.Config typesafeConfig, CommentedConfig destination) {
+		for (Map.Entry<String, ConfigValue> entry : typesafeConfig.entrySet()) {
+			List<String> path = ConfigUtil.splitPath(entry.getKey());
+			ConfigValue value = entry.getValue();
+			destination.setValue(path, unwrap(value.unwrapped()));
+			List<String> comments = value.origin().comments();
+			if (!comments.isEmpty()) {
+				System.out.println("comments: " + path + " " + comments);
+				destination.setComment(path, String.join("\n", value.origin().comments()));
+			}
+		}
+	}
+
+	private static Object unwrap(Object o) {
+		if (o instanceof Map) {
+			Map<String, ?> map = (Map)o;
+			Map<String, Object> unwrappedMap = new HashMap<>(map.size());
+			for (Map.Entry<String, ?> entry : map.entrySet()) {
+				unwrappedMap.put(entry.getKey(), unwrap(entry.getValue()));
+			}
+			return new HoconConfig(unwrappedMap);
+		} else if (o instanceof List) {
+			List<?> list = (List<?>)o;
+			if (!list.isEmpty() && list.get(0) instanceof Map) {
+				List<Config> configList = new ArrayList<>();
+				for (Object element : list) {
+					configList.add((Config)unwrap(element));
+				}
+				return configList;
+			}
+		}
+		return o;
 	}
 }

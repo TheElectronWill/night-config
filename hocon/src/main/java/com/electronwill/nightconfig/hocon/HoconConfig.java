@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.hocon;
 
+import com.electronwill.nightconfig.core.AbstractCommentedConfig;
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.AbstractConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
 import java.io.File;
 import java.util.List;
@@ -12,11 +12,11 @@ import java.util.Map;
  *
  * @author TheElectronWill
  */
-public final class HoconConfig extends AbstractConfig implements FileConfig {
+public final class HoconConfig extends AbstractCommentedConfig implements FileConfig {
 	public HoconConfig() {}
 
-	public HoconConfig(Map<String, Object> map) {
-		super(map);
+	public HoconConfig(Map<String, Object> valuesMap) {
+		super(valuesMap);
 	}
 
 	@Override
