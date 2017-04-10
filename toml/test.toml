@@ -19,6 +19,8 @@ multilineArray = [
 basicMultiline = """
 First line
 \tSecond line_\
+
+
        Still second line"""
 literalMultiline= '''
 First line
