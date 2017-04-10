@@ -8,6 +8,7 @@ import com.typesafe.config.ConfigParseOptions;
 import com.typesafe.config.ConfigSyntax;
 import com.typesafe.config.ConfigValue;
 import java.io.Reader;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,8 +21,7 @@ import java.util.Map;
 public final class HoconParser implements ConfigParser<HoconConfig, Config> {
 	private static final ConfigParseOptions OPTIONS = ConfigParseOptions.defaults()
 																		.setAllowMissing(false)
-																		.setSyntax(
-																				ConfigSyntax.CONF);
+																		.setSyntax(ConfigSyntax.CONF);
 
 	@Override
 	public HoconConfig parse(Reader reader) {
@@ -42,11 +42,13 @@ public final class HoconParser implements ConfigParser<HoconConfig, Config> {
 	private static void put(com.typesafe.config.Config typesafeConfig, Config destination) {
 		Map<String, Object> map = destination.asMap();
 		for (Map.Entry<String, ConfigValue> entry : typesafeConfig.entrySet()) {
-			Object value = entry.getValue().unwrapped();
-			if (value instanceof Map) {
-				value = new HoconConfig((Map)value);
+			ConfigValue value = entry.getValue();
+			String comment = String.join("\n", value.origin().comments());
+			Object unwrapped = value.unwrapped();
+			if (unwrapped instanceof Map) {
+				unwrapped = new HoconConfig((Map)unwrapped);
 			}
-			map.put(entry.getKey(), value);
+			map.put(entry.getKey(), unwrapped);
 		}
 	}
 }

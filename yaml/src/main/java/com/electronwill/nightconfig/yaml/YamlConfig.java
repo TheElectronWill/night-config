@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.yaml;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.MapConfig;
+import com.electronwill.nightconfig.core.AbstractConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
 import java.io.File;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.Set;
  *
  * @author TheElectronWill
  */
-public final class YamlConfig extends MapConfig implements FileConfig {
+public final class YamlConfig extends AbstractConfig implements FileConfig {
 	private static final ThreadLocal<YamlWriter> LOCAL_WRITER = ThreadLocal.withInitial(YamlWriter::new);
 	private static final ThreadLocal<YamlParser> LOCAL_PARSER = ThreadLocal.withInitial(YamlParser::new);
 

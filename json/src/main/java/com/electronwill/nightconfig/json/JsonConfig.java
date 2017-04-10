@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.json;
 
+import com.electronwill.nightconfig.core.AbstractConfig;
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.MapConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
 import java.io.File;
 import java.util.Collection;
@@ -22,7 +22,7 @@ import java.util.Map;
  *
  * @author TheElectronWill
  */
-public final class JsonConfig extends MapConfig implements FileConfig {
+public final class JsonConfig extends AbstractConfig implements FileConfig {
 	public JsonConfig() {}
 
 	public JsonConfig(Map<String, Object> map) {

@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 /**
  * A simple configuration that allows the user to specify which types of value it supports.
  */
-public final class SimpleConfig extends MapConfig {
+public final class SimpleConfig extends AbstractConfig {
 	public static final Predicate<Class<?>> BASIC_SUPPORT_PREDICATE = type -> type == Integer.class
 																		  || type == Long.class
 																		  || type == Float.class

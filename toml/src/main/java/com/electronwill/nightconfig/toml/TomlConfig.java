@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
+import com.electronwill.nightconfig.core.AbstractConfig;
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.MapConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
 import java.io.File;
 import java.time.temporal.Temporal;
@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * @author TheElectronWill
  */
-public class TomlConfig extends MapConfig implements FileConfig {
+public class TomlConfig extends AbstractConfig implements FileConfig {
 	public TomlConfig() {}
 
 	public TomlConfig(Map<String, Object> map) {

@@ -10,11 +10,11 @@ import org.junit.jupiter.api.Test;
 /**
  * @author TheElectronWill
  */
-public class MapConfigTest {
+public class AbstractConfigTest {
 
 	@Test
 	public void basicTest() {
-		MapConfig config = new SimpleConfig();
+		AbstractConfig config = new SimpleConfig();
 		config.setValue("true", true);
 		config.setValue("false", false);
 		assert config.<Boolean>getValue("true");
@@ -63,7 +63,7 @@ public class MapConfigTest {
 		String[] jsplit = ".a...a.".split("\\.");
 		System.out.println("String#split: " + Arrays.toString(jsplit));
 
-		MapConfig config = new SimpleConfig(type -> true);
+		AbstractConfig config = new SimpleConfig(type -> true);
 		config.setValue(".a...a.", "value");
 		assert config.containsValue(".a...a.");
 		assert config.<String>getValue(".a...a.").equals("value");
@@ -81,7 +81,7 @@ public class MapConfigTest {
 
 	@Test
 	public void size() {
-		MapConfig config = new SimpleConfig(type -> true);
+		AbstractConfig config = new SimpleConfig(type -> true);
 		config.setValue("a.b.c", "value");
 		config.setValue("pi", Math.PI);
 
@@ -95,7 +95,7 @@ public class MapConfigTest {
 
 	@Test
 	public void asMap() {
-		MapConfig config = new SimpleConfig(type -> true);
+		AbstractConfig config = new SimpleConfig(type -> true);
 		config.setValue("a.b.c", "value");
 		config.setValue("pi", Math.PI);
 
@@ -115,7 +115,7 @@ public class MapConfigTest {
 
 	@Test
 	public void containsValue() {
-		MapConfig config = new SimpleConfig(type -> true);
+		AbstractConfig config = new SimpleConfig(type -> true);
 		config.setValue("a.b.c", "value");
 		assert config.containsValue("a");
 

@@ -9,22 +9,22 @@ import java.util.Map;
  *
  * @author TheElectronWill
  */
-public abstract class MapConfig implements Config {
+public abstract class AbstractConfig implements Config {
 	private final Map<String, Object> map;
 
 	/**
-	 * Creates a new MapConfig backed by a new {@link Map}.
+	 * Creates a new AbstractConfig backed by a new {@link Map}.
 	 */
-	public MapConfig() {
+	public AbstractConfig() {
 		this(new HashMap<>());
 	}
 
 	/**
-	 * Creates a new MapConfig backed by the specified {@link Map}.
+	 * Creates a new AbstractConfig backed by the specified {@link Map}.
 	 *
 	 * @param map the map to use to store the config values.
 	 */
-	public MapConfig(Map<String, Object> map) {
+	public AbstractConfig(Map<String, Object> map) {
 		this.map = map;
 	}
 
@@ -67,7 +67,7 @@ public abstract class MapConfig implements Config {
 		return currentMap.put(lastKey, value);
 	}
 
-	protected abstract MapConfig createSubConfig();
+	protected abstract AbstractConfig createSubConfig();
 
 	@Override
 	public void removeValue(List<String> path) {
@@ -122,8 +122,8 @@ public abstract class MapConfig implements Config {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) { return true; }
-		if (!(obj instanceof MapConfig)) { return false; }
-		MapConfig other = (MapConfig)obj;
+		if (!(obj instanceof AbstractConfig)) { return false; }
+		AbstractConfig other = (AbstractConfig)obj;
 		return map.equals(other.map);
 	}
 
