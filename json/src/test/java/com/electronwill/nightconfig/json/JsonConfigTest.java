@@ -39,6 +39,15 @@ public class JsonConfigTest {
 	private final File file = new File("test.json");
 
 	@Test
+	public void testWriteThenRead() throws IOException {
+		config.write(file);
+		JsonConfig read = new JsonConfig();
+		read.parse(file);
+		System.out.println("config: " + config);
+		System.out.println("read: " + read);
+	}
+
+	@Test
 	public void testWrite() throws IOException {
 		config.write(file);
 	}
