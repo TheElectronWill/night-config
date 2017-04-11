@@ -12,11 +12,17 @@ import org.yaml.snakeyaml.Yaml;
 public final class YamlParser implements ConfigParser<YamlConfig> {
 	private final Yaml yaml;
 
-	public YamlParser() {this(new Yaml());}
+	public YamlParser() {
+		this(new Yaml());
+	}
 
-	public YamlParser(Yaml yaml) {this.yaml = yaml;}
+	public YamlParser(Yaml yaml) {
+		this.yaml = yaml;
+	}
 
-	public YamlParser(LoaderOptions options) {this(new Yaml(options));}
+	public YamlParser(LoaderOptions options) {
+		this(new Yaml(options));
+	}
 
 	@Override
 	public YamlConfig parseConfig(Reader reader) {

@@ -28,17 +28,17 @@ public final class YamlConfig extends MapConfig implements FileConfig {
 
 	public boolean supportsType(Class<?> type) {
 		return type == null
-			|| type == Boolean.class
-			|| type == String.class
-			|| type == java.util.Date.class
-			|| type == java.sql.Date.class
-			|| type == java.sql.Timestamp.class
-			|| type == byte[].class
-			|| type == Object[].class
-			|| Number.class.isAssignableFrom(type)
-			|| Set.class.isAssignableFrom(type)
-			|| List.class.isAssignableFrom(type)
-			|| Config.class.isAssignableFrom(type);
+			   || type == Boolean.class
+			   || type == String.class
+			   || type == java.util.Date.class
+			   || type == java.sql.Date.class
+			   || type == java.sql.Timestamp.class
+			   || type == byte[].class
+			   || type == Object[].class
+			   || Number.class.isAssignableFrom(type)
+			   || Set.class.isAssignableFrom(type)
+			   || List.class.isAssignableFrom(type)
+			   || Config.class.isAssignableFrom(type);
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public final class YamlConfig extends MapConfig implements FileConfig {
 
 	@Override
 	public void readFrom(File file, boolean merge) throws IOException {
-		if (!merge) asMap().clear();
+		if (!merge) { asMap().clear(); }
 		LOCAL_PARSER.get().parseConfig(file, this);
 	}
 }
