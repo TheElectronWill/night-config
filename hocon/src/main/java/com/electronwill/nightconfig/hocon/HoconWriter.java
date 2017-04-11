@@ -33,7 +33,7 @@ public final class HoconWriter implements ConfigWriter<Config> {
 
 	@Override
 	public void writeConfig(Config config, Writer writer) throws IOException {
-		currentIndentLevel = 0;
+		currentIndentLevel = -1;
 		writeObject(config, new WriterOutput(writer), true);
 	}
 
