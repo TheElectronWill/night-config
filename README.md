@@ -1,5 +1,6 @@
 ![Night Config](logo.png)  
-[![](https://jitpack.io/v/TheElectronWill/Night-Config.svg)](https://jitpack.io/#TheElectronWill/Night-Config)  
+[![](https://jitpack.io/v/TheElectronWill/Night-Config.svg)](https://jitpack.io/#TheElectronWill/Night-Config)
+![](https://img.shields.io/github/commits-since/TheElectronWill/Night-Config/v1.0.2.svg)
 
 # Introduction
 NightConfig is a simple yet powerful java configuration library, written in Java 8.
