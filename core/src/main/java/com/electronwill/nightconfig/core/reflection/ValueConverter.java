@@ -9,12 +9,12 @@ import java.util.Objects;
  * @param <B>
  * @author TheElectronWill
  */
-final class ValueConverter<A, B> implements ConversionChecker<A>, ConversionApplier<A, B> {
+public final class ValueConverter<A, B> implements ConversionChecker<A>, ConversionApplier<A, B> {
 
 	final ConversionChecker<A> checker;
 	final ConversionApplier<A, B> applier;
 
-	ValueConverter(ConversionChecker<A> checker, ConversionApplier<A, B> applier) {
+	public ValueConverter(ConversionChecker<A> checker, ConversionApplier<A, B> applier) {
 		Objects.requireNonNull(checker, "The ConversionChecker must not be null.");
 		Objects.requireNonNull(applier, "The ConversionApplier must not be null.");
 		this.checker = checker;
