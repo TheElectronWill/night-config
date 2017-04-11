@@ -1,0 +1,21 @@
+{
+    "string": "This is a string with a lot of characters to escape \n\r\t \\ \" ",
+    "null": null,
+    "double": 0.123456,
+    "float": 0.123456,
+    "list": [
+        "a", 
+        "b", 
+        3, 
+        true, 
+        null, 
+        false, 
+        17.5
+    ],
+    "config": {
+        "boolean": true,
+        "false": false
+    },
+    "int": 123456,
+    "long": 1234567890
+}
