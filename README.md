@@ -1,4 +1,5 @@
 ![Night Config](logo.png)  
+[![](https://jitpack.io/v/TheElectronWill/Night-Config.svg)](https://jitpack.io/#TheElectronWill/Night-Config)  
 
 # Introduction
 NightConfig is a simple yet powerful java configuration library, written in Java 8.
