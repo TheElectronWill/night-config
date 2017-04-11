@@ -128,6 +128,7 @@ public final class JsonParser implements ConfigParser<JsonConfig> {
 			case 'n':
 				return parseNull(input);
 			default:
+				input.pushBack(firstChar);
 				return parseNumber(input);
 		}
 	}
