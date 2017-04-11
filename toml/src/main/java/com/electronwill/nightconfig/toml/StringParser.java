@@ -55,18 +55,15 @@ final class StringParser {
 		while ((c = input.readChar()) != '\"' || input.peek() != '\"' || input.peek(1) != '\"') {
 			if (c == '\\') {
 				final char next = input.readChar();
-				if (next == '\n' || next == '\r' && input.peekChar() == '\n') {
+				if (next == '\n'
+					|| (next == '\r' && input.peekChar() == '\n')
+					|| (next == '\t' || next == ' ') && isWhitespace(Toml.readLine(input))) {
 					// Goes to the next non-space char (skips newlines too)
 					char nextNonSpace = Toml.readNonSpaceChar(input, true);
 					input.pushBack(nextNonSpace);
 					continue;
 				} else if (next == '\t' || next == ' ') {
-					CharsWrapper restOfLine = Toml.readLine(input);
-					if (isWhitespace(restOfLine)) {
-						continue;// ignores the newline
-					} else {
-						throw new ParsingException("Invalid escapement: \\" + next);
-					}
+					throw new ParsingException("Invalid escapement: \\" + next);
 				}
 				builder.write(escape(next, input));
 			} else {
