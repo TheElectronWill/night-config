@@ -23,6 +23,8 @@ The repository has two branches:
 # Code examples
 Read the [wiki](https://github.com/TheElectronWill/Night-Config/wiki) to learn how to use NightConfig.
 
+**Note:** these are examples for the last **stable** version, and may not work with the master branch.
+
 ## Loading a TOML configuration from a file
 ```java
 TomlConfig config = new TomlConfig();
