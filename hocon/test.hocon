@@ -1,0 +1,31 @@
+# Comment associated to the boolean array
+# With multiples lines
+bool_array: [
+	true,
+	false,
+	true,
+	false
+]
+// Comment associated to the string
+string: "\"value\""
+double: 3.1415926535
+integer: 2
+config_list: [
+	{
+		sub {}
+		string: test
+	},
+	{
+		sub {}
+		string: test
+	},
+	{
+		sub {}
+		string: test
+	}
+]
+config {
+	sub {}
+	string: test
+}
+long: 123456789
