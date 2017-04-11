@@ -1,8 +1,16 @@
 package com.electronwill.nightconfig.hocon;
 
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.serialization.ConfigParser;
-import com.typesafe.config.*;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigParseOptions;
+import com.typesafe.config.ConfigSyntax;
+import com.typesafe.config.ConfigUtil;
+import com.typesafe.config.ConfigValue;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -10,22 +18,19 @@ import java.util.Map;
  */
 public final class HoconParser implements ConfigParser<HoconConfig> {
 	private static final ConfigParseOptions PARSE_OPTIONS = ConfigParseOptions.defaults()
-		.setAllowMissing(false).setSyntax(ConfigSyntax.CONF);
+																			  .setAllowMissing(false)
+																			  .setSyntax(ConfigSyntax.CONF);
 
-	private static HoconConfig convert(Config typesafeConfig) {
+	private static HoconConfig convert(com.typesafe.config.Config typesafeConfig) {
 		HoconConfig config = new HoconConfig();
 		put(typesafeConfig, config);
 		return config;
 	}
 
-	private static void put(Config typesafeConfig, HoconConfig config) {
-		Map<String, Object> map = config.asMap();
+	private static void put(com.typesafe.config.Config typesafeConfig, HoconConfig destination) {
 		for (Map.Entry<String, ConfigValue> entry : typesafeConfig.entrySet()) {
-			Object value = entry.getValue().unwrapped();
-			if (value instanceof Map) {
-				value = new HoconConfig((Map)value);
-			}
-			map.put(entry.getKey(), value);
+			List<String> path = ConfigUtil.splitPath(entry.getKey());
+			destination.setValue(path, unwrap(entry.getValue().unwrapped()));
 		}
 	}
 
@@ -37,5 +42,26 @@ public final class HoconParser implements ConfigParser<HoconConfig> {
 	@Override
 	public void parseConfig(Reader reader, HoconConfig destination) {
 		put(ConfigFactory.parseReader(reader, PARSE_OPTIONS).resolve(), destination);
+	}
+
+	private static Object unwrap(Object o) {
+		if (o instanceof Map) {
+			Map<String, ?> map = (Map)o;
+			Map<String, Object> unwrappedMap = new HashMap<>(map.size());
+			for (Map.Entry<String, ?> entry : map.entrySet()) {
+				unwrappedMap.put(entry.getKey(), unwrap(entry.getValue()));
+			}
+			return new HoconConfig(unwrappedMap);
+		} else if (o instanceof List) {
+			List<?> list = (List<?>)o;
+			if (!list.isEmpty() && list.get(0) instanceof Map) {
+				List<Config> configList = new ArrayList<>();
+				for (Object element : list) {
+					configList.add((Config)unwrap(element));
+				}
+				return configList;
+			}
+		}
+		return o;
 	}
 }
