@@ -33,13 +33,13 @@ public final class JsonConfig extends MapConfig implements FileConfig {
 	@Override
 	public boolean supportsType(Class<?> type) {
 		return type == Integer.class
-			|| type == Long.class
-			|| type == Float.class
-			|| type == Double.class
-			|| type == Boolean.class
-			|| type == String.class
-			|| Collection.class.isAssignableFrom(type)
-			|| Config.class.isAssignableFrom(type);
+			   || type == Long.class
+			   || type == Float.class
+			   || type == Double.class
+			   || type == Boolean.class
+			   || type == String.class
+			   || Collection.class.isAssignableFrom(type)
+			   || Config.class.isAssignableFrom(type);
 	}
 
 	@Override
@@ -54,7 +54,9 @@ public final class JsonConfig extends MapConfig implements FileConfig {
 
 	@Override
 	public void readFrom(File file, boolean merge) throws IOException {
-		if (!merge) this.asMap().clear();//clears the config
+		if (!merge) {
+			this.asMap().clear();//clears the config
+		}
 		new JsonParser().parseConfig(file, this);//reads the value from the file to the config
 	}
 }
