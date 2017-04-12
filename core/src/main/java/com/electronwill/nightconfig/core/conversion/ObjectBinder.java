@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -344,6 +345,27 @@ public final class ObjectBinder {
 			};
 			return new TransformingMap<>(dataMap, readConversion, o -> o, o -> o);
 			// TODO better search conversion
+		}
+
+		@Override
+		public Set<? extends Entry> entrySet() {
+			Function<Object, Object> readTransfo = object -> new Entry() {
+				@Override
+				public Object setValue(Object value) {
+					return null;
+				}
+
+				@Override
+				public String getKey() {
+					return null;
+				}
+
+				@Override
+				public <T> T getValue() {
+					return null;
+				}
+			};
+			return null;
 		}
 
 		@Override

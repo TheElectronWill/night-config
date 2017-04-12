@@ -1,9 +1,11 @@
 package com.electronwill.nightconfig.core;
 
 import com.electronwill.nightconfig.core.utils.TransformingMap;
+import com.electronwill.nightconfig.core.utils.TransformingSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * A checker wrapped around a configuration. It checks that all the values put into the config are
@@ -59,6 +61,13 @@ public final class CheckedConfig implements Config {
 	@Override
 	public Map<String, Object> valueMap() {
 		return new TransformingMap<>(config.valueMap(), v -> v, this::checkedValue, v -> v);
+	}
+
+	@Override
+	public Set<? extends Entry> entrySet() {
+		return new TransformingSet<>(config.entrySet(), e -> e, o -> null, e -> e);
+		/* the writeTransformation is not important because we can't write to the set anyway,
+		   since it's a generic Set<? extends Entry> */
 	}
 
 	@Override

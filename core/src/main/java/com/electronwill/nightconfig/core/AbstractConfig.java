@@ -1,8 +1,11 @@
 package com.electronwill.nightconfig.core;
 
+import com.electronwill.nightconfig.core.utils.TransformingSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Abstract configuration that uses a {@link java.util.Map} to store its values.
@@ -10,7 +13,7 @@ import java.util.Map;
  * @author TheElectronWill
  */
 public abstract class AbstractConfig implements Config {
-	private final Map<String, Object> map;
+	final Map<String, Object> map;
 
 	/**
 	 * Creates a new AbstractConfig backed by a new {@link Map}.
@@ -57,7 +60,7 @@ public abstract class AbstractConfig implements Config {
 			} else if (!(currentValue instanceof Config)) {//incompatible intermediary level
 				throw new IllegalArgumentException(
 						"Cannot add an element to an intermediary value of type: "
-								+ currentValue.getClass());
+						+ currentValue.getClass());
 			} else {//existing intermediary level
 				config = (Config)currentValue;
 			}
@@ -115,6 +118,13 @@ public abstract class AbstractConfig implements Config {
 	}
 
 	@Override
+	public Set<? extends Entry> entrySet() {
+		return new TransformingSet<>(map.entrySet(), EntryWrapper::new, o -> null, o -> o);
+		/* the writeTransformation is not important because we can't write to the set anyway,
+		   since it's a generic Set<? extends Entry> */
+	}
+
+	@Override
 	public int hashCode() {
 		return map.hashCode();
 	}
@@ -130,5 +140,55 @@ public abstract class AbstractConfig implements Config {
 	@Override
 	public String toString() {
 		return valueMap().toString();
+	}
+
+	/**
+	 * A wrapper around a {@code Map.Entry<String, Object>}.
+	 *
+	 * @see Map.Entry
+	 */
+	protected static class EntryWrapper implements Entry {
+		protected final Map.Entry<String, Object> mapEntry;
+
+		public EntryWrapper(Map.Entry<String, Object> mapEntry) {
+			this.mapEntry = mapEntry;
+		}
+
+		@Override
+		public String getKey() {
+			return mapEntry.getKey();
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T> T getValue() {
+			return (T)mapEntry.getValue();
+		}
+
+		@Override
+		public Object setValue(Object value) {
+			return mapEntry.setValue(value);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == this) {
+				return true;
+			}
+			if (obj instanceof Entry) {
+				Entry other = (Entry)obj;
+				return Objects.equals(getKey(), other.getKey()) && Objects.equals(getValue(),
+																				  other.getValue());
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			int result = 1;
+			result = 31 * result + Objects.hashCode(getKey());
+			result = 31 * result + Objects.hashCode(getValue());
+			return result;
+		}
 	}
 }

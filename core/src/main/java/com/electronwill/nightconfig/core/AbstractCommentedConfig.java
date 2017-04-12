@@ -1,8 +1,11 @@
 package com.electronwill.nightconfig.core;
 
+import com.electronwill.nightconfig.core.utils.TransformingSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author TheElectronWill
@@ -50,8 +53,8 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 				currentMap = newMap;
 			} else if (!(currentValue instanceof Map)) {//incompatible intermediary level
 				throw new IllegalArgumentException(
-					"Cannot add a comment to an intermediary value of type: "
-					+ currentValue.getClass());
+						"Cannot add a comment to an intermediary value of type: "
+						+ currentValue.getClass());
 			} else {//existing intermediary level
 				currentMap = (Map)currentValue;
 			}
@@ -88,5 +91,40 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		}
 		String lastKey = path.get(lastIndex);
 		return currentMap.containsKey(lastKey);
+	}
+
+	@Override
+	public Set<? extends CommentedConfig.Entry> entrySet() {
+		return new TransformingSet<>(map.entrySet(), CommentedEntryWrapper::new, o -> null, o -> o);
+	}
+
+	protected class CommentedEntryWrapper extends EntryWrapper implements CommentedConfig.Entry {
+		private List<String> path = null;
+
+		public CommentedEntryWrapper(Map.Entry<String, Object> mapEntry) {
+			super(mapEntry);
+		}
+
+		protected List<String> getPath() {
+			if (path == null) {
+				path = Collections.singletonList(getKey());
+			}
+			return path;
+		}
+
+		@Override
+		public String getComment() {
+			return AbstractCommentedConfig.this.getComment(getPath());
+		}
+
+		@Override
+		public String setComment(String comment) {
+			return AbstractCommentedConfig.this.setComment(getPath(), comment);
+		}
+
+		@Override
+		public void removeComment() {
+			AbstractCommentedConfig.this.removeComment(getPath());
+		}
 	}
 }

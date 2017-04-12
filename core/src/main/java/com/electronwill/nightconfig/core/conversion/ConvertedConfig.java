@@ -2,8 +2,10 @@ package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
+import com.electronwill.nightconfig.core.utils.TransformingSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -64,6 +66,27 @@ public final class ConvertedConfig implements Config {
 	public Map<String, Object> valueMap() {
 		return new TransformingMap<>(config.valueMap(), readConversion, writeConversion,
 									 writeConversion);
+	}
+
+	@Override
+	public Set<? extends Entry> entrySet() {
+		Function<Entry, Entry> readTransfo = entry -> new Entry() {
+			@Override
+			public Object setValue(Object value) {
+				return readConversion.apply(entry.setValue(writeConversion.apply(value)));
+			}
+
+			@Override
+			public String getKey() {
+				return entry.getKey();
+			}
+
+			@Override
+			public <T> T getValue() {
+				return (T)readConversion.apply(entry.getValue());
+			}
+		};
+		return new TransformingSet<>(config.entrySet(), readTransfo, o -> null, e -> e);
 	}
 
 	@Override
