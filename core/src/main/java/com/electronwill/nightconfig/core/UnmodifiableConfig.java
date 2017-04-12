@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
 
@@ -92,10 +93,34 @@ public interface UnmodifiableConfig {
 	}
 
 	/**
-	 * Returns a Map view of the config's values. If the config is unmodifiable then returned map is
-	 * unmodifiable too.
+	 * Returns a Map view of the config's values. If the config is unmodifiable then the returned
+	 * map is unmodifiable too.
 	 *
 	 * @return a Map view of the config's values.
 	 */
 	Map<String, Object> valueMap();
+
+	/**
+	 * Returns a Set view of the config's entries. If the config is unmodifiable then the returned
+	 * set is unmodifiable too.
+	 *
+	 * @return a Set view of the config's entries.
+	 */
+	Set<? extends Entry> entrySet();
+
+	/**
+	 * An unmodifiable config entry.
+	 */
+	interface Entry {
+		/**
+		 * @return the entry's key
+		 */
+		String getKey();
+
+		/**
+		 * @param <T> the value's type
+		 * @return the entry's value
+		 */
+		<T> T getValue();
+	}
 }

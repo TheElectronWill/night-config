@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
 
@@ -83,6 +84,11 @@ public interface Config extends UnmodifiableConfig {
 			public Map<String, Object> valueMap() {
 				return Collections.unmodifiableMap(Config.this.valueMap());
 			}
+
+			@Override
+			public Set<? extends Entry> entrySet() {
+				return Config.this.entrySet();
+			}
 		};
 	}
 
@@ -103,4 +109,24 @@ public interface Config extends UnmodifiableConfig {
 	 * and vice-versa.
 	 */
 	Map<String, Object> valueMap();
+
+	/**
+	 * Returns a Set view of the config's entries. Any change to the set or to the entries is
+	 * reflected in the config, and vice-versa.
+	 */
+	@Override
+	Set<? extends Entry> entrySet();
+
+	/**
+	 * A modifiable config entry.
+	 */
+	interface Entry extends UnmodifiableConfig.Entry {
+		/**
+		 * Sets the entry's value.
+		 *
+		 * @param value the value to set
+		 * @return the previous value
+		 */
+		Object setValue(Object value);
+	}
 }

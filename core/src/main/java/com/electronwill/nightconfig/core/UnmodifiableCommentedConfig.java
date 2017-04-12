@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
 
@@ -45,4 +46,17 @@ public interface UnmodifiableCommentedConfig extends UnmodifiableConfig {
 	 * @return {@code true} if the path is associated with a comment, {@code false} if it's not.
 	 */
 	boolean containsComment(List<String> path);
+
+	@Override
+	Set<? extends Entry> entrySet();
+
+	/**
+	 * An unmodifiable commented config entry.
+	 */
+	interface Entry extends UnmodifiableConfig.Entry {
+		/**
+		 * @return the entry's comment, may contain several lines
+		 */
+		String getComment();
+	}
 }
