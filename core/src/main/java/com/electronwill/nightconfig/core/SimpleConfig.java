@@ -7,7 +7,8 @@ import java.util.function.Predicate;
  * A simple configuration that allows the user to specify which types of value it supports.
  */
 public final class SimpleConfig extends AbstractConfig {
-	public static final Predicate<Class<?>> BASIC_SUPPORT_PREDICATE = type -> type == Integer.class
+	public static final Predicate<Class<?>> BASIC_SUPPORT_PREDICATE = type -> type.isPrimitive()
+																		  || type == Integer.class
 																		  || type == Long.class
 																		  || type == Float.class
 																		  || type == Double.class
