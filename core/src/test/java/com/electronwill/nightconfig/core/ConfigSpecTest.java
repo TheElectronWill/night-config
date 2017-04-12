@@ -55,7 +55,7 @@ class ConfigSpecTest {
 	private static String configToString(Config c) {
 		StringBuilder sb = new StringBuilder();
 		sb.append('{');
-		for (Map.Entry<String, Object> entry : c.asMap().entrySet()) {
+		for (Map.Entry<String, Object> entry : c.valueMap().entrySet()) {
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
 			sb.append(key).append(" = ");

@@ -22,7 +22,7 @@ public final class CheckedConfig implements Config {
 	 */
 	public CheckedConfig(Config config) {
 		this.config = Objects.requireNonNull(config, "The config to wrap must not be null!");
-		config.asMap().forEach((k, v) -> checkValue(v));
+		config.valueMap().forEach((k, v) -> checkValue(v));
 		//The config might already contain some elements and we must be sure that they are all supported
 	}
 
@@ -57,8 +57,8 @@ public final class CheckedConfig implements Config {
 	}
 
 	@Override
-	public Map<String, Object> asMap() {
-		return new TransformingMap<>(config.asMap(), v -> v, this::checkedValue, v -> v);
+	public Map<String, Object> valueMap() {
+		return new TransformingMap<>(config.valueMap(), v -> v, this::checkedValue, v -> v);
 	}
 
 	@Override
@@ -97,7 +97,7 @@ public final class CheckedConfig implements Config {
 					"Null values aren't supported by this configuration.");
 		}
 		if (value instanceof Config) {
-			((Config)value).asMap().forEach((k, v) -> checkValue(v));
+			((Config)value).valueMap().forEach((k, v) -> checkValue(v));
 		}
 	}
 

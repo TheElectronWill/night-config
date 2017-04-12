@@ -92,10 +92,10 @@ public interface UnmodifiableConfig {
 	}
 
 	/**
-	 * Returns a Map view of the config. If the config is unmodifiable then returned map is
+	 * Returns a Map view of the config's values. If the config is unmodifiable then returned map is
 	 * unmodifiable too.
 	 *
-	 * @return a Map view of the config.
+	 * @return a Map view of the config's values.
 	 */
-	Map<String, Object> asMap();
+	Map<String, Object> valueMap();
 }

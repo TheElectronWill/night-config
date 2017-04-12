@@ -49,7 +49,7 @@ public final class YamlConfig extends AbstractConfig implements FileConfig {
 
 	@Override
 	public void parse(File file, boolean merge) {
-		if (!merge) { asMap().clear(); }
+		if (!merge) { valueMap().clear(); }
 		LOCAL_PARSER.get().parse(file, this);
 	}
 }

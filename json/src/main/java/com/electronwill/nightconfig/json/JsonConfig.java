@@ -55,7 +55,7 @@ public final class JsonConfig extends AbstractConfig implements FileConfig {
 	@Override
 	public void parse(File file, boolean merge) {
 		if (!merge) {
-			this.asMap().clear();// clears the config
+			this.valueMap().clear();// clears the config
 		}
 		new JsonParser().parse(file, this);
 	}

@@ -40,7 +40,7 @@ public final class YamlParser implements ConfigParser<YamlConfig, Config> {
 	public void parse(Reader reader, Config destination) {
 		try {
 			Map<String, Object> wrappedMap = wrap(yaml.loadAs(reader, Map.class));
-			destination.asMap().putAll(wrappedMap);
+			destination.valueMap().putAll(wrappedMap);
 		} catch (Exception e) {
 			throw new ParsingException("YAML parsing failed", e);
 		}

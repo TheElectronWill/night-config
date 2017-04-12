@@ -68,7 +68,7 @@ public class AbstractConfigTest {
 		assert config.containsValue(".a...a.");
 		assert config.<String>getValue(".a...a.").equals("value");
 
-		Map<String, Object> map = config.asMap();
+		Map<String, Object> map = config.valueMap();
 		assert map.get("") instanceof Config;
 		Config c1 = (Config)map.get("");
 		Config c2 = c1.<Config>getValue("a");
@@ -99,7 +99,7 @@ public class AbstractConfigTest {
 		config.setValue("a.b.c", "value");
 		config.setValue("pi", Math.PI);
 
-		Map<String, Object> map = config.asMap();
+		Map<String, Object> map = config.valueMap();
 		assert map.size() == config.size();
 
 		assert map.get("pi") instanceof Double;

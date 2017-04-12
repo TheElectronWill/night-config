@@ -80,8 +80,8 @@ public interface Config extends UnmodifiableConfig {
 			}
 
 			@Override
-			public Map<String, Object> asMap() {
-				return Collections.unmodifiableMap(Config.this.asMap());
+			public Map<String, Object> valueMap() {
+				return Collections.unmodifiableMap(Config.this.valueMap());
 			}
 		};
 	}
@@ -99,15 +99,8 @@ public interface Config extends UnmodifiableConfig {
 	boolean supportsType(Class<?> type);
 
 	/**
-	 * Returns a Map view of the config. Any change to the map is reflected in the config and
-	 * vice-versa.
-	 * <p>
-	 * The returned map is not required to (and likely doesn't) check if the values that you put
-	 * into it are supported by this configuration. It is also not required to perform any kind of
-	 * synchronization or anything to ensure thread-safety. The caller of this method is
-	 * responsible for taking care of these things.
-	 *
-	 * @return a Map view of the config.
+	 * Returns a Map view of the config's values. Any change to the map is reflected in the config
+	 * and vice-versa.
 	 */
-	Map<String, Object> asMap();
+	Map<String, Object> valueMap();
 }

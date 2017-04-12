@@ -61,8 +61,8 @@ public final class ConvertedConfig implements Config {
 	}
 
 	@Override
-	public Map<String, Object> asMap() {
-		return new TransformingMap<>(config.asMap(), readConversion, writeConversion,
+	public Map<String, Object> valueMap() {
+		return new TransformingMap<>(config.valueMap(), readConversion, writeConversion,
 									 writeConversion);
 	}
 

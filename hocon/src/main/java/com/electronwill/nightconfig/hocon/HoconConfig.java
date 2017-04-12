@@ -44,7 +44,7 @@ public final class HoconConfig extends AbstractCommentedConfig implements FileCo
 	@Override
 	public void parse(File file, boolean merge) {
 		if (!merge) {
-			asMap().clear();
+			valueMap().clear();
 		}
 		new HoconParser().parse(file, this);
 	}

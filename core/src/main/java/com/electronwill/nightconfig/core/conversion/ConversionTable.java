@@ -90,7 +90,7 @@ public final class ConversionTable {
 	 * @param config the config to convert
 	 */
 	public void convertShallow(Config config) {
-		for (Map.Entry<String, Object> configEntry : config.asMap().entrySet()) {
+		for (Map.Entry<String, Object> configEntry : config.valueMap().entrySet()) {
 			configEntry.setValue(convert(configEntry.getValue()));
 		}
 	}
@@ -102,7 +102,7 @@ public final class ConversionTable {
 	 * @param config the config to convert
 	 */
 	public void convertDeep(Config config) {
-		for (Map.Entry<String, Object> configEntry : config.asMap().entrySet()) {
+		for (Map.Entry<String, Object> configEntry : config.valueMap().entrySet()) {
 			final Object configValue = configEntry.getValue();
 			if (configValue instanceof Config) {// Sub config
 				convertDeep(config);
@@ -137,8 +137,8 @@ public final class ConversionTable {
 			}
 
 			@Override
-			public Map<String, Object> asMap() {
-				return new TransformingMap<>(config.asMap(), v -> convert(v), v -> v, v -> v);
+			public Map<String, Object> valueMap() {
+				return new TransformingMap<>(config.valueMap(), v -> convert(v), v -> v, v -> v);
 			}
 		};
 	}
@@ -163,8 +163,8 @@ public final class ConversionTable {
 			}
 
 			@Override
-			public Map<String, Object> asMap() {
-				return new TransformingMap<>(config.asMap(), v -> convert(v), v -> v, v -> v);
+			public Map<String, Object> valueMap() {
+				return new TransformingMap<>(config.valueMap(), v -> convert(v), v -> v, v -> v);
 			}
 
 			@Override
@@ -214,8 +214,8 @@ public final class ConversionTable {
 			}
 
 			@Override
-			public Map<String, Object> asMap() {
-				return new TransformingMap<>(config.asMap(), v -> v, v -> convert(v),
+			public Map<String, Object> valueMap() {
+				return new TransformingMap<>(config.valueMap(), v -> v, v -> convert(v),
 											 v -> convert(v));
 			}
 

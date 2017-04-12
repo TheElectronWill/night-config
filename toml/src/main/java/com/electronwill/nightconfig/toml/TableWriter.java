@@ -22,7 +22,7 @@ final class TableWriter {
 
 	static void writeInline(Config config, CharacterOutput output, TomlWriter writer) {
 		output.write('{');
-		for (Map.Entry<String, Object> entry : config.asMap().entrySet()) {
+		for (Map.Entry<String, Object> entry : config.valueMap().entrySet()) {
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
 			if (Toml.isValidBareKey(key, writer.isLenientWithBareKeys())) {
@@ -44,7 +44,7 @@ final class TableWriter {
 
 		// Writes the "simple" values:
 		writer.increaseIndentLevel();// Indent++
-		for (Map.Entry<String, Object> entry : config.asMap().entrySet()) {
+		for (Map.Entry<String, Object> entry : config.valueMap().entrySet()) {
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
 			if (value instanceof Config && !writer.getWriteTableInlinePredicate()

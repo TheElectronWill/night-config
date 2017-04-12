@@ -46,7 +46,7 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 			output.write(EMPTY_OBJECT);
 			return;
 		}
-		Iterator<Map.Entry<String, Object>> it = config.asMap().entrySet().iterator();
+		Iterator<Map.Entry<String, Object>> it = config.valueMap().entrySet().iterator();
 		output.write('{');
 		if (newlineAfterObjectStart) {
 			output.write(newline);

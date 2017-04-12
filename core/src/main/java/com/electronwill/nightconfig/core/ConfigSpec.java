@@ -362,7 +362,7 @@ public final class ConfigSpec {
 	 * @return {@code true} if it's correct, {@code false} if it's incorrect
 	 */
 	public boolean isCorrect(Config config) {
-		return isCorrect(config.asMap(), storage.asMap());
+		return isCorrect(config.valueMap(), storage.valueMap());
 	}
 
 	/**
@@ -383,7 +383,7 @@ public final class ConfigSpec {
 				if (!(configValue instanceof Config)) {
 					return false;// Missing sublevel in config
 				}
-				if (!isCorrect(((Config)configValue).asMap(), ((Config)specValue).asMap())) {
+				if (!isCorrect(((Config)configValue).valueMap(), ((Config)specValue).valueMap())) {
 					return false;// Incorrect sublevel
 				}
 			} else {
@@ -443,7 +443,7 @@ public final class ConfigSpec {
 	 * @return the number of added, removed or replaced values.
 	 */
 	public int correct(Config config, CorrectionListener listener) {
-		return correct(config.asMap(), storage.asMap(), new ArrayList<>(), listener);
+		return correct(config.valueMap(), storage.valueMap(), new ArrayList<>(), listener);
 	}
 
 	/**
@@ -467,8 +467,8 @@ public final class ConfigSpec {
 				if (configValue instanceof Config) {//Existing sublevel
 					// Checks the sublevel recursively:
 					parentPath.add(key);
-					Map<String, Object> configValueMap = ((Config)configValue).asMap();
-					Map<String, Object> specValueMap = ((Config)specValue).asMap();
+					Map<String, Object> configValueMap = ((Config)configValue).valueMap();
+					Map<String, Object> specValueMap = ((Config)specValue).valueMap();
 					count += correct(configValueMap, specValueMap, parentPath, listener);
 					parentPath.remove(parentPath.size() - 1);
 				} else {// Missing or invalid (ie not a Config) sublevel

@@ -59,7 +59,7 @@ public final class HoconWriter implements ConfigWriter<Config> {
 		if (newlineAfterObjectStart) {
 			output.write(newline);
 		}
-		final Iterator<Map.Entry<String, Object>> it = config.asMap().entrySet().iterator();
+		final Iterator<Map.Entry<String, Object>> it = config.valueMap().entrySet().iterator();
 		final boolean indentElements = indentObjectElementsPredicate.test(config);
 		if (indentElements) {
 			output.write(newline);

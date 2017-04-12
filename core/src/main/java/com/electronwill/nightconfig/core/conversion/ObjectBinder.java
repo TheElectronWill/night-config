@@ -331,7 +331,7 @@ public final class ObjectBinder {
 		}
 
 		@Override
-		public Map<String, Object> asMap() {
+		public Map<String, Object> valueMap() {
 			Function<Object, Object> readConversion = o -> {
 				if (o instanceof FieldInfos) {
 					FieldInfos fieldInfos = (FieldInfos)o;

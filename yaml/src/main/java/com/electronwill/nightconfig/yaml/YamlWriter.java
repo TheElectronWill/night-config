@@ -40,7 +40,7 @@ public final class YamlWriter implements ConfigWriter<Config> {
 	}
 
 	private static Map<String, Object> unwrap(Config config) {
-		return new TransformingMap<>(config.asMap(), YamlWriter::unwrap, v -> v, v -> v);
+		return new TransformingMap<>(config.valueMap(), YamlWriter::unwrap, v -> v, v -> v);
 	}
 
 	private static Object unwrap(Object value) {

@@ -82,22 +82,22 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 
 	private Map<String, Object> getSubTableMap(Config parentTable, List<String> path) {
 		if (path.isEmpty()) {
-			return parentTable.asMap();
+			return parentTable.valueMap();
 		}
-		Map<String, Object> currentMap = parentTable.asMap();
+		Map<String, Object> currentMap = parentTable.valueMap();
 		for (String key : path) {
 			Object value = currentMap.get(key);
 			if (value == null) {
 				Config sub = new TomlConfig();
 				currentMap.put(key, sub);
-				currentMap = sub.asMap();
+				currentMap = sub.valueMap();
 			} else if (value instanceof Config) {
-				currentMap = ((Config)value).asMap();
+				currentMap = ((Config)value).valueMap();
 			} else if (value instanceof List) {
 				List<?> list = (List<?>)value;
 				if (!list.isEmpty() && list.get(0) instanceof Config) {// Arrays of tables
 					int lastIndex = list.size() - 1;
-					currentMap = ((Config)list.get(lastIndex)).asMap();
+					currentMap = ((Config)list.get(lastIndex)).valueMap();
 				} else {
 					return null;
 				}
@@ -109,7 +109,7 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 	}
 
 	private void checkContainsOnlySubtables(Config table, List<String> path) {
-		for (Object value : table.asMap().values()) {
+		for (Object value : table.valueMap().values()) {
 			if (!(value instanceof Config)) {
 				throw new ParsingException("Table with path " + path + " has been declared twice.");
 			}

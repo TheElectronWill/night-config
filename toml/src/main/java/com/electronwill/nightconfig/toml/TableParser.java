@@ -28,7 +28,7 @@ final class TableParser {
 			checkInvalidSeparator(sep, key);
 
 			Object value = ValueParser.parse(input, parser);
-			Object previous = config.asMap().putIfAbsent(key, value);/* bypasses path parsing (in
+			Object previous = config.valueMap().putIfAbsent(key, value);/* bypasses path parsing (in
 																		order to be faster) */
 			checkDuplicateKey(key, previous);
 
@@ -54,7 +54,7 @@ final class TableParser {
 			checkInvalidSeparator(sep, key);
 
 			Object value = ValueParser.parse(input, parser);
-			Object previous = config.asMap().putIfAbsent(key, value);/* bypasses path parsing (in
+			Object previous = config.valueMap().putIfAbsent(key, value);/* bypasses path parsing (in
 																		order to be faster) */
 			checkDuplicateKey(key, previous);
 

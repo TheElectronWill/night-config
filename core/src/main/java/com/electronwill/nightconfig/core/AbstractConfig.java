@@ -38,7 +38,7 @@ public abstract class AbstractConfig implements Config {
 			if (!(value instanceof Config)) {//missing or incompatible intermediary level
 				return null;//the specified path doesn't exist -> return null
 			}
-			currentMap = ((Config)value).asMap();
+			currentMap = ((Config)value).valueMap();
 		}
 		String lastKey = path.get(lastIndex);
 		return (T)currentMap.get(lastKey);
@@ -61,7 +61,7 @@ public abstract class AbstractConfig implements Config {
 			} else {//existing intermediary level
 				config = (Config)currentValue;
 			}
-			currentMap = config.asMap();
+			currentMap = config.valueMap();
 		}
 		String lastKey = path.get(lastIndex);
 		return currentMap.put(lastKey, value);
@@ -78,7 +78,7 @@ public abstract class AbstractConfig implements Config {
 			if (!(value instanceof Config)) {//missing or incompatible intermediary level
 				return;//the specified path doesn't exist -> stop here
 			}
-			currentMap = ((Config)value).asMap();
+			currentMap = ((Config)value).valueMap();
 		}
 		String lastKey = path.get(lastIndex);
 		currentMap.remove(lastKey);
@@ -93,7 +93,7 @@ public abstract class AbstractConfig implements Config {
 			if (!(value instanceof Config)) {//missing or incompatible intermediary level
 				return false;//the specified path doesn't exist -> return false
 			}
-			currentMap = ((Config)value).asMap();
+			currentMap = ((Config)value).valueMap();
 		}
 		String lastKey = path.get(lastIndex);
 		return currentMap.containsKey(lastKey);
@@ -110,7 +110,7 @@ public abstract class AbstractConfig implements Config {
 	}
 
 	@Override
-	public Map<String, Object> asMap() {
+	public Map<String, Object> valueMap() {
 		return map;
 	}
 
@@ -129,6 +129,6 @@ public abstract class AbstractConfig implements Config {
 
 	@Override
 	public String toString() {
-		return asMap().toString();
+		return valueMap().toString();
 	}
 }

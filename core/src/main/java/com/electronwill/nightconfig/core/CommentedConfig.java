@@ -77,8 +77,8 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 			}
 
 			@Override
-			public Map<String, Object> asMap() {
-				return Collections.unmodifiableMap(CommentedConfig.this.asMap());
+			public Map<String, Object> valueMap() {
+				return Collections.unmodifiableMap(CommentedConfig.this.valueMap());
 			}
 		};
 	}
