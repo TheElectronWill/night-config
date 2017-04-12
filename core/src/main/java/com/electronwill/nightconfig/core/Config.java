@@ -62,7 +62,7 @@ public interface Config extends UnmodifiableConfig {
 	 *
 	 * @return an Unmodifiable view of the config.
 	 */
-	default UnmodifiableConfig asUnmodifiable() {
+	default UnmodifiableConfig unmodifiable() {
 		return new UnmodifiableConfig() {
 			@Override
 			public <T> T getValue(List<String> path) {

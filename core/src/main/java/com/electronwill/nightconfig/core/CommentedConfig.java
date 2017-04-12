@@ -49,7 +49,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	void removeComment(List<String> path);
 
 	@Override
-	default UnmodifiableCommentedConfig asUnmodifiable() {
+	default UnmodifiableCommentedConfig unmodifiable() {
 		return new UnmodifiableCommentedConfig() {
 			@Override
 			public <T> T getValue(List<String> path) {
