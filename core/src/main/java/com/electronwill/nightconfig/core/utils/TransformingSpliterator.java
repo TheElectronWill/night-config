@@ -16,13 +16,13 @@ import java.util.function.Function;
  * @see TransformingMap
  */
 public final class TransformingSpliterator<InternalV, ExternalV> implements Spliterator<ExternalV> {
-	private final Function<InternalV, ExternalV> readTransformation;
-	private final Function<ExternalV, InternalV> writeTransformation;
+	private final Function<? super InternalV, ? extends ExternalV> readTransformation;
+	private final Function<? super ExternalV, ? extends InternalV> writeTransformation;
 	private final Spliterator<InternalV> internalSpliterator;
 
 	public TransformingSpliterator(Spliterator<InternalV> internalSpliterator,
-								   Function<InternalV, ExternalV> readTransformation,
-								   Function<ExternalV, InternalV> writeTransformation) {
+								   Function<? super InternalV, ? extends ExternalV> readTransformation,
+								   Function<? super ExternalV, ? extends InternalV> writeTransformation) {
 		this.readTransformation = readTransformation;
 		this.writeTransformation = writeTransformation;
 		this.internalSpliterator = internalSpliterator;

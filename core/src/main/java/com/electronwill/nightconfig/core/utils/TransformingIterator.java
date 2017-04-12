@@ -15,11 +15,11 @@ import java.util.function.Function;
  * @see TransformingMap
  */
 public final class TransformingIterator<InternalV, ExternalV> implements Iterator<ExternalV> {
-	private final Function<InternalV, ExternalV> readTransformation;
+	private final Function<? super InternalV, ? extends ExternalV> readTransformation;
 	private final Iterator<InternalV> internalIterator;
 
 	public TransformingIterator(Iterator<InternalV> internalIterator,
-								Function<InternalV, ExternalV> readTransformation) {
+								Function<? super InternalV, ? extends ExternalV> readTransformation) {
 		this.readTransformation = readTransformation;
 		this.internalIterator = internalIterator;
 	}

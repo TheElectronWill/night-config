@@ -20,14 +20,14 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("unchecked")
 public class TransformingCollection<InternalV, ExternalV> implements Collection<ExternalV> {
-	private final Function<InternalV, ExternalV> readTransformation;
-	private final Function<ExternalV, InternalV> writeTransformation;
+	private final Function<? super InternalV, ? extends ExternalV> readTransformation;
+	private final Function<? super ExternalV, ? extends InternalV> writeTransformation;
 	private final Function<Object, Object> searchTransformation;
 	private final Collection<InternalV> internalCollection;
 
 	public TransformingCollection(Collection<InternalV> internalCollection,
-								  Function<InternalV, ExternalV> readTransformation,
-								  Function<ExternalV, InternalV> writeTransformation,
+								  Function<? super InternalV, ? extends ExternalV> readTransformation,
+								  Function<? super ExternalV, ? extends InternalV> writeTransformation,
 								  Function<Object, Object> searchTransformation) {
 		this.internalCollection = internalCollection;
 		this.readTransformation = readTransformation;

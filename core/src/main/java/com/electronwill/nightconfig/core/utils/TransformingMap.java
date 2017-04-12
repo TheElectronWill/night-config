@@ -33,8 +33,8 @@ import java.util.function.Function;
  */
 @SuppressWarnings("unchecked")
 public final class TransformingMap<K, InternalV, ExternalV> extends AbstractMap<K, ExternalV> {
-	private final Function<InternalV, ExternalV> readTransformation;
-	private final Function<ExternalV, InternalV> writeTransformation;
+	private final Function<? super InternalV, ? extends ExternalV> readTransformation;
+	private final Function<? super ExternalV, ? extends InternalV> writeTransformation;
 	private final Function<Object, Object> searchTransformation;
 	private final Map<K, InternalV> internalMap;
 
@@ -46,8 +46,9 @@ public final class TransformingMap<K, InternalV, ExternalV> extends AbstractMap<
 	 * @param writeTransformation  the write transformation (see javadoc of the class)
 	 * @param searchTransformation the search transformation (see javadoc of the class)
 	 */
-	public TransformingMap(Map<K, InternalV> map, Function<InternalV, ExternalV> readTransformation,
-						   Function<ExternalV, InternalV> writeTransformation,
+	public TransformingMap(Map<K, InternalV> map,
+						   Function<? super InternalV, ? extends ExternalV> readTransformation,
+						   Function<? super ExternalV, ? extends InternalV> writeTransformation,
 						   Function<Object, Object> searchTransformation) {
 		this.internalMap = map;
 		this.readTransformation = readTransformation;
