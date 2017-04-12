@@ -33,7 +33,7 @@ class ObjectBinderTest {
 		assert object.string == config.<String>getValue("string");
 		assert object.stringList == config.getValue("stringList");
 		assert object.config == config.getValue("config");
-		assert object.subObject == config.getValue("subObject");
+		assert config.getValue("subObject") instanceof Config;
 		assert object.subObject.integer == config.<Integer>getValue("subObject.integer");
 		assert object.subObject.decimal == config.<Double>getValue("subObject.decimal");
 		assert object.subObject.string == config.<String>getValue("subObject.string");

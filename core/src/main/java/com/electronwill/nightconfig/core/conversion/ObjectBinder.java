@@ -275,10 +275,10 @@ public final class ObjectBinder {
 			final BoundSearchResult searchResult = searchInfosOrConfig(path);
 			if (searchResult == null) {
 				return null;
-			} else if (searchResult.hasFieldInfos()) {
-				return (T)searchResult.fieldInfos.getValue(searchResult.parentConfig.object);
-			} else {
+			} else if (searchResult.hasSubConfig()) {
 				return (T)searchResult.subConfig;
+			} else {
+				return (T)searchResult.fieldInfos.getValue(searchResult.parentConfig.object);
 			}
 		}
 
@@ -387,16 +387,24 @@ public final class ObjectBinder {
 		BoundSearchResult(BoundConfig parentConfig, Object data) {
 			this.parentConfig = parentConfig;
 			if (data instanceof FieldInfos) {
-				this.fieldInfos = (FieldInfos)data;
-				this.subConfig = null;
+				fieldInfos = (FieldInfos)data;
+				if (fieldInfos.boundConfig == null) {
+					subConfig = null;
+				} else {
+					subConfig = fieldInfos.getUpdatedConfig(parentConfig.object);
+				}
 			} else {
-				this.fieldInfos = null;
-				this.subConfig = (BoundConfig)data;
+				fieldInfos = null;
+				subConfig = (BoundConfig)data;
 			}
 		}
 
 		boolean hasFieldInfos() {
 			return fieldInfos != null;
+		}
+
+		boolean hasSubConfig() {
+			return subConfig != null;
 		}
 	}
 
