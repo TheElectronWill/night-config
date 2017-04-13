@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.utils.FastStringReader;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
@@ -38,6 +40,29 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param destination the config where to put the data
 	 */
 	void parse(Reader reader, D destination);
+
+	/**
+	 * Parses a configuration String.
+	 *
+	 * @param input the input to parse
+	 * @return a Config
+	 *
+	 * @throws ParsingException if an error occurs
+	 */
+	default C parse(String input) {
+		return parse(new FastStringReader(input));
+	}
+
+	/**
+	 * Parses a configuration String.
+	 *
+	 * @param input       the input to parse
+	 * @param destination the config where to put the data
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(String input, D destination) {
+		parse(new StringReader(input), destination);
+	}
 
 	/**
 	 * Parses a configuration.
