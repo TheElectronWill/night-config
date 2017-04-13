@@ -52,7 +52,7 @@ public final class Utils {
 	 */
 	public static long parseLong(CharsWrapper chars, int base) {
 		// Optimized lightweight parsing
-		int offset = chars.getOffset();
+		int offset = chars.offset;
 		boolean negative = false;
 		char firstChar = chars.charAt(0);
 		if (firstChar == '-') {
@@ -62,8 +62,8 @@ public final class Utils {
 			offset += 1;
 		}
 		long value = 0, coefficient = 1;
-		char[] array = chars.getChars();
-		for (int i = chars.getLimit() - 1; i >= offset; i--) {
+		char[] array = chars.chars;
+		for (int i = chars.limit - 1; i >= offset; i--) {
 			int digitValue = Character.digit(array[i], base);
 			if (digitValue == -1) {//invalid digit in the specified base
 				throw new ParsingException("Invalid value: " + chars);

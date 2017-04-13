@@ -17,7 +17,7 @@ public final class ArrayInput extends AbstractInput {
 	 * @param chars the CharsWrapper to use as an input
 	 */
 	public ArrayInput(CharsWrapper chars) {
-		this(chars.getChars(), chars.getOffset(), chars.getLimit());
+		this(chars.chars, chars.offset, chars.limit);
 	}
 
 	/**
