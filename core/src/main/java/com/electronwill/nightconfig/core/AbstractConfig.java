@@ -175,8 +175,8 @@ public abstract class AbstractConfig implements Config {
 			if (obj == this) {
 				return true;
 			}
-			if (obj instanceof Entry) {
-				Entry other = (Entry)obj;
+			if (obj instanceof EntryWrapper) {
+				EntryWrapper other = (EntryWrapper)obj;
 				return Objects.equals(getKey(), other.getKey()) && Objects.equals(getValue(),
 																				  other.getValue());
 			}
