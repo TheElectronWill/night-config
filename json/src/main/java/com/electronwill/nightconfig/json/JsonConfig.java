@@ -1,13 +1,10 @@
 package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.AbstractConfig;
-import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
