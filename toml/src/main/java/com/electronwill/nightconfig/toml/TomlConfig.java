@@ -1,34 +1,49 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.AbstractConfig;
-import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.SimpleConfig;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
 import java.io.File;
-import java.time.temporal.Temporal;
-import java.util.List;
 import java.util.Map;
 
 /**
+ * A TOML configuration.
+ *
  * @author TheElectronWill
  */
 public class TomlConfig extends AbstractConfig implements FileConfig {
+	/**
+	 * Creates an empty TomlConfig.
+	 */
 	public TomlConfig() {}
 
-	public TomlConfig(Map<String, Object> map) {
-		super(map);
+	/**
+	 * Creates a TomlConfig that is a copy of the specified config.
+	 *
+	 * @param toCopy the config to copy
+	 */
+	public TomlConfig(UnmodifiableConfig toCopy) {
+		super(toCopy);
+	}
+
+	/**
+	 * Creates a TomlConfig backed by the given Map.
+	 *
+	 * @param valueMap the map containing the values
+	 */
+	public TomlConfig(Map<String, Object> valueMap) {
+		super(valueMap);
+	}
+
+	@Override
+	public TomlConfig clone() {
+		return new TomlConfig(this);
 	}
 
 	@Override
 	public boolean supportsType(Class<?> type) {
-		return type == Integer.class
-			   || type == Long.class
-			   || type == Float.class
-			   || type == Double.class
-			   || type == Boolean.class
-			   || type == String.class
-			   || Temporal.class.isAssignableFrom(type)
-			   || List.class.isAssignableFrom(type)
-			   || Config.class.isAssignableFrom(type);
+		return SimpleConfig.BASIC_SUPPORT_PREDICATE.test(type);
 	}
 
 	@Override
@@ -43,7 +58,9 @@ public class TomlConfig extends AbstractConfig implements FileConfig {
 
 	@Override
 	public void parse(File file, boolean merge) {
-		if (!merge) { valueMap().clear(); }
+		if (!merge) {
+			clear();
+		}
 		new TomlParser().parse(file, this);
 	}
 }
