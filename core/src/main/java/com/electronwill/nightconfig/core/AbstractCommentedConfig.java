@@ -48,6 +48,26 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		this.commentsMap = new HashMap<>(toCopy.commentsMap);
 	}
 
+	/**
+	 * Creates an AbstractCommentedConfig that is a copy of the specified config.
+	 *
+	 * @param toCopy the config to copy
+	 */
+	public AbstractCommentedConfig(UnmodifiableCommentedConfig toCopy) {
+		super(toCopy);
+		Set<? extends UnmodifiableCommentedConfig.Entry> entries = toCopy.entrySet();
+		commentsMap = new HashMap<>(entries.size());
+		for (UnmodifiableCommentedConfig.Entry entry : entries) {
+			final String key = entry.getKey();
+			final String comment = entry.getComment();
+			final Object value = entry.getValue();
+			final Map<String, CommentInfos> subInfos = (value instanceof Config) ? new HashMap<>() : null;
+			if (comment != null || subInfos != null) {
+				commentsMap.put(key, new CommentInfos(comment, subInfos));
+			}
+		}
+	}
+
 	@Override
 	public String getComment(List<String> path) {
 		final int lastIndex = path.size() - 1;
@@ -196,6 +216,11 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		}
 
 		CommentInfos(Map<String, CommentInfos> subInfos) {
+			this.subInfos = subInfos;
+		}
+
+		CommentInfos(String comment, Map<String, CommentInfos> subInfos) {
+			this.comment = comment;
 			this.subInfos = subInfos;
 		}
 
