@@ -18,11 +18,31 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		this.commentsMap = new HashMap<>();
 	}
 
+	/**
+	 * Creates an AbstractCommentedConfig backed by the specified map
+	 *
+	 * @param valuesMap the map containing the config's values
+	 */
 	public AbstractCommentedConfig(Map<String, Object> valuesMap) {
 		super(valuesMap);
 		this.commentsMap = new HashMap<>();
 	}
 
+	/**
+	 * Creates an AbstractCommentedConfig that is a copy of the specified config.
+	 *
+	 * @param toCopy the config to copy
+	 */
+	public AbstractCommentedConfig(UnmodifiableConfig toCopy) {
+		super(toCopy);
+		this.commentsMap = new HashMap<>();
+	}
+
+	/**
+	 * Creates an AbstractCommentedConfig that is a copy of the specified config.
+	 *
+	 * @param toCopy the config to copy
+	 */
 	public AbstractCommentedConfig(AbstractCommentedConfig toCopy) {
 		super(toCopy.valueMap());
 		this.commentsMap = new HashMap<>(toCopy.commentsMap);
