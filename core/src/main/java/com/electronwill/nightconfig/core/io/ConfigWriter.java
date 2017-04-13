@@ -92,4 +92,17 @@ public interface ConfigWriter<T extends Config> {
 			throw new WritingException("An I/O error occured", e);
 		}
 	}
+
+	/**
+	 * Writes a configuration to a String.
+	 *
+	 * @param config the config to write
+	 * @return a new String
+	 * @throws WritingException if an error occurs
+	 */
+	default String writeToString(T config) {
+		CharsWrapper.Builder builder = new CharsWrapper.Builder(64);
+		write(config, builder);
+		return builder.toString();
+	}
 }
