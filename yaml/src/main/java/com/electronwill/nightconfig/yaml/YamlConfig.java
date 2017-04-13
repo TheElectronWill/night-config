@@ -1,7 +1,8 @@
 package com.electronwill.nightconfig.yaml;
 
-import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.AbstractConfig;
+import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
 import java.io.File;
 import java.util.List;
@@ -17,10 +18,32 @@ public final class YamlConfig extends AbstractConfig implements FileConfig {
 	private static final ThreadLocal<YamlWriter> LOCAL_WRITER = ThreadLocal.withInitial(YamlWriter::new);
 	private static final ThreadLocal<YamlParser> LOCAL_PARSER = ThreadLocal.withInitial(YamlParser::new);
 
+	/**
+	 * Creates an empty YamlConfig.
+	 */
 	public YamlConfig() {}
 
+	/**
+	 * Creates a YamlConfig that is a copy of the specified config.
+	 *
+	 * @param toCopy the config to copy
+	 */
+	public YamlConfig(UnmodifiableConfig toCopy) {
+		super(toCopy);
+	}
+
+	/**
+	 * Creates a YamlConfig backed by the given Map.
+	 *
+	 * @param map the map containing the values
+	 */
 	public YamlConfig(Map<String, Object> map) {
 		super(map);
+	}
+
+	@Override
+	public YamlConfig clone() {
+		return new YamlConfig(this);
 	}
 
 	protected YamlConfig createSubConfig() {
@@ -49,7 +72,9 @@ public final class YamlConfig extends AbstractConfig implements FileConfig {
 
 	@Override
 	public void parse(File file, boolean merge) {
-		if (!merge) { valueMap().clear(); }
+		if (!merge) {
+			clear();
+		}
 		LOCAL_PARSER.get().parse(file, this);
 	}
 }
