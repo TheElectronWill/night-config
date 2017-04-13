@@ -390,7 +390,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	/**
 	 * Builder class for constructing CharsWrappers.
 	 */
-	public static final class Builder implements CharacterOutput, Appendable {
+	public static final class Builder extends Writer implements CharacterOutput {
 		private static final char[] NULL = {'n', 'u', 'l', 'l'};
 		private char[] data;
 		private int cursor = 0;
