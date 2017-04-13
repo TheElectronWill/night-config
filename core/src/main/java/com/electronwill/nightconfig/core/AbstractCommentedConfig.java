@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -125,6 +126,29 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		@Override
 		public void removeComment() {
 			AbstractCommentedConfig.this.removeComment(getPath());
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == this) {
+				return true;
+			}
+			if (obj instanceof CommentedEntryWrapper) {
+				CommentedEntryWrapper other = (CommentedEntryWrapper)obj;
+				return Objects.equals(getKey(), other.getKey())
+					   && Objects.equals(getValue(), other.getValue())
+					   && Objects.equals(getComment(), other.getComment());
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			int result = 1;
+			result = 31 * result + Objects.hashCode(getKey());
+			result = 31 * result + Objects.hashCode(getValue());
+			result = 31 * result + Objects.hashCode(getComment());
+			return result;
 		}
 	}
 }
