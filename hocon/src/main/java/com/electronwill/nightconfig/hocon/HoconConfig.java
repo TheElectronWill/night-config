@@ -1,10 +1,8 @@
 package com.electronwill.nightconfig.hocon;
 
 import com.electronwill.nightconfig.core.AbstractCommentedConfig;
-import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.FileConfig;
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,14 +19,7 @@ public final class HoconConfig extends AbstractCommentedConfig implements FileCo
 
 	@Override
 	public boolean supportsType(Class<?> type) {
-		return type == Integer.class
-			   || type == Long.class
-			   || type == Float.class
-			   || type == Double.class
-			   || type == Boolean.class
-			   || type == String.class
-			   || List.class.isAssignableFrom(type)
-			   || Config.class.isAssignableFrom(type);
+		return SimpleConfig.BASIC_SUPPORT_PREDICATE.test(type);
 	}
 
 	@Override
@@ -44,7 +35,7 @@ public final class HoconConfig extends AbstractCommentedConfig implements FileCo
 	@Override
 	public void parse(File file, boolean merge) {
 		if (!merge) {
-			valueMap().clear();
+			clear();
 		}
 		new HoconParser().parse(file, this);
 	}
