@@ -53,6 +53,16 @@ public final class FakeUnmodifiableCommentedConfig implements UnmodifiableCommen
 		return config.valueMap();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		return config.equals(obj);
+	}
+
+	@Override
+	public int hashCode() {
+		return config.hashCode();
+	}
+
 	private static final class FakeCommentedEntry implements Entry {
 		private final UnmodifiableConfig.Entry entry;
 
