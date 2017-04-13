@@ -2,9 +2,12 @@ package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.AbstractConfig;
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.SimpleConfig;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
 import java.io.File;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -25,21 +28,22 @@ import java.util.Map;
 public final class JsonConfig extends AbstractConfig implements FileConfig {
 	public JsonConfig() {}
 
+	public JsonConfig(UnmodifiableConfig toCopy) {
+		super(toCopy);
+	}
+
 	public JsonConfig(Map<String, Object> map) {
 		super(map);
 	}
 
 	@Override
+	public JsonConfig clone() {
+		return new JsonConfig(this);
+	}
+
+	@Override
 	public boolean supportsType(Class<?> type) {
-		return type == Integer.class
-				|| type == Long.class
-				|| type == Float.class
-				|| type == Double.class
-				|| type == Boolean.class
-				|| type == String.class
-				|| Collection.class.isAssignableFrom(type)
-				|| Config.class.isAssignableFrom(type)
-				|| type.isArray();
+		return SimpleConfig.BASIC_SUPPORT_PREDICATE.test(type);
 	}
 
 	@Override
@@ -55,7 +59,7 @@ public final class JsonConfig extends AbstractConfig implements FileConfig {
 	@Override
 	public void parse(File file, boolean merge) {
 		if (!merge) {
-			this.valueMap().clear();// clears the config
+			clear();
 		}
 		new JsonParser().parse(file, this);
 	}
