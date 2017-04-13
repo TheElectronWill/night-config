@@ -55,6 +55,6 @@ public interface CharacterOutput {
 	 * @param cw the CharsWrapper to write
 	 */
 	default void write(CharsWrapper cw) {
-		write(cw.getChars(), cw.getOffset(), cw.getLimit());
+		write(cw.chars, cw.offset, cw.limit - cw.offset);
 	}
 }

@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core.io;
 
+import java.io.Writer;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -12,8 +13,8 @@ import java.util.Objects;
  * @author TheElectronWill
  */
 public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Character> {
-	private final char[] chars;
-	private final int offset, limit;
+	final char[] chars;
+	final int offset, limit;
 
 	/**
 	 * Creates a new CharsWrapper backed by the given char array. Any modification to the array is
@@ -90,18 +91,6 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		for (int i = begin; i < end; i++) {
 			chars[i - begin] = csq.charAt(i);
 		}
-	}
-
-	char[] getChars() {
-		return chars;
-	}
-
-	int getOffset() {
-		return offset;
-	}
-
-	int getLimit() {
-		return limit;
 	}
 
 	/**
@@ -537,11 +526,27 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		}
 
 		@Override
+		public void flush() {}
+
+		@Override
+		public void close() {}
+
+		@Override
+		public void write(int c) {
+			write((char)c);
+		}
+
+		@Override
 		public void write(char c) {
 			final int newCursor = cursor + 1;
 			ensureCapacity(newCursor);
 			data[cursor] = c;
 			cursor = newCursor;
+		}
+
+		@Override
+		public void write(char... cbuf) {
+			CharacterOutput.super.write(cbuf);
 		}
 
 		@Override
@@ -553,12 +558,22 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		}
 
 		@Override
-		public void write(String s, int begin, int end) {
-			final int length = end - begin;
+		public void write(String str) {
+			CharacterOutput.super.write(str);
+		}
+
+		@Override
+		public void write(String s, int offset, int length) {
+			final int end = offset + length;
 			final int newCursor = cursor + length;
 			ensureCapacity(newCursor);
-			s.getChars(begin, end, data, cursor);
+			s.getChars(offset, end, data, cursor);
 			cursor = newCursor;
+		}
+
+		@Override
+		public void write(CharsWrapper cw) {
+			CharacterOutput.super.write(cw);
 		}
 
 		/**
@@ -597,7 +612,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		public void set(int index, char ch) {
 			if (index >= cursor) {
 				throw new IndexOutOfBoundsException(
-						"Index must not be larger than the builder's length");
+					"Index must not be larger than the builder's length");
 			}
 			data[index] = ch;
 		}
@@ -606,7 +621,9 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		 * Compacts this builder, minimizing its size in memory.
 		 */
 		public void compact() {
-			if (cursor != data.length) data = Arrays.copyOf(data, cursor);
+			if (cursor != data.length) {
+				data = Arrays.copyOf(data, cursor);
+			}
 		}
 
 		/**
@@ -627,8 +644,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		 * @return a new CharsWrapper with the content of this builder
 		 */
 		public CharsWrapper build(int start) {
-			return new CharsWrapper(data, start,
-									cursor);//directly use this, no need to bound check here
+			return new CharsWrapper(data, start, cursor);//directly use this, no need to bound check here
 		}
 
 		/**
@@ -642,7 +658,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		public CharsWrapper build(int start, int end) {
 			if (end > cursor) {
 				throw new IndexOutOfBoundsException(
-						"Specified end index is larger than the builder's length!");
+					"Specified end index is larger than the builder's length!");
 			}
 			return new CharsWrapper(data, start, end);
 		}
@@ -677,7 +693,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		public CharsWrapper copyAndBuild(int start, int end) {
 			if (end > cursor) {
 				throw new IndexOutOfBoundsException(
-						"Specified end index is larger than the builder's length!");
+					"Specified end index is larger than the builder's length!");
 			}
 			return new CharsWrapper(Arrays.copyOfRange(data, start, end));
 		}
@@ -694,7 +710,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		public String toString(int start, int end) {
 			if (end > cursor) {
 				throw new IndexOutOfBoundsException(
-						"Specified end index is larger than the builder's length!");
+					"Specified end index is larger than the builder's length!");
 			}
 			return new String(data, start, end - start);
 		}
