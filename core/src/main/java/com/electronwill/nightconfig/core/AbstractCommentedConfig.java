@@ -12,68 +12,77 @@ import java.util.Set;
  * @author TheElectronWill
  */
 public abstract class AbstractCommentedConfig extends AbstractConfig implements CommentedConfig {
-	private final Map<String, Object> commentsMap;
+	private final Map<String, CommentInfos> commentsMap;
 
 	public AbstractCommentedConfig() {
 		this.commentsMap = new HashMap<>();
 	}
 
 	public AbstractCommentedConfig(Map<String, Object> valuesMap) {
-		this(valuesMap, new HashMap<>(0));
+		super(valuesMap);
+		this.commentsMap = new HashMap<>();
 	}
 
-	public AbstractCommentedConfig(Map<String, Object> valuesMap, Map<String, Object> commentsMap) {
-		super(valuesMap);
-		this.commentsMap = commentsMap;
+	public AbstractCommentedConfig(AbstractCommentedConfig toCopy) {
+		super(toCopy.valueMap());
+		this.commentsMap = new HashMap<>(toCopy.commentsMap);
 	}
 
 	@Override
 	public String getComment(List<String> path) {
 		final int lastIndex = path.size() - 1;
-		Map<String, Object> currentMap = commentsMap;
+		Map<String, CommentInfos> currentMap = commentsMap;
 		for (String key : path.subList(0, lastIndex)) {
-			Object value = currentMap.get(key);
-			if (!(value instanceof Map)) {//missing or incompatible intermediary level
+			CommentInfos infos = currentMap.get(key);
+			if (!infos.hasSubInfos()) {//missing or incompatible intermediary level
 				return null;//the specified path doesn't exist -> return null
 			}
-			currentMap = (Map)value;
+			currentMap = infos.subInfos;
 		}
 		String lastKey = path.get(lastIndex);
-		return (String)currentMap.get(lastKey);
+		CommentInfos lastInfos = currentMap.get(lastKey);
+		return (lastInfos == null) ? null : lastInfos.comment;
 	}
 
 	@Override
 	public String setComment(List<String> path, String comment) {
 		final int lastIndex = path.size() - 1;
-		Map<String, Object> currentMap = commentsMap;
+		Map<String, CommentInfos> currentMap = commentsMap;
 		for (String currentKey : path.subList(0, lastIndex)) {
-			final Object currentValue = currentMap.get(currentKey);
-			if (currentValue == null) {//missing intermediary level
-				Map newMap = new HashMap<>();
-				currentMap.put(currentKey, newMap);
-				currentMap = newMap;
-			} else if (!(currentValue instanceof Map)) {//incompatible intermediary level
+			final CommentInfos infos = currentMap.get(currentKey);
+			if (infos == null) {//missing intermediary level
+				CommentInfos newInfos = new CommentInfos(new HashMap<>());
+				currentMap.put(currentKey, newInfos);
+				currentMap = newInfos.subInfos;
+			} else if (!infos.hasSubInfos()) {//incompatible intermediary level
 				throw new IllegalArgumentException(
 						"Cannot add a comment to an intermediary value of type: "
-						+ currentValue.getClass());
+						+ infos.getClass());
 			} else {//existing intermediary level
-				currentMap = (Map)currentValue;
+				currentMap = infos.subInfos;
 			}
 		}
 		String lastKey = path.get(lastIndex);
-		return (String)currentMap.put(lastKey, comment);
+		CommentInfos lastInfos = currentMap.get(lastKey);
+		if (lastInfos == null) {
+			currentMap.put(lastKey, new CommentInfos(comment));
+			return null;
+		}
+		String previousComment = lastInfos.comment;
+		lastInfos.comment = comment;
+		return previousComment;
 	}
 
 	@Override
 	public void removeComment(List<String> path) {
 		final int lastIndex = path.size() - 1;
-		Map<String, Object> currentMap = commentsMap;
+		Map<String, CommentInfos> currentMap = commentsMap;
 		for (String key : path.subList(0, lastIndex)) {
-			Object value = currentMap.get(key);
-			if (!(value instanceof Map)) {//missing or incompatible intermediary level
+			CommentInfos infos = currentMap.get(key);
+			if (!infos.hasSubInfos()) {//missing or incompatible intermediary level
 				return;//the specified path doesn't exist -> stop here
 			}
-			currentMap = (Map)value;
+			currentMap = infos.subInfos;
 		}
 		String lastKey = path.get(lastIndex);
 		currentMap.remove(lastKey);
@@ -82,13 +91,13 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	@Override
 	public boolean containsComment(List<String> path) {
 		final int lastIndex = path.size() - 1;
-		Map<String, Object> currentMap = commentsMap;
+		Map<String, CommentInfos> currentMap = commentsMap;
 		for (String key : path.subList(0, lastIndex)) {
-			Object value = currentMap.get(key);
-			if (!(value instanceof Map)) {//missing or incompatible intermediary level
+			CommentInfos infos = currentMap.get(key);
+			if (!infos.hasSubInfos()) {//missing or incompatible intermediary level
 				return false;//the specified path doesn't exist -> return false
 			}
-			currentMap = (Map)value;
+			currentMap = infos.subInfos;
 		}
 		String lastKey = path.get(lastIndex);
 		return currentMap.containsKey(lastKey);
@@ -155,6 +164,23 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 			result = 31 * result + Objects.hashCode(getValue());
 			result = 31 * result + Objects.hashCode(getComment());
 			return result;
+		}
+	}
+
+	private static class CommentInfos {
+		String comment;
+		Map<String, CommentInfos> subInfos;
+
+		CommentInfos(String comment) {
+			this.comment = comment;
+		}
+
+		CommentInfos(Map<String, CommentInfos> subInfos) {
+			this.subInfos = subInfos;
+		}
+
+		boolean hasSubInfos() {
+			return subInfos != null;
 		}
 	}
 }
