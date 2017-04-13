@@ -31,6 +31,15 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		this.map = map;
 	}
 
+	/**
+	 * Creates a new AbstractConfig that is a copy of the specified config.
+	 *
+	 * @param toCopy the config to copy
+	 */
+	public AbstractConfig(UnmodifiableConfig toCopy) {
+		this.map = new HashMap<>(toCopy.valueMap());
+	}
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T getValue(List<String> path) {
