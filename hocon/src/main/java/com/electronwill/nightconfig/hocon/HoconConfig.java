@@ -1,6 +1,8 @@
 package com.electronwill.nightconfig.hocon;
 
 import com.electronwill.nightconfig.core.AbstractCommentedConfig;
+import com.electronwill.nightconfig.core.SimpleConfig;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
 import java.io.File;
 import java.util.Map;
@@ -15,6 +17,19 @@ public final class HoconConfig extends AbstractCommentedConfig implements FileCo
 
 	public HoconConfig(Map<String, Object> valuesMap) {
 		super(valuesMap);
+	}
+
+	public HoconConfig(UnmodifiableConfig toCopy) {
+		super(toCopy);
+	}
+
+	public HoconConfig(AbstractCommentedConfig toCopy){
+		super(toCopy);
+	}
+
+	@Override
+	public HoconConfig clone() {
+		return new HoconConfig(this);
 	}
 
 	@Override
