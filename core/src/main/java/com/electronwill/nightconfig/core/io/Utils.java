@@ -6,8 +6,6 @@ package com.electronwill.nightconfig.core.io;
  * @author TheElectronWill
  */
 public final class Utils {
-	private static final char[] EMPTY_CHAR_ARRAY = new char[0];
-
 	private Utils() {}// Utility class that can't be constructed
 
 	/**
@@ -115,14 +113,5 @@ public final class Utils {
 	 */
 	public static double parseDouble(CharsWrapper chars) {
 		return Double.parseDouble(chars.toString());
-	}
-
-	/**
-	 * Returns an empty char array.
-	 *
-	 * @return an ampty char array
-	 */
-	public static char[] noChars() {
-		return EMPTY_CHAR_ARRAY;
 	}
 }
