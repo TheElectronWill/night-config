@@ -57,7 +57,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	}
 
 	@Override
-	public Object setValue(List<String> path, Object value) {
+	public <T> T setValue(List<String> path, Object value) {
 		final int lastIndex = path.size() - 1;
 		Map<String, Object> currentMap = map;
 		for (String currentKey : path.subList(0, lastIndex)) {
@@ -76,24 +76,24 @@ public abstract class AbstractConfig implements Config, Cloneable {
 			currentMap = config.valueMap();
 		}
 		String lastKey = path.get(lastIndex);
-		return currentMap.put(lastKey, value);
+		return (T)currentMap.put(lastKey, value);
 	}
 
 	protected abstract AbstractConfig createSubConfig();
 
 	@Override
-	public void removeValue(List<String> path) {
+	public <T> T removeValue(List<String> path) {
 		final int lastIndex = path.size() - 1;
 		Map<String, Object> currentMap = map;
 		for (String key : path.subList(0, lastIndex)) {
 			Object value = currentMap.get(key);
 			if (!(value instanceof Config)) {//missing or incompatible intermediary level
-				return;//the specified path doesn't exist -> stop here
+				return null;//the specified path doesn't exist -> stop here
 			}
 			currentMap = ((Config)value).valueMap();
 		}
 		String lastKey = path.get(lastIndex);
-		currentMap.remove(lastKey);
+		return (T)currentMap.remove(lastKey);
 	}
 
 	@Override

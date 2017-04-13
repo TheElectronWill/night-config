@@ -171,13 +171,13 @@ public final class ConversionTable {
 	public Config wrapRead(Config config) {
 		return new Config() {
 			@Override
-			public Object setValue(List<String> path, Object value) {
-				return convert(config.setValue(path, value));
+			public <T> T setValue(List<String> path, Object value) {
+				return (T)convert(config.setValue(path, value));
 			}
 
 			@Override
-			public void removeValue(List<String> path) {
-				config.removeValue(path);
+			public <T> T removeValue(List<String> path) {
+				return config.removeValue(path);
 			}
 
 			@Override
@@ -243,13 +243,13 @@ public final class ConversionTable {
 	public Config wrapWrite(Config config, Predicate<Class<?>> supportValueTypePredicate) {
 		return new Config() {
 			@Override
-			public Object setValue(List<String> path, Object value) {
+			public <T> T setValue(List<String> path, Object value) {
 				return config.setValue(path, convert(value));
 			}
 
 			@Override
-			public void removeValue(List<String> path) {
-				config.removeValue(path);
+			public <T> T removeValue(List<String> path) {
+				return config.removeValue(path);
 			}
 
 			@Override

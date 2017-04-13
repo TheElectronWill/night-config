@@ -22,7 +22,7 @@ public interface Config extends UnmodifiableConfig {
 	 * @param value the value to set
 	 * @return the old value if any, or {@code null}
 	 */
-	default Object setValue(String path, Object value) {
+	default <T> T setValue(String path, Object value) {
 		return setValue(split(path, '.'), value);
 	}
 
@@ -33,15 +33,15 @@ public interface Config extends UnmodifiableConfig {
 	 * @param value the value to set
 	 * @return the old value if any, or {@code null}
 	 */
-	Object setValue(List<String> path, Object value);
+	<T> T setValue(List<String> path, Object value);
 
 	/**
 	 * Removes a value from the config.
 	 *
 	 * @param path the value's path, each part separated by a dot. Example "a.b.c"
 	 */
-	default void removeValue(String path) {
-		removeValue(split(path, '.'));
+	default <T> T removeValue(String path) {
+		return removeValue(split(path, '.'));
 	}
 
 	/**
@@ -49,7 +49,7 @@ public interface Config extends UnmodifiableConfig {
 	 *
 	 * @param path the value's path, each element of the list is a different part of the path.
 	 */
-	void removeValue(List<String> path);
+	<T> T removeValue(List<String> path);
 
 	/**
 	 * Removes all values from the config.
@@ -127,6 +127,6 @@ public interface Config extends UnmodifiableConfig {
 		 * @param value the value to set
 		 * @return the previous value
 		 */
-		Object setValue(Object value);
+		<T> T setValue(Object value);
 	}
 }

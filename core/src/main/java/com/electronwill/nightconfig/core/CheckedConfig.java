@@ -34,13 +34,13 @@ public final class CheckedConfig implements Config {
 	}
 
 	@Override
-	public Object setValue(List<String> path, Object value) {
+	public <T> T setValue(List<String> path, Object value) {
 		return config.setValue(path, checkedValue(value));
 	}
 
 	@Override
-	public void removeValue(List<String> path) {
-		config.removeValue(path);
+	public <T> T removeValue(List<String> path) {
+		return config.removeValue(path);
 	}
 
 	@Override

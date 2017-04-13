@@ -53,13 +53,13 @@ public final class ConvertedConfig implements Config {
 	}
 
 	@Override
-	public Object setValue(List<String> path, Object value) {
-		return readConversion.apply(config.setValue(path, writeConversion.apply(value)));
+	public <T> T setValue(List<String> path, Object value) {
+		return (T)readConversion.apply(config.setValue(path, writeConversion.apply(value)));
 	}
 
 	@Override
-	public void removeValue(List<String> path) {
-		config.removeValue(path);
+	public <T> T removeValue(List<String> path) {
+		return config.removeValue(path);
 	}
 
 	@Override

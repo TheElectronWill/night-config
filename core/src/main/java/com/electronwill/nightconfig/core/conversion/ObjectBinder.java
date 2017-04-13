@@ -288,12 +288,12 @@ public final class ObjectBinder {
 		}
 
 		@Override
-		public Object setValue(List<String> path, Object value) {
+		public <T> T setValue(List<String> path, Object value) {
 			final BoundSearchResult searchResult = searchInfosOrConfig(path);
 			if (searchResult == null) {
 				throw new UnsupportedOperationException("Cannot add elements to a bound config");
 			} else if (searchResult.hasFieldInfos()) {
-				return searchResult.fieldInfos.setValue(searchResult.parentConfig.object, value,
+				return (T)searchResult.fieldInfos.setValue(searchResult.parentConfig.object, value,
 												 bypassFinal);
 			} else {
 				throw new UnsupportedOperationException(
@@ -302,14 +302,16 @@ public final class ObjectBinder {
 		}
 
 		@Override
-		public void removeValue(List<String> path) {
+		public <T> T removeValue(List<String> path) {
 			final BoundSearchResult searchResult = searchInfosOrConfig(path);
 			if (searchResult == null) {
-				return;// Nothing to do
+				return null;// Nothing to do
 			} else if (searchResult.hasFieldInfos()) {
-				searchResult.fieldInfos.removeValue(searchResult.parentConfig.object, bypassFinal);
+				return (T)searchResult.fieldInfos.removeValue(searchResult.parentConfig.object, bypassFinal);
 			} else {
+				SimpleConfig copy = new SimpleConfig(searchResult.subConfig);
 				searchResult.subConfig.clear();
+				return (T)copy;
 			}
 		}
 
@@ -433,7 +435,8 @@ public final class ObjectBinder {
 			}
 		}
 
-		void removeValue(Object fieldObject, boolean bypassFinal) {
+		Object removeValue(Object fieldObject, boolean bypassFinal) {
+			Object previousValue = getValue(fieldObject);
 			if (field.getType().isPrimitive()) {
 				setValue(fieldObject, (byte)0, bypassFinal);
 			} else {
@@ -442,6 +445,7 @@ public final class ObjectBinder {
 					boundConfig.clear();
 				}
 			}
+			return previousValue;
 		}
 
 		Object getValue(Object fieldObject) {
