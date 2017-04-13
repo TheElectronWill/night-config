@@ -99,6 +99,12 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		return new TransformingSet<>(map.entrySet(), CommentedEntryWrapper::new, o -> null, o -> o);
 	}
 
+	/**
+	 * @return a new config that contains the same entries (including comments) as this config.
+	 */
+	@Override
+	public abstract AbstractCommentedConfig clone();
+
 	protected class CommentedEntryWrapper extends EntryWrapper implements CommentedConfig.Entry {
 		private List<String> path = null;
 

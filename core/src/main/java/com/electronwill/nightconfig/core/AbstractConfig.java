@@ -12,7 +12,7 @@ import java.util.Set;
  *
  * @author TheElectronWill
  */
-public abstract class AbstractConfig implements Config {
+public abstract class AbstractConfig implements Config, Cloneable {
 	final Map<String, Object> map;
 
 	/**
@@ -123,6 +123,14 @@ public abstract class AbstractConfig implements Config {
 		/* the writeTransformation is not important because we can't write to the set anyway,
 		   since it's a generic Set<? extends Entry> */
 	}
+
+	/**
+	 * Creates and return a copy of this config.
+	 *
+	 * @return a new Config that contains the same entries as this config.
+	 */
+	@Override
+	public abstract AbstractConfig clone();
 
 	@Override
 	public int hashCode() {
