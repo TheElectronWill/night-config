@@ -3,6 +3,8 @@ package com.electronwill.nightconfig.json;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.CharacterOutput;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
+import com.electronwill.nightconfig.core.io.IndentStyle;
+import com.electronwill.nightconfig.core.io.NewlineStyle;
 import com.electronwill.nightconfig.core.io.Utils;
 import com.electronwill.nightconfig.core.io.WriterOutput;
 import com.electronwill.nightconfig.core.io.WritingException;
@@ -29,9 +31,9 @@ public final class FancyJsonWriter implements ConfigWriter<UnmodifiableConfig> {
 	// --- Writer's settings ---
 	private Predicate<UnmodifiableConfig> indentObjectElementsPredicate = c -> true;
 	private Predicate<Collection<?>> indentArrayElementsPredicate = c -> true;
-	private boolean newlineAfterObjectStart, newlineAfterArrayStart;
-	private char[] newline = System.getProperty("line.separator").toCharArray();
-	private char[] indent = {'\t'};
+	private boolean newlineAfterObjectStart;
+	private char[] newline = NewlineStyle.system().chars;
+	private char[] indent = IndentStyle.TABS.chars;
 	private int currentIndentLevel;
 
 	// --- Writer's methods --
@@ -223,37 +225,40 @@ public final class FancyJsonWriter implements ConfigWriter<UnmodifiableConfig> {
 	}
 
 	// --- Settings ---
-	public void setIndentObjectElementsPredicate(
+	public FancyJsonWriter setIndentObjectElementsPredicate(
 		Predicate<UnmodifiableConfig> indentObjectElementsPredicate) {
 		this.indentObjectElementsPredicate = indentObjectElementsPredicate;
+		return this;
 	}
 
-	public void setIndentArrayElementsPredicate(
-			Predicate<Collection<?>> indentArrayElementsPredicate) {
+	public FancyJsonWriter setIndentArrayElementsPredicate(
+		Predicate<Collection<?>> indentArrayElementsPredicate) {
 		this.indentArrayElementsPredicate = indentArrayElementsPredicate;
+		return this;
 	}
 
-	public void setNewlineAfterObjectStart(boolean newlineAfterObjectStart) {
+	public FancyJsonWriter setNewlineAfterObjectStart(boolean newlineAfterObjectStart) {
 		this.newlineAfterObjectStart = newlineAfterObjectStart;
+		return this;
 	}
 
-	public void setNewlineAfterArrayStart(boolean newlineAfterArrayStart) {
-		this.newlineAfterArrayStart = newlineAfterArrayStart;
+	public FancyJsonWriter setIndent(IndentStyle indentStyle) {
+		this.indent = indentStyle.chars;
+		return this;
 	}
 
-	private void setIndent(char[] indent) {
-		this.indent = indent;
+	public FancyJsonWriter setIndent(String indent) {
+		this.indent = indent.toCharArray();
+		return this;
 	}
 
-	public void setIndent(String indent) {
-		setIndent(indent.toCharArray());
+	public FancyJsonWriter setNewline(NewlineStyle newlineStyle) {
+		this.newline = newlineStyle.chars;
+		return this;
 	}
 
-	private void setNewline(char[] newline) {
-		this.newline = newline;
-	}
-
-	public void setNewline(String newline) {
-		setNewline(newline.toCharArray());
+	public FancyJsonWriter setNewline(String newlineString) {
+		this.newline = newlineString.toCharArray();
+		return this;
 	}
 }
