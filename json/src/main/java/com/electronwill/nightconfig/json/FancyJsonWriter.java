@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.json;
 
-import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.CharacterOutput;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.Utils;
@@ -23,11 +23,11 @@ import static com.electronwill.nightconfig.json.MinimalJsonWriter.*;
  *
  * @author TheElectronWill
  */
-public final class FancyJsonWriter implements ConfigWriter<Config> {
+public final class FancyJsonWriter implements ConfigWriter<UnmodifiableConfig> {
 	private static final char[] ENTRY_SEPARATOR = {':', ' '}, VALUE_SEPARATOR = {',', ' '};
 
 	// --- Writer's settings ---
-	private Predicate<Config> indentObjectElementsPredicate = c -> true;
+	private Predicate<UnmodifiableConfig> indentObjectElementsPredicate = c -> true;
 	private Predicate<Collection<?>> indentArrayElementsPredicate = c -> true;
 	private boolean newlineAfterObjectStart, newlineAfterArrayStart;
 	private char[] newline = System.getProperty("line.separator").toCharArray();
@@ -36,12 +36,12 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 
 	// --- Writer's methods --
 	@Override
-	public void write(Config config, Writer writer) {
+	public void write(UnmodifiableConfig config, Writer writer) {
 		currentIndentLevel = 0;
 		writeObject(config, new WriterOutput(writer));
 	}
 
-	private void writeObject(Config config, CharacterOutput output) {
+	private void writeObject(UnmodifiableConfig config, CharacterOutput output) {
 		if (config.isEmpty()) {
 			output.write(EMPTY_OBJECT);
 			return;
@@ -99,8 +99,8 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 			writeString((CharSequence)v, output);
 		} else if (v instanceof Number) {
 			output.write(v.toString());
-		} else if (v instanceof Config) {
-			writeObject((Config)v, output);
+		} else if (v instanceof UnmodifiableConfig) {
+			writeObject((UnmodifiableConfig)v, output);
 		} else if (v instanceof Collection) {
 			writeArray((Collection<?>)v, output);
 		} else if (v instanceof Boolean) {
@@ -223,11 +223,11 @@ public final class FancyJsonWriter implements ConfigWriter<Config> {
 	}
 
 	// --- Getters/Setters for the settings ---
-	public Predicate<Config> getIndentObjectElementsPredicate() {
+	public Predicate<UnmodifiableConfig> getIndentObjectElementsPredicate() {
 		return indentObjectElementsPredicate;
 	}
 
-	public void setIndentObjectElementsPredicate(Predicate<Config> indentObjectElementsPredicate) {
+	public void setIndentObjectElementsPredicate(Predicate<UnmodifiableConfig> indentObjectElementsPredicate) {
 		this.indentObjectElementsPredicate = indentObjectElementsPredicate;
 	}
 

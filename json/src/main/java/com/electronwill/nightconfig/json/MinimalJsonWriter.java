@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.json;
 
-import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.CharacterOutput;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.Utils;
@@ -20,7 +20,7 @@ import java.util.RandomAccess;
  *
  * @author TheElectronWill
  */
-public final class MinimalJsonWriter implements ConfigWriter<Config> {
+public final class MinimalJsonWriter implements ConfigWriter<UnmodifiableConfig> {
 	static final char[] NULL_CHARS = {'n', 'u', 'l', 'l'};
 	static final char[] TRUE_CHARS = {'t', 'r', 'u', 'e'};
 	static final char[] FALSE_CHARS = {'f', 'a', 'l', 's', 'e'};
@@ -32,7 +32,7 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 	 * Writes a configuration in the JSON object format.
 	 */
 	@Override
-	public void write(Config config, Writer writer) {
+	public void write(UnmodifiableConfig config, Writer writer) {
 		writeConfig(config, new WriterOutput(writer));
 	}
 
@@ -57,7 +57,7 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 		writeValue(value, new WriterOutput(writer));
 	}
 
-	private void writeConfig(Config config, CharacterOutput output) {
+	private void writeConfig(UnmodifiableConfig config, CharacterOutput output) {
 		if (config.isEmpty()) {
 			output.write(EMPTY_OBJECT);
 			return;
@@ -87,8 +87,8 @@ public final class MinimalJsonWriter implements ConfigWriter<Config> {
 			writeString((CharSequence)v, output);
 		} else if (v instanceof Number) {
 			output.write(v.toString());
-		} else if (v instanceof Config) {
-			writeConfig((Config)v, output);
+		} else if (v instanceof UnmodifiableConfig) {
+			writeConfig((UnmodifiableConfig)v, output);
 		} else if (v instanceof Collection) {
 			writeCollection((Collection<?>)v, output);
 		} else if (v instanceof Boolean) {
