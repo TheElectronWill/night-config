@@ -51,3 +51,28 @@ config.removeValue(Array.asList("127.0.0.1"));
 config.writeTo(file);// Yes, that's it!
 // And it works the same with JSON, HOCON and YAML configs.
 ```
+
+## Automatically correcting a configuration, based on a specification
+[Learn more about this innovative feature on the wiki!](https://github.com/TheElectronWill/Night-Config/wiki/1.x-Config-specification)
+```java
+ConfigSpec spec = new ConfigSpec();
+spec.define("a.b.c", defaultValue);
+
+// Defines that a value must be in a list:
+List<Character> acceptableValues = Arrays.asList('a', 'b', 'c');
+spec.defineInList("myChar", defaultChar, acceptableValues);
+
+// Defines that a value must be between two values:
+spec.defineInRange("myInt", defaultInt, 0, 50);
+// Works with floating-point numbers too!
+spec.defineInRange("myDouble", defaultDouble 0.0, 50.0);
+// Actually, it works with any comparable values
+spec.defineInRange("myString", defaultString, "aaa", "bbb");
+
+// There are many more methods to define values! Read the javadoc.
+
+/* Once your specification is well defined, you can automatically correct your configuration!
+This will ensure that all the values respect the specification,
+by replacing invalid values with the corresponding default value */
+spec.correct(config);
+```
