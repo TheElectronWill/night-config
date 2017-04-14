@@ -222,17 +222,10 @@ public final class FancyJsonWriter implements ConfigWriter<UnmodifiableConfig> {
 		}
 	}
 
-	// --- Getters/Setters for the settings ---
-	public Predicate<UnmodifiableConfig> getIndentObjectElementsPredicate() {
-		return indentObjectElementsPredicate;
-	}
-
-	public void setIndentObjectElementsPredicate(Predicate<UnmodifiableConfig> indentObjectElementsPredicate) {
+	// --- Settings ---
+	public void setIndentObjectElementsPredicate(
+		Predicate<UnmodifiableConfig> indentObjectElementsPredicate) {
 		this.indentObjectElementsPredicate = indentObjectElementsPredicate;
-	}
-
-	public Predicate<Collection<?>> getIndentArrayElementsPredicate() {
-		return indentArrayElementsPredicate;
 	}
 
 	public void setIndentArrayElementsPredicate(
@@ -240,24 +233,12 @@ public final class FancyJsonWriter implements ConfigWriter<UnmodifiableConfig> {
 		this.indentArrayElementsPredicate = indentArrayElementsPredicate;
 	}
 
-	public boolean isNewlineAfterObjectStart() {
-		return newlineAfterObjectStart;
-	}
-
 	public void setNewlineAfterObjectStart(boolean newlineAfterObjectStart) {
 		this.newlineAfterObjectStart = newlineAfterObjectStart;
 	}
 
-	public boolean isNewlineAfterArrayStart() {
-		return newlineAfterArrayStart;
-	}
-
 	public void setNewlineAfterArrayStart(boolean newlineAfterArrayStart) {
 		this.newlineAfterArrayStart = newlineAfterArrayStart;
-	}
-
-	public char[] getIndent() {
-		return indent;
 	}
 
 	private void setIndent(char[] indent) {
@@ -266,10 +247,6 @@ public final class FancyJsonWriter implements ConfigWriter<UnmodifiableConfig> {
 
 	public void setIndent(String indent) {
 		setIndent(indent.toCharArray());
-	}
-
-	public char[] getNewline() {
-		return newline;
 	}
 
 	private void setNewline(char[] newline) {
