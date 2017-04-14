@@ -1,5 +1,6 @@
 version 'indev'
 
+apply plugin: 'maven'
 apply plugin: 'java'
 sourceCompatibility = 1.8
 
