@@ -26,6 +26,7 @@ literalMultiline= '''
 First line
 Second line'''
 
+# Comment above a table
 [table] #comment
     'key' = '"literal string"\n\t'
 [table.subTable.subDefinedFirst]

@@ -26,7 +26,7 @@ final class ValueWriter {
 			}
 		} else if (value instanceof String) {
 			String string = (String)value;
-			if (writer.getWriteStringLiteralPredicate().test(string)) {
+			if (writer.writesLiteral(string)) {
 				StringWriter.writeLiteral(string, output);
 			} else {
 				StringWriter.writeBasic(string, output);

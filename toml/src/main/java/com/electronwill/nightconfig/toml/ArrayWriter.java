@@ -19,7 +19,7 @@ final class ArrayWriter {
 			return;
 		}
 		output.write('[');
-		boolean indent = writer.getIndentArrayElementsPredicate().test(values);
+		boolean indent = writer.writesIndented(values);
 		if (indent) {
 			writer.increaseIndentLevel();
 		}

@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.AbstractConfig;
+import com.electronwill.nightconfig.core.AbstractCommentedConfig;
 import com.electronwill.nightconfig.core.SimpleConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
@@ -12,7 +12,7 @@ import java.util.Map;
  *
  * @author TheElectronWill
  */
-public class TomlConfig extends AbstractConfig implements FileConfig {
+public class TomlConfig extends AbstractCommentedConfig implements FileConfig {
 	/**
 	 * Creates an empty TomlConfig.
 	 */

@@ -14,7 +14,7 @@ final class ArrayParser {
 	 * Parses a plain array, not an array of tables.
 	 */
 	static List<?> parse(CharacterInput input, TomlParser parser) {
-		List<Object> list = new ArrayList<>(parser.getInitialListCapacity());
+		List<Object> list = parser.createList();
 		while (true) {
 			char firstChar = Toml.readUsefulChar(input);
 			if (firstChar == ']') {// End of the array

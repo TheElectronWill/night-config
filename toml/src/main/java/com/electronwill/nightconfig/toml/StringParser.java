@@ -17,8 +17,7 @@ final class StringParser {
 	 * method.
 	 */
 	static String parseBasic(CharacterInput input, TomlParser parser) {
-		CharsWrapper.Builder builder = new CharsWrapper.Builder(
-				parser.getInitialStringBuilderCapacity());
+		CharsWrapper.Builder builder = parser.createBuilder();
 		boolean escape = false;
 		char c;
 		while ((c = input.readChar()) != '\"' || escape) {
@@ -49,8 +48,7 @@ final class StringParser {
 	 * before calling this method.
 	 */
 	static String parseMultiBasic(CharacterInput input, TomlParser parser) {
-		CharsWrapper.Builder builder = new CharsWrapper.Builder(
-				parser.getInitialStringBuilderCapacity());
+		CharsWrapper.Builder builder = parser.createBuilder();
 		char c;
 		while ((c = input.readChar()) != '\"' || input.peek() != '\"' || input.peek(1) != '\"') {
 			if (c == '\\') {
@@ -79,8 +77,7 @@ final class StringParser {
 	 * before calling this method.
 	 */
 	static String parseMultiLiteral(CharacterInput input, TomlParser parser) {
-		CharsWrapper.Builder builder = new CharsWrapper.Builder(
-				parser.getInitialStringBuilderCapacity());
+		CharsWrapper.Builder builder = parser.createBuilder();
 		char c;
 		while ((c = input.readChar()) != '\'' || input.peek() != '\'' || input.peek(1) != '\'') {
 			builder.append(c);

@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.toml;
 import com.electronwill.nightconfig.core.io.CharacterInput;
 import com.electronwill.nightconfig.core.io.CharsWrapper;
 import com.electronwill.nightconfig.core.io.Utils;
+import java.util.List;
 
 /**
  * @author TheElectronWill
@@ -29,10 +30,11 @@ final class Toml {
 	/**
 	 * Returns the next "useful" character. Skips comments, spaces and newlines.
 	 */
-	static int readUseful(CharacterInput input) {
+	static int readUseful(CharacterInput input, List<CharsWrapper> commentsList) {
 		int next = input.readAndSkip(WHITESPACE_OR_NEWLINE);
 		while (next == '#') {
-			input.readUntil(NEWLINE);
+			CharsWrapper comment = readLine(input);
+			commentsList.add(comment);
 			next = input.readAndSkip(WHITESPACE_OR_NEWLINE);
 		}
 		return next;

@@ -1,12 +1,16 @@
 package com.electronwill.nightconfig.toml;
 
+import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.CharacterInput;
+import com.electronwill.nightconfig.core.io.CharsWrapper;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.ReaderInput;
+import com.electronwill.nightconfig.core.utils.FakeCommentedConfig;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -33,15 +37,24 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 	}
 
 	private <T extends Config> T parse(CharacterInput input, T destination) {
-		T rootTable = TableParser.parseNormal(input, this, destination);
+		CommentedConfig commentedConfig = FakeCommentedConfig.getCommented(destination);
+		CommentedConfig rootTable = TableParser.parseNormal(input, this, commentedConfig);
 		int next;
 		while ((next = input.peek()) != -1) {
-			if (next == '[') {//[[ element of an array of tables
+			final boolean isArray = (next == '[');
+			if (isArray) {
 				input.skipPeeks();
-				List<String> path = TableParser.parseTableArrayName(input, this);
-				int lastIndex = path.size() - 1;
-				String lastKey = path.get(lastIndex);
-				Map<String, Object> parentMap = getSubTableMap(rootTable, path.subList(0, lastIndex));
+			}
+			final List<String> path = TableParser.parseTableName(input, this, isArray);
+			final int lastIndex = path.size() - 1;
+			final String lastKey = path.get(lastIndex);
+			final List<String> parentPath = path.subList(0, lastIndex);
+			final Map<String, Object> parentMap = getSubTableMap(rootTable, parentPath);
+
+			if (hasPendingComment()) {// Handles comments that are before the table declaration
+				rootTable.setComment(path, consumeComment());
+			}
+			if (isArray) {// It's an element of an array of tables
 				if (parentMap == null) {
 					throw new ParsingException("Cannot create entry " + path + " because of an invalid " +
 						"parent that isn't a table.");
@@ -49,15 +62,11 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 				TomlConfig table = TableParser.parseNormal(input, this);
 				List<TomlConfig> arrayOfTables = (List)parentMap.get(lastKey);
 				if (arrayOfTables == null) {
-					arrayOfTables = new ArrayList<>(initialListCapacity);
+					arrayOfTables = createList();
 					parentMap.put(lastKey, arrayOfTables);
 				}
 				arrayOfTables.add(table);
-			} else {//[ a table
-				List<String> path = TableParser.parseTableName(input, this);
-				int lastIndex = path.size() - 1;
-				String lastKey = path.get(lastIndex);
-				Map<String, Object> parentMap = getSubTableMap(rootTable, path.subList(0, lastIndex));
+			} else {// It's a table
 				if (parentMap == null) {
 					throw new ParsingException("Cannot create entry " + path + " because of an invalid " +
 						"parent that isn't a table.");
@@ -70,14 +79,15 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 					if (alreadyDeclared instanceof Config) {
 						Config table = (Config)alreadyDeclared;
 						checkContainsOnlySubtables(table, path);
-						TableParser.parseNormal(input, this, table);
+						CommentedConfig commentedTable = FakeCommentedConfig.getCommented(table);
+						TableParser.parseNormal(input, this, commentedTable);
 					} else {
 						throw new ParsingException("Entry " + path + " has been defined twice.");
 					}
 				}
 			}
 		}
-		return rootTable;
+		return destination;
 	}
 
 	private Map<String, Object> getSubTableMap(Config parentTable, List<String> path) {
@@ -121,23 +131,63 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 		return lenientBareKeys;
 	}
 
-	public void setLenientWithBareKeys(boolean lenientBareKeys) {
+	public TomlParser setLenientWithBareKeys(boolean lenientBareKeys) {
 		this.lenientBareKeys = lenientBareKeys;
+		return this;
 	}
 
-	public int getInitialStringBuilderCapacity() {
-		return initialStringBuilderCapacity;
-	}
-
-	public void setInitialStringBuilderCapacity(int initialStringBuilderCapacity) {
+	public TomlParser setInitialStringBuilderCapacity(int initialStringBuilderCapacity) {
 		this.initialStringBuilderCapacity = initialStringBuilderCapacity;
+		return this;
 	}
 
-	public int getInitialListCapacity() {
-		return initialListCapacity;
-	}
-
-	public void setInitialListCapacity(int initialListCapacity) {
+	public TomlParser setInitialListCapacity(int initialListCapacity) {
 		this.initialListCapacity = initialListCapacity;
+		return this;
+	}
+
+	// --- Configured objects creation ---
+	<T> List<T> createList() {
+		return new ArrayList<>(initialListCapacity);
+	}
+
+	CharsWrapper.Builder createBuilder() {
+		return new CharsWrapper.Builder(initialStringBuilderCapacity);
+	}
+
+	// --- Comment management ---
+	private String currentComment;
+
+	boolean hasPendingComment() {
+		return currentComment != null;
+	}
+
+	String consumeComment() {
+		String comment = currentComment;
+		currentComment = null;
+		return comment;
+	}
+
+	void setComment(CharsWrapper comment) {
+		if(comment != null) {
+			if(currentComment == null) {
+				currentComment = comment.toString();
+			} else {
+				currentComment = currentComment + '\n' + comment.toString();
+			}
+		}
+	}
+
+	void setComment(List<CharsWrapper> commentsList) {
+		CharsWrapper.Builder builder = new CharsWrapper.Builder(32);
+		if (!commentsList.isEmpty()) {
+			Iterator<CharsWrapper> it = commentsList.iterator();
+			builder.append(it.next());
+			while (it.hasNext()) {
+				builder.append('\n');
+				builder.append(it.next());
+			}
+		}
+		currentComment = builder.toString();
 	}
 }

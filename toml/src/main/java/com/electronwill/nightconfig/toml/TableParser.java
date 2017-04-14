@@ -1,10 +1,11 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.io.CharacterInput;
 import com.electronwill.nightconfig.core.io.CharsWrapper;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -43,10 +44,12 @@ final class TableParser {
 		}
 	}
 
-	static <T extends Config> T parseNormal(CharacterInput input, TomlParser parser, T config) {
+	static <T extends CommentedConfig> T parseNormal(CharacterInput input, TomlParser parser, T config) {
 		while (true) {
-			int keyFirst = Toml.readUseful(input);
+			List<CharsWrapper> commentsList = new ArrayList<>(2);
+			int keyFirst = Toml.readUseful(input, commentsList);
 			if (keyFirst == -1 || keyFirst == '[') {
+				parser.setComment(commentsList);// Save the comments for later
 				return config;// No more data, or beginning of an other table
 			}
 			String key = parseKey(input, (char)keyFirst, parser);
@@ -63,7 +66,8 @@ final class TableParser {
 				return config;
 			}
 			if (after == '#') {
-				Toml.readLine(input);
+				CharsWrapper comment = Toml.readLine(input);
+				commentsList.add(comment);
 			} else if (after != '\n' && after != '\r') {
 				throw new ParsingException("Invalid character '"
 										   + (char)after
@@ -72,6 +76,8 @@ final class TableParser {
 										   + "\" = "
 										   + value);
 			}
+			parser.setComment(commentsList);
+			config.setComment(Collections.singletonList(key), parser.consumeComment());
 		}
 	}
 
@@ -93,8 +99,8 @@ final class TableParser {
 		return parseNormal(input, parser, new TomlConfig());
 	}
 
-	static List<String> parseTableName(CharacterInput input, TomlParser parser) {
-		List<String> list = new ArrayList<>(parser.getInitialListCapacity());
+	static List<String> parseTableName(CharacterInput input, TomlParser parser, boolean array) {
+		List<String> list = parser.createList();
 		while (true) {
 			char firstChar = Toml.readNonSpaceChar(input, false);
 			if (firstChar == ']') {
@@ -105,6 +111,24 @@ final class TableParser {
 
 			char separator = Toml.readNonSpaceChar(input, false);
 			if (separator == ']') {// End of the declaration
+				if (array) {
+					char after = input.readChar();
+					if(after != ']') {
+						throw new ParsingException("Invalid declaration of an element of an array"
+												   + " of tables: it ends by ]"
+												   + after
+												   + " but should end by ]]");
+
+					}
+				}
+				char after = Toml.readNonSpaceChar(input, false);
+				if (after == '#') {// Comment
+					CharsWrapper comment = Toml.readLine(input);
+					parser.setComment(comment);
+				} else if (after != '\n' && after != '\r') {
+					throw new ParsingException("Invalid character '" + after + "' after a table "
+											   + "declaration.");
+				}
 				return list;
 			} else if (separator != '.') {
 				throw new ParsingException("Invalid separator '" + separator + "' in table name.");
@@ -112,16 +136,12 @@ final class TableParser {
 		}
 	}
 
+	static List<String> parseTableName(CharacterInput input, TomlParser parser) {
+		return parseTableName(input, parser, false);
+	}
+
 	static List<String> parseTableArrayName(CharacterInput input, TomlParser parser) {
-		List<String> name = parseTableName(input, parser);
-		char after = input.readChar();
-		if (after != ']') {
-			throw new ParsingException("Invalid declaration of an element of an array of tables:"
-									   + " it ends by ]"
-									   + after
-									   + " but should end by ]]");
-		}
-		return name;
+		return parseTableName(input, parser, true);
 	}
 
 	static String parseKey(CharacterInput input, char firstChar, TomlParser parser) {
