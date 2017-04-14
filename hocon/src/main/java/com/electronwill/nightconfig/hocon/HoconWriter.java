@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.hocon;
 
+import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.CharacterOutput;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
@@ -8,10 +9,12 @@ import com.electronwill.nightconfig.core.io.NewlineStyle;
 import com.electronwill.nightconfig.core.io.Utils;
 import com.electronwill.nightconfig.core.io.WriterOutput;
 import com.electronwill.nightconfig.core.io.WritingException;
+import com.electronwill.nightconfig.core.utils.FakeUnmodifiableCommentedConfig;
+import com.electronwill.nightconfig.core.utils.StringUtils;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -48,10 +51,16 @@ public final class HoconWriter implements ConfigWriter<UnmodifiableConfig> {
 	@Override
 	public void write(UnmodifiableConfig config, Writer writer) {
 		currentIndentLevel = -1;
-		writeObject(config, new WriterOutput(writer), true);
+		UnmodifiableCommentedConfig commentedConfig;
+		if (config instanceof UnmodifiableCommentedConfig) {
+			commentedConfig = (UnmodifiableCommentedConfig)config;
+		} else {
+			commentedConfig = new FakeUnmodifiableCommentedConfig(config);
+		}
+		writeObject(commentedConfig, new WriterOutput(writer), true);
 	}
 
-	private void writeObject(UnmodifiableConfig config, CharacterOutput output, boolean root) {
+	private void writeObject(UnmodifiableCommentedConfig config, CharacterOutput output, boolean root) {
 		if (config.isEmpty()) {
 			output.write(EMPTY_OBJECT);
 			return;
@@ -62,16 +71,22 @@ public final class HoconWriter implements ConfigWriter<UnmodifiableConfig> {
 		if (newlineAfterObjectStart) {
 			output.write(newline);
 		}
-		final Iterator<Map.Entry<String, Object>> it = config.valueMap().entrySet().iterator();
+		final Iterator<? extends UnmodifiableCommentedConfig.Entry> it = config.entrySet().iterator();
 		final boolean indentElements = indentObjectElementsPredicate.test(config);
 		if (indentElements) {
 			output.write(newline);
 			increaseIndentLevel();
 		}
 		while (true) {
-			final Map.Entry<String, Object> entry = it.next();
+			final UnmodifiableCommentedConfig.Entry entry = it.next();
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
+			final List<String> comments = StringUtils.splitLines(entry.getComment());
+			for(String comment : comments) {
+				output.write(commentPrefix);
+				output.write(comment);
+				output.write(newline);
+			}
 			if (indentElements) {
 				writeIndent(output);// Indents the line
 			}
@@ -79,7 +94,7 @@ public final class HoconWriter implements ConfigWriter<UnmodifiableConfig> {
 			if (value instanceof UnmodifiableConfig) {
 				output.write(' ');
 			} else {
-				output.write(entrySeparator);
+				output.write(kvSeparator);
 				// HOCON allows to omit the separator if the value is a config
 			}
 			writeValue(value, output);// value
@@ -104,8 +119,10 @@ public final class HoconWriter implements ConfigWriter<UnmodifiableConfig> {
 			writeString((String)v, output);
 		} else if (v instanceof Number) {
 			output.write(v.toString());
+		} else if (v instanceof UnmodifiableCommentedConfig) {
+			writeObject((UnmodifiableCommentedConfig)v, output, false);
 		} else if (v instanceof UnmodifiableConfig) {
-			writeObject((UnmodifiableConfig)v, output, false);
+			writeObject(new FakeUnmodifiableCommentedConfig((UnmodifiableConfig)v), output, false);
 		} else if (v instanceof Collection) {
 			writeArray((Collection<?>)v, output);
 		} else if (v instanceof Boolean) { writeBoolean((boolean)v, output); } else {
