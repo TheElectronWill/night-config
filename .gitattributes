@@ -10,6 +10,9 @@
 *.yml           text
 *.properties    text
 
+# Batch files
+*.bat           -text
+
 # Binary files
 *.class         binary
 *.jar           binary
