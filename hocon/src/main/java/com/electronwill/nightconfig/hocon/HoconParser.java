@@ -4,7 +4,11 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ParsingException;
-import com.typesafe.config.*;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigParseOptions;
+import com.typesafe.config.ConfigSyntax;
+import com.typesafe.config.ConfigUtil;
+import com.typesafe.config.ConfigValue;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,7 +62,6 @@ public final class HoconParser implements ConfigParser<HoconConfig, Config> {
 			destination.setValue(path, unwrap(value.unwrapped()));
 			List<String> comments = value.origin().comments();
 			if (!comments.isEmpty()) {
-				System.out.println("comments: " + path + " " + comments);
 				destination.setComment(path, String.join("\n", value.origin().comments()));
 			}
 		}
