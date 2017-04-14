@@ -1,4 +1,4 @@
-package com.electronwill.nightconfig.core.io;
+package com.electronwill.nightconfig.core.utils;
 
 import java.util.NoSuchElementException;
 
