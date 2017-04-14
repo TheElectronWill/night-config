@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -62,6 +63,41 @@ public final class StringUtils {
 		int pos0 = 0;
 		for (int i = 0; i < str.length(); i++) {
 			if (str.charAt(i) == sep) {// separator found
+				list.add(str.substring(pos0, i));
+				pos0 = i + 1;
+			}
+		}
+		list.add(str.substring(pos0, str.length()));// adds the last part
+	}
+
+	/**
+	 * Splits a String around each occurence of LF and CRLF.
+	 *
+	 * @param str the String to split
+	 */
+	public static List<String> splitLines(String str) {
+		if (str == null || str.isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<String> list = new ArrayList<>(4);
+		splitLines(str, list);
+		return list;
+	}
+
+	/**
+	 * Splits a String around each occurence of LF and CRLF, and puts the result in the given list.
+	 *
+	 * @param str  the String to split
+	 * @param list the list where to put the result
+	 */
+	public static void splitLines(String str, List<String> list) {
+		int pos0 = 0;
+		for (int i = 0; i < str.length(); i++) {
+			if (str.charAt(i) == ('\r')) {// CRLF
+				list.add(str.substring(pos0, i));
+				pos0 = i + 2;// Skips LF
+			}
+			if (str.charAt(i) == '\n') {// LF
 				list.add(str.substring(pos0, i));
 				pos0 = i + 1;
 			}
