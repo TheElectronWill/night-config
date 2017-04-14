@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.yaml;
 
-import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.WritingException;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
@@ -14,7 +14,7 @@ import org.yaml.snakeyaml.Yaml;
  *
  * @author TheElectronWill
  */
-public final class YamlWriter implements ConfigWriter<Config> {
+public final class YamlWriter implements ConfigWriter<UnmodifiableConfig> {
 	private final Yaml yaml;
 
 	public YamlWriter() {
@@ -30,7 +30,7 @@ public final class YamlWriter implements ConfigWriter<Config> {
 	}
 
 	@Override
-	public void write(Config config, Writer writer) {
+	public void write(UnmodifiableConfig config, Writer writer) {
 		try {
 			Map<String, Object> unwrappedMap = unwrap(config);
 			yaml.dump(unwrappedMap, writer);
@@ -39,13 +39,13 @@ public final class YamlWriter implements ConfigWriter<Config> {
 		}
 	}
 
-	private static Map<String, Object> unwrap(Config config) {
+	private static Map<String, Object> unwrap(UnmodifiableConfig config) {
 		return new TransformingMap<>(config.valueMap(), YamlWriter::unwrap, v -> v, v -> v);
 	}
 
 	private static Object unwrap(Object value) {
-		if (value instanceof Config) {
-			return unwrap((Config)value);
+		if (value instanceof UnmodifiableConfig) {
+			return unwrap((UnmodifiableConfig)value);
 		}
 		return value;
 	}
