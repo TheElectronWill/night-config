@@ -3,6 +3,8 @@ package com.electronwill.nightconfig.json;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
+import com.electronwill.nightconfig.core.io.IndentStyle;
+import com.electronwill.nightconfig.core.io.NewlineStyle;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -62,9 +64,7 @@ public class JsonConfigTest {
 	public void testFancyWriter() throws IOException {
 		try (Writer fileWriter = new BufferedWriter(
 				new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
-			FancyJsonWriter jsonWriter = new FancyJsonWriter();
-			jsonWriter.setNewline("\r");
-			jsonWriter.setIndent("    ");
+			FancyJsonWriter jsonWriter = new FancyJsonWriter().setIndent(IndentStyle.SPACES_4);
 			jsonWriter.write(config, fileWriter);
 		}// finally closes the writer
 	}
