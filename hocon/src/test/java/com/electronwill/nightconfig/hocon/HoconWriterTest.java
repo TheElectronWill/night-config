@@ -23,7 +23,7 @@ public class HoconWriterTest {
 		configList.add(subConfig);
 		configList.add(subConfig);
 
-		Config config = new HoconConfig();
+		HoconConfig config = new HoconConfig();
 		config.setValue("string", "\"value\"");
 		config.setValue("integer", 2);
 		config.setValue("long", 123456789L);
@@ -31,6 +31,7 @@ public class HoconWriterTest {
 		config.setValue("bool_array", Arrays.asList(true, false, true, false));
 		config.setValue("config", subConfig);
 		config.setValue("config_list", configList);
+		config.setComment("string", " Comment 1\n Comment 2\n Comment 3");
 
 		StringWriter sw = new StringWriter();
 		HoconWriter writer = new HoconWriter();
