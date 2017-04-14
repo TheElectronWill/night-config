@@ -1,0 +1,17 @@
+* text=auto
+
+# Normalize text files to LF newlines
+*.java          text
+*.json          text
+*.hocon         text
+*.conf          text
+*.toml          text
+*.yaml          text
+*.yml           text
+*.properties    text
+
+# Binary files
+*.class         binary
+*.jar           binary
+*.png           binary
+
