@@ -12,6 +12,17 @@ import java.util.Set;
  * @author TheElectronWill
  */
 public final class FakeUnmodifiableCommentedConfig implements UnmodifiableCommentedConfig {
+	/**
+	 * If config is an UnmodifiableCommentedConfig, returns it, otherwise returns a new
+	 * FakeUnmodifiableCommentedConfig.
+	 */
+	public static UnmodifiableCommentedConfig getCommented(UnmodifiableConfig config) {
+		if (config instanceof UnmodifiableCommentedConfig) {
+			return (UnmodifiableCommentedConfig)config;
+		}
+		return new FakeUnmodifiableCommentedConfig(config);
+	}
+
 	private final UnmodifiableConfig config;
 
 	public FakeUnmodifiableCommentedConfig(UnmodifiableConfig config) {

@@ -12,6 +12,16 @@ import java.util.Set;
  * @author TheElectronWill
  */
 public final class FakeCommentedConfig implements CommentedConfig {
+	/**
+	 * If config is a CommentedConfig, returns it, otherwise returns a new FakeCommentedConfig.
+	 */
+	public static CommentedConfig getCommented(Config config) {
+		if (config instanceof CommentedConfig) {
+			return (CommentedConfig)config;
+		}
+		return new FakeCommentedConfig(config);
+	}
+
 	private final Config config;
 
 	public FakeCommentedConfig(Config config) {
