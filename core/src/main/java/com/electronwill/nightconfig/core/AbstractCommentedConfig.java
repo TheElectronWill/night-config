@@ -74,8 +74,8 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		Map<String, CommentInfos> currentMap = commentsMap;
 		for (String key : path.subList(0, lastIndex)) {
 			CommentInfos infos = currentMap.get(key);
-			if (!infos.hasSubInfos()) {//missing or incompatible intermediary level
-				return null;//the specified path doesn't exist -> return null
+			if (infos == null || !infos.hasSubInfos()) {//no comment associated to this path
+				return null;
 			}
 			currentMap = infos.subInfos;
 		}
@@ -94,10 +94,9 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 				CommentInfos newInfos = new CommentInfos(new HashMap<>());
 				currentMap.put(currentKey, newInfos);
 				currentMap = newInfos.subInfos;
-			} else if (!infos.hasSubInfos()) {//incompatible intermediary level
-				throw new IllegalArgumentException(
-						"Cannot add a comment to an intermediary value of type: "
-						+ infos.getClass());
+			} else if (!infos.hasSubInfos()) {//missing sub level
+				currentMap = new HashMap<>();
+				infos.subInfos = currentMap;
 			} else {//existing intermediary level
 				currentMap = infos.subInfos;
 			}
@@ -119,8 +118,8 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		Map<String, CommentInfos> currentMap = commentsMap;
 		for (String key : path.subList(0, lastIndex)) {
 			CommentInfos infos = currentMap.get(key);
-			if (!infos.hasSubInfos()) {//missing or incompatible intermediary level
-				return;//the specified path doesn't exist -> stop here
+			if (infos == null || !infos.hasSubInfos()) {//no comment associated to this path
+				return;
 			}
 			currentMap = infos.subInfos;
 		}
@@ -134,8 +133,8 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		Map<String, CommentInfos> currentMap = commentsMap;
 		for (String key : path.subList(0, lastIndex)) {
 			CommentInfos infos = currentMap.get(key);
-			if (!infos.hasSubInfos()) {//missing or incompatible intermediary level
-				return false;//the specified path doesn't exist -> return false
+			if (infos == null || !infos.hasSubInfos()) {//no comment associated to this path
+				return false;
 			}
 			currentMap = infos.subInfos;
 		}
