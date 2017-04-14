@@ -3,6 +3,8 @@ package com.electronwill.nightconfig.hocon;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.CharacterOutput;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
+import com.electronwill.nightconfig.core.io.IndentStyle;
+import com.electronwill.nightconfig.core.io.NewlineStyle;
 import com.electronwill.nightconfig.core.io.Utils;
 import com.electronwill.nightconfig.core.io.WriterOutput;
 import com.electronwill.nightconfig.core.io.WritingException;
@@ -36,9 +38,10 @@ public final class HoconWriter implements ConfigWriter<UnmodifiableConfig> {
 	private Predicate<UnmodifiableConfig> indentObjectElementsPredicate = c -> true;
 	private Predicate<Collection<?>> indentArrayElementsPredicate = c -> true;
 	private boolean newlineAfterObjectStart, newlineAfterArrayStart;
-	private char[] newline = System.getProperty("line.separator").toCharArray();
-	private char[] entrySeparator = {':', ' '};
-	private char[] indent = {'\t'};
+	private char[] newline = NewlineStyle.system().chars;
+	private char[] indent = IndentStyle.TABS.chars;
+	private char[] kvSeparator = KeyValueSeparatorStyle.COLON.chars;
+	private char[] commentPrefix = CommentStyle.HASH.chars;
 	private int currentIndentLevel;
 
 	// --- Writer's methods ---
@@ -241,35 +244,35 @@ public final class HoconWriter implements ConfigWriter<UnmodifiableConfig> {
 		return indent;
 	}
 
-	public void setIndent(char[] indent) {
-		this.indent = indent;
+	public void setIndent(IndentStyle indentStyle) {
+		this.indent = indentStyle.chars;
 	}
 
-	public void setIndent(String indent) {
-		setIndent(indent.toCharArray());
+	public void setIndent(String indentString) {
+		this.indent = indentString.toCharArray();
 	}
 
 	public char[] getNewline() {
 		return newline;
 	}
 
-	public void setNewline(char[] newline) {
-		this.newline = newline;
+	public void setNewline(NewlineStyle newlineStyle) {
+		this.newline = newlineStyle.chars;
 	}
 
-	public void setNewline(String newline) {
-		setNewline(newline.toCharArray());
+	public void setNewline(String newlineString) {
+		this.newline = newlineString.toCharArray();
 	}
 
-	public char[] getEntrySeparator() {
-		return entrySeparator;
+	public char[] getKeyValueSeparator() {
+		return kvSeparator;
 	}
 
-	public void setEntrySeparator(char[] entrySeparator) {
-		this.entrySeparator = entrySeparator;
+	public void setKeyValueSeparator(KeyValueSeparatorStyle separatorStyle) {
+		this.kvSeparator = separatorStyle.chars;
 	}
 
-	public void setEntrySeparator(String entrySeparator) {
-		setEntrySeparator(entrySeparator.toCharArray());
+	public void setKeyValueSeparator(String separatorString) {
+		this.kvSeparator = separatorString.toCharArray();
 	}
 }
