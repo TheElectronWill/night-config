@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.core.io;
 
-import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
  *
  * @author TheElectronWill
  */
-public interface ConfigWriter<T extends Config> {
+public interface ConfigWriter<T extends UnmodifiableConfig> {
 	/**
 	 * Writes a configuration.
 	 *
