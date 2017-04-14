@@ -223,73 +223,56 @@ public final class HoconWriter implements ConfigWriter<UnmodifiableConfig> {
 		}
 	}
 
-	// --- Getters/Setters for the settings ---
-	public Predicate<UnmodifiableConfig> getIndentObjectElementsPredicate() {
-		return indentObjectElementsPredicate;
-	}
-
-	public void setIndentObjectElementsPredicate(Predicate<UnmodifiableConfig> indentObjectElementsPredicate) {
+	// --- Settings ---
+	public HoconWriter setIndentObjectElementsPredicate(
+		Predicate<UnmodifiableConfig> indentObjectElementsPredicate) {
 		this.indentObjectElementsPredicate = indentObjectElementsPredicate;
+		return this;
 	}
 
-	public Predicate<Collection<?>> getIndentArrayElementsPredicate() {
-		return indentArrayElementsPredicate;
-	}
-
-	public void setIndentArrayElementsPredicate(
-			Predicate<Collection<?>> indentArrayElementsPredicate) {
+	public HoconWriter setIndentArrayElementsPredicate(
+		Predicate<Collection<?>> indentArrayElementsPredicate) {
 		this.indentArrayElementsPredicate = indentArrayElementsPredicate;
+		return this;
 	}
 
-	public boolean isNewlineAfterObjectStart() {
-		return newlineAfterObjectStart;
-	}
-
-	public void setNewlineAfterObjectStart(boolean newlineAfterObjectStart) {
+	public HoconWriter setNewlineAfterObjectStart(boolean newlineAfterObjectStart) {
 		this.newlineAfterObjectStart = newlineAfterObjectStart;
+		return this;
 	}
 
-	public boolean isNewlineAfterArrayStart() {
-		return newlineAfterArrayStart;
-	}
-
-	public void setNewlineAfterArrayStart(boolean newlineAfterArrayStart) {
+	public HoconWriter setNewlineAfterArrayStart(boolean newlineAfterArrayStart) {
 		this.newlineAfterArrayStart = newlineAfterArrayStart;
+		return this;
 	}
 
-	public char[] getIndent() {
-		return indent;
-	}
-
-	public void setIndent(IndentStyle indentStyle) {
+	public HoconWriter setIndent(IndentStyle indentStyle) {
 		this.indent = indentStyle.chars;
+		return this;
 	}
 
-	public void setIndent(String indentString) {
+	public HoconWriter setIndent(String indentString) {
 		this.indent = indentString.toCharArray();
+		return this;
 	}
 
-	public char[] getNewline() {
-		return newline;
-	}
-
-	public void setNewline(NewlineStyle newlineStyle) {
+	public HoconWriter setNewline(NewlineStyle newlineStyle) {
 		this.newline = newlineStyle.chars;
+		return this;
 	}
 
-	public void setNewline(String newlineString) {
+	public HoconWriter setNewline(String newlineString) {
 		this.newline = newlineString.toCharArray();
+		return this;
 	}
 
-	public char[] getKeyValueSeparator() {
-		return kvSeparator;
-	}
-
-	public void setKeyValueSeparator(KeyValueSeparatorStyle separatorStyle) {
+	public HoconWriter setKeyValueSeparator(KeyValueSeparatorStyle separatorStyle) {
 		this.kvSeparator = separatorStyle.chars;
+		return this;
 	}
 
-	public void setKeyValueSeparator(String separatorString) {
+	public HoconWriter setKeyValueSeparator(String separatorString) {
 		this.kvSeparator = separatorString.toCharArray();
+		return this;
 	}
 }
