@@ -40,7 +40,7 @@ public final class HoconWriter implements ConfigWriter<UnmodifiableConfig> {
 	// --- Writer's settings ---
 	private Predicate<UnmodifiableConfig> indentObjectElementsPredicate = c -> true;
 	private Predicate<Collection<?>> indentArrayElementsPredicate = c -> true;
-	private boolean newlineAfterObjectStart, newlineAfterArrayStart;
+	private boolean newlineAfterObjectStart;
 	private char[] newline = NewlineStyle.system().chars;
 	private char[] indent = IndentStyle.TABS.chars;
 	private char[] kvSeparator = KeyValueSeparatorStyle.COLON.chars;
@@ -238,11 +238,6 @@ public final class HoconWriter implements ConfigWriter<UnmodifiableConfig> {
 
 	public HoconWriter setNewlineAfterObjectStart(boolean newlineAfterObjectStart) {
 		this.newlineAfterObjectStart = newlineAfterObjectStart;
-		return this;
-	}
-
-	public HoconWriter setNewlineAfterArrayStart(boolean newlineAfterArrayStart) {
-		this.newlineAfterArrayStart = newlineAfterArrayStart;
 		return this;
 	}
 
