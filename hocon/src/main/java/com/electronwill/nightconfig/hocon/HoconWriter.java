@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.hocon;
 
-import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.CharacterOutput;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.Utils;
@@ -17,7 +17,7 @@ import java.util.function.Predicate;
  *
  * @author TheElectronWill
  */
-public final class HoconWriter implements ConfigWriter<Config> {
+public final class HoconWriter implements ConfigWriter<UnmodifiableConfig> {
 	// --- Constant char arrays ---
 	private static final char[] NULL_CHARS = {'n', 'u', 'l', 'l'};
 	private static final char[] TRUE_CHARS = {'t', 'r', 'u', 'e'};
@@ -33,7 +33,7 @@ public final class HoconWriter implements ConfigWriter<Config> {
 														 '*', '&', '\\'};
 
 	// --- Writer's settings ---
-	private Predicate<Config> indentObjectElementsPredicate = c -> true;
+	private Predicate<UnmodifiableConfig> indentObjectElementsPredicate = c -> true;
 	private Predicate<Collection<?>> indentArrayElementsPredicate = c -> true;
 	private boolean newlineAfterObjectStart, newlineAfterArrayStart;
 	private char[] newline = System.getProperty("line.separator").toCharArray();
@@ -43,12 +43,12 @@ public final class HoconWriter implements ConfigWriter<Config> {
 
 	// --- Writer's methods ---
 	@Override
-	public void write(Config config, Writer writer) {
+	public void write(UnmodifiableConfig config, Writer writer) {
 		currentIndentLevel = -1;
 		writeObject(config, new WriterOutput(writer), true);
 	}
 
-	private void writeObject(Config config, CharacterOutput output, boolean root) {
+	private void writeObject(UnmodifiableConfig config, CharacterOutput output, boolean root) {
 		if (config.isEmpty()) {
 			output.write(EMPTY_OBJECT);
 			return;
@@ -73,7 +73,7 @@ public final class HoconWriter implements ConfigWriter<Config> {
 				writeIndent(output);// Indents the line
 			}
 			writeString(key, output);// key
-			if (value instanceof Config) {
+			if (value instanceof UnmodifiableConfig) {
 				output.write(' ');
 			} else {
 				output.write(entrySeparator);
@@ -101,8 +101,8 @@ public final class HoconWriter implements ConfigWriter<Config> {
 			writeString((String)v, output);
 		} else if (v instanceof Number) {
 			output.write(v.toString());
-		} else if (v instanceof Config) {
-			writeObject((Config)v, output, false);
+		} else if (v instanceof UnmodifiableConfig) {
+			writeObject((UnmodifiableConfig)v, output, false);
 		} else if (v instanceof Collection) {
 			writeArray((Collection<?>)v, output);
 		} else if (v instanceof Boolean) { writeBoolean((boolean)v, output); } else {
@@ -204,11 +204,11 @@ public final class HoconWriter implements ConfigWriter<Config> {
 	}
 
 	// --- Getters/Setters for the settings ---
-	public Predicate<Config> getIndentObjectElementsPredicate() {
+	public Predicate<UnmodifiableConfig> getIndentObjectElementsPredicate() {
 		return indentObjectElementsPredicate;
 	}
 
-	public void setIndentObjectElementsPredicate(Predicate<Config> indentObjectElementsPredicate) {
+	public void setIndentObjectElementsPredicate(Predicate<UnmodifiableConfig> indentObjectElementsPredicate) {
 		this.indentObjectElementsPredicate = indentObjectElementsPredicate;
 	}
 
