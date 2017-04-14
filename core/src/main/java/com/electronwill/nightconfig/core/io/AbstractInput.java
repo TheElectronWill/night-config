@@ -1,5 +1,7 @@
 package com.electronwill.nightconfig.core.io;
 
+import com.electronwill.nightconfig.core.utils.IntDeque;
+
 /**
  * Abstract base class for CharacterInputs.
  *

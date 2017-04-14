@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core.io;
 
+import com.electronwill.nightconfig.core.utils.IntDeque;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
