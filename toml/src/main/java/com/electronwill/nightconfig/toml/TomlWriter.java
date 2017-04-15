@@ -1,13 +1,11 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.CharacterOutput;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.IndentStyle;
 import com.electronwill.nightconfig.core.io.NewlineStyle;
 import com.electronwill.nightconfig.core.io.WriterOutput;
-import com.electronwill.nightconfig.core.utils.FakeUnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.utils.StringUtils;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -31,13 +29,8 @@ public final class TomlWriter implements ConfigWriter<UnmodifiableConfig> {
 	@Override
 	public void write(UnmodifiableConfig config, Writer writer) {
 		currentIndentLevel = -1;//-1 to make the root entries not indented
-		UnmodifiableCommentedConfig commentedConfig;
-		if(config instanceof UnmodifiableCommentedConfig) {
-			commentedConfig = (UnmodifiableCommentedConfig)config;
-		} else {
-			commentedConfig = new FakeUnmodifiableCommentedConfig(config);
-		}
-		TableWriter.writeSmartly(commentedConfig, new ArrayList<>(), new WriterOutput(writer), this);
+		CharacterOutput output = new WriterOutput(writer);
+		TableWriter.writeNormal(config, new ArrayList<>(), output, this);
 	}
 
 	// --- Getters/setters for the settings ---

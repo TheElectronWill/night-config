@@ -37,7 +37,7 @@ final class TableWriter {
 		output.write('}');
 	}
 
-	private static void writeNormal(UnmodifiableConfig config, List<String> configPath,
+	static void writeNormal(UnmodifiableConfig config, List<String> configPath,
 									CharacterOutput output, TomlWriter writer) {
 		UnmodifiableCommentedConfig commentedConfig = FakeUnmodifiableCommentedConfig
 			.getCommented(config);
@@ -132,15 +132,6 @@ final class TableWriter {
 			writer.writeKey(it.next(), output);
 		}
 		output.write(end);
-	}
-
-	static void writeSmartly(UnmodifiableConfig config, List<String> key, CharacterOutput output,
-							 TomlWriter writer) {
-		if (writer.writesInline(config)) {
-			writeInline(config, output, writer);
-		} else {
-			writeNormal(config, key, output, writer);
-		}
 	}
 
 	private TableWriter() {}
