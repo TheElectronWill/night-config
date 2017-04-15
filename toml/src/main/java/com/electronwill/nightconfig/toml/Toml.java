@@ -44,16 +44,16 @@ final class Toml {
 	 * Reads the next non-space character. Doesn't skip comments.
 	 */
 	static char readNonSpaceChar(CharacterInput input, boolean skipNewlines) {
-		return skipNewlines
-			? input.readCharAndSkip(WHITESPACE_OR_NEWLINE)
-			: input.readCharAndSkip(WHITESPACE);
+		return skipNewlines ? input.readCharAndSkip(WHITESPACE_OR_NEWLINE)
+							: input.readCharAndSkip(WHITESPACE);
 	}
 
 	/**
 	 * Reads the next non-space character. Doesn't skip comments.
 	 */
 	static int readNonSpace(CharacterInput input, boolean skipNewlines) {
-		return skipNewlines ? input.readAndSkip(WHITESPACE_OR_NEWLINE) : input.readAndSkip(WHITESPACE);
+		return skipNewlines ? input.readAndSkip(WHITESPACE_OR_NEWLINE)
+							: input.readAndSkip(WHITESPACE);
 	}
 
 	/**

@@ -44,7 +44,8 @@ final class TableParser {
 		}
 	}
 
-	static <T extends CommentedConfig> T parseNormal(CharacterInput input, TomlParser parser, T config) {
+	static <T extends CommentedConfig> T parseNormal(CharacterInput input, TomlParser parser,
+													 T config) {
 		while (true) {
 			List<CharsWrapper> commentsList = new ArrayList<>(2);
 			int keyFirst = Toml.readUseful(input, commentsList);
@@ -113,7 +114,7 @@ final class TableParser {
 			if (separator == ']') {// End of the declaration
 				if (array) {
 					char after = input.readChar();
-					if(after != ']') {
+					if (after != ']') {
 						throw new ParsingException("Invalid declaration of an element of an array"
 												   + " of tables: it ends by ]"
 												   + after
@@ -126,8 +127,8 @@ final class TableParser {
 					CharsWrapper comment = Toml.readLine(input);
 					parser.setComment(comment);
 				} else if (after != '\n' && after != '\r') {
-					throw new ParsingException("Invalid character '" + after + "' after a table "
-											   + "declaration.");
+					throw new ParsingException(
+							"Invalid character '" + after + "' after a table " + "declaration.");
 				}
 				return list;
 			} else if (separator != '.') {
