@@ -153,18 +153,17 @@ final class TableParser {
 			return StringParser.parseLiteral(input, parser);
 		} else {
 			CharsWrapper restOfKey = input.readCharsUntil(KEY_END);
-			CharsWrapper bareKey = new CharsWrapper.Builder(restOfKey.length() + 1).append(
-					firstChar).append(restOfKey).build();
+			String bareKey = new CharsWrapper.Builder(restOfKey.length() + 1).append(firstChar)
+																			 .append(restOfKey)
+																			 .toString();
 			// Checks that the bare key is conform to the specification
 			if (bareKey.isEmpty()) {
 				throw new ParsingException("Empty bare keys aren't allowed.");
 			}
-			for (char c : bareKey) {
-				if (!Toml.isValidInBareKey(c, parser.isLenientWithBareKeys())) {
-					throw new ParsingException("Forbidden character in bare key: '" + c + '\'');
-				}
+			if(!Toml.isValidBareKey(bareKey, parser.isLenientWithBareKeys())) {
+				throw new ParsingException("Invalid bare key: " + bareKey);
 			}
-			return bareKey.toString();
+			return bareKey;
 		}
 	}
 
