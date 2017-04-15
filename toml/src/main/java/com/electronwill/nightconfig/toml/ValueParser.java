@@ -46,10 +46,14 @@ final class ValueParser {
 			case '+':
 			case '-':
 				input.pushBack(firstChar);
-				return parseNumber(input);
+				return parseNumber(input.readUntil(END_OF_VALUE));
 			default:
 				input.pushBack(firstChar);
-				return parseNumberOrDateTime(input);
+				CharsWrapper valueChars = input.readUntil(END_OF_VALUE);
+				if (shouldBeTemporal(valueChars)) {
+					return TemporalParser.parse(valueChars);
+				}
+				return parseNumber(valueChars);
 		}
 	}
 
@@ -57,17 +61,9 @@ final class ValueParser {
 		return parse(input, Toml.readNonSpaceChar(input, false), parser);
 	}
 
-	private static Object parseNumberOrDateTime(CharacterInput input) {
-		CharsWrapper valueChars = input.readUntil(END_OF_VALUE);
-		if (TemporalParser.shouldBeTemporal(valueChars)) {
-			return TemporalParser.parse(valueChars);
-		}
-		return parseNumber(valueChars);
-	}
-
-	private static Number parseNumber(CharacterInput input) {
-		CharsWrapper valueChars = input.readUntil(END_OF_VALUE);
-		return parseNumber(valueChars);
+	private static boolean shouldBeTemporal(CharsWrapper valueChars) {
+		return (valueChars.length() >= 8)
+			   && (valueChars.get(2) == ':' || (valueChars.get(4) == '-' && valueChars.get(7) == '-'));
 	}
 
 	private static Number parseNumber(CharsWrapper valueChars) {

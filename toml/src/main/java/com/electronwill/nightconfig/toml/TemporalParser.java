@@ -22,11 +22,6 @@ final class TemporalParser {
 	private static final char[] ALLOWED_DT_SEPARATORS = {'T', 't'};
 	private static final char[] OFFSET_INDICATORS = {'Z', '+', '-'};
 
-	static boolean shouldBeTemporal(CharsWrapper valueChars) {
-		return (valueChars.length() >= 8)
-			   && (valueChars.get(2) == ':' || (valueChars.get(4) == '-' && valueChars.get(7) == '-'));
-	}
-
 	/**
 	 * Parses a Temporal value, to either a LocalTime, a LocalDate, a LocalDateTime or
 	 * OffsetDateTime.
