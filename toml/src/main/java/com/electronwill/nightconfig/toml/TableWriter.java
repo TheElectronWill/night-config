@@ -17,7 +17,7 @@ import java.util.Map;
 final class TableWriter {
 
 	private static final char[] KEY_VALUE_SEPARATOR = {' ', '=', ' '},
-								AFTER_INLINE_ENTRY = {',', ' '},
+								INLINE_ENTRY_SEPARATOR = ArrayWriter.ELEMENT_SEPARATOR,
 								ARRAY_OF_TABLES_NAME_BEGIN = {'[', '['},
 								ARRAY_OF_TABLES_NAME_END = {']', ']'},
 								TABLE_NAME_BEGIN = {'['},
@@ -32,7 +32,7 @@ final class TableWriter {
 			writer.writeKey(key, output);
 			output.write(KEY_VALUE_SEPARATOR);
 			ValueWriter.write(value, output, writer);
-			output.write(AFTER_INLINE_ENTRY);
+			output.write(INLINE_ENTRY_SEPARATOR);
 		}
 		output.write('}');
 	}

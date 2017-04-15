@@ -8,7 +8,8 @@ import java.util.List;
  * @author TheElectronWill
  */
 final class ArrayWriter {
-	private static final char[] EMPTY_ARRAY = {'[', ']'}, ELEMENT_SEPARATOR = {',', ' '};
+	private static final char[] EMPTY_ARRAY = {'[', ']'};
+	static final char[] ELEMENT_SEPARATOR = {',', ' '};
 
 	/**
 	 * Writes a plain array, not an array of tables.
