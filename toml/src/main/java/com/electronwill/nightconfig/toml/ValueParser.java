@@ -94,9 +94,8 @@ final class ValueParser {
 					throw new ParsingException("Invalid underscore followed by another one in "
 											   + "number "
 											   + numberChars);
-				} else {
-					nextCannotBeUnderscore = true;
 				}
+				nextCannotBeUnderscore = true;
 			} else {
 				if (nextCannotBeUnderscore) {
 					nextCannotBeUnderscore = false;
