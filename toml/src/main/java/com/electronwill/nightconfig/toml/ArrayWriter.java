@@ -25,14 +25,18 @@ final class ArrayWriter {
 		}
 		Iterator<?> iterator = values.iterator();
 		for (boolean hasNext = iterator.hasNext(); hasNext; ) {
-			Object value = iterator.next();
-			if (indent) {// Indents the first element
+			if (indent) {
 				writer.writeNewline(output);
 				writer.writeIndent(output);
 			}
+			Object value = iterator.next();
 			ValueWriter.write(value, output, writer);
 			if ((hasNext = iterator.hasNext())) {
-				output.write(ELEMENT_SEPARATOR);
+				if (indent) {
+					output.write(',');
+				} else {
+					output.write(ELEMENT_SEPARATOR);
+				}
 			}
 		}
 		if (indent) {
