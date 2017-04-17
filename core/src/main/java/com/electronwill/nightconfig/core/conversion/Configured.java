@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a class or field is designed to be parse from a configuration.
+ * Indicates that a class or field is designed to be read from a configuration.
  *
  * @author TheElectronWill
  */

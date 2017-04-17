@@ -10,8 +10,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
- * A Config's wrapper that converts the values that are parse from the config, and the values that
- * are put into the config.
+ * A Config's wrapper that converts the values that are read from and put into the config
  *
  * @author TheElectronWill
  */
