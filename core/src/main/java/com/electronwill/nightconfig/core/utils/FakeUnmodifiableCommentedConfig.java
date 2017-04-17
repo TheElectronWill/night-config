@@ -3,7 +3,6 @@ package com.electronwill.nightconfig.core.utils;
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -11,7 +10,9 @@ import java.util.Set;
  *
  * @author TheElectronWill
  */
-public final class FakeUnmodifiableCommentedConfig implements UnmodifiableCommentedConfig {
+public final class FakeUnmodifiableCommentedConfig
+		extends UnmodifiableConfigWrapper<UnmodifiableConfig>
+		implements UnmodifiableCommentedConfig {
 	/**
 	 * If config is an UnmodifiableCommentedConfig, returns it, otherwise returns a new
 	 * FakeUnmodifiableCommentedConfig.
@@ -23,10 +24,8 @@ public final class FakeUnmodifiableCommentedConfig implements UnmodifiableCommen
 		return new FakeUnmodifiableCommentedConfig(config);
 	}
 
-	private final UnmodifiableConfig config;
-
 	public FakeUnmodifiableCommentedConfig(UnmodifiableConfig config) {
-		this.config = config;
+		super(config);
 	}
 
 	@Override
@@ -40,41 +39,11 @@ public final class FakeUnmodifiableCommentedConfig implements UnmodifiableCommen
 	}
 
 	@Override
-	public Set<? extends Entry> entrySet() {
+	public Set<? extends UnmodifiableCommentedConfig.Entry> entrySet() {
 		return new TransformingSet<>(config.entrySet(), FakeCommentedEntry::new, o -> null, o -> o);
 	}
 
-	@Override
-	public <T> T getValue(List<String> path) {
-		return config.getValue(path);
-	}
-
-	@Override
-	public boolean containsValue(List<String> path) {
-		return config.containsValue(path);
-	}
-
-	@Override
-	public int size() {
-		return config.size();
-	}
-
-	@Override
-	public Map<String, Object> valueMap() {
-		return config.valueMap();
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		return config.equals(obj);
-	}
-
-	@Override
-	public int hashCode() {
-		return config.hashCode();
-	}
-
-	private static final class FakeCommentedEntry implements Entry {
+	private static final class FakeCommentedEntry implements UnmodifiableCommentedConfig.Entry {
 		private final UnmodifiableConfig.Entry entry;
 
 		private FakeCommentedEntry(UnmodifiableConfig.Entry entry) {

@@ -11,7 +11,7 @@ import java.util.Set;
  *
  * @author TheElectronWill
  */
-public final class FakeCommentedConfig implements CommentedConfig {
+public final class FakeCommentedConfig extends ConfigWrapper<Config> implements CommentedConfig {
 	/**
 	 * If config is a CommentedConfig, returns it, otherwise returns a new FakeCommentedConfig.
 	 */
@@ -22,10 +22,8 @@ public final class FakeCommentedConfig implements CommentedConfig {
 		return new FakeCommentedConfig(config);
 	}
 
-	private final Config config;
-
 	public FakeCommentedConfig(Config config) {
-		this.config = config;
+		super(config);
 	}
 
 	@Override
@@ -47,61 +45,11 @@ public final class FakeCommentedConfig implements CommentedConfig {
 	public void removeComment(List<String> path) {}
 
 	@Override
-	public Set<? extends Entry> entrySet() {
+	public Set<? extends CommentedConfig.Entry> entrySet() {
 		return new TransformingSet<>(config.entrySet(), FakeCommentedEntry::new, o -> null, o -> o);
 	}
 
-	@Override
-	public <T> T getValue(List<String> path) {
-		return config.getValue(path);
-	}
-
-	@Override
-	public boolean containsValue(List<String> path) {
-		return config.containsValue(path);
-	}
-
-	@Override
-	public <T> T setValue(List<String> path, Object value) {
-		return config.setValue(path, value);
-	}
-
-	@Override
-	public <T> T removeValue(List<String> path) {
-		return config.removeValue(path);
-	}
-
-	@Override
-	public void clear() {
-		config.clear();
-	}
-
-	@Override
-	public int size() {
-		return config.size();
-	}
-
-	@Override
-	public Map<String, Object> valueMap() {
-		return config.valueMap();
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		return config.equals(obj);
-	}
-
-	@Override
-	public int hashCode() {
-		return config.hashCode();
-	}
-
-	@Override
-	public boolean supportsType(Class<?> type) {
-		return config.supportsType(type);
-	}
-
-	private static final class FakeCommentedEntry implements Entry {
+	private static final class FakeCommentedEntry implements CommentedConfig.Entry {
 		private final Config.Entry entry;
 
 		private FakeCommentedEntry(Config.Entry entry) {

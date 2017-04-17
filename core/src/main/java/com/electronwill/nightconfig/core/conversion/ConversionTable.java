@@ -1,9 +1,11 @@
 package com.electronwill.nightconfig.core.conversion;
 
+import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
+import com.electronwill.nightconfig.core.utils.UnmodifiableConfigWrapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +18,7 @@ import java.util.function.Predicate;
  *
  * @author TheElectronWill
  */
-public final class ConversionTable {
+public final class ConversionTable implements Cloneable {
 	/**
 	 * Maps a class (of a value) to its conversion function.
 	 */
@@ -73,12 +75,10 @@ public final class ConversionTable {
 	 * Converts a value using the conversion function that corresponds to its type.
 	 *
 	 * @param value the value to convert, may be null
-	 * @param <T>   the value's type
 	 * @return the result of the conversion
 	 */
-	public <T> Object convert(T value) {
-		Class<?> classToConvert = (value == null) ? null : value.getClass();
-		Function<T, Object> conversionFunction = (Function)conversionMap.get(classToConvert);
+	public Object convert(Object value) {
+		Function<Object, Object> conversionFunction = getConversionFunction(value);
 		if (conversionFunction == null) {
 			return value;
 		}
@@ -93,7 +93,11 @@ public final class ConversionTable {
 	 */
 	public void convertShallow(Config config) {
 		for (Map.Entry<String, Object> configEntry : config.valueMap().entrySet()) {
-			configEntry.setValue(convert(configEntry.getValue()));
+			final Object value = configEntry.getValue();
+			Function<Object, Object> conversionFunction = getConversionFunction(value);
+			if (conversionFunction != null) {
+				configEntry.setValue(conversionFunction.apply(value));
+			}
 		}
 	}
 
@@ -105,205 +109,22 @@ public final class ConversionTable {
 	 */
 	public void convertDeep(Config config) {
 		for (Map.Entry<String, Object> configEntry : config.valueMap().entrySet()) {
-			final Object configValue = configEntry.getValue();
-			if (configValue instanceof Config) {// Sub config
+			final Object value = configEntry.getValue();
+			if (value instanceof Config) {// Sub config
 				convertDeep(config);
 			} else {// Plain value
-				configEntry.setValue(convert(configValue));
+				Function<Object, Object> conversionFunction = getConversionFunction(value);
+				if (conversionFunction != null) {
+					configEntry.setValue(conversionFunction.apply(value));
+				}
 			}
 		}
 	}
 
-	/**
-	 * Returns an UnmodifiableConfig that converts "just-in-time" the values of the specified
-	 * UnmodifiableConfig.
-	 *
-	 * @param config the config to wrap
-	 * @return a wrapper that converts the config's values using this conversion table.
-	 */
-	public UnmodifiableConfig wrap(UnmodifiableConfig config) {
-		return new UnmodifiableConfig() {
-			@Override
-			public <T> T getValue(List<String> path) {
-				return (T)convert(config.getValue(path));
-			}
-
-			@Override
-			public boolean containsValue(List<String> path) {
-				return config.containsValue(path);
-			}
-
-			@Override
-			public int size() {
-				return config.size();
-			}
-
-			@Override
-			public Map<String, Object> valueMap() {
-				return new TransformingMap<>(config.valueMap(), v -> convert(v), v -> v, v -> v);
-			}
-
-			@Override
-			public Set<? extends Entry> entrySet() {
-				Function<Entry, Entry> readTransfo = entry -> new Entry() {
-					@Override
-					public String getKey() {
-						return entry.getKey();
-					}
-
-					@Override
-					public <T> T getValue() {
-						return (T)convert(entry.getValue());
-					}
-				};
-				return new TransformingSet<>(config.entrySet(), readTransfo, o -> null, e -> e);
-			}
-		};
-	}
-
-	/**
-	 * Returns an Config that converts "just-in-time" the values that are parse from the specified
-	 * Config.
-	 *
-	 * @param config the config to wrap
-	 * @return a wrapper that converts the values parse from the config
-	 */
-	public Config wrapRead(Config config) {
-		return new Config() {
-			@Override
-			public <T> T setValue(List<String> path, Object value) {
-				return (T)convert(config.setValue(path, value));
-			}
-
-			@Override
-			public <T> T removeValue(List<String> path) {
-				return config.removeValue(path);
-			}
-
-			@Override
-			public Map<String, Object> valueMap() {
-				return new TransformingMap<>(config.valueMap(), v -> convert(v), v -> v, v -> v);
-			}
-
-			@Override
-			public Set<? extends Entry> entrySet() {
-				Function<Entry, Entry> readTransfo = entry -> new Entry() {
-					@Override
-					public Object setValue(Object value) {
-						return convert(entry.setValue(value));
-					}
-
-					@Override
-					public String getKey() {
-						return entry.getKey();
-					}
-
-					@Override
-					public <T> T getValue() {
-						return (T)convert(entry.getValue());
-					}
-				};
-				return new TransformingSet<>(config.entrySet(), readTransfo, o -> null, e -> e);
-			}
-
-			@Override
-			public boolean supportsType(Class<?> type) {
-				return config.supportsType(type);
-			}
-
-			@Override
-			public <T> T getValue(List<String> path) {
-				return (T)convert(config.getValue(path));
-			}
-
-			@Override
-			public boolean containsValue(List<String> path) {
-				return config.containsValue(path);
-			}
-
-			@Override
-			public void clear() {
-				config.clear();
-			}
-
-			@Override
-			public int size() {
-				return config.size();
-			}
-		};
-	}
-
-	/**
-	 * Returns an Config that converts "just-in-time" the values that are put into the specified
-	 * Config.
-	 *
-	 * @param config the config to wrap
-	 * @return a wrapper that converts the values put into the config
-	 */
-	public Config wrapWrite(Config config, Predicate<Class<?>> supportValueTypePredicate) {
-		return new Config() {
-			@Override
-			public <T> T setValue(List<String> path, Object value) {
-				return config.setValue(path, convert(value));
-			}
-
-			@Override
-			public <T> T removeValue(List<String> path) {
-				return config.removeValue(path);
-			}
-
-			@Override
-			public Map<String, Object> valueMap() {
-				return new TransformingMap<>(config.valueMap(), v -> v, v -> convert(v),
-											 v -> convert(v));
-			}
-
-			@Override
-			public Set<? extends Entry> entrySet() {
-				Function<Entry, Entry> readTransfo = entry -> new Entry() {
-					@Override
-					public Object setValue(Object value) {
-						return entry.setValue(convert(value));
-					}
-
-					@Override
-					public String getKey() {
-						return entry.getKey();
-					}
-
-					@Override
-					public <T> T getValue() {
-						return entry.getValue();
-					}
-				};
-				return new TransformingSet<>(config.entrySet(), readTransfo, o -> null, e -> e);
-			}
-
-			@Override
-			public boolean supportsType(Class<?> type) {
-				return supportValueTypePredicate.test(type);
-			}
-
-			@Override
-			public <T> T getValue(List<String> path) {
-				return config.getValue(path);
-			}
-
-			@Override
-			public boolean containsValue(List<String> path) {
-				return config.containsValue(path);
-			}
-
-			@Override
-			public void clear() {
-				config.clear();
-			}
-
-			@Override
-			public int size() {
-				return config.size();
-			}
-		};
+	@SuppressWarnings("unchecked")
+	private Function<Object, Object> getConversionFunction(Object value) {
+		Class<?> classToConvert = (value == null) ? null : value.getClass();
+		return (Function<Object, Object>)conversionMap.get(classToConvert);
 	}
 
 	/**
@@ -324,5 +145,93 @@ public final class ConversionTable {
 			result.conversionMap.putIfAbsent(entry.getKey(), entry.getValue());
 		}
 		return result;
+	}
+
+	/**
+	 * Returns an UnmodifiableConfig that converts "just-in-time" the values of the specified
+	 * UnmodifiableConfig.
+	 *
+	 * @param config the config to wrap
+	 * @return a wrapper that converts the config's values using this conversion table.
+	 */
+	public UnmodifiableConfig wrap(UnmodifiableConfig config) {
+		return new UnmodifiableConfigWrapper<UnmodifiableConfig>(config) {
+			@Override
+			public <T> T getValue(List<String> path) {
+				return (T)convert(config.getValue(path));
+			}
+
+			@Override
+			public Map<String, Object> valueMap() {
+				return new TransformingMap<>(config.valueMap(), v -> convert(v), v -> v, v -> v);
+			}
+
+			@Override
+			public Set<? extends Entry> entrySet() {
+				Function<Entry, Entry> readTransfo = entry -> new Entry() {
+					@Override
+					public String getKey() {
+						return entry.getKey();
+					}
+
+					@Override
+					public <T> T getValue() {
+						return (T)convert(entry.getValue());
+					}
+				};
+				return new TransformingSet<>(config.entrySet(), readTransfo, o -> null, e -> e);
+			}
+		};
+	}
+
+	/**
+	 * Returns an Config that converts "just-in-time" the values that are read from the specified
+	 * Config.
+	 *
+	 * @param config the config to wrap
+	 * @return a wrapper that converts the values read from the config
+	 */
+	public Config wrapRead(Config config) {
+		return new ConvertedConfig(config, this::convert, v -> v, config::supportsType);
+	}
+
+	/**
+	 * Returns an Config that converts "just-in-time" the values that are read from the specified
+	 * Config.
+	 *
+	 * @param config the config to wrap
+	 * @return a wrapper that converts the values read from the config
+	 */
+	public CommentedConfig wrapRead(CommentedConfig config) {
+		return new CommentedConvertedConfig(config, this::convert, v -> v, config::supportsType);
+	}
+
+	/**
+	 * Returns an Config that converts "just-in-time" the values that are put into the specified
+	 * Config.
+	 *
+	 * @param config the config to wrap
+	 * @return a wrapper that converts the values put into the config
+	 */
+	public Config wrapWrite(Config config, Predicate<Class<?>> supportValueTypePredicate) {
+		return new ConvertedConfig(config, v -> v, this::convert, supportValueTypePredicate);
+	}
+
+	/**
+	 * Returns an Config that converts "just-in-time" the values that are put into the specified
+	 * Config.
+	 *
+	 * @param config the config to wrap
+	 * @return a wrapper that converts the values put into the config
+	 */
+	public CommentedConfig wrapWrite(CommentedConfig config,
+									 Predicate<Class<?>> supportValueTypePredicate) {
+		return new CommentedConvertedConfig(config, v -> v, this::convert,
+											supportValueTypePredicate);
+	}
+
+	@Override
+	public ConversionTable clone() {
+		return new ConversionTable(this);
 	}
 }
