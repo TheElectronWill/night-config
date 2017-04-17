@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core.conversion;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
+import com.electronwill.nightconfig.core.utils.TransformingSet;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -294,7 +295,7 @@ public final class ObjectBinder {
 				throw new UnsupportedOperationException("Cannot add elements to a bound config");
 			} else if (searchResult.hasFieldInfos()) {
 				return (T)searchResult.fieldInfos.setValue(searchResult.parentConfig.object, value,
-												 bypassFinal);
+														   bypassFinal);
 			} else {
 				throw new UnsupportedOperationException(
 						"Cannot modify non-field elements of a bound config");
@@ -307,7 +308,8 @@ public final class ObjectBinder {
 			if (searchResult == null) {
 				return null;// Nothing to do
 			} else if (searchResult.hasFieldInfos()) {
-				return (T)searchResult.fieldInfos.removeValue(searchResult.parentConfig.object, bypassFinal);
+				return (T)searchResult.fieldInfos.removeValue(searchResult.parentConfig.object,
+															  bypassFinal);
 			} else {
 				SimpleConfig copy = new SimpleConfig(searchResult.subConfig);
 				searchResult.subConfig.clear();
@@ -351,23 +353,23 @@ public final class ObjectBinder {
 
 		@Override
 		public Set<? extends Entry> entrySet() {
-			Function<Object, Object> readTransfo = object -> new Entry() {
+			Function<Map.Entry<String, Object>, Entry> readTransfo = entry -> new Entry() {
 				@Override
-				public Object setValue(Object value) {
-					return null;
+				public <T> T setValue(Object value) {
+					return BoundConfig.this.setValue(entry.getKey(), value);
 				}
 
 				@Override
 				public String getKey() {
-					return null;
+					return entry.getKey();
 				}
 
 				@Override
 				public <T> T getValue() {
-					return null;
+					return (T)entry.getValue();
 				}
 			};
-			return null;
+			return new TransformingSet<>(dataMap.entrySet(), readTransfo, o -> null, o -> o);
 		}
 
 		@Override
