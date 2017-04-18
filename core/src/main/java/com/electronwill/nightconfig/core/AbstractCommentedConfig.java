@@ -113,18 +113,19 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	}
 
 	@Override
-	public void removeComment(List<String> path) {
+	public String removeComment(List<String> path) {
 		final int lastIndex = path.size() - 1;
 		Map<String, CommentInfos> currentMap = commentsMap;
 		for (String key : path.subList(0, lastIndex)) {
 			CommentInfos infos = currentMap.get(key);
 			if (infos == null || !infos.hasSubInfos()) {//no comment associated to this path
-				return;
+				return null;
 			}
 			currentMap = infos.subInfos;
 		}
 		String lastKey = path.get(lastIndex);
-		currentMap.remove(lastKey);
+		CommentInfos lastInfos = currentMap.remove(lastKey);
+		return (lastInfos == null) ? null: lastInfos.comment;
 	}
 
 	@Override
@@ -178,8 +179,8 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		}
 
 		@Override
-		public void removeComment() {
-			AbstractCommentedConfig.this.removeComment(getPath());
+		public String removeComment() {
+			return AbstractCommentedConfig.this.removeComment(getPath());
 		}
 
 		@Override

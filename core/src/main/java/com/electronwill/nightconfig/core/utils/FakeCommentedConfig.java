@@ -42,7 +42,9 @@ public final class FakeCommentedConfig extends ConfigWrapper<Config> implements 
 	}
 
 	@Override
-	public void removeComment(List<String> path) {}
+	public String removeComment(List<String> path) {
+		return null;
+	}
 
 	@Override
 	public Set<? extends CommentedConfig.Entry> entrySet() {
@@ -77,7 +79,9 @@ public final class FakeCommentedConfig extends ConfigWrapper<Config> implements 
 		}
 
 		@Override
-		public void removeComment() {}
+		public String removeComment() {
+			return null;
+		}
 
 		@Override
 		public Object setValue(Object value) {

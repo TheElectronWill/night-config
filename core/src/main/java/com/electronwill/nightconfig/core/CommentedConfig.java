@@ -37,17 +37,19 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * Removes a comment from the config.
 	 *
 	 * @param path the comment's path, each part separated by a dot. Example "a.b.c"
+	 * @return the old comment if any, or {@code null}
 	 */
-	default void removeComment(String path) {
-		removeComment(split(path, '.'));
+	default String removeComment(String path) {
+		return removeComment(split(path, '.'));
 	}
 
 	/**
 	 * Removes a comment from the config.
 	 *
 	 * @param path the comment's path, each element of the list is a different part of the path.
+	 * @return the old comment if any, or {@code null}
 	 */
-	void removeComment(List<String> path);
+	String removeComment(List<String> path);
 
 	@Override
 	default UnmodifiableCommentedConfig unmodifiable() {
@@ -109,6 +111,6 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 		 *
 		 * @return the previous comment, or {@code null} if none.
 		 */
-		void removeComment();
+		String removeComment();
 	}
 }

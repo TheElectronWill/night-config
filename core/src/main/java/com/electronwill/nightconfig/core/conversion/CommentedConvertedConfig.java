@@ -60,8 +60,8 @@ public final class CommentedConvertedConfig extends AbstractConvertedConfig<Comm
 	}
 
 	@Override
-	public void removeComment(List<String> path) {
-		config.removeComment(path);
+	public String removeComment(List<String> path) {
+		return config.removeComment(path);
 	}
 
 	@Override
@@ -78,8 +78,8 @@ public final class CommentedConvertedConfig extends AbstractConvertedConfig<Comm
 			}
 
 			@Override
-			public void removeComment() {
-				entry.removeComment();
+			public String removeComment() {
+				return entry.removeComment();
 			}
 
 			@Override
