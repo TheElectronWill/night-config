@@ -270,4 +270,14 @@ public final class HoconWriter implements ConfigWriter<UnmodifiableConfig> {
 		this.kvSeparator = separatorString.toCharArray();
 		return this;
 	}
+
+	public HoconWriter setCommentPrefix(CommentStyle commentPrefixStyle) {
+		this.commentPrefix = commentPrefixStyle.chars;
+		return this;
+	}
+
+	public HoconWriter setCommentPrefix(String commentPrefixString) {
+		this.commentPrefix = commentPrefixString.toCharArray();
+		return this;
+	}
 }
