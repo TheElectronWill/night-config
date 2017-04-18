@@ -1,7 +1,5 @@
 package com.electronwill.nightconfig.hocon;
 
-import com.electronwill.nightconfig.core.io.CharacterOutput;
-
 /**
  * A style of HOCON comment.
  *

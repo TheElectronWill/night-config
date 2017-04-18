@@ -4,7 +4,6 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
 import com.electronwill.nightconfig.core.io.IndentStyle;
-import com.electronwill.nightconfig.core.io.NewlineStyle;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;

@@ -2,7 +2,6 @@ package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.io.CharacterInput;
 import com.electronwill.nightconfig.core.io.ParsingException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**

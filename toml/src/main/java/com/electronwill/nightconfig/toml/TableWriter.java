@@ -97,7 +97,7 @@ final class TableWriter {
 
 			// Writes the tables
 			configPath.add(entry.getKey());// path level ++
-			List<Config> tableArray = (List)entry.getValue();
+			List<Config> tableArray = entry.getValue();
 			for (UnmodifiableConfig table : tableArray) {
 				writeTableArrayName(configPath, output, writer);
 				writer.writeNewline(output);

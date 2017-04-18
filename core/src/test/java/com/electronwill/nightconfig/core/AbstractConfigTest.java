@@ -71,11 +71,11 @@ public class AbstractConfigTest {
 		Map<String, Object> map = config.valueMap();
 		assert map.get("") instanceof Config;
 		Config c1 = (Config)map.get("");
-		Config c2 = c1.<Config>getValue("a");
-		Config c3 = c2.<Config>getValue("");
-		Config c4 = c3.<Config>getValue("");
-		Config c5 = c4.<Config>getValue("a");
-		String value = c5.<String>getValue("");
+		Config c2 = c1.getValue("a");
+		Config c3 = c2.getValue("");
+		Config c4 = c3.getValue("");
+		Config c5 = c4.getValue("a");
+		String value = c5.getValue("");
 		assert value.equals("value");
 	}
 
