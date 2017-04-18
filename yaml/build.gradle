@@ -10,6 +10,22 @@ repositories {
 
 dependencies {
 	compile project(':core')
-	testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.0-M3'
 	compile 'org.yaml:snakeyaml:1.18'
+	testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.0-M3'
+}
+
+// Jar files
+task javadocJar(type: Jar, dependsOn: javadoc) {
+	classifier = 'javadoc'
+	from javadoc.destinationDir
+}
+
+task sourcesJar(type: Jar) {
+	classifier = 'sources'
+	from sourceSets.main.java.srcDirs
+}
+
+artifacts {
+	archives sourcesJar
+	archives javadocJar
 }
