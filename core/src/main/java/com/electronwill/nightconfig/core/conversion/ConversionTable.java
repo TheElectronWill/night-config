@@ -210,7 +210,9 @@ public final class ConversionTable implements Cloneable {
 	 * Returns an Config that converts "just-in-time" the values that are put into the specified
 	 * Config.
 	 *
-	 * @param config the config to wrap
+	 * @param config                    the config to wrap
+	 * @param supportValueTypePredicate Predicate that checks if a given class is supported by the
+	 *                                  returned config
 	 * @return a wrapper that converts the values put into the config
 	 */
 	public Config wrapWrite(Config config, Predicate<Class<?>> supportValueTypePredicate) {
@@ -221,7 +223,9 @@ public final class ConversionTable implements Cloneable {
 	 * Returns an Config that converts "just-in-time" the values that are put into the specified
 	 * Config.
 	 *
-	 * @param config the config to wrap
+	 * @param config                    the config to wrap
+	 * @param supportValueTypePredicate Predicate that checks if a given class is supported by the
+	 *                                  returned config
 	 * @return a wrapper that converts the values put into the config
 	 */
 	public CommentedConfig wrapWrite(CommentedConfig config,

@@ -33,14 +33,14 @@ import static com.electronwill.nightconfig.core.utils.StringUtils.split;
  * "validator": a {@link Predicate} that returns {@code true} if and only if the given value is
  * correct.<br>
  * For instance, this defines a value "arraylist" that must be an {@code ArrayList}:
- * <pre>configSpec.define("arraylist", new ArrayList(), o -> o instanceof ArrayList);</pre>
+ * {@code configSpec.define("arraylist", new ArrayList(), o -> o instanceof ArrayList);}
  *
  * <h2>Suppliers of default value</h2>
  * <p>
  * If the default value is heavy to create you should use a {@link Supplier} instead of creating a
  * default value, which is useless if the config's value happens to be correct.<br>
  * For instance, the code in the previous paragraph could be rewritten like this:
- * <pre>configSpec.define("heavy", () -> new ArrayList(), o -> o instanceof ArrayList);</pre>
+ * {@code configSpec.define("heavy", () -> new ArrayList(), o -> o instanceof ArrayList);}
  *
  * <h1>Checking configurations</h1>
  * <p>
@@ -70,6 +70,9 @@ public final class ConfigSpec {
 	/**
 	 * Defines an entry. To be correct, the type of the config value must be of the same as or a
 	 * subtype of the defaultValue's type.
+	 *
+	 * @param path         the entry's path
+	 * @param defaultValue the default entry value
 	 */
 	public void define(String path, Object defaultValue) {
 		define(split(path, '.'), defaultValue);
@@ -78,6 +81,9 @@ public final class ConfigSpec {
 	/**
 	 * Defines an entry. To be correct, the type of the config value must be of the same as or a
 	 * subtype of the defaultValue's type.
+	 *
+	 * @param path         the entry's path
+	 * @param defaultValue the default entry value
 	 */
 	public void define(List<String> path, Object defaultValue) {
 		define(path, defaultValue,
@@ -87,6 +93,10 @@ public final class ConfigSpec {
 	/**
 	 * Defines an entry. A config value is considered correct if and only if
 	 * {@code validator.test(configValue)} returns true.
+	 *
+	 * @param path         the entry's path
+	 * @param defaultValue the default entry value
+	 * @param validator    the Predicate that determines if the value is correct or not
 	 */
 	public void define(String path, Object defaultValue, Predicate<Object> validator) {
 		define(split(path, '.'), defaultValue, validator);
@@ -95,6 +105,10 @@ public final class ConfigSpec {
 	/**
 	 * Defines an entry. A config value is considered correct if and only if
 	 * {@code validator.test(configValue)} returns true.
+	 *
+	 * @param path                 the entry's path
+	 * @param defaultValueSupplier the Supplier of the default entry value
+	 * @param validator            the Predicate that determines if the value is correct or not
 	 */
 	public void define(String path, Supplier<?> defaultValueSupplier, Predicate<Object> validator) {
 		define(split(path, '.'), defaultValueSupplier, validator);
@@ -103,6 +117,10 @@ public final class ConfigSpec {
 	/**
 	 * Defines an entry. A config value is considered correct if and only if
 	 * {@code validator.test(configValue)} returns true.
+	 *
+	 * @param path         the entry's path
+	 * @param defaultValue the default entry value
+	 * @param validator    the Predicate that determines if the value is correct or not
 	 */
 	public void define(List<String> path, Object defaultValue, Predicate<Object> validator) {
 		storage.setValue(path, new ValueSpec(defaultValue, validator));
@@ -111,6 +129,10 @@ public final class ConfigSpec {
 	/**
 	 * Defines an entry. A config value is considered correct if and only if
 	 * {@code validator.test(configValue)} returns true.
+	 *
+	 * @param path                 the entry's path
+	 * @param defaultValueSupplier the Supplier of the default entry value
+	 * @param validator            the Predicate that determines if the value is correct or not
 	 */
 	public void define(List<String> path, Supplier<?> defaultValueSupplier,
 					   Predicate<Object> validator) {
@@ -120,6 +142,10 @@ public final class ConfigSpec {
 	/**
 	 * Defines an entry. A config value is considered correct if and only if it is of the same type
 	 * as, or of a subtype of the specified class.
+	 *
+	 * @param path                 the entry's path
+	 * @param defaultValue         the default entry value
+	 * @param acceptableValueClass the class that a value of this entry must have
 	 */
 	public <V> void defineOfClass(String path, V defaultValue,
 								  Class<? super V> acceptableValueClass) {
@@ -129,6 +155,10 @@ public final class ConfigSpec {
 	/**
 	 * Defines an entry. A config value is considered correct if and only if it is of the same type
 	 * as, or of a subtype of the specified class.
+	 *
+	 * @param path                 the entry's path
+	 * @param defaultValueSupplier the Supplier of the default entry value
+	 * @param acceptableValueClass the class that a value of this entry must have
 	 */
 	public <V> void defineOfClass(String path, Supplier<V> defaultValueSupplier,
 								  Class<? super V> acceptableValueClass) {
@@ -138,6 +168,10 @@ public final class ConfigSpec {
 	/**
 	 * Defines an entry. A config value is considered correct if and only if it is of the same type
 	 * as, or of a subtype of the specified class.
+	 *
+	 * @param path                 the entry's path
+	 * @param defaultValue         the default entry value
+	 * @param acceptableValueClass the class that a value of this entry must have
 	 */
 	public <V> void defineOfClass(List<String> path, V defaultValue,
 								  Class<? super V> acceptableValueClass) {
@@ -147,6 +181,10 @@ public final class ConfigSpec {
 	/**
 	 * Defines an entry. A config value is considered correct if and only if it is of the same type
 	 * as, or of a subtype of the specified class.
+	 *
+	 * @param path                 the entry's path
+	 * @param defaultValueSupplier the Supplier of the default entry value
+	 * @param acceptableValueClass the class that a value of this entry must have
 	 */
 	public <V> void defineOfClass(List<String> path, Supplier<V> defaultValueSupplier,
 								  Class<? super V> acceptableValueClass) {
@@ -157,6 +195,10 @@ public final class ConfigSpec {
 	/**
 	 * Defines an entry. A config value is considered correct if and only if it is contained in the
 	 * specified collection.
+	 *
+	 * @param path             the entry's path
+	 * @param defaultValue     the default entry value
+	 * @param acceptableValues the Collection containing all the acceptable values
 	 */
 	public void defineInList(String path, Object defaultValue, Collection<?> acceptableValues) {
 		defineInList(split(path, '.'), defaultValue, acceptableValues);
@@ -165,6 +207,10 @@ public final class ConfigSpec {
 	/**
 	 * Defines an entry. A config value is considered correct if and only if it is contained in the
 	 * specified collection.
+	 *
+	 * @param path                 the entry's path
+	 * @param defaultValueSupplier the Supplifer of the default entry value
+	 * @param acceptableValues     the Collection containing all the acceptable values
 	 */
 	public void defineInList(String path, Supplier<?> defaultValueSupplier,
 							 Collection<?> acceptableValues) {
@@ -174,6 +220,10 @@ public final class ConfigSpec {
 	/**
 	 * Defines an entry. A config value is considered correct if and only if it is contained in the
 	 * specified collection.
+	 *
+	 * @param path             the entry's path
+	 * @param defaultValue     the default entry value
+	 * @param acceptableValues the Collection containing all the acceptable values
 	 */
 	public void defineInList(List<String> path, Object defaultValue,
 							 Collection<?> acceptableValues) {
@@ -183,6 +233,10 @@ public final class ConfigSpec {
 	/**
 	 * Defines an entry. A config value is considered correct if and only if it is contained in the
 	 * specified collection.
+	 *
+	 * @param path                 the entry's path
+	 * @param defaultValueSupplier the Supplier of the default entry value
+	 * @param acceptableValues     the Collection containing all the acceptable values
 	 */
 	public void defineInList(List<String> path, Supplier<?> defaultValueSupplier,
 							 Collection<?> acceptableValues) {
@@ -193,8 +247,10 @@ public final class ConfigSpec {
 	 * Defines an entry. A config value is considered correct if and only if it is less than or
 	 * equal to {@code min} and bigger than or equal to {@code max}.
 	 *
-	 * @param min the minimum, inclusive
-	 * @param max the maximum, inclusive
+	 * @param path         the entry's path
+	 * @param defaultValue the default entry value
+	 * @param min          the minimum, inclusive
+	 * @param max          the maximum, inclusive
 	 */
 	public <V extends Comparable<? super V>> void defineInRange(String path, V defaultValue, V min,
 																V max) {
@@ -205,8 +261,10 @@ public final class ConfigSpec {
 	 * Defines an entry. A config value is considered correct if and only if it is less than or
 	 * equal to {@code min} and bigger than or equal to {@code max}.
 	 *
-	 * @param min the minimum, inclusive
-	 * @param max the maximum, inclusive
+	 * @param path                 the entry's path
+	 * @param defaultValueSupplier the Supplier of the default entry value
+	 * @param min                  the minimum, inclusive
+	 * @param max                  the maximum, inclusive
 	 */
 	public <V extends Comparable<? super V>> void defineInRange(String path,
 																Supplier<V> defaultValueSupplier,
@@ -218,8 +276,10 @@ public final class ConfigSpec {
 	 * Defines an entry. A config value is considered correct if and only if it is less than or
 	 * equal to {@code min} and bigger than or equal to {@code max}.
 	 *
-	 * @param min the minimum, inclusive
-	 * @param max the maximum, inclusive
+	 * @param path         the entry's path
+	 * @param defaultValue the default entry value
+	 * @param min          the minimum, inclusive
+	 * @param max          the maximum, inclusive
 	 */
 	public <V extends Comparable<? super V>> void defineInRange(List<String> path, V defaultValue,
 																V min, V max) {
@@ -230,8 +290,10 @@ public final class ConfigSpec {
 	 * Defines an entry. A config value is considered correct if and only if it is less than or
 	 * equal to {@code min} and bigger than or equal to {@code max}.
 	 *
-	 * @param min the minimum, inclusive
-	 * @param max the maximum, inclusive
+	 * @param path                 the entry's path
+	 * @param defaultValueSupplier the Supplier of the default entry value
+	 * @param min                  the minimum, inclusive
+	 * @param max                  the maximum, inclusive
 	 */
 	public <V extends Comparable<? super V>> void defineInRange(List<String> path,
 																Supplier<V> defaultValueSupplier,
@@ -256,6 +318,8 @@ public final class ConfigSpec {
 	 * valid according to the {@code elementValidator}, that is, if and only if for all element e
 	 * in the list the call {@code elementValidator.test(e)} returns true.
 	 *
+	 * @param path             the entry's path
+	 * @param defaultValue     the default entry value
 	 * @param elementValidator the Predicate that checks that every element of the list is correct
 	 */
 	public void defineList(String path, List<?> defaultValue, Predicate<Object> elementValidator) {
@@ -267,7 +331,10 @@ public final class ConfigSpec {
 	 * valid according to the {@code elementValidator}, that is, if and only if for all element e
 	 * in the list the call {@code elementValidator.test(e)} returns true.
 	 *
-	 * @param elementValidator the Predicate that checks that every element of the list is correct
+	 * @param path                 the entry's path
+	 * @param defaultValueSupplier the Supplier of the default entry value
+	 * @param elementValidator     the Predicate that checks that every element of the list is
+	 *                             correct
 	 */
 	public void defineList(String path, Supplier<List<?>> defaultValueSupplier,
 						   Predicate<Object> elementValidator) {
@@ -279,6 +346,8 @@ public final class ConfigSpec {
 	 * valid according to the {@code elementValidator}, that is, if and only if for all element e
 	 * in the list the call {@code elementValidator.test(e)} returns true.
 	 *
+	 * @param path             the entry's path
+	 * @param defaultValue     the default entry value
 	 * @param elementValidator the Predicate that checks that every element of the list is correct
 	 */
 	public void defineList(List<String> path, List<?> defaultValue,
@@ -291,7 +360,10 @@ public final class ConfigSpec {
 	 * valid according to the {@code elementValidator}, that is, if and only if for all element e
 	 * in the list the call {@code elementValidator.test(e)} returns true.
 	 *
-	 * @param elementValidator the Predicate that checks that every element of the list is correct
+	 * @param path                 the entry's path
+	 * @param defaultValueSupplier the Supplier of the default entry value
+	 * @param elementValidator     the Predicate that checks that every element of the list is
+	 *                             correct
 	 */
 	public void defineList(List<String> path, Supplier<List<?>> defaultValueSupplier,
 						   Predicate<Object> elementValidator) {
@@ -307,6 +379,8 @@ public final class ConfigSpec {
 
 	/**
 	 * Undefines an entry.
+	 *
+	 * @param path the entry's path
 	 */
 	public void undefine(String path) {
 		undefine(split(path, '.'));
@@ -314,6 +388,8 @@ public final class ConfigSpec {
 
 	/**
 	 * Undefines an entry.
+	 *
+	 * @param path the entry's path
 	 */
 	public void undefine(List<String> path) {
 		storage.removeValue(path);
@@ -322,6 +398,7 @@ public final class ConfigSpec {
 	/**
 	 * Checks if an entry has been defined.
 	 *
+	 * @param path the entry's path
 	 * @return {@code true} if it has been defined, {@code false} otherwise
 	 */
 	public boolean isDefined(String path) {
@@ -331,6 +408,7 @@ public final class ConfigSpec {
 	/**
 	 * Checks if an entry has been defined.
 	 *
+	 * @param path the entry's path
 	 * @return {@code true} if it has been defined, {@code false} otherwise
 	 */
 	public boolean isDefined(List<String> path) {
@@ -340,6 +418,8 @@ public final class ConfigSpec {
 	/**
 	 * Checks that a value is conform to the specification.
 	 *
+	 * @param path  the entry's path
+	 * @param value the entry's value
 	 * @return {@code true} if it's correct, {@code false} if it's incorrect
 	 */
 	public boolean isCorrect(String path, Object value) {
@@ -349,6 +429,8 @@ public final class ConfigSpec {
 	/**
 	 * Checks that a value is conform to the specification.
 	 *
+	 * @param path  the entry's path
+	 * @param value the entry's value
 	 * @return {@code true} if it's correct, {@code false} if it's incorrect
 	 */
 	public boolean isCorrect(List<String> path, Object value) {
@@ -359,6 +441,7 @@ public final class ConfigSpec {
 	/**
 	 * Checks that a configuration is conform to the specification.
 	 *
+	 * @param config the config to check
 	 * @return {@code true} if it's correct, {@code false} if it's incorrect
 	 */
 	public boolean isCorrect(Config config) {
@@ -439,7 +522,9 @@ public final class ConfigSpec {
 	/**
 	 * Corrects a configuration.
 	 *
-	 * @param config the config to correct
+	 * @param config   the config to correct
+	 * @param listener the listener that will be notified of every change made during the
+	 *                 correction of the config.
 	 * @return the number of added, removed or replaced values.
 	 */
 	public int correct(Config config, CorrectionListener listener) {
@@ -574,7 +659,7 @@ public final class ConfigSpec {
 
 		private ValueSpec(Object defaultValue, Predicate<Object> validator) {
 			this(new DumbSupplier<>(
-					Objects.requireNonNull(defaultValue, "The default value must not be null.")),
+						 Objects.requireNonNull(defaultValue, "The default value must not be null.")),
 				 validator);
 		}
 

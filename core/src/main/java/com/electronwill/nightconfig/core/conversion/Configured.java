@@ -16,6 +16,8 @@ public @interface Configured {
 	/**
 	 * The path of the value in the configuration. If it's an array of size 0 (the default value)
 	 * then the field's name (if it's a field) or the root path (if it's a class) is used.
+	 *
+	 * @return the path in the config
 	 */
 	String[] path() default {};
 }

@@ -57,6 +57,8 @@ public interface ConfigWriter<T extends UnmodifiableConfig> {
 	 *
 	 * @param config the config to write
 	 * @param file   the file to write it to
+	 * @param append {@code true} to write to the end of the file, {@code false} to
+	 *               write to the beginning (which overwrites the file)
 	 * @throws WritingException if an error occurs
 	 */
 	default void write(T config, File file, boolean append) {
@@ -98,6 +100,7 @@ public interface ConfigWriter<T extends UnmodifiableConfig> {
 	 *
 	 * @param config the config to write
 	 * @return a new String
+	 *
 	 * @throws WritingException if an error occurs
 	 */
 	default String writeToString(T config) {

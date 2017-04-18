@@ -3,7 +3,6 @@ package com.electronwill.nightconfig.core.utils;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -14,6 +13,9 @@ import java.util.Set;
 public final class FakeCommentedConfig extends ConfigWrapper<Config> implements CommentedConfig {
 	/**
 	 * If config is a CommentedConfig, returns it, otherwise returns a new FakeCommentedConfig.
+	 *
+	 * @param config the config to be commented
+	 * @return a CommentedConfig with the same values as the specified config
 	 */
 	public static CommentedConfig getCommented(Config config) {
 		if (config instanceof CommentedConfig) {
@@ -21,6 +23,14 @@ public final class FakeCommentedConfig extends ConfigWrapper<Config> implements 
 		}
 		return new FakeCommentedConfig(config);
 	}
+
+	/**
+	 * Creates a FakeUnmodifiableCommentedConfig that gets all its values from the given config.
+	 * The FakeUnmodifiableCommentedConfig implements CommentedConfig but all operations on
+	 * comments do nothing.
+	 *
+	 * @param config the config to use for the values
+	 */
 
 	public FakeCommentedConfig(Config config) {
 		super(config);

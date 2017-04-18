@@ -71,9 +71,11 @@ public final class StringUtils {
 	}
 
 	/**
-	 * Splits a String around each occurence of LF and CRLF.
+	 * Splits a String around each occurence of LF and CRLF. If the String is null or empty, then
+	 * an empty list is returned.
 	 *
 	 * @param str the String to split
+	 * @return a list of strings, may be empty
 	 */
 	public static List<String> splitLines(String str) {
 		if (str == null || str.isEmpty()) {

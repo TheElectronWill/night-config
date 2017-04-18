@@ -20,6 +20,7 @@ public interface Config extends UnmodifiableConfig {
 	 *
 	 * @param path  the value's path, each part separated by a dot. Example "a.b.c"
 	 * @param value the value to set
+	 * @param <T>   the type of the old value
 	 * @return the old value if any, or {@code null}
 	 */
 	default <T> T setValue(String path, Object value) {
@@ -31,6 +32,7 @@ public interface Config extends UnmodifiableConfig {
 	 *
 	 * @param path  the value's path, each element of the list is a different part of the path.
 	 * @param value the value to set
+	 * @param <T>   the type of the old value
 	 * @return the old value if any, or {@code null}
 	 */
 	<T> T setValue(List<String> path, Object value);
@@ -39,6 +41,8 @@ public interface Config extends UnmodifiableConfig {
 	 * Removes a value from the config.
 	 *
 	 * @param path the value's path, each part separated by a dot. Example "a.b.c"
+	 * @param <T>  the type of the old value
+	 * @return the old value if any, or {@code null}
 	 */
 	default <T> T removeValue(String path) {
 		return removeValue(split(path, '.'));
@@ -48,6 +52,8 @@ public interface Config extends UnmodifiableConfig {
 	 * Removes a value from the config.
 	 *
 	 * @param path the value's path, each element of the list is a different part of the path.
+	 * @param <T>  the type of the old value
+	 * @return the old value if any, or {@code null}
 	 */
 	<T> T removeValue(List<String> path);
 
@@ -125,6 +131,7 @@ public interface Config extends UnmodifiableConfig {
 		 * Sets the entry's value.
 		 *
 		 * @param value the value to set
+		 * @param <T>   the type of the old value
 		 * @return the previous value
 		 */
 		<T> T setValue(Object value);

@@ -16,6 +16,9 @@ public final class FakeUnmodifiableCommentedConfig
 	/**
 	 * If config is an UnmodifiableCommentedConfig, returns it, otherwise returns a new
 	 * FakeUnmodifiableCommentedConfig.
+	 *
+	 * @param config the config to be commented
+	 * @return a CommentedConfig with the same values as the specified config
 	 */
 	public static UnmodifiableCommentedConfig getCommented(UnmodifiableConfig config) {
 		if (config instanceof UnmodifiableCommentedConfig) {
@@ -24,6 +27,13 @@ public final class FakeUnmodifiableCommentedConfig
 		return new FakeUnmodifiableCommentedConfig(config);
 	}
 
+	/**
+	 * Creates a FakeUnmodifiableCommentedConfig that gets all its values from the given config.
+	 * The FakeUnmodifiableCommentedConfig implements CommentedConfig but all operations on
+	 * comments do nothing.
+	 *
+	 * @param config the config to use for the values
+	 */
 	public FakeUnmodifiableCommentedConfig(UnmodifiableConfig config) {
 		super(config);
 	}
