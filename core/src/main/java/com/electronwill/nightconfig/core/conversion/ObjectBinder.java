@@ -6,8 +6,6 @@ import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,25 +94,21 @@ public final class ObjectBinder {
 	 * @return a config bound to the specified object or class
 	 */
 	private Config bind(Object object, Class<?> clazz, Predicate<Class<?>> supportTypePredicate) {
-		Configured objectConf = clazz.getDeclaredAnnotation(Configured.class);
-		if (objectConf == null) {
-			return bindNotAnnotated(object, clazz, supportTypePredicate);
-		}
-		BoundConfig boundConfig = bindAnnotated(object, clazz, supportTypePredicate);
-		String[] configuredPath = objectConf.path();
-		if (configuredPath.length != 0) {
+		BoundConfig boundConfig = createBoundConfig(object, clazz, supportTypePredicate);
+		List<String> annotatedPath = AnnotationUtils.getPath(clazz);
+		if (!annotatedPath.isEmpty()) {
 			Config parentConfig = new SimpleConfig(supportTypePredicate);
-			parentConfig.setValue(Arrays.asList(configuredPath), boundConfig);
+			parentConfig.setValue(annotatedPath, boundConfig);
 			return parentConfig;
 		}
 		return boundConfig;
 	}
 
 	/**
-	 * Binds an object or class that isn't annotated with {@link Configured}.
+	 * Binds an object or a class to a config.
 	 */
-	private BoundConfig bindNotAnnotated(Object object, Class<?> clazz,
-										 Predicate<Class<?>> supportTypePredicate) {
+	private BoundConfig createBoundConfig(Object object, Class<?> clazz,
+										  Predicate<Class<?>> supportTypePredicate) {
 		final BoundConfig boundConfig = new BoundConfig(object, supportTypePredicate, bypassFinal);
 		for (Field field : clazz.getDeclaredFields()) {
 			if (!field.isAccessible()) {
@@ -123,72 +117,23 @@ public final class ObjectBinder {
 			if (!bypassTransient && Modifier.isTransient(field.getModifiers())) {
 				continue;// Don't process transient fields if configured so
 			}
-			List<String> path = Collections.singletonList(field.getName());
-			Class<?> fieldType = field.getType();
+			List<String> path = AnnotationUtils.getPath(field);
 			FieldInfos fieldInfos;
-			if (supportTypePredicate.test(field.getType())) {// Plain value
-				fieldInfos = new FieldInfos(field, null);
-			} else {// Subconfig
-				try {
-					Object fieldValue = field.get(object);
-					if (fieldValue == null) {
-						fieldInfos = new FieldInfos(field, null);// No value yet
-					} else {
-						BoundConfig subConfig = bindNotAnnotated(field.get(object), fieldType,
-																 supportTypePredicate);
-						fieldInfos = new FieldInfos(field, subConfig);
-					}
-				} catch (IllegalAccessException e) {
-					throw new ReflectionException("Failed to bind field " + field, e);
-				}
+			Converter<Object, Object> converter = AnnotationUtils.getConverter(field);
+			if (converter == null) {
+				converter = NoOpConverter.INSTANCE;
 			}
-			boundConfig.registerField(fieldInfos, path);
-		}
-		return boundConfig;
-	}
-
-	/**
-	 * Binds an object or class that is annotated with {@link Configured}.
-	 */
-	private BoundConfig bindAnnotated(Object object, Class<?> clazz,
-									  Predicate<Class<?>> supportTypePredicate) {
-		final BoundConfig boundConfig = new BoundConfig(object, supportTypePredicate, bypassFinal);
-		for (Field field : clazz.getDeclaredFields()) {
-			if (!field.isAccessible()) {
-				field.setAccessible(true);// Enforces field access if needed
-			}
-			if (!bypassTransient && Modifier.isTransient(field.getModifiers())) {
-				continue;// Don't process transient fields if configured so
-			}
-			Configured fieldConf = field.getDeclaredAnnotation(Configured.class);
-			if (fieldConf == null) {
-				continue;// only process fields annotated with @Configured
-			}
-			String[] configuredPath = fieldConf.path();// The path in @Configured
-			List<String> path;
-			if (configuredPath.length == 0) {
-				path = Collections.singletonList(field.getName());
-				// If no path has been configured, use the field's name
-			} else {
-				path = Arrays.asList(configuredPath);
-			}
-			Class<?> fieldType = field.getType();
-			FieldInfos fieldInfos;
-			if (supportTypePredicate.test(field.getType())) {// Plain value
-				fieldInfos = new FieldInfos(field, null);
-			} else {// Subconfig
-				try {
-					Object fieldValue = field.get(object);
-					if (fieldValue == null) {
-						fieldInfos = new FieldInfos(field, null);// No value yet
-					} else {
-						BoundConfig subConfig = bindAnnotated(field.get(object), fieldType,
+			try {
+				Object value = converter.convertFromField(field.get(object));
+				if (value == null || supportTypePredicate.test(value.getClass())) {
+					fieldInfos = new FieldInfos(field, null, converter);
+				} else {
+					BoundConfig subConfig = createBoundConfig(value, field.getType(),
 															  supportTypePredicate);
-						fieldInfos = new FieldInfos(field, subConfig);
-					}
-				} catch (IllegalAccessException e) {
-					throw new ReflectionException("Failed to bind field " + field, e);
+					fieldInfos = new FieldInfos(field, subConfig, converter);
 				}
+			} catch (IllegalAccessException e) {
+				throw new ReflectionException("Failed to bind field " + field, e);
 			}
 			boundConfig.registerField(fieldInfos, path);
 		}
@@ -418,10 +363,12 @@ public final class ObjectBinder {
 	private static final class FieldInfos {
 		final Field field;// always non-null
 		final BoundConfig boundConfig;// non-null iff the field is a sub config
+		final Converter<Object, Object> converter;
 
-		FieldInfos(Field field, BoundConfig boundConfig) {
+		FieldInfos(Field field, BoundConfig boundConfig, Converter<Object, Object> converter) {
 			this.field = field;
 			this.boundConfig = boundConfig;
+			this.converter = converter;
 		}
 
 		Object setValue(Object fieldObject, Object value, boolean bypassFinal) {
@@ -429,8 +376,10 @@ public final class ObjectBinder {
 				throw new UnsupportedOperationException("Cannot modify the field " + field);
 			}
 			try {
-				Object previousValue = field.get(fieldObject);
-				field.set(fieldObject, value);
+				Object previousValue = converter.convertFromField(field.get(fieldObject));
+				Object newValue = converter.convertToField(value);
+				AnnotationUtils.checkField(field, newValue);
+				field.set(fieldObject, newValue);
 				return previousValue;
 			} catch (IllegalAccessException e) {
 				throw new ReflectionException("Failed to set field " + field, e);
@@ -452,7 +401,7 @@ public final class ObjectBinder {
 
 		Object getValue(Object fieldObject) {
 			try {
-				return field.get(fieldObject);
+				return converter.convertFromField(field.get(fieldObject));
 			} catch (IllegalAccessException e) {
 				throw new ReflectionException("Failed to get field " + field, e);
 			}
@@ -466,6 +415,20 @@ public final class ObjectBinder {
 		@Override
 		public String toString() {
 			return "FieldInfos{" + "field=" + field + ", boundConfig=" + boundConfig + '}';
+		}
+	}
+
+	private static final class NoOpConverter implements Converter<Object, Object> {
+		static final NoOpConverter INSTANCE = new NoOpConverter();
+
+		@Override
+		public Object convertToField(Object value) {
+			return value;
+		}
+
+		@Override
+		public Object convertFromField(Object value) {
+			return value;
 		}
 	}
 }

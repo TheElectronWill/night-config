@@ -6,11 +6,8 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -49,32 +46,13 @@ public final class ObjectConverter {
 	 * @param destination the Config where to put the values into
 	 */
 	public void toConfig(Object o, Config destination) {
-		toConfig(o, destination, v -> v);
-	}
-
-	/**
-	 * Converts an Object to a Config.
-	 *
-	 * @param o                  the object to convert
-	 * @param destination        the Config where to put the values into
-	 * @param conversionFunction the conversion to apply to the values just before putting them
-	 *                           to the config
-	 */
-	public void toConfig(Object o, Config destination,
-						 Function<Object, Object> conversionFunction) {
 		Objects.requireNonNull(o, "The object must not be null.");
 		Objects.requireNonNull(destination, "The config must not be null.");
-		Objects.requireNonNull(conversionFunction, "The conversion function must not be null.");
-		Configured objectConf = o.getClass().getDeclaredAnnotation(Configured.class);
-		if (objectConf == null) {
-			toConfigNotAnnotated(o, destination, conversionFunction);
-		} else {
-			String[] configuredPath = objectConf.path();
-			if (configuredPath.length != 0) {
-				destination = destination.getValue(Arrays.asList(configuredPath));
-			}
-			toConfigAnnotated(o, destination, conversionFunction);
+		List<String> annotatedPath = AnnotationUtils.getPath(destination.getClass());
+		if (annotatedPath != null) {
+			destination = destination.getValue(annotatedPath);
 		}
+		convertToConfig(o, destination);
 	}
 
 	/**
@@ -86,23 +64,8 @@ public final class ObjectConverter {
 	 * @return the Config obtained from the Supplier
 	 */
 	public <C extends Config> C toConfig(Object o, Supplier<C> destinationSupplier) {
-		return toConfig(o, destinationSupplier, v -> v);
-	}
-
-	/**
-	 * Converts an Object to a Config.
-	 *
-	 * @param o                   the object to convert
-	 * @param destinationSupplier a Supplier that provides the Config where to put the values into
-	 * @param <C>                 the destination's type
-	 * @param conversionFunction  the conversion to apply to the values just before putting them
-	 *                            to the config
-	 * @return the Config obtained from the Supplier
-	 */
-	public <C extends Config> C toConfig(Object o, Supplier<C> destinationSupplier,
-										 Function<Object, Object> conversionFunction) {
 		C destination = destinationSupplier.get();
-		toConfig(o, destination, conversionFunction);
+		toConfig(o, destination);
 		return destination;
 	}
 
@@ -113,32 +76,13 @@ public final class ObjectConverter {
 	 * @param destination the Object where to put the values into
 	 */
 	public void toObject(UnmodifiableConfig config, Object destination) {
-		toObject(config, destination, v -> v);
-	}
-
-	/**
-	 * Converts a Config to an Object.
-	 *
-	 * @param config             the config to convert
-	 * @param destination        the Object where to put the values into
-	 * @param conversionFunction the conversion to apply to the values just before putting them
-	 *                           to the object
-	 */
-	public void toObject(UnmodifiableConfig config, Object destination,
-						 Function<Object, Object> conversionFunction) {
 		Objects.requireNonNull(config, "The config must not be null.");
 		Objects.requireNonNull(destination, "The object must not be null.");
-		Objects.requireNonNull(conversionFunction, "The conversion function must not be null.");
-		Configured objectConf = destination.getClass().getDeclaredAnnotation(Configured.class);
-		if (objectConf == null) {
-			toObjectNotAnnotated(config, destination, conversionFunction);
-		} else {
-			String[] configuredPath = objectConf.path();
-			if (configuredPath.length != 0) {
-				config = config.getValue(Arrays.asList(configuredPath));
-			}
-			toObjectAnnotated(config, destination, conversionFunction);
+		List<String> annotatedPath = AnnotationUtils.getPath(destination.getClass());
+		if (annotatedPath != null) {
+			config = config.getValue(annotatedPath);
 		}
+		convertToObject(config, destination);
 	}
 
 	/**
@@ -150,33 +94,13 @@ public final class ObjectConverter {
 	 * @return the object obtained from the Supplier
 	 */
 	public <O> O toObject(UnmodifiableConfig config, Supplier<O> destinationSupplier) {
-		return toObject(config, destinationSupplier, v -> v);
+		return toObject(config, destinationSupplier);
 	}
 
 	/**
-	 * Converts a Config to an Object.
-	 *
-	 * @param config              the config to convert
-	 * @param destinationSupplier a Supplier that provides the Object where to put the values into
-	 * @param <O>                 the destination's type
-	 * @param conversionFunction  the conversion to apply to the values just before putting them
-	 *                            to the object
-	 * @return the object obtained from the Supplier
+	 * Converts an Object to a Config. The {@link #bypassTransient} setting applies.
 	 */
-	public <O> O toObject(UnmodifiableConfig config, Supplier<O> destinationSupplier,
-						  Function<Object, Object> conversionFunction) {
-		O destination = destinationSupplier.get();
-		toObject(config, destination, conversionFunction);
-		return destination;
-	}
-
-	/**
-	 * Converts an Object annotated with {@link Configured} to a Config. Ony the fields that are
-	 * annotated with {@link Configured} are converted, the others are ignored. The
-	 * {@link #bypassTransient} setting applies.
-	 */
-	private void toConfigAnnotated(Object o, Config destination,
-								   Function<Object, Object> conversionFunction) {
+	private void convertToConfig(Object o, Config destination) {
 		for (Field field : o.getClass().getDeclaredFields()) {
 			if (!field.isAccessible()) {
 				field.setAccessible(true);// Enforces field access if needed
@@ -184,31 +108,23 @@ public final class ObjectConverter {
 			if (!bypassTransient && Modifier.isTransient(field.getModifiers())) {
 				continue;// Don't process transient fields if configured so
 			}
-			Configured fieldConf = field.getDeclaredAnnotation(Configured.class);
-			if (fieldConf == null) {
-				continue;// only process fields annotated with @Configured
-			}
 			Object value;
 			try {
 				value = field.get(o);
 			} catch (IllegalAccessException e) {// Unexpected: setAccessible is called if needed
 				throw new ReflectionException("Unable to parse the field " + field, e);
 			}
-			AnnotationSpecs.checkField(field, value);/* Checks that the value is conform to an
-														eventual @SpecSometing annotation */
-			value = conversionFunction.apply(value);// Applies the conversion
-			String[] configuredPath = fieldConf.path();// The path in @Configured
-			List<String> path;
-			if (configuredPath.length == 0) {
-				path = Collections.singletonList(field.getName());
-				// If no path has been configured, use the field's name
-			} else {
-				path = Arrays.asList(configuredPath);
+			AnnotationUtils.checkField(field, value);/* Checks that the value is conform to an
+															eventual @SpecSometing annotation */
+			Converter<Object, Object> converter = AnnotationUtils.getConverter(field);
+			if (converter != null) {
+				value = converter.convertFromField(value);
 			}
+			List<String> path = AnnotationUtils.getPath(field);
 			if (value != null && (!destination.supportsType(value.getClass())
 								  || field.isAnnotationPresent(ForceBreakdown.class))) {
 				Config subConfig = new SimpleConfig(destination::supportsType);
-				toConfigAnnotated(value, subConfig, conversionFunction);// Writes as a subconfig
+				convertToConfig(value, subConfig);// Writes as a subconfig
 				destination.setValue(path, subConfig);
 			} else {
 				destination.setValue(path, value);// Writes as a plain value
@@ -217,45 +133,10 @@ public final class ObjectConverter {
 	}
 
 	/**
-	 * Converts an Object not annotated with {@link Configured} to a Config. The
-	 * {@link #bypassTransient} setting applies.
+	 * Converts a Config to an Object. The {@link #bypassTransient} and {@link #bypassFinal}
+	 * settings apply.
 	 */
-	private void toConfigNotAnnotated(Object o, Config destination,
-									  Function<Object, Object> conversionFunction) {
-		for (Field field : o.getClass().getDeclaredFields()) {
-			if (!field.isAccessible()) {
-				field.setAccessible(true);// Enforces field access if needed
-			}
-			if (!bypassTransient && Modifier.isTransient(field.getModifiers())) {
-				continue;// Don't process transient fields if configured so
-			}
-			Object value;
-			try {
-				value = field.get(o);
-			} catch (IllegalAccessException e) {// Unexpected: setAccessible is called if needed
-				throw new ReflectionException("Unable to parse the field " + field, e);
-			}
-			AnnotationSpecs.checkField(field, value);/* Checks that the value is conform to an
-														eventual @SpecSometing annotation */
-			value = conversionFunction.apply(value);// Applies the conversion
-			List<String> path = Collections.singletonList(field.getName());
-			if (value != null && !destination.supportsType(value.getClass())) {
-				Config subConfig = new SimpleConfig(destination::supportsType);
-				toConfigNotAnnotated(value, subConfig, conversionFunction);// Writes as a subconfig
-				destination.setValue(path, subConfig);
-			} else {
-				// Writes as a plain value
-				destination.setValue(path, value);
-			}
-		}
-	}
-
-	/**
-	 * Converts a Config to an Object annotated with {@link Configured}. The
-	 * {@link #bypassTransient} and {@link #bypassFinal} settings apply.
-	 */
-	private void toObjectAnnotated(UnmodifiableConfig config, Object destination,
-								   Function<Object, Object> conversionFunction) {
+	private void convertToObject(UnmodifiableConfig config, Object destination) {
 		for (Field field : destination.getClass().getDeclaredFields()) {
 			if (!field.isAccessible()) {
 				if (bypassFinal || !Modifier.isFinal(field.getModifiers())) {
@@ -267,18 +148,12 @@ public final class ObjectConverter {
 			if (!bypassTransient && Modifier.isTransient(field.getModifiers())) {
 				continue;// Don't process transient fields if configured so
 			}
-			Configured fieldConf = field.getDeclaredAnnotation(Configured.class);
-			if (fieldConf == null) {
-				continue;// only process fields annotated with @Configured
+			List<String> path = AnnotationUtils.getPath(field);
+			Object value = config.getValue(path);
+			Converter<Object, Object> converter = AnnotationUtils.getConverter(field);
+			if (converter != null) {
+				value = converter.convertToField(value);
 			}
-			String[] configuredPath = fieldConf.path();// The path in @Configured
-			Object value;
-			if (configuredPath.length == 0) {
-				value = config.getValue(Collections.singletonList(field.getName()));
-			} else {
-				value = config.getValue(Arrays.asList(configuredPath));
-			}
-			value = conversionFunction.apply(value);// Applies the conversion
 			Class<?> fieldType = field.getType();
 			try {
 				if (value instanceof UnmodifiableConfig && !(fieldType.isAssignableFrom(
@@ -289,51 +164,10 @@ public final class ObjectConverter {
 						fieldValue = createInstance(fieldType);
 						field.set(destination, fieldValue);
 					}
-					toObjectAnnotated((Config)value, fieldValue, conversionFunction);
+					convertToObject((UnmodifiableConfig)value, fieldValue);
 				} else {
 					// Reads as a plain value
-					AnnotationSpecs.checkField(field, value);// Checks that the value is conform
-					field.set(destination, value);
-				}
-			} catch (ReflectiveOperationException ex) {
-				throw new ReflectionException("Unable to work with field " + field, ex);
-			}
-		}
-	}
-
-	/**
-	 * Converts a Config to an Object not annotated with {@link Configured}. The
-	 * {@link #bypassTransient} and {@link #bypassFinal} settings apply.
-	 */
-	private void toObjectNotAnnotated(UnmodifiableConfig config, Object destination,
-									  Function<Object, Object> conversionFunction) {
-		for (Field field : destination.getClass().getDeclaredFields()) {
-			if (!field.isAccessible()) {
-				if (bypassFinal || !Modifier.isFinal(field.getModifiers())) {
-					field.setAccessible(true);// Enforces field access if needed
-				} else {
-					continue;// Don't process final fields if configured so
-				}
-			}
-			if (!bypassTransient && Modifier.isTransient(field.getModifiers())) {
-				continue;// Don't process transient fields if configured so
-			}
-			List<String> path = Collections.singletonList(field.getName());
-			Object value = conversionFunction.apply(config.getValue(path));
-			Class<?> fieldType = field.getType();
-			try {
-				if (value instanceof UnmodifiableConfig && !(fieldType.isAssignableFrom(
-						value.getClass()))) {
-					// Reads as a sub-object
-					Object fieldValue = field.get(destination);
-					if (fieldValue == null) {
-						fieldValue = createInstance(fieldType);
-						field.set(destination, fieldValue);
-					}
-					toObjectNotAnnotated((Config)value, fieldValue, conversionFunction);
-				} else {
-					// Reads as a plain value
-					AnnotationSpecs.checkField(field, value);// Checks that the value is conform
+					AnnotationUtils.checkField(field, value);// Checks that the value is conform
 					field.set(destination, value);
 				}
 			} catch (ReflectiveOperationException ex) {
