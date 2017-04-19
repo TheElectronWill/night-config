@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core.utils;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -13,7 +14,7 @@ public abstract class UnmodifiableConfigWrapper<C extends UnmodifiableConfig>
 	protected final C config;
 
 	protected UnmodifiableConfigWrapper(C config) {
-		this.config = config;
+		this.config = Objects.requireNonNull(config, "The wrapped config must not be null");
 	}
 
 	@Override
