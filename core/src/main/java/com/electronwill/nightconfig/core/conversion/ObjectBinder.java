@@ -96,7 +96,7 @@ public final class ObjectBinder {
 	private Config bind(Object object, Class<?> clazz, Predicate<Class<?>> supportTypePredicate) {
 		BoundConfig boundConfig = createBoundConfig(object, clazz, supportTypePredicate);
 		List<String> annotatedPath = AnnotationUtils.getPath(clazz);
-		if (!annotatedPath.isEmpty()) {
+		if (annotatedPath != null) {
 			Config parentConfig = new SimpleConfig(supportTypePredicate);
 			parentConfig.setValue(annotatedPath, boundConfig);
 			return parentConfig;
