@@ -6,6 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Indicates the path, in the config, of the annotated element. Unlike {@link Path}, AdvancedPath
+ * accepts an array of String, so it's possible to use dots in key names.
+ *
  * @author TheElectronWill
  */
 @Retention(RetentionPolicy.RUNTIME)

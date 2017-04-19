@@ -6,6 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Indicates that the value of the field must be converted with the specified converter class.
+ *
  * @author TheElectronWill
  */
 @Retention(RetentionPolicy.RUNTIME)

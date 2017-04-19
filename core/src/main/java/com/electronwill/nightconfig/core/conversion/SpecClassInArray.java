@@ -20,7 +20,7 @@ public @interface SpecClassInArray {
 
 	/**
 	 * @return {@code true} to allow only the acceptable classes, {@code false} to allow their
-	 * subclasses too.
+	 * subclasses too. Default is {@code false}.
 	 */
 	boolean strict() default false;
 }
