@@ -82,8 +82,8 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		}
 		throw new IllegalArgumentException("Cannot set a comment to path "
 										   + path
-										   + " because the"
-										   + " parent entry is of an uncompatible type ");
+										   + " because the parent entry is of incompatible type "
+										   + parent.getClass());
 	}
 
 	@Override
