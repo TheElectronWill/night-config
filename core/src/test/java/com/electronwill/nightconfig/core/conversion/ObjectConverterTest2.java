@@ -2,6 +2,8 @@ package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
+import com.electronwill.nightconfig.core.utils.StringUtils;
+import com.sun.istack.internal.NotNull;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -53,6 +55,7 @@ public class ObjectConverterTest2 {
 		assert config.<List<String>>getValue("stringList") == object.stringList;
 		assert config.<Config>getValue("config") == object.config;
 		assert config.getValue("subObject") == object.subObject;
+		assert config.getValue("infos.coordinates").equals(object.coords.toString());
 	}
 
 	private static class MyObject {
@@ -62,6 +65,11 @@ public class ObjectConverterTest2 {
 		List<String> stringList = Arrays.asList("a", "b", "c");
 		Config config = new SimpleConfig(type -> true);
 		MyObject subObject;
+
+		@Conversion(CoordinatesConverter.class)
+		@Path("infos.coordinates")
+		@SpecNotNull
+		Coordinates coords = new Coordinates(1, 2, 3);
 
 		public MyObject(MyObject subObject) {
 			this.subObject = subObject;
@@ -90,6 +98,38 @@ public class ObjectConverterTest2 {
 				   + ", subObject="
 				   + subObject
 				   + '}';
+		}
+	}
+
+	private static class Coordinates {
+		int x, y, z;
+
+		public Coordinates(int x, int y, int z) {
+			this.x = x;
+			this.y = y;
+			this.z = z;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("(%d,%d,%d)", x, y, z);
+		}
+	}
+
+	private static class CoordinatesConverter implements Converter<Coordinates, String> {
+
+		@Override
+		public Coordinates convertToField(String value) {
+			List<String> parts = StringUtils.split(value, ',');
+			int x = Integer.parseInt(parts.get(0).trim());
+			int y = Integer.parseInt(parts.get(1).trim());
+			int z = Integer.parseInt(parts.get(2).trim());
+			return new Coordinates(x, y, z);
+		}
+
+		@Override
+		public String convertFromField(Coordinates value) {
+			return value.toString();
 		}
 	}
 }
