@@ -17,8 +17,12 @@ NightConfig is managed with gradle. It is divided in several modules, the "core"
 The project isn't available in a big repository (like Maven central) yet. You can use [jitpack](https://jitpack.io/#TheElectronWill/Night-Config) to build it from github more easily.
 
 The repository has two branches:
-- [stable-1.x](https://github.com/TheElectronWill/Night-Config/tree/stable-1.x) contains the stable version v1. Only bugfixes will occur on this branch, the API won't change.
-- [master](https://github.com/TheElectronWill/Night-Config/tree/master) contains the latest in-development branch. Anything can change without notice!
+- [stable-1.x](https://github.com/TheElectronWill/Night-Config/tree/stable-1.x) contains the 
+stable version 1. Only bugfixes will occur on this branch, the API won't break.
+- [stable-2.x](https://github.com/TheElectronWill/Night-Config/tree/stable-2.x) contains the 
+stable version 2. Only bugfixes will occur on this branch, the API won't break.
+- [master](https://github.com/TheElectronWill/Night-Config/tree/master) contains the latest 
+in-development branch. Anything can change without notice!
 
 # Code examples
 Read the [wiki](https://github.com/TheElectronWill/Night-Config/wiki) to learn how to use NightConfig.
@@ -27,8 +31,7 @@ Read the [wiki](https://github.com/TheElectronWill/Night-Config/wiki) to learn h
 
 ## Loading a TOML configuration from a file
 ```java
-TomlConfig config = new TomlConfig();
-config.readFrom(file);
+TomlConfig config = new TomlParser().parse(file);
 ```
 
 ## Getting/Setting some values
@@ -44,12 +47,13 @@ config.setValue("list", list);
 
 config.removeValue("a.b.c");
 config.removeValue(Array.asList("127.0.0.1"));
+
+config.setComment("a.b.c", "Night-Config v2 supports comments!");
 ```
 
 ## Saving a TOML configuration to a file
 ```java
-config.writeTo(file);// Yes, that's it!
-// And it works the same with JSON, HOCON and YAML configs.
+config.write(file);// Yes, that's all!
 ```
 
 ## Automatically correcting a configuration, based on a specification
@@ -75,4 +79,25 @@ spec.defineInRange("myString", defaultString, "aaa", "bbb");
 This will ensure that all the values respect the specification,
 by replacing invalid values with the corresponding default value */
 spec.correct(config);
+```
+
+## Converting configurations to plain objects
+You can easily converts a config to a plain java object (and vice-versa).
+For instance, if you have a class like this:
+```java
+class ConfigObject {
+    String name = "The_Name";    
+    int id = 123_001;    
+    Coordinates coords = new Coordinates(1, 2, 3);
+}
+```
+With a class Coordinates:
+```java
+class Coordinates {
+    int x, y, z;
+}
+````
+You can get an instance of ConfigObject from a config with minimum effort:
+```java
+ConfigObject object = new ObjectConverter().toObject(config, ConfigObject::new);
 ```
