@@ -99,6 +99,19 @@ public interface Config extends UnmodifiableConfig {
 	}
 
 	/**
+	 * Returns a checked view of the config. It checks that all the values put into the config are
+	 * supported (as per the {@link Config#supportsType(Class)} method. Trying to insert an
+	 * unsupported value throws an IllegalArgumentException.
+	 * <p>
+	 * The values that are in the config when this method is called are also checked.
+	 *
+	 * @return a checked view of the config.
+	 */
+	default Config checked() {
+		return new CheckedConfig(this);
+	}
+
+	/**
 	 * Checks if the given type is supported by this config. If the type is null, it checks if the
 	 * config supports null values.
 	 * <p>

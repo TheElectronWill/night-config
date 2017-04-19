@@ -1,36 +1,38 @@
 package com.electronwill.nightconfig.core;
 
-import com.electronwill.nightconfig.core.utils.ConfigWrapper;
+import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
 
 /**
- * A checker wrapped around a configuration. It checks that all the values put into the config are
- * supported (as per the {@link Config#supportsType(Class)} method. Trying to insert an unsupported
- * value throws an IllegalArgumentException.
+ * A checker wrapped around a commented configuration. It checks that all the values put into the
+ * config are supported (as per the {@link Config#supportsType(Class)} method. Trying to insert an
+ * unsupported value throws an IllegalArgumentException.
  *
  * @author TheElectronWill
  */
-public final class CheckedConfig extends ConfigWrapper<Config> {
+public final class CheckedCommentedConfig extends CommentedConfigWrapper<CommentedConfig>
+		implements CommentedConfig {
 	/**
-	 * Creates a new CheckedConfig around a given configuration.
+	 * Creates a new CheckedConfig around a commented configuration.
 	 * <p>
 	 * The values that are in the config when this method is called are also checked.
 	 *
 	 * @param config the configuration to wrap
 	 */
-	public CheckedConfig(Config config) {
+	public CheckedCommentedConfig(CommentedConfig config) {
 		super(config);
 		config.valueMap().forEach((k, v) -> checkValue(v));
 		//The config might already contain some elements and we must be sure that they are all supported
+
 	}
 
 	@Override
-	public Config checked() {
+	public CommentedConfig checked() {
 		return this;
 	}
 
 	@Override
 	public String toString() {
-		return "CheckedConfig of " + config;
+		return "CheckedCommentedConfig of " + config;
 	}
 
 	/**

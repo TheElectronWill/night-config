@@ -96,6 +96,10 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 		};
 	}
 
+	default CommentedConfig checked() {
+		return new CheckedCommentedConfig(this);
+	}
+
 	/**
 	 * Returns a Map view of the config's comments. Any change to the map is reflected in the
 	 * config and vice-versa.
