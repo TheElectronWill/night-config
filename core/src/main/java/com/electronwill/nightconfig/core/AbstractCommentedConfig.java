@@ -12,10 +12,10 @@ import java.util.Set;
  * @author TheElectronWill
  */
 public abstract class AbstractCommentedConfig extends AbstractConfig implements CommentedConfig {
-	private final Map<String, CommentInfos> commentsMap;
+	private final Map<String, CommentInfos> commentMap;
 
 	public AbstractCommentedConfig() {
-		this.commentsMap = new HashMap<>();
+		this.commentMap = new HashMap<>();
 	}
 
 	/**
@@ -25,7 +25,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	 */
 	public AbstractCommentedConfig(Map<String, Object> valuesMap) {
 		super(valuesMap);
-		this.commentsMap = new HashMap<>();
+		this.commentMap = new HashMap<>();
 	}
 
 	/**
@@ -35,7 +35,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	 */
 	public AbstractCommentedConfig(UnmodifiableConfig toCopy) {
 		super(toCopy);
-		this.commentsMap = new HashMap<>();
+		this.commentMap = new HashMap<>();
 	}
 
 	/**
@@ -45,7 +45,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	 */
 	public AbstractCommentedConfig(AbstractCommentedConfig toCopy) {
 		super(toCopy.valueMap());
-		this.commentsMap = new HashMap<>(toCopy.commentsMap);
+		this.commentMap = new HashMap<>(toCopy.commentMap);
 	}
 
 	/**
@@ -56,14 +56,14 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	public AbstractCommentedConfig(UnmodifiableCommentedConfig toCopy) {
 		super(toCopy);
 		Set<? extends UnmodifiableCommentedConfig.Entry> entries = toCopy.entrySet();
-		commentsMap = new HashMap<>(entries.size());
+		commentMap = new HashMap<>(entries.size());
 		for (UnmodifiableCommentedConfig.Entry entry : entries) {
 			final String key = entry.getKey();
 			final String comment = entry.getComment();
 			final Object value = entry.getValue();
 			final Map<String, CommentInfos> subInfos = (value instanceof Config) ? new HashMap<>() : null;
 			if (comment != null || subInfos != null) {
-				commentsMap.put(key, new CommentInfos(comment, subInfos));
+				commentMap.put(key, new CommentInfos(comment, subInfos));
 			}
 		}
 	}
@@ -71,7 +71,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	@Override
 	public String getComment(List<String> path) {
 		final int lastIndex = path.size() - 1;
-		Map<String, CommentInfos> currentMap = commentsMap;
+		Map<String, CommentInfos> currentMap = commentMap;
 		for (String key : path.subList(0, lastIndex)) {
 			CommentInfos infos = currentMap.get(key);
 			if (infos == null || !infos.hasSubInfos()) {//no comment associated to this path
@@ -87,7 +87,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	@Override
 	public String setComment(List<String> path, String comment) {
 		final int lastIndex = path.size() - 1;
-		Map<String, CommentInfos> currentMap = commentsMap;
+		Map<String, CommentInfos> currentMap = commentMap;
 		for (String currentKey : path.subList(0, lastIndex)) {
 			final CommentInfos infos = currentMap.get(currentKey);
 			if (infos == null) {//missing intermediary level
@@ -115,7 +115,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	@Override
 	public String removeComment(List<String> path) {
 		final int lastIndex = path.size() - 1;
-		Map<String, CommentInfos> currentMap = commentsMap;
+		Map<String, CommentInfos> currentMap = commentMap;
 		for (String key : path.subList(0, lastIndex)) {
 			CommentInfos infos = currentMap.get(key);
 			if (infos == null || !infos.hasSubInfos()) {//no comment associated to this path
@@ -131,7 +131,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	@Override
 	public boolean containsComment(List<String> path) {
 		final int lastIndex = path.size() - 1;
-		Map<String, CommentInfos> currentMap = commentsMap;
+		Map<String, CommentInfos> currentMap = commentMap;
 		for (String key : path.subList(0, lastIndex)) {
 			CommentInfos infos = currentMap.get(key);
 			if (infos == null || !infos.hasSubInfos()) {//no comment associated to this path
