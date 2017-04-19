@@ -1,6 +1,6 @@
 ![Night Config](logo.png)  
 [![](https://jitpack.io/v/TheElectronWill/Night-Config.svg)](https://jitpack.io/#TheElectronWill/Night-Config)
-![](https://img.shields.io/github/commits-since/TheElectronWill/Night-Config/v1.0.3.svg)
+![](https://img.shields.io/github/commits-since/TheElectronWill/Night-Config/v2.0.svg)
 
 # Introduction
 NightConfig is a simple yet powerful java configuration library, written in Java 8.
@@ -14,7 +14,7 @@ It supports the following formats:
 # Project management
 NightConfig is managed with gradle. It is divided in several modules, the "core" module plus one module per supported format of configuration.
 
-The project isn't available in a big repository (like Maven central) yet. You can use [jitpack](https://jitpack.io/#TheElectronWill/Night-Config) to build it from github more easily.
+The project is available on [jitpack](https://jitpack.io/#TheElectronWill/Night-Config).
 
 The repository has two branches:
 - [stable-1.x](https://github.com/TheElectronWill/Night-Config/tree/stable-1.x) contains the 
