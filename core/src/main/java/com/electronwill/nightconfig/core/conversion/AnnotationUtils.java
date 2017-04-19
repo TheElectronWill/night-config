@@ -1,17 +1,79 @@
 package com.electronwill.nightconfig.core.conversion;
 
+import com.electronwill.nightconfig.core.utils.StringUtils;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * Utility class for the @Spec(something) annotations.
+ * Utility class for the annotations.
  *
  * @author TheElectronWill
  */
-final class AnnotationSpecs {
-	private AnnotationSpecs() {}
+final class AnnotationUtils {
+	private AnnotationUtils() {}
+
+	/**
+	 * Creates and returns an instance of the converter specified by the @Conversion annotation
+	 * of the field. If there is no @Conversion annotation, returns {@code null}.
+	 *
+	 * @return the field's converter, or {@code null} if there is none
+	 */
+	static Converter<Object, Object> getConverter(Field field) {
+		Conversion conversion = field.getAnnotation(Conversion.class);
+		if (conversion != null) {
+			try {
+				Constructor<? extends Converter> constructor = conversion.value()
+																		 .getDeclaredConstructor();
+				if (!constructor.isAccessible()) {
+					constructor.setAccessible(true);
+				}
+				return (Converter<Object, Object>)constructor.newInstance();
+			} catch (ReflectiveOperationException ex) {
+				throw new ReflectionException("Cannot create a converter for field " + field, ex);
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Gets the path of a field: returns the annotated path, or the field's name if there is no
+	 * annotated path.
+	 *
+	 * @return the annotated path, if any, or the field name
+	 */
+	static List<String> getPath(Field field) {
+		List<String> annotatedPath = getPath((AnnotatedElement)field);
+		return (annotatedPath == null) ? Collections.singletonList(field.getName()) : annotatedPath;
+	}
+
+	/**
+	 * Gets the annotated path (specified with @Path or @AdvancedPath) of an annotated element.
+	 *
+	 * @return the annotated path, or {@code null} if there is none.
+	 */
+	static List<String> getPath(AnnotatedElement annotatedElement) {
+		Path path = annotatedElement.getDeclaredAnnotation(Path.class);
+		if (path != null) {
+			return StringUtils.split(path.value(), '.');
+		}
+		AdvancedPath advancedPath = annotatedElement.getDeclaredAnnotation(AdvancedPath.class);
+		if (advancedPath != null) {
+			return Arrays.asList(advancedPath.value());
+		}
+		return null;
+	}
 
 	/**
 	 * Checks that the value of a field corresponds to its spec annotation, if any.
+	 * <p>
+	 * The check should apply to the field's value, not the config value. That is, when
+	 * converting a field to a config value, the check should apply before the conversion
+	 * [fieldValue -> configValue] and, when converting a config value to a field, the check
+	 * should apply after the conversion [configValue -> fieldValue].
 	 *
 	 * @param field the field to check
 	 * @param value the field's value
@@ -76,7 +138,8 @@ final class AnnotationSpecs {
 			}
 		}
 		throw new InvalidValueException(
-				"Invalid value \"%s\" for field %s: it doesn't conform to " + "%s", value, spec);
+				"Invalid value \"%s\" for field %s: it doesn't conform to " + "%s", value, field,
+				spec);
 	}
 
 	private static void checkFieldSpec(Field field, Object value, SpecStringInRange spec) {
@@ -84,7 +147,8 @@ final class AnnotationSpecs {
 		String s = (String)value;
 		if (s.compareTo(spec.min()) < 0 || s.compareTo(spec.max()) > 0) {
 			throw new InvalidValueException(
-					"Invalid value \"%s\" for field %s: it doesn't conform to %s", value, spec);
+					"Invalid value \"%s\" for field %s: it doesn't conform to %s", value, field,
+					spec);
 		}
 	}
 
@@ -101,7 +165,7 @@ final class AnnotationSpecs {
 			}
 		}
 		throw new InvalidValueException(
-				"Invalid value \"%s\" for field %s: it doesn't conform to %s", value, spec);
+				"Invalid value \"%s\" for field %s: it doesn't conform to %s", value, field, spec);
 	}
 
 	private static void checkFieldSpec(Field field, Object value, SpecDoubleInRange spec) {
@@ -109,7 +173,7 @@ final class AnnotationSpecs {
 		double d = (double)value;
 		if (d < spec.min() || d > spec.max()) {
 			throw new InvalidValueException(
-					"Invalid value %f for field %s: it doesn't conform to %s", value, spec);
+					"Invalid value %f for field %s: it doesn't conform to %s", value, field, spec);
 		}
 	}
 
@@ -118,7 +182,7 @@ final class AnnotationSpecs {
 		float d = (float)value;
 		if (d < spec.min() || d > spec.max()) {
 			throw new InvalidValueException(
-					"Invalid value %f for field %s: it doesn't conform to %s", value, spec);
+					"Invalid value %f for field %s: it doesn't conform to %s", value, field, spec);
 		}
 	}
 
@@ -127,7 +191,7 @@ final class AnnotationSpecs {
 		long d = (long)value;
 		if (d < spec.min() || d > spec.max()) {
 			throw new InvalidValueException(
-					"Invalid value %d for field %s: it doesn't conform to %s", value, spec);
+					"Invalid value %d for field %s: it doesn't conform to %s", value, field, spec);
 		}
 	}
 
@@ -136,7 +200,7 @@ final class AnnotationSpecs {
 		int d = (int)value;
 		if (d < spec.min() || d > spec.max()) {
 			throw new InvalidValueException(
-					"Invalid value %d for field %s: it doesn't conform to %s", value, spec);
+					"Invalid value %d for field %s: it doesn't conform to %s", value, field, spec);
 		}
 	}
 
