@@ -528,7 +528,14 @@ public final class ConfigSpec {
 	 * @return the number of added, removed or replaced values.
 	 */
 	public int correct(Config config, CorrectionListener listener) {
-		return correct(config.valueMap(), storage.valueMap(), new ArrayList<>(), listener);
+		Supplier<Config> subConfigSupplier;
+		if (config instanceof AbstractConfig) {
+			subConfigSupplier = ((AbstractConfig)config)::createSubConfig;
+		} else {
+			subConfigSupplier = () -> new SimpleConfig(t -> true);
+		}
+		return correct(config.valueMap(), storage.valueMap(), new ArrayList<>(), listener,
+					   subConfigSupplier);
 	}
 
 	/**
@@ -541,7 +548,8 @@ public final class ConfigSpec {
 	 * @return the number of added, removed of replaced values.
 	 */
 	private int correct(Map<String, Object> configMap, Map<String, Object> specMap,
-						List<String> parentPath, CorrectionListener listener) {
+						List<String> parentPath, CorrectionListener listener,
+						Supplier<Config> subConfigSupplier) {
 		int count = 0;
 		// First step: replaces the incorrect values and add the missing ones
 		for (Map.Entry<String, Object> specEntry : specMap.entrySet()) {
@@ -554,11 +562,12 @@ public final class ConfigSpec {
 					parentPath.add(key);
 					Map<String, Object> configValueMap = ((Config)configValue).valueMap();
 					Map<String, Object> specValueMap = ((Config)specValue).valueMap();
-					count += correct(configValueMap, specValueMap, parentPath, listener);
+					count += correct(configValueMap, specValueMap, parentPath, listener,
+									 subConfigSupplier);
 					parentPath.remove(parentPath.size() - 1);
 				} else {// Missing or invalid (ie not a Config) sublevel
 					// Creates the sublevel in the config:
-					Object newValue = new SimpleConfig(type -> true);
+					Object newValue = subConfigSupplier.get();
 					configMap.put(key, newValue);
 					// Notifies the listener:
 					CorrectionAction correctionAction = (configValue == null) ? ADD : REPLACE;
