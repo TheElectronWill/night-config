@@ -82,12 +82,12 @@ spec.correct(config);
 ```
 
 ## Converting configurations to plain objects
-You can easily converts a config to a plain java object (and vice-versa).
+You can easily convert a config to a plain java object (and vice-versa).
 For instance, if you have a class like this:
 ```java
 class ConfigObject {
-    String name = "The_Name";    
-    int id = 123_001;    
+    String name = "The_Name";
+    int id = 123_001;
     Coordinates coords = new Coordinates(1, 2, 3);
 }
 ```
@@ -101,3 +101,6 @@ You can get an instance of ConfigObject from a config with minimum effort:
 ```java
 ConfigObject object = new ObjectConverter().toObject(config, ConfigObject::new);
 ```
+And also get a configuration from a ConfigObject:
+```java
+Config config = new ObjectConverter().toConfig(object, TomlConfig::new);
