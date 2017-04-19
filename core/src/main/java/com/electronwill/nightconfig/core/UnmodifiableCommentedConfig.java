@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
@@ -29,6 +30,28 @@ public interface UnmodifiableCommentedConfig extends UnmodifiableConfig {
 	 * @return the comment at the given path, or {@code null} if there is none.
 	 */
 	String getComment(List<String> path);
+
+	/**
+	 * Gets an optional comment from the config.
+	 *
+	 * @param path the comment's path, each part separated by a dot. Example "a.b.c"
+	 * @return an Optional containing the comment at the given path, or {@code Optional.empty()} if
+	 * there is no such comment.
+	 */
+	default Optional<String> getOptionalComment(String path) {
+		return getOptionalComment(split(path, '.'));
+	}
+
+	/**
+	 * Gets an optional comment from the config.
+	 *
+	 * @param path the comment's path, each element of the list is a different part of the path.
+	 * @return an Optional containing the comment at the given path, or {@code Optional.empty()} if
+	 * there is no such comment.
+	 */
+	default Optional<String> getOptionalComment(List<String> path) {
+		return Optional.ofNullable(getComment(path));
+	}
 
 	/**
 	 * Checks if the config contains a comment at some path.
