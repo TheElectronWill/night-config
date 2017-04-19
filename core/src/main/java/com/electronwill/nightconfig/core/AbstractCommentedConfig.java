@@ -12,7 +12,7 @@ import java.util.Set;
  * @author TheElectronWill
  */
 public abstract class AbstractCommentedConfig extends AbstractConfig implements CommentedConfig {
-	private final Map<String, CommentInfos> commentMap;
+	private final Map<String, String> commentMap;
 
 	public AbstractCommentedConfig() {
 		this.commentMap = new HashMap<>();
@@ -43,104 +43,78 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	 *
 	 * @param toCopy the config to copy
 	 */
-	public AbstractCommentedConfig(AbstractCommentedConfig toCopy) {
-		super(toCopy.valueMap());
-		this.commentMap = new HashMap<>(toCopy.commentMap);
-	}
-
-	/**
-	 * Creates an AbstractCommentedConfig that is a copy of the specified config.
-	 *
-	 * @param toCopy the config to copy
-	 */
 	public AbstractCommentedConfig(UnmodifiableCommentedConfig toCopy) {
-		super(toCopy);
-		Set<? extends UnmodifiableCommentedConfig.Entry> entries = toCopy.entrySet();
-		commentMap = new HashMap<>(entries.size());
-		for (UnmodifiableCommentedConfig.Entry entry : entries) {
-			final String key = entry.getKey();
-			final String comment = entry.getComment();
-			final Object value = entry.getValue();
-			final Map<String, CommentInfos> subInfos = (value instanceof Config) ? new HashMap<>() : null;
-			if (comment != null || subInfos != null) {
-				commentMap.put(key, new CommentInfos(comment, subInfos));
-			}
-		}
+		super(toCopy.valueMap());
+		this.commentMap = new HashMap<>(toCopy.commentMap());
 	}
 
 	@Override
 	public String getComment(List<String> path) {
 		final int lastIndex = path.size() - 1;
-		Map<String, CommentInfos> currentMap = commentMap;
-		for (String key : path.subList(0, lastIndex)) {
-			CommentInfos infos = currentMap.get(key);
-			if (infos == null || !infos.hasSubInfos()) {//no comment associated to this path
-				return null;
-			}
-			currentMap = infos.subInfos;
+		final String lastKey = path.get(lastIndex);
+		if (lastIndex == 0) {
+			return commentMap.get(lastKey);
 		}
-		String lastKey = path.get(lastIndex);
-		CommentInfos lastInfos = currentMap.get(lastKey);
-		return (lastInfos == null) ? null : lastInfos.comment;
+		Object parent = getValue(path.subList(0, lastIndex));
+		if (parent instanceof UnmodifiableCommentedConfig) {
+			List<String> lastPath = Collections.singletonList(lastKey);
+			return ((UnmodifiableCommentedConfig)parent).getComment(lastPath);
+		}
+		return null;
 	}
 
 	@Override
 	public String setComment(List<String> path, String comment) {
 		final int lastIndex = path.size() - 1;
-		Map<String, CommentInfos> currentMap = commentMap;
-		for (String currentKey : path.subList(0, lastIndex)) {
-			final CommentInfos infos = currentMap.get(currentKey);
-			if (infos == null) {//missing intermediary level
-				CommentInfos newInfos = new CommentInfos(new HashMap<>());
-				currentMap.put(currentKey, newInfos);
-				currentMap = newInfos.subInfos;
-			} else if (!infos.hasSubInfos()) {//missing sub level
-				currentMap = new HashMap<>();
-				infos.subInfos = currentMap;
-			} else {//existing intermediary level
-				currentMap = infos.subInfos;
-			}
+		final String lastKey = path.get(lastIndex);
+		if (lastIndex == 0) {
+			return commentMap.put(lastKey, comment);
 		}
-		String lastKey = path.get(lastIndex);
-		CommentInfos lastInfos = currentMap.get(lastKey);
-		if (lastInfos == null) {
-			currentMap.put(lastKey, new CommentInfos(comment));
-			return null;
+		final List<String> parentPath = path.subList(0, lastIndex);
+		Object parent = getValue(parentPath);
+		List<String> lastPath = Collections.singletonList(lastKey);
+		if (parent instanceof CommentedConfig) {
+			return ((CommentedConfig)parent).setComment(lastPath, comment);
+		} else if (parent == null) {
+			CommentedConfig commentedParent = createSubConfig();
+			setValue(parentPath, commentedParent);
+			return commentedParent.setComment(lastPath, comment);
 		}
-		String previousComment = lastInfos.comment;
-		lastInfos.comment = comment;
-		return previousComment;
+		throw new IllegalArgumentException("Cannot set a comment to path "
+										   + path
+										   + " because the"
+										   + " parent entry is of an uncompatible type ");
 	}
 
 	@Override
 	public String removeComment(List<String> path) {
 		final int lastIndex = path.size() - 1;
-		Map<String, CommentInfos> currentMap = commentMap;
-		for (String key : path.subList(0, lastIndex)) {
-			CommentInfos infos = currentMap.get(key);
-			if (infos == null || !infos.hasSubInfos()) {//no comment associated to this path
-				return null;
-			}
-			currentMap = infos.subInfos;
+		final String lastKey = path.get(lastIndex);
+		if (lastIndex == 0) {
+			return commentMap.remove(lastKey);
 		}
-		String lastKey = path.get(lastIndex);
-		CommentInfos lastInfos = currentMap.remove(lastKey);
-		return (lastInfos == null) ? null: lastInfos.comment;
+		Object parent = getValue(path.subList(0, lastIndex));
+		if (parent instanceof CommentedConfig) {
+			List<String> lastPath = Collections.singletonList(lastKey);
+			return ((CommentedConfig)parent).removeComment(lastPath);
+		}
+		return null;
 	}
 
 	@Override
 	public boolean containsComment(List<String> path) {
 		final int lastIndex = path.size() - 1;
-		Map<String, CommentInfos> currentMap = commentMap;
-		for (String key : path.subList(0, lastIndex)) {
-			CommentInfos infos = currentMap.get(key);
-			if (infos == null || !infos.hasSubInfos()) {//no comment associated to this path
-				return false;
-			}
-			currentMap = infos.subInfos;
+		final String lastKey = path.get(lastIndex);
+		if (lastIndex == 0) {
+			return commentMap.containsKey(lastKey);
 		}
-		String lastKey = path.get(lastIndex);
-		return currentMap.containsKey(lastKey);
+		Object parent = getValue(path.subList(0, lastIndex));
+		if (parent instanceof CommentedConfig) {
+			List<String> lastPath = Collections.singletonList(lastKey);
+			return ((CommentedConfig)parent).containsComment(lastPath);
+		}
+		return false;
+	}
 	}
 
 	@Override
@@ -153,6 +127,9 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	 */
 	@Override
 	public abstract AbstractCommentedConfig clone();
+
+	@Override
+	protected abstract AbstractCommentedConfig createSubConfig();
 
 	protected class CommentedEntryWrapper extends EntryWrapper implements CommentedConfig.Entry {
 		private List<String> path = null;
@@ -204,28 +181,6 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 			result = 31 * result + Objects.hashCode(getValue());
 			result = 31 * result + Objects.hashCode(getComment());
 			return result;
-		}
-	}
-
-	private static class CommentInfos {
-		String comment;
-		Map<String, CommentInfos> subInfos;
-
-		CommentInfos(String comment) {
-			this.comment = comment;
-		}
-
-		CommentInfos(Map<String, CommentInfos> subInfos) {
-			this.subInfos = subInfos;
-		}
-
-		CommentInfos(String comment, Map<String, CommentInfos> subInfos) {
-			this.comment = comment;
-			this.subInfos = subInfos;
-		}
-
-		boolean hasSubInfos() {
-			return subInfos != null;
 		}
 	}
 }
