@@ -50,7 +50,6 @@ final class TableParser {
 			List<CharsWrapper> commentsList = new ArrayList<>(2);
 			int keyFirst = Toml.readUseful(input, commentsList);
 			if (keyFirst == -1 || keyFirst == '[') {
-				parser.setComment(commentsList);// Save the comments for later
 				return config;// No more data, or beginning of an other table
 			}
 			String key = parseKey(input, (char)keyFirst, parser);
