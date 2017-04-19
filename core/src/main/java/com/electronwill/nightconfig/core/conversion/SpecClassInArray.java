@@ -16,7 +16,7 @@ public @interface SpecClassInArray {
 	/**
 	 * @return the classes that are allowed
 	 */
-	Class<?>[] acceptableClasses();
+	Class<?>[] value();
 
 	/**
 	 * @return {@code true} to allow only the acceptable classes, {@code false} to allow their

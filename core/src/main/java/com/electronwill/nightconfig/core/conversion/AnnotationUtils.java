@@ -129,11 +129,11 @@ final class AnnotationUtils {
 		checkNotNull(field, value);
 		final Class<?> valueClass = value.getClass();
 		if (spec.strict()) {
-			for (Class<?> aClass : spec.acceptableClasses()) {
+			for (Class<?> aClass : spec.value()) {
 				if (aClass.isAssignableFrom(valueClass)) { return; }
 			}
 		} else {
-			for (Class<?> aClass : spec.acceptableClasses()) {
+			for (Class<?> aClass : spec.value()) {
 				if (aClass.equals(valueClass)) { return; }
 			}
 		}
@@ -156,11 +156,11 @@ final class AnnotationUtils {
 		checkClass(field, value, String.class);
 		String s = (String)value;
 		if (spec.ignoreCase()) {
-			for (String acceptable : spec.acceptableValues()) {
+			for (String acceptable : spec.value()) {
 				if (s.equalsIgnoreCase(acceptable)) { return; }
 			}
 		} else {
-			for (String acceptable : spec.acceptableValues()) {
+			for (String acceptable : spec.value()) {
 				if (s.equals(acceptable)) { return; }
 			}
 		}

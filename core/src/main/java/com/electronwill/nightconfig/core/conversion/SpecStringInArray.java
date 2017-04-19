@@ -16,7 +16,7 @@ public @interface SpecStringInArray {
 	/**
 	 * @return the values that are allowed
 	 */
-	String[] acceptableValues();
+	String[] value();
 
 	/**
 	 * @return {@code true} to ignore the case, {@code false} to check the case. Default is
