@@ -115,6 +115,10 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		}
 		return false;
 	}
+
+	@Override
+	public Map<String, String> commentMap() {
+		return commentMap;
 	}
 
 	@Override

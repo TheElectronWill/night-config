@@ -2,7 +2,9 @@ package com.electronwill.nightconfig.core.utils;
 
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -46,6 +48,11 @@ public final class FakeUnmodifiableCommentedConfig
 	@Override
 	public boolean containsComment(List<String> path) {
 		return false;
+	}
+
+	@Override
+	public Map<String, String> commentMap() {
+		return Collections.emptyMap();
 	}
 
 	@Override

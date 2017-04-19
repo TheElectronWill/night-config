@@ -2,7 +2,9 @@ package com.electronwill.nightconfig.core.utils;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -54,6 +56,11 @@ public final class FakeCommentedConfig extends ConfigWrapper<Config> implements 
 	@Override
 	public String removeComment(List<String> path) {
 		return null;
+	}
+
+	@Override
+	public Map<String, String> commentMap() {
+		return Collections.emptyMap();
 	}
 
 	@Override

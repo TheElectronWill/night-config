@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
@@ -46,6 +47,17 @@ public interface UnmodifiableCommentedConfig extends UnmodifiableConfig {
 	 * @return {@code true} if the path is associated with a comment, {@code false} if it's not.
 	 */
 	boolean containsComment(List<String> path);
+
+	/**
+	 * Returns a Map view of the config's comments. If the config is unmodifiable then the returned
+	 * map is unmodifiable too.
+	 * <p>
+	 * The comment map contains only the comments of the direct elements of the
+	 * configuration, not the comments of their sub-elements.
+	 *
+	 * @return a Map view of the config's comments.
+	 */
+	Map<String, String> commentMap();
 
 	@Override
 	Set<? extends Entry> entrySet();

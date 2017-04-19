@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core.conversion;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -62,6 +63,11 @@ public final class CommentedConvertedConfig extends AbstractConvertedConfig<Comm
 	@Override
 	public String removeComment(List<String> path) {
 		return config.removeComment(path);
+	}
+
+	@Override
+	public Map<String, String> commentMap() {
+		return config.commentMap();
 	}
 
 	@Override

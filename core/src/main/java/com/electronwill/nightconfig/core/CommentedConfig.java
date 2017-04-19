@@ -85,11 +85,26 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 			}
 
 			@Override
+			public Map<String, String> commentMap() {
+				return Collections.unmodifiableMap(CommentedConfig.this.commentMap());
+			}
+
+			@Override
 			public Set<? extends Entry> entrySet() {
 				return CommentedConfig.this.entrySet();
 			}
 		};
 	}
+
+	/**
+	 * Returns a Map view of the config's comments. Any change to the map is reflected in the
+	 * config and vice-versa.
+	 * <p>
+	 * The comment map contains only the comments of the direct elements of the configuration, not
+	 * the comments of their sub-elements.
+	 */
+	@Override
+	Map<String, String> commentMap();
 
 	@Override
 	Set<? extends Entry> entrySet();
