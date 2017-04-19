@@ -3,7 +3,6 @@ package com.electronwill.nightconfig.core.conversion;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
 import com.electronwill.nightconfig.core.utils.StringUtils;
-import com.sun.istack.internal.NotNull;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
