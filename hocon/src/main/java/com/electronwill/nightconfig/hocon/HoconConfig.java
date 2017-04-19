@@ -46,15 +46,6 @@ public final class HoconConfig extends AbstractCommentedConfig implements FileCo
 		super(toCopy);
 	}
 
-	/**
-	 * Creates an HoconConfig that is a copy of the given config.
-	 *
-	 * @param toCopy the config to copy
-	 */
-	public HoconConfig(AbstractCommentedConfig toCopy) {
-		super(toCopy);
-	}
-
 	@Override
 	public HoconConfig clone() {
 		return new HoconConfig(this);
