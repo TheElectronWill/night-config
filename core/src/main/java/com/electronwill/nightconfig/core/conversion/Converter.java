@@ -4,7 +4,7 @@ package com.electronwill.nightconfig.core.conversion;
  * @author TheElectronWill
  */
 public interface Converter<FieldType, ConfigValueType> {
-	FieldType convertRead(ConfigValueType value);
+	FieldType convertToField(ConfigValueType value);
 
-	ConfigValueType convertWrite(FieldType value);
+	ConfigValueType convertFromField(FieldType value);
 }
