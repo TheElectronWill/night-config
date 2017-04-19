@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.AbstractCommentedConfig;
 import com.electronwill.nightconfig.core.SimpleConfig;
+import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.FileConfig;
 import java.io.File;
@@ -19,6 +20,15 @@ public class TomlConfig extends AbstractCommentedConfig implements FileConfig {
 	public TomlConfig() {}
 
 	/**
+	 * Creates a TomlConfig backed by the given Map.
+	 *
+	 * @param valueMap the map containing the values
+	 */
+	public TomlConfig(Map<String, Object> valueMap) {
+		super(valueMap);
+	}
+
+	/**
 	 * Creates a TomlConfig that is a copy of the specified config.
 	 *
 	 * @param toCopy the config to copy
@@ -28,12 +38,12 @@ public class TomlConfig extends AbstractCommentedConfig implements FileConfig {
 	}
 
 	/**
-	 * Creates a TomlConfig backed by the given Map.
+	 * Creates a TomlConfig that is a copy of the specified config.
 	 *
-	 * @param valueMap the map containing the values
+	 * @param toCopy the config to copy
 	 */
-	public TomlConfig(Map<String, Object> valueMap) {
-		super(valueMap);
+	public TomlConfig(UnmodifiableCommentedConfig toCopy) {
+		super(toCopy);
 	}
 
 	@Override
