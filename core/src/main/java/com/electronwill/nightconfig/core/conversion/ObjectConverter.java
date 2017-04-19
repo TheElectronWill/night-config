@@ -94,7 +94,9 @@ public final class ObjectConverter {
 	 * @return the object obtained from the Supplier
 	 */
 	public <O> O toObject(UnmodifiableConfig config, Supplier<O> destinationSupplier) {
-		return toObject(config, destinationSupplier);
+		O destination = destinationSupplier.get();
+		toObject(config, destination);
+		return destination;
 	}
 
 	/**
