@@ -1,4 +1,4 @@
-version 'indev'
+version '2.1'
 
 apply plugin: 'maven'
 apply plugin: 'java'
