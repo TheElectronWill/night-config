@@ -44,4 +44,9 @@ public abstract class CommentedConfigWrapper<C extends CommentedConfig> extends 
 	public Set<? extends CommentedConfig.Entry> entrySet() {
 		return config.entrySet();
 	}
+
+	@Override
+	public void clearComments() {
+		config.clearComments();
+	}
 }

@@ -51,6 +51,11 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 */
 	String removeComment(List<String> path);
 
+	/**
+	 * Removes all the comments from the config.
+	 */
+	void clearComments();
+
 	@Override
 	default UnmodifiableCommentedConfig unmodifiable() {
 		return new UnmodifiableCommentedConfig() {

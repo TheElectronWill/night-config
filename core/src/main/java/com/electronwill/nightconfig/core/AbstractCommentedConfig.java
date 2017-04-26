@@ -187,4 +187,15 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 			return result;
 		}
 	}
+
+	@Override
+	public void clear() {
+		super.clear();
+		clearComments();
+	}
+
+	@Override
+	public void clearComments() {
+		commentMap.clear();
+	}
 }

@@ -59,6 +59,9 @@ public final class FakeCommentedConfig extends ConfigWrapper<Config> implements 
 	}
 
 	@Override
+	public void clearComments() {}
+
+	@Override
 	public Map<String, String> commentMap() {
 		return Collections.emptyMap();
 	}

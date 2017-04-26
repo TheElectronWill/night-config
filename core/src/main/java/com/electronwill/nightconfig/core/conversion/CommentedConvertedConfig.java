@@ -66,6 +66,11 @@ public final class CommentedConvertedConfig extends AbstractConvertedConfig<Comm
 	}
 
 	@Override
+	public void clearComments() {
+		config.clearComments();
+	}
+
+	@Override
 	public Map<String, String> commentMap() {
 		return config.commentMap();
 	}
