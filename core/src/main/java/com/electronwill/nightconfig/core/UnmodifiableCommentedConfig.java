@@ -90,6 +90,16 @@ public interface UnmodifiableCommentedConfig extends UnmodifiableConfig {
 	 */
 	default Map<String, CommentNode> getComments() {
 		Map<String, CommentNode> map = new HashMap<>();
+		getComments(map);
+		return map;
+	}
+
+	/**
+	 * Puts all the config's comments to the specified map.
+	 *
+	 * @param destination the map where to put the comments.
+	 */
+	default void getComments(Map<String, CommentNode> destination) {
 		for (Entry entry : entrySet()) {
 			String key = entry.getKey();
 			String comment = entry.getComment();
@@ -99,10 +109,9 @@ public interface UnmodifiableCommentedConfig extends UnmodifiableConfig {
 													? ((UnmodifiableCommentedConfig)value).getComments()
 													: null;
 				CommentNode node = new CommentNode(comment, children);
-				map.put(key, node);
+				destination.put(key, node);
 			}
 		}
-		return map;
 	}
 
 	final class CommentNode {
