@@ -120,11 +120,17 @@ public interface UnmodifiableCommentedConfig extends UnmodifiableConfig {
 
 		/**
 		 * Creates a new CommentNode.
+		 * <p>
+		 * Note: The comment and children are never both null.
 		 *
-		 * @param comment  the comment
+		 * @param comment  the comment, may be null
 		 * @param children the children Map, may be null
 		 */
 		public CommentNode(String comment, Map<String, CommentNode> children) {
+			if (comment == null && children == null) {
+				throw new IllegalArgumentException("There is no point in creating a CommentNode "
+												   + "if the comment AND the children are null.");
+			}
 			this.comment = comment;
 			this.children = children;
 		}
