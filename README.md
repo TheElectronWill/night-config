@@ -16,11 +16,13 @@ NightConfig is managed with gradle. It is divided in several modules, the "core"
 
 The project is available on [jitpack](https://jitpack.io/#TheElectronWill/Night-Config).
 
-The repository has two branches:
+The repository has several branches:
 - [stable-1.x](https://github.com/TheElectronWill/Night-Config/tree/stable-1.x) contains the 
 stable version 1. Only bugfixes will occur on this branch, the API won't break.
 - [stable-2.x](https://github.com/TheElectronWill/Night-Config/tree/stable-2.x) contains the 
-stable version 2. Only bugfixes will occur on this branch, the API won't break.
+stable version 2.0. Only bugfixes will occur on this branch, the API won't break.
+- [stable-2.1.x](https://github.com/TheElectronWill/Night-Config/tree/stable-2.1.x) contains the 
+latest stable version 2.1. Only bugfixes will occur on this branch, the API won't break.
 - [master](https://github.com/TheElectronWill/Night-Config/tree/master) contains the latest 
 in-development branch. Anything can change without notice!
 
