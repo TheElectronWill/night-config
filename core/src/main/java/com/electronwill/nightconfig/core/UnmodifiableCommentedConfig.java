@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -81,6 +82,58 @@ public interface UnmodifiableCommentedConfig extends UnmodifiableConfig {
 	 * @return a Map view of the config's comments.
 	 */
 	Map<String, String> commentMap();
+
+	/**
+	 * Returns a Map containing a deep copy of all the comments in the config.
+	 *
+	 * @return a Map containing the comments in the config.
+	 */
+	default Map<String, CommentNode> getComments() {
+		Map<String, CommentNode> map = new HashMap<>();
+		for (Entry entry : entrySet()) {
+			String key = entry.getKey();
+			String comment = entry.getComment();
+			Object value = entry.getValue();
+			if (comment != null || value instanceof UnmodifiableCommentedConfig) {
+				Map<String, CommentNode> children = (value instanceof UnmodifiableCommentedConfig)
+													? ((UnmodifiableCommentedConfig)value).getComments()
+													: null;
+				CommentNode node = new CommentNode(comment, children);
+				map.put(key, node);
+			}
+		}
+		return map;
+	}
+
+	final class CommentNode {
+		private final String comment;
+		private final Map<String, CommentNode> children;
+
+		/**
+		 * Creates a new CommentNode.
+		 *
+		 * @param comment  the comment
+		 * @param children the children Map, may be null
+		 */
+		public CommentNode(String comment, Map<String, CommentNode> children) {
+			this.comment = comment;
+			this.children = children;
+		}
+
+		/**
+		 * @return the node's comment
+		 */
+		public String getComment() {
+			return comment;
+		}
+
+		/**
+		 * @return the Map of the node's children
+		 */
+		public Map<String, CommentNode> getChildren() {
+			return children;
+		}
+	}
 
 	@Override
 	Set<? extends Entry> entrySet();

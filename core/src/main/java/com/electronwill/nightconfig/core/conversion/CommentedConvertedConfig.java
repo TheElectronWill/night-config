@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +69,21 @@ public final class CommentedConvertedConfig extends AbstractConvertedConfig<Comm
 	@Override
 	public void clearComments() {
 		config.clearComments();
+	}
+
+	@Override
+	public Map<String, CommentNode> getComments() {
+		return config.getComments();
+	}
+
+	@Override
+	public void setComments(Map<String, CommentNode> comments) {
+		config.setComments(comments);
+	}
+
+	@Override
+	public void setComments(UnmodifiableCommentedConfig commentedConfig) {
+		config.setComments(commentedConfig);
 	}
 
 	@Override

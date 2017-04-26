@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core.utils;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +61,17 @@ public final class FakeCommentedConfig extends ConfigWrapper<Config> implements 
 
 	@Override
 	public void clearComments() {}
+
+	@Override
+	public Map<String, CommentNode> getComments() {
+		return Collections.emptyMap();
+	}
+
+	@Override
+	public void setComments(Map<String, CommentNode> comments) {}
+
+	@Override
+	public void setComments(UnmodifiableCommentedConfig commentedConfig) {}
 
 	@Override
 	public Map<String, String> commentMap() {

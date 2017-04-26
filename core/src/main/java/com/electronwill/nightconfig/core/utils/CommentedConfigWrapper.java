@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.utils;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,5 +49,20 @@ public abstract class CommentedConfigWrapper<C extends CommentedConfig> extends 
 	@Override
 	public void clearComments() {
 		config.clearComments();
+	}
+
+	@Override
+	public void setComments(Map<String, CommentNode> comments) {
+		config.setComments(comments);
+	}
+
+	@Override
+	public void setComments(UnmodifiableCommentedConfig commentedConfig) {
+		config.setComments(commentedConfig);
+	}
+
+	@Override
+	public Map<String, CommentNode> getComments() {
+		return config.getComments();
 	}
 }

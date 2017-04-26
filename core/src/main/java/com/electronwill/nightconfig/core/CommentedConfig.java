@@ -56,6 +56,49 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 */
 	void clearComments();
 
+	/**
+	 * Sets the comments of the config to the content of the specified Map. The Map isn't
+	 * directly used, its content is copied.
+	 *
+	 * @param comments the comments to set
+	 */
+	default void setComments(Map<String, CommentNode> comments) {
+		for (Map.Entry<String, CommentNode> entry : comments.entrySet()) {
+			String key = entry.getKey();
+			CommentNode node = entry.getValue();
+			String comment = node.getComment();
+			if (comment != null) {
+				setComment(Collections.singletonList(key), comment);
+			}
+			Map<String, CommentNode> children = node.getChildren();
+			if (children != null) {
+				CommentedConfig config = getValue(Collections.singletonList(key));
+				config.setComments(children);
+			}
+		}
+	}
+
+	/**
+	 * Copies the comments of a config to this config.
+	 *
+	 * @param commentedConfig the config to copy its comments
+	 */
+	default void setComments(UnmodifiableCommentedConfig commentedConfig) {
+		for (UnmodifiableCommentedConfig.Entry entry : commentedConfig.entrySet()) {
+			String key = entry.getKey();
+			String comment = entry.getComment();
+			if (comment != null) {
+				setComment(Collections.singletonList(key), comment);
+			}
+			Object value = entry.getValue();
+			if (value instanceof UnmodifiableCommentedConfig) {
+				CommentedConfig config = getValue(Collections.singletonList(key));
+				config.setComments((UnmodifiableCommentedConfig)value);
+			}
+
+		}
+	}
+
 	@Override
 	default UnmodifiableCommentedConfig unmodifiable() {
 		return new UnmodifiableCommentedConfig() {
@@ -92,6 +135,11 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 			@Override
 			public Map<String, String> commentMap() {
 				return Collections.unmodifiableMap(CommentedConfig.this.commentMap());
+			}
+
+			@Override
+			public Map<String, CommentNode> getComments() {
+				return CommentedConfig.this.getComments();
 			}
 
 			@Override

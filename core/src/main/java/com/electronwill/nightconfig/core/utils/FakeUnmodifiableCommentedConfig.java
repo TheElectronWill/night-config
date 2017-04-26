@@ -51,6 +51,11 @@ public final class FakeUnmodifiableCommentedConfig
 	}
 
 	@Override
+	public Map<String, CommentNode> getComments() {
+		return Collections.emptyMap();
+	}
+
+	@Override
 	public Map<String, String> commentMap() {
 		return Collections.emptyMap();
 	}
