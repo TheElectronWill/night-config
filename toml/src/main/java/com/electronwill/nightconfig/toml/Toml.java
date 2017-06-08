@@ -57,10 +57,10 @@ final class Toml {
 	}
 
 	/**
-	 * Reads all the characters before the next newline.
+	 * Reads all the characters before the next newline or the end of the data.
 	 */
 	static CharsWrapper readLine(CharacterInput input) {
-		return input.readCharsUntil(NEWLINE);
+		return input.readUntil(NEWLINE);
 	}
 
 	static boolean isValidInBareKey(char c, boolean lenient) {
