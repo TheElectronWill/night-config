@@ -62,3 +62,5 @@ Second line'''
 
   [[fruit.variety]]
     name = "plantain"
+
+# Comment at the end of the file
