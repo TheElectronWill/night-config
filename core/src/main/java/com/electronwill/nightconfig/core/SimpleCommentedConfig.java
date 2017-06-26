@@ -1,7 +1,5 @@
-import com.electronwill.nightconfig.core.AbstractCommentedConfig;
-import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.SimpleConfig;
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
+package com.electronwill.nightconfig.core;
+
 import java.util.function.Predicate;
 
 /**
