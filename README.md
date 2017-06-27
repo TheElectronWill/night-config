@@ -1,5 +1,6 @@
 ![Night Config](logo.png)  
 [![](https://jitpack.io/v/TheElectronWill/Night-Config.svg)](https://jitpack.io/#TheElectronWill/Night-Config)
+[![](https://img.shields.io/badge/javadoc-core-blue.svg)](https://jitpack.io/com/github/TheElectronWill/Night-Config/core/v2.1.2/javadoc/index.html)
 ![](https://img.shields.io/github/commits-since/TheElectronWill/Night-Config/v2.0.svg)
 
 # Introduction
@@ -71,7 +72,7 @@ spec.defineInList("myChar", defaultChar, acceptableValues);
 // Defines that a value must be between two values:
 spec.defineInRange("myInt", defaultInt, 0, 50);
 // Works with floating-point numbers too!
-spec.defineInRange("myDouble", defaultDouble 0.0, 50.0);
+spec.defineInRange("myDouble", defaultDouble, 0.0, 50.0);
 // Actually, it works with any comparable values
 spec.defineInRange("myString", defaultString, "aaa", "bbb");
 
