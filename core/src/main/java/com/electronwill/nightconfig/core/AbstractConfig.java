@@ -79,6 +79,29 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		return (T)currentMap.put(lastKey, value);
 	}
 
+	@Override
+	public void add(List<String> path, Object value) {
+		final int lastIndex = path.size() - 1;
+		Map<String, Object> currentMap = map;
+		for (String currentKey : path.subList(0, lastIndex)) {
+			final Object currentValue = currentMap.get(currentKey);
+			final Config config;
+			if (currentValue == null) {//missing intermediary level
+				config = createSubConfig();
+				currentMap.put(currentKey, config);
+			} else if (!(currentValue instanceof Config)) {//incompatible intermediary level
+				throw new IllegalArgumentException(
+						"Cannot add an element to an intermediary value of type: "
+						+ currentValue.getClass());
+			} else {//existing intermediary level
+				config = (Config)currentValue;
+			}
+			currentMap = config.valueMap();
+		}
+		String lastKey = path.get(lastIndex);
+		currentMap.putIfAbsent(lastKey, value);
+	}
+
 	protected abstract AbstractConfig createSubConfig();
 
 	@Override
