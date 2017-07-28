@@ -18,8 +18,8 @@ public abstract class UnmodifiableConfigWrapper<C extends UnmodifiableConfig>
 	}
 
 	@Override
-	public <T> T getValue(List<String> path) {
-		return config.getValue(path);
+	public <T> T get(List<String> path) {
+		return config.get(path);
 	}
 
 	@Override
@@ -33,8 +33,8 @@ public abstract class UnmodifiableConfigWrapper<C extends UnmodifiableConfig>
 	}
 
 	@Override
-	public boolean containsValue(List<String> path) {
-		return config.containsValue(path);
+	public boolean contains(List<String> path) {
+		return config.contains(path);
 	}
 
 	@Override

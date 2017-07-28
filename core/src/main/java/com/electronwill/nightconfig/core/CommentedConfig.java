@@ -72,7 +72,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 			}
 			Map<String, CommentNode> children = node.getChildren();
 			if (children != null) {
-				CommentedConfig config = getValue(Collections.singletonList(key));
+				CommentedConfig config = get(Collections.singletonList(key));
 				config.setComments(children);
 			}
 		}
@@ -92,7 +92,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 			}
 			Object value = entry.getValue();
 			if (value instanceof UnmodifiableCommentedConfig) {
-				CommentedConfig config = getValue(Collections.singletonList(key));
+				CommentedConfig config = get(Collections.singletonList(key));
 				config.setComments((UnmodifiableCommentedConfig)value);
 			}
 
@@ -103,8 +103,8 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	default UnmodifiableCommentedConfig unmodifiable() {
 		return new UnmodifiableCommentedConfig() {
 			@Override
-			public <T> T getValue(List<String> path) {
-				return CommentedConfig.this.getValue(path);
+			public <T> T get(List<String> path) {
+				return CommentedConfig.this.get(path);
 			}
 
 			@Override
@@ -113,8 +113,8 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 			}
 
 			@Override
-			public boolean containsValue(List<String> path) {
-				return CommentedConfig.this.containsValue(path);
+			public boolean contains(List<String> path) {
+				return CommentedConfig.this.contains(path);
 			}
 
 			@Override

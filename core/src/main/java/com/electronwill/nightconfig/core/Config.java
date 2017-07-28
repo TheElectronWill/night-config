@@ -23,8 +23,9 @@ public interface Config extends UnmodifiableConfig {
 	 * @param <T>   the type of the old value
 	 * @return the old value if any, or {@code null}
 	 */
-	default <T> T setValue(String path, Object value) {
-		return setValue(split(path, '.'), value);
+	default <T> T set(String path, Object value) {
+		return set(split(path, '.'), value);
+	}
 	}
 
 	/**
@@ -35,7 +36,7 @@ public interface Config extends UnmodifiableConfig {
 	 * @param <T>   the type of the old value
 	 * @return the old value if any, or {@code null}
 	 */
-	<T> T setValue(List<String> path, Object value);
+	<T> T set(List<String> path, Object value);
 
 	/**
 	 * Removes a value from the config.
@@ -44,8 +45,8 @@ public interface Config extends UnmodifiableConfig {
 	 * @param <T>  the type of the old value
 	 * @return the old value if any, or {@code null}
 	 */
-	default <T> T removeValue(String path) {
-		return removeValue(split(path, '.'));
+	default <T> T remove(String path) {
+		return remove(split(path, '.'));
 	}
 
 	/**
@@ -55,7 +56,7 @@ public interface Config extends UnmodifiableConfig {
 	 * @param <T>  the type of the old value
 	 * @return the old value if any, or {@code null}
 	 */
-	<T> T removeValue(List<String> path);
+	<T> T remove(List<String> path);
 
 	/**
 	 * Removes all values from the config.
@@ -72,13 +73,13 @@ public interface Config extends UnmodifiableConfig {
 	default UnmodifiableConfig unmodifiable() {
 		return new UnmodifiableConfig() {
 			@Override
-			public <T> T getValue(List<String> path) {
-				return Config.this.getValue(path);
+			public <T> T get(List<String> path) {
+				return Config.this.get(path);
 			}
 
 			@Override
-			public boolean containsValue(List<String> path) {
-				return Config.this.containsValue(path);
+			public boolean contains(List<String> path) {
+				return Config.this.contains(path);
 			}
 
 			@Override

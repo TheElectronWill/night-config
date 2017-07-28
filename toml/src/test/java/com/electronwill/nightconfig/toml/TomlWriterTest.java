@@ -17,9 +17,9 @@ public class TomlWriterTest {
 	@Test
 	public void writeToString() throws IOException {
 		Config subConfig = new TomlConfig();
-		subConfig.setValue("string", "test");
-		subConfig.setValue("dateTime", ZonedDateTime.now());
-		subConfig.setValue("sub", new TomlConfig());
+		subConfig.set("string", "test");
+		subConfig.set("dateTime", ZonedDateTime.now());
+		subConfig.set("sub", new TomlConfig());
 
 		List<Config> tableArray = new ArrayList<>();
 		tableArray.add(subConfig);
@@ -27,13 +27,13 @@ public class TomlWriterTest {
 		tableArray.add(subConfig);
 
 		Config config = new TomlConfig();
-		config.setValue("string", "\"value\"");
-		config.setValue("integer", 2);
-		config.setValue("long", 123456789L);
-		config.setValue("double", 3.1415926535);
-		config.setValue("bool_array", Arrays.asList(true, false, true, false));
-		config.setValue("config", subConfig);
-		config.setValue("table_array", tableArray);
+		config.set("string", "\"value\"");
+		config.set("integer", 2);
+		config.set("long", 123456789L);
+		config.set("double", 3.1415926535);
+		config.set("bool_array", Arrays.asList(true, false, true, false));
+		config.set("config", subConfig);
+		config.set("table_array", tableArray);
 
 		StringWriter stringWriter = new StringWriter();
 		TomlWriter writer = new TomlWriter();

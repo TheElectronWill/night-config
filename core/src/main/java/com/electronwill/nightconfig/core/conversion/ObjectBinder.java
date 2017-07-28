@@ -97,8 +97,8 @@ public final class ObjectBinder {
 		BoundConfig boundConfig = createBoundConfig(object, clazz, supportTypePredicate);
 		List<String> annotatedPath = AnnotationUtils.getPath(clazz);
 		if (annotatedPath != null) {
-			Config parentConfig = new SimpleConfig(supportTypePredicate);
-			parentConfig.setValue(annotatedPath, boundConfig);
+			Config parentConfig = new SimpleConfig(configFormat);
+			parentConfig.set(annotatedPath, boundConfig);
 			return parentConfig;
 		}
 		return boundConfig;
@@ -217,7 +217,7 @@ public final class ObjectBinder {
 		}
 
 		@Override
-		public <T> T getValue(List<String> path) {
+		public <T> T get(List<String> path) {
 			final BoundSearchResult searchResult = searchInfosOrConfig(path);
 			if (searchResult == null) {
 				return null;
@@ -229,12 +229,12 @@ public final class ObjectBinder {
 		}
 
 		@Override
-		public boolean containsValue(List<String> path) {
+		public boolean contains(List<String> path) {
 			return searchInfosOrConfig(path) != null;
 		}
 
 		@Override
-		public <T> T setValue(List<String> path, Object value) {
+		public <T> T set(List<String> path, Object value) {
 			final BoundSearchResult searchResult = searchInfosOrConfig(path);
 			if (searchResult == null) {
 				throw new UnsupportedOperationException("Cannot add elements to a bound config");
@@ -248,7 +248,7 @@ public final class ObjectBinder {
 		}
 
 		@Override
-		public <T> T removeValue(List<String> path) {
+		public <T> T remove(List<String> path) {
 			final BoundSearchResult searchResult = searchInfosOrConfig(path);
 			if (searchResult == null) {
 				return null;// Nothing to do
@@ -301,7 +301,7 @@ public final class ObjectBinder {
 			Function<Map.Entry<String, Object>, Entry> readTransfo = entry -> new Entry() {
 				@Override
 				public <T> T setValue(Object value) {
-					return BoundConfig.this.setValue(entry.getKey(), value);
+					return BoundConfig.this.set(entry.getKey(), value);
 				}
 
 				@Override

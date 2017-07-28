@@ -55,7 +55,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		if (lastIndex == 0) {
 			return commentMap.get(lastKey);
 		}
-		Object parent = getValue(path.subList(0, lastIndex));
+		Object parent = get(path.subList(0, lastIndex));
 		if (parent instanceof UnmodifiableCommentedConfig) {
 			List<String> lastPath = Collections.singletonList(lastKey);
 			return ((UnmodifiableCommentedConfig)parent).getComment(lastPath);
@@ -71,13 +71,13 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 			return commentMap.put(lastKey, comment);
 		}
 		final List<String> parentPath = path.subList(0, lastIndex);
-		Object parent = getValue(parentPath);
+		Object parent = get(parentPath);
 		List<String> lastPath = Collections.singletonList(lastKey);
 		if (parent instanceof CommentedConfig) {
 			return ((CommentedConfig)parent).setComment(lastPath, comment);
 		} else if (parent == null) {
 			CommentedConfig commentedParent = createSubConfig();
-			setValue(parentPath, commentedParent);
+			set(parentPath, commentedParent);
 			return commentedParent.setComment(lastPath, comment);
 		}
 		throw new IllegalArgumentException("Cannot set a comment to path "
@@ -93,7 +93,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		if (lastIndex == 0) {
 			return commentMap.remove(lastKey);
 		}
-		Object parent = getValue(path.subList(0, lastIndex));
+		Object parent = get(path.subList(0, lastIndex));
 		if (parent instanceof CommentedConfig) {
 			List<String> lastPath = Collections.singletonList(lastKey);
 			return ((CommentedConfig)parent).removeComment(lastPath);
@@ -108,7 +108,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		if (lastIndex == 0) {
 			return commentMap.containsKey(lastKey);
 		}
-		Object parent = getValue(path.subList(0, lastIndex));
+		Object parent = get(path.subList(0, lastIndex));
 		if (parent instanceof CommentedConfig) {
 			List<String> lastPath = Collections.singletonList(lastKey);
 			return ((CommentedConfig)parent).containsComment(lastPath);

@@ -22,20 +22,20 @@ public class ObjectConverterTest2 {
 		System.out.println("MyObject mapped to a SimpleConfig with basic strategy:");
 		System.out.println(config);
 
-		assert config.<Integer>getValue("integer") == object.integer;
-		assert config.<Double>getValue("decimal") == object.decimal;
-		assert config.<String>getValue("string") == object.string;
-		assert config.<List<String>>getValue("stringList") == object.stringList;
-		assert config.<Config>getValue("config") == object.config;
-		assert config.getValue("subObject") instanceof Config;
-		Config sub = config.getValue("subObject");
-		assert sub.<Integer>getValue("integer") == 1234567890;
-		assert sub.<Double>getValue("decimal") == Math.PI;
-		assert sub.<String>getValue("string").equals("value");
-		assert sub.<List<?>>getValue("stringList").equals(Arrays.asList("a", "b", "c"));
-		assert sub.<Config>getValue("config").size() == 0;
-		assert sub.containsValue("subObject");
-		assert sub.getValue("subObject") == null;
+		assert config.<Integer>get("integer") == object.integer;
+		assert config.<Double>get("decimal") == object.decimal;
+		assert config.<String>get("string") == object.string;
+		assert config.<List<String>>get("stringList") == object.stringList;
+		assert config.<Config>get("config") == object.config;
+		assert config.get("subObject") instanceof Config;
+		Config sub = config.get("subObject");
+		assert sub.<Integer>get("integer") == 1234567890;
+		assert sub.<Double>get("decimal") == Math.PI;
+		assert sub.<String>get("string").equals("value");
+		assert sub.<List<?>>get("stringList").equals(Arrays.asList("a", "b", "c"));
+		assert sub.<Config>get("config").size() == 0;
+		assert sub.contains("subObject");
+		assert sub.get("subObject") == null;
 	}
 
 	@Test
@@ -48,13 +48,13 @@ public class ObjectConverterTest2 {
 		System.out.println("MyObject mapped to a SimpleConfig with support_all strategy:");
 		System.out.println(config);
 
-		assert config.<Integer>getValue("integer") == object.integer;
-		assert config.<Double>getValue("decimal") == object.decimal;
-		assert config.<String>getValue("string") == object.string;
-		assert config.<List<String>>getValue("stringList") == object.stringList;
-		assert config.<Config>getValue("config") == object.config;
-		assert config.getValue("subObject") == object.subObject;
-		assert config.getValue("infos.coordinates").equals(object.coords.toString());
+		assert config.<Integer>get("integer") == object.integer;
+		assert config.<Double>get("decimal") == object.decimal;
+		assert config.<String>get("string") == object.string;
+		assert config.<List<String>>get("stringList") == object.stringList;
+		assert config.<Config>get("config") == object.config;
+		assert config.get("subObject") == object.subObject;
+		assert config.get("infos.coordinates").equals(object.coords.toString());
 	}
 
 	private static class MyObject {
@@ -76,7 +76,7 @@ public class ObjectConverterTest2 {
 		}
 
 		public MyObject() {
-			this.config.setValue("a.b.c", "configValue");
+			this.config.set("a.b.c", "configValue");
 			this.subObject = new MyObject(null);
 		}
 

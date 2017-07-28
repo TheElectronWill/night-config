@@ -50,7 +50,7 @@ public final class ObjectConverter {
 		Objects.requireNonNull(destination, "The config must not be null.");
 		List<String> annotatedPath = AnnotationUtils.getPath(destination.getClass());
 		if (annotatedPath != null) {
-			destination = destination.getValue(annotatedPath);
+			destination = destination.get(annotatedPath);
 		}
 		convertToConfig(o, destination);
 	}
@@ -80,7 +80,7 @@ public final class ObjectConverter {
 		Objects.requireNonNull(destination, "The object must not be null.");
 		List<String> annotatedPath = AnnotationUtils.getPath(destination.getClass());
 		if (annotatedPath != null) {
-			config = config.getValue(annotatedPath);
+			config = config.get(annotatedPath);
 		}
 		convertToObject(config, destination);
 	}
@@ -127,9 +127,9 @@ public final class ObjectConverter {
 								  || field.isAnnotationPresent(ForceBreakdown.class))) {
 				Config subConfig = new SimpleConfig(destination::supportsType);
 				convertToConfig(value, subConfig);// Writes as a subconfig
-				destination.setValue(path, subConfig);
+				destination.set(path, subConfig);
 			} else {
-				destination.setValue(path, value);// Writes as a plain value
+				destination.set(path, value);// Writes as a plain value
 			}
 		}
 	}
@@ -151,7 +151,7 @@ public final class ObjectConverter {
 				continue;// Don't process transient fields if configured so
 			}
 			List<String> path = AnnotationUtils.getPath(field);
-			Object value = config.getValue(path);
+			Object value = config.get(path);
 			Converter<Object, Object> converter = AnnotationUtils.getConverter(field);
 			if (converter != null) {
 				value = converter.convertToField(value);

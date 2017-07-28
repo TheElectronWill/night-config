@@ -123,7 +123,7 @@ public final class ConfigSpec {
 	 * @param validator    the Predicate that determines if the value is correct or not
 	 */
 	public void define(List<String> path, Object defaultValue, Predicate<Object> validator) {
-		storage.setValue(path, new ValueSpec(defaultValue, validator));
+		storage.set(path, new ValueSpec(defaultValue, validator));
 	}
 
 	/**
@@ -136,7 +136,7 @@ public final class ConfigSpec {
 	 */
 	public void define(List<String> path, Supplier<?> defaultValueSupplier,
 					   Predicate<Object> validator) {
-		storage.setValue(path, new ValueSpec(defaultValueSupplier, validator));
+		storage.set(path, new ValueSpec(defaultValueSupplier, validator));
 	}
 
 	/**
@@ -392,7 +392,7 @@ public final class ConfigSpec {
 	 * @param path the entry's path
 	 */
 	public void undefine(List<String> path) {
-		storage.removeValue(path);
+		storage.remove(path);
 	}
 
 	/**
@@ -412,7 +412,7 @@ public final class ConfigSpec {
 	 * @return {@code true} if it has been defined, {@code false} otherwise
 	 */
 	public boolean isDefined(List<String> path) {
-		return storage.containsValue(path);
+		return storage.contains(path);
 	}
 
 	/**
@@ -434,7 +434,7 @@ public final class ConfigSpec {
 	 * @return {@code true} if it's correct, {@code false} if it's incorrect
 	 */
 	public boolean isCorrect(List<String> path, Object value) {
-		ValueSpec spec = storage.getValue(path);
+		ValueSpec spec = storage.get(path);
 		return spec.validator.test(value);
 	}
 
@@ -505,7 +505,7 @@ public final class ConfigSpec {
 	 * @return the corrected value, or the value itself if's it already correct
 	 */
 	public Object correct(List<String> path, Object value) {
-		ValueSpec spec = storage.getValue(path);
+		ValueSpec spec = storage.get(path);
 		return spec.validator.test(value) ? value : spec.defaultValueSupplier.get();
 	}
 

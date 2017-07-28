@@ -51,7 +51,7 @@ public final class HoconParser implements ConfigParser<HoconConfig, Config> {
 	private static void put(com.typesafe.config.Config typesafeConfig, Config destination) {
 		for (Map.Entry<String, ConfigValue> entry : typesafeConfig.entrySet()) {
 			List<String> path = ConfigUtil.splitPath(entry.getKey());
-			destination.setValue(path, unwrap(entry.getValue().unwrapped()));
+			destination.set(path, unwrap(entry.getValue().unwrapped()));
 		}
 	}
 
@@ -59,7 +59,7 @@ public final class HoconParser implements ConfigParser<HoconConfig, Config> {
 		for (Map.Entry<String, ConfigValue> entry : typesafeConfig.entrySet()) {
 			List<String> path = ConfigUtil.splitPath(entry.getKey());
 			ConfigValue value = entry.getValue();
-			destination.setValue(path, unwrap(value.unwrapped()));
+			destination.set(path, unwrap(value.unwrapped()));
 			List<String> comments = value.origin().comments();
 			if (!comments.isEmpty()) {
 				destination.setComment(path, String.join("\n", value.origin().comments()));

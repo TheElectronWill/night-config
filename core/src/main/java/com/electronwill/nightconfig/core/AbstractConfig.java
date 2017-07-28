@@ -42,7 +42,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T getValue(List<String> path) {
+	public <T> T get(List<String> path) {
 		final int lastIndex = path.size() - 1;
 		Map<String, Object> currentMap = map;
 		for (String key : path.subList(0, lastIndex)) {
@@ -57,7 +57,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	}
 
 	@Override
-	public <T> T setValue(List<String> path, Object value) {
+	public <T> T set(List<String> path, Object value) {
 		final int lastIndex = path.size() - 1;
 		Map<String, Object> currentMap = map;
 		for (String currentKey : path.subList(0, lastIndex)) {
@@ -82,7 +82,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	protected abstract AbstractConfig createSubConfig();
 
 	@Override
-	public <T> T removeValue(List<String> path) {
+	public <T> T remove(List<String> path) {
 		final int lastIndex = path.size() - 1;
 		Map<String, Object> currentMap = map;
 		for (String key : path.subList(0, lastIndex)) {
@@ -97,7 +97,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	}
 
 	@Override
-	public boolean containsValue(List<String> path) {
+	public boolean contains(List<String> path) {
 		final int lastIndex = path.size() - 1;
 		Map<String, Object> currentMap = map;
 		for (String key : path.subList(0, lastIndex)) {

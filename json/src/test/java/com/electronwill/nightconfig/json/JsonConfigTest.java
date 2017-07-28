@@ -23,8 +23,8 @@ public class JsonConfigTest {
 
 	{
 		Config config2 = new SimpleConfig();
-		config2.setValue("boolean", true);
-		config2.setValue("false", false);
+		config2.set("boolean", true);
+		config2.set("false", false);
 
 		config.setValue("string",
 						"This is a string with a lot of characters to escape \n\r\t \\ \" ");

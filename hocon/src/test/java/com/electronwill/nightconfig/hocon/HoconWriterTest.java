@@ -15,8 +15,8 @@ public class HoconWriterTest {
 	@Test
 	public void testWrite() throws IOException {
 		Config subConfig = new HoconConfig();
-		subConfig.setValue("string", "test");
-		subConfig.setValue("sub", new HoconConfig());
+		subConfig.set("string", "test");
+		subConfig.set("sub", new HoconConfig());
 
 		List<Config> configList = new ArrayList<>();
 		configList.add(subConfig);
@@ -24,13 +24,13 @@ public class HoconWriterTest {
 		configList.add(subConfig);
 
 		HoconConfig config = new HoconConfig();
-		config.setValue("string", "\"value\"");
-		config.setValue("integer", 2);
-		config.setValue("long", 123456789L);
-		config.setValue("double", 3.1415926535);
-		config.setValue("bool_array", Arrays.asList(true, false, true, false));
-		config.setValue("config", subConfig);
-		config.setValue("config_list", configList);
+		config.set("string", "\"value\"");
+		config.set("integer", 2);
+		config.set("long", 123456789L);
+		config.set("double", 3.1415926535);
+		config.set("bool_array", Arrays.asList(true, false, true, false));
+		config.set("config", subConfig);
+		config.set("config_list", configList);
 		config.setComment("string", " Comment 1\n Comment 2\n Comment 3");
 
 		StringWriter sw = new StringWriter();

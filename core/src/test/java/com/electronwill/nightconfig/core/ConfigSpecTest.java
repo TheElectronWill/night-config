@@ -21,12 +21,12 @@ class ConfigSpecTest {
 
 		{
 			Config config = new SimpleConfig();
-			config.setValue("a.i", 256);
-			config.setValue("a.l", 1234567890);
-			config.setValue("a.f", 12f);
-			config.setValue("a.d", 123d);
-			config.setValue("a.s", "value");
-			config.setValue("a.list", Arrays.asList("hey", null, false, 1));
+			config.set("a.i", 256);
+			config.set("a.l", 1234567890);
+			config.set("a.f", 12f);
+			config.set("a.d", 123d);
+			config.set("a.s", "value");
+			config.set("a.list", Arrays.asList("hey", null, false, 1));
 
 			assert !spec.isCorrect(config);
 			System.out.println("Before correction: " + configToString(config));
@@ -37,12 +37,12 @@ class ConfigSpecTest {
 
 		{
 			Config config = new SimpleConfig();
-			config.setValue("a.i", 18);
-			config.setValue("a.l", 18);
-			config.setValue("a.f", 0.15f);
-			config.setValue("a.d", -0.09);
-			config.setValue("a.s", "a");
-			config.setValue("a.list", Arrays.asList("test", ""));
+			config.set("a.i", 18);
+			config.set("a.l", 18);
+			config.set("a.f", 0.15f);
+			config.set("a.d", -0.09);
+			config.set("a.s", "a");
+			config.set("a.list", Arrays.asList("test", ""));
 
 			assert spec.isCorrect(config);
 			System.out.println("Before correction: " + configToString(config));

@@ -157,8 +157,8 @@ public final class ConversionTable implements Cloneable {
 	public UnmodifiableConfig wrap(UnmodifiableConfig config) {
 		return new UnmodifiableConfigWrapper<UnmodifiableConfig>(config) {
 			@Override
-			public <T> T getValue(List<String> path) {
-				return (T)convert(config.getValue(path));
+			public <T> T get(List<String> path) {
+				return (T)convert(config.get(path));
 			}
 
 			@Override
@@ -192,7 +192,8 @@ public final class ConversionTable implements Cloneable {
 	 * @return a wrapper that converts the values read from the config
 	 */
 	public Config wrapRead(Config config) {
-		return new ConvertedConfig(config, this::convert, v -> v, config::supportsType);
+		return new ConvertedConfig(config, this::convert, v -> v,
+								   config.configFormat()::supportsType);
 	}
 
 	/**

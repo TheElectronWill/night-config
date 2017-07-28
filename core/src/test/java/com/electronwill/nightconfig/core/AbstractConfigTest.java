@@ -15,44 +15,44 @@ public class AbstractConfigTest {
 	@Test
 	public void basicTest() {
 		AbstractConfig config = new SimpleConfig();
-		config.setValue("true", true);
-		config.setValue("false", false);
-		assert config.<Boolean>getValue("true");
-		assert !config.<Boolean>getValue("false");
+		config.set("true", true);
+		config.set("false", false);
+		assert config.<Boolean>get("true");
+		assert !config.<Boolean>get("false");
 
-		config.setValue("int", 1234567890);
-		assert config.<Integer>getValue("int") == 1234567890;
+		config.set("int", 1234567890);
+		assert config.<Integer>get("int") == 1234567890;
 
-		config.setValue("long", 123456789876543210L);
-		assert config.<Long>getValue("long") == 123456789876543210L;
+		config.set("long", 123456789876543210L);
+		assert config.<Long>get("long") == 123456789876543210L;
 
-		config.setValue("float", 1.23456789F);
-		assert config.<Float>getValue("float") == 1.23456789F;
+		config.set("float", 1.23456789F);
+		assert config.<Float>get("float") == 1.23456789F;
 
-		config.setValue("double", Math.PI);
-		assert config.<Double>getValue("double") == Math.PI;
+		config.set("double", Math.PI);
+		assert config.<Double>get("double") == Math.PI;
 
 		String string = "!!!???";
-		config.setValue("string", string);
-		assert config.<String>getValue("string") == string;
+		config.set("string", string);
+		assert config.<String>get("string") == string;
 
 		List<String> stringList = Arrays.asList("a", "b", "c", "d");
-		config.setValue("stringList", stringList);
-		assert config.<List<String>>getValue("stringList") == stringList;
+		config.set("stringList", stringList);
+		assert config.<List<String>>get("stringList") == stringList;
 
 		Config subConfig = new SimpleConfig(type -> true);
-		subConfig.setValue("string", "test!");
-		subConfig.setValue("subSubConfig.string", "another test!");
-		config.setValue("subConfig", subConfig);
-		assert config.<Config>getValue("subConfig") == subConfig;
-		assert config.<String>getValue("subConfig.string").equals("test!");
-		assert config.<String>getValue("subConfig.subSubConfig.string").equals("another test!");
+		subConfig.set("string", "test!");
+		subConfig.set("subSubConfig.string", "another test!");
+		config.set("subConfig", subConfig);
+		assert config.<Config>get("subConfig") == subConfig;
+		assert config.<String>get("subConfig.string").equals("test!");
+		assert config.<String>get("subConfig.subSubConfig.string").equals("another test!");
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("key in the map", "isn't in a config path");
-		config.setValue("map", map);
-		assert config.getValue("map") == map;
-		assert !config.containsValue("map.key in the map");
+		config.set("map", map);
+		assert config.get("map") == map;
+		assert !config.contains("map.key in the map");
 	}
 
 	@Test
@@ -64,30 +64,30 @@ public class AbstractConfigTest {
 		System.out.println("String#split: " + Arrays.toString(jsplit));
 
 		AbstractConfig config = new SimpleConfig(type -> true);
-		config.setValue(".a...a.", "value");
-		assert config.containsValue(".a...a.");
-		assert config.<String>getValue(".a...a.").equals("value");
+		config.set(".a...a.", "value");
+		assert config.contains(".a...a.");
+		assert config.<String>get(".a...a.").equals("value");
 
 		Map<String, Object> map = config.valueMap();
 		assert map.get("") instanceof Config;
 		Config c1 = (Config)map.get("");
-		Config c2 = c1.getValue("a");
-		Config c3 = c2.getValue("");
-		Config c4 = c3.getValue("");
-		Config c5 = c4.getValue("a");
-		String value = c5.getValue("");
+		Config c2 = c1.get("a");
+		Config c3 = c2.get("");
+		Config c4 = c3.get("");
+		Config c5 = c4.get("a");
+		String value = c5.get("");
 		assert value.equals("value");
 	}
 
 	@Test
 	public void size() {
-		AbstractConfig config = new SimpleConfig(type -> true);
-		config.setValue("a.b.c", "value");
-		config.setValue("pi", Math.PI);
+		AbstractConfig config = new SimpleConfig(InMemoryFormat.withUniversalSupport());
+		config.set("a.b.c", "value");
+		config.set("pi", Math.PI);
 
-		Config subConfig = new SimpleConfig(type -> true);
-		subConfig.setValue("string", "test!");
-		config.setValue("subConfig", subConfig);
+		Config subConfig = new SimpleConfig(InMemoryFormat.withUniversalSupport());
+		subConfig.set("string", "test!");
+		config.set("subConfig", subConfig);
 
 		assert subConfig.size() == 1 : "Invalid subConfig size: " + subConfig.size();
 		assert config.size() == 3 : "Invalid config size: " + config.size();
@@ -95,9 +95,9 @@ public class AbstractConfigTest {
 
 	@Test
 	public void asMap() {
-		AbstractConfig config = new SimpleConfig(type -> true);
-		config.setValue("a.b.c", "value");
-		config.setValue("pi", Math.PI);
+		AbstractConfig config = new SimpleConfig(InMemoryFormat.withUniversalSupport());
+		config.set("a.b.c", "value");
+		config.set("pi", Math.PI);
 
 		Map<String, Object> map = config.valueMap();
 		assert map.size() == config.size();
@@ -110,22 +110,22 @@ public class AbstractConfigTest {
 
 		Config a = (Config)map.get("a");
 		assert a.size() == 1;
-		assert a.<String>getValue("b.c").equals("value");
+		assert a.<String>get("b.c").equals("value");
 	}
 
 	@Test
 	public void containsValue() {
-		AbstractConfig config = new SimpleConfig(type -> true);
-		config.setValue("a.b.c", "value");
-		assert config.containsValue("a");
+		AbstractConfig config = new SimpleConfig(InMemoryFormat.withUniversalSupport());
+		config.set("a.b.c", "value");
+		assert config.contains("a");
 
-		assert !config.containsValue("b");
-		assert config.containsValue("a.b");
+		assert !config.contains("b");
+		assert config.contains("a.b");
 
-		assert !config.containsValue("c");
-		assert config.containsValue("a.b.c");
+		assert !config.contains("c");
+		assert config.contains("a.b.c");
 
-		config.setValue("int", 12);
-		assert config.containsValue("int");
+		config.set("int", 12);
+		assert config.contains("int");
 	}
 }

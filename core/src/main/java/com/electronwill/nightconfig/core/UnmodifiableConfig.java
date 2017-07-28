@@ -20,8 +20,8 @@ public interface UnmodifiableConfig {
 	 * @param <T>  the value's type
 	 * @return the value at the given path, or {@code null} if there is no such value.
 	 */
-	default <T> T getValue(String path) {
-		return getValue(split(path, '.'));
+	default <T> T get(String path) {
+		return get(split(path, '.'));
 	}
 
 	/**
@@ -31,7 +31,7 @@ public interface UnmodifiableConfig {
 	 * @param <T>  the value's type
 	 * @return the value at the given path, or {@code null} if there is no such value.
 	 */
-	<T> T getValue(List<String> path);
+	<T> T get(List<String> path);
 
 	/**
 	 * Gets an optional value from the config.
@@ -41,8 +41,8 @@ public interface UnmodifiableConfig {
 	 * @return an Optional containing the value at the given path, or {@code Optional.empty()} if
 	 * there is no such value.
 	 */
-	default <T> Optional<T> getOptionalValue(String path) {
-		return getOptionalValue(split(path, '.'));
+	default <T> Optional<T> getOptional(String path) {
+		return getOptional(split(path, '.'));
 	}
 
 	/**
@@ -53,8 +53,8 @@ public interface UnmodifiableConfig {
 	 * @return an Optional containing the value at the given path, or {@code Optional.empty()} if
 	 * there is no such value.
 	 */
-	default <T> Optional<T> getOptionalValue(List<String> path) {
-		return Optional.ofNullable(getValue(path));
+	default <T> Optional<T> getOptional(List<String> path) {
+		return Optional.ofNullable(get(path));
 	}
 
 	/**
@@ -63,8 +63,8 @@ public interface UnmodifiableConfig {
 	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
 	 * @return {@code true} if the path is associated with a value, {@code false} if it's not.
 	 */
-	default boolean containsValue(String path) {
-		return containsValue(split(path, '.'));
+	default boolean contains(String path) {
+		return contains(split(path, '.'));
 	}
 
 	/**
@@ -73,7 +73,7 @@ public interface UnmodifiableConfig {
 	 * @param path the path to check, each element of the list is a different part of the path.
 	 * @return {@code true} if the path is associated with a value, {@code false} if it's not.
 	 */
-	boolean containsValue(List<String> path);
+	boolean contains(List<String> path);
 
 	/**
 	 * Gets the size of the config.

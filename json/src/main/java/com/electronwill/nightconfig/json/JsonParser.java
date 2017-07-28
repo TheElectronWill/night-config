@@ -106,7 +106,7 @@ public final class JsonParser implements ConfigParser<JsonConfig, Config> {
 
 			char valueFirst = input.readCharAndSkip(SPACES);// the first character of the value
 			Object value = parseValue(input, valueFirst);
-			config.setValue(key, value);
+			config.set(key, value);
 
 			char next = input.readCharAndSkip(SPACES);// should be'}' or ','
 			if (next == '}') {// end of the object

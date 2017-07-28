@@ -20,13 +20,13 @@ public abstract class ConfigWrapper<C extends Config> extends UnmodifiableConfig
 	}
 
 	@Override
-	public <T> T setValue(List<String> path, Object value) {
-		return config.setValue(path, value);
+	public <T> T set(List<String> path, Object value) {
+		return config.set(path, value);
 	}
 
 	@Override
-	public <T> T removeValue(List<String> path) {
-		return config.removeValue(path);
+	public <T> T remove(List<String> path) {
+		return config.remove(path);
 	}
 
 	@Override
