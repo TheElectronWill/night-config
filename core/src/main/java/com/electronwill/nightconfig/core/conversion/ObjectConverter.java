@@ -56,6 +56,15 @@ public final class ObjectConverter {
 		convertToConfig(o, clazz, destination);
 	}
 
+	public void toConfig(Class<?> clazz, Config destination) {
+		Objects.requireNonNull(destination, "The config must not be null.");
+		List<String> annotatedPath = AnnotationUtils.getPath(clazz);
+		if (annotatedPath != null) {
+			destination = destination.get(annotatedPath);
+		}
+		convertToConfig(null, clazz, destination);
+	}
+
 	/**
 	 * Converts an Object to a Config.
 	 *
@@ -67,6 +76,12 @@ public final class ObjectConverter {
 	public <C extends Config> C toConfig(Object o, Supplier<C> destinationSupplier) {
 		C destination = destinationSupplier.get();
 		toConfig(o, destination);
+		return destination;
+	}
+
+	public <C extends Config> C toConfig(Class<?> clazz, Supplier<C> destinationSupplier) {
+		C destination = destinationSupplier.get();
+		toConfig(clazz, destination);
 		return destination;
 	}
 
