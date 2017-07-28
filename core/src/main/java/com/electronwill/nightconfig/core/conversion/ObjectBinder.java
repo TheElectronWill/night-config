@@ -112,11 +112,15 @@ public final class ObjectBinder {
 										  ConfigFormat<?, ?, ?> configFormat) {
 		final BoundConfig boundConfig = new BoundConfig(object, configFormat, bypassFinal);
 		for (Field field : clazz.getDeclaredFields()) {
+			final int fieldModifiers = field.getModifiers();
+			if(object == null && Modifier.isStatic(fieldModifiers)) {
+				continue;// Don't process static fields of object instances
+			}
+			if (!bypassTransient && Modifier.isTransient(fieldModifiers)) {
+				continue;// Don't process transient fields if configured so
+			}
 			if (!field.isAccessible()) {
 				field.setAccessible(true);// Enforces field access if needed
-			}
-			if (!bypassTransient && Modifier.isTransient(field.getModifiers())) {
-				continue;// Don't process transient fields if configured so
 			}
 			List<String> path = AnnotationUtils.getPath(field);
 			FieldInfos fieldInfos;

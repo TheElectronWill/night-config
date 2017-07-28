@@ -48,11 +48,12 @@ public final class ObjectConverter {
 	public void toConfig(Object o, Config destination) {
 		Objects.requireNonNull(o, "The object must not be null.");
 		Objects.requireNonNull(destination, "The config must not be null.");
-		List<String> annotatedPath = AnnotationUtils.getPath(destination.getClass());
+		Class<?> clazz = o.getClass();
+		List<String> annotatedPath = AnnotationUtils.getPath(clazz);
 		if (annotatedPath != null) {
 			destination = destination.get(annotatedPath);
 		}
-		convertToConfig(o, destination);
+		convertToConfig(o, clazz, destination);
 	}
 
 	/**
@@ -78,11 +79,12 @@ public final class ObjectConverter {
 	public void toObject(UnmodifiableConfig config, Object destination) {
 		Objects.requireNonNull(config, "The config must not be null.");
 		Objects.requireNonNull(destination, "The object must not be null.");
-		List<String> annotatedPath = AnnotationUtils.getPath(destination.getClass());
+		Class<?> clazz = destination.getClass();
+		List<String> annotatedPath = AnnotationUtils.getPath(clazz);
 		if (annotatedPath != null) {
 			config = config.get(annotatedPath);
 		}
-		convertToObject(config, destination);
+		convertToObject(config, destination, clazz);
 	}
 
 	/**
@@ -102,17 +104,21 @@ public final class ObjectConverter {
 	/**
 	 * Converts an Object to a Config. The {@link #bypassTransient} setting applies.
 	 */
-	private void convertToConfig(Object o, Config destination) {
-		for (Field field : o.getClass().getDeclaredFields()) {
+	private void convertToConfig(Object object, Class<?> clazz, Config destination) {
+		for (Field field : clazz.getDeclaredFields()) {
+			final int fieldModifiers = field.getModifiers();
+			if (object == null && Modifier.isStatic(fieldModifiers)) {
+				continue;// Don't process static fields of object instances
+			}
+			if (!bypassTransient && Modifier.isTransient(fieldModifiers)) {
+				continue;// Don't process transient fields if configured so
+			}
 			if (!field.isAccessible()) {
 				field.setAccessible(true);// Enforces field access if needed
 			}
-			if (!bypassTransient && Modifier.isTransient(field.getModifiers())) {
-				continue;// Don't process transient fields if configured so
-			}
 			Object value;
 			try {
-				value = field.get(o);
+				value = field.get(object);
 			} catch (IllegalAccessException e) {// Unexpected: setAccessible is called if needed
 				throw new ReflectionException("Unable to parse the field " + field, e);
 			}
@@ -125,8 +131,8 @@ public final class ObjectConverter {
 			List<String> path = AnnotationUtils.getPath(field);
 			if (value != null && (!destination.configFormat().supportsType(value.getClass())
 								  || field.isAnnotationPresent(ForceBreakdown.class))) {
-				convertToConfig(value, subConfig);// Writes as a subconfig
 				Config subConfig = new SimpleConfig(destination.configFormat());
+				convertToConfig(value, field.getType(), subConfig);// Writes as a subconfig
 				destination.set(path, subConfig);
 			} else {
 				destination.set(path, value);// Writes as a plain value
@@ -138,17 +144,22 @@ public final class ObjectConverter {
 	 * Converts a Config to an Object. The {@link #bypassTransient} and {@link #bypassFinal}
 	 * settings apply.
 	 */
-	private void convertToObject(UnmodifiableConfig config, Object destination) {
-		for (Field field : destination.getClass().getDeclaredFields()) {
-			if (!field.isAccessible()) {
-				if (bypassFinal || !Modifier.isFinal(field.getModifiers())) {
-					field.setAccessible(true);// Enforces field access if needed
-				} else {
-					continue;// Don't process final fields if configured so
-				}
+	private void convertToObject(UnmodifiableConfig config, Object object, Class<?> clazz) {
+		for (Field field : clazz.getDeclaredFields()) {
+			final int fieldModifiers = field.getModifiers();
+			if (object == null && Modifier.isStatic(fieldModifiers)) {
+				continue;// Don't process static fields of object instances
 			}
-			if (!bypassTransient && Modifier.isTransient(field.getModifiers())) {
+			if (bypassFinal || !Modifier.isFinal(fieldModifiers)) {
+				field.setAccessible(true);// Enforces field access if needed
+			} else {
+				continue;// Don't process final fields if configured so
+			}
+			if (!bypassTransient && Modifier.isTransient(fieldModifiers)) {
 				continue;// Don't process transient fields if configured so
+			}
+			if (!field.isAccessible()) {
+				field.setAccessible(true);// Enforces field access if needed
 			}
 			List<String> path = AnnotationUtils.getPath(field);
 			Object value = config.get(path);
@@ -161,16 +172,16 @@ public final class ObjectConverter {
 				if (value instanceof UnmodifiableConfig && !(fieldType.isAssignableFrom(
 						value.getClass()))) {
 					// Reads as a sub-object
-					Object fieldValue = field.get(destination);
+					Object fieldValue = field.get(object);
 					if (fieldValue == null) {
 						fieldValue = createInstance(fieldType);
-						field.set(destination, fieldValue);
+						field.set(object, fieldValue);
 					}
-					convertToObject((UnmodifiableConfig)value, fieldValue);
+					convertToObject((UnmodifiableConfig)value, fieldValue, field.getType());
 				} else {
 					// Reads as a plain value
 					AnnotationUtils.checkField(field, value);// Checks that the value is conform
-					field.set(destination, value);
+					field.set(object, value);
 				}
 			} catch (ReflectiveOperationException ex) {
 				throw new ReflectionException("Unable to work with field " + field, ex);
