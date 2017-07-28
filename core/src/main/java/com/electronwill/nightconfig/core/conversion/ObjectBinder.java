@@ -2,6 +2,8 @@ package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
+import com.electronwill.nightconfig.core.io.ConfigFormat;
+import com.electronwill.nightconfig.core.io.InMemoryFormat;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
 import java.lang.reflect.Field;
@@ -11,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * Creates configurations bound to an object or class, getting its values from its fields.
@@ -49,18 +50,18 @@ public final class ObjectBinder {
 	 * @return a config bound to the static fields of the class
 	 */
 	public Config bind(Class<?> clazz) {
-		return bind(clazz, SimpleConfig.BASIC_SUPPORT_PREDICATE);
+		return bind(clazz, InMemoryFormat.defaultInstance());
 	}
 
 	/**
 	 * Creates a new config bound to the static fields of a class.
 	 *
-	 * @param clazz                the class to bind
-	 * @param supportTypePredicate the Predicate that determines the supported types
+	 * @param clazz        the class to bind
+	 * @param configFormat the Config format
 	 * @return a config bound to the static fields of the class
 	 */
-	public Config bind(Class<?> clazz, Predicate<Class<?>> supportTypePredicate) {
-		return bind(null, clazz, supportTypePredicate);
+	public Config bind(Class<?> clazz, ConfigFormat<?, ?, ?> configFormat) {
+		return bind(null, clazz, configFormat);
 	}
 
 	/**
@@ -70,31 +71,31 @@ public final class ObjectBinder {
 	 * @return a config bound to the fields of the object
 	 */
 	public Config bind(Object object) {
-		return bind(object, SimpleConfig.BASIC_SUPPORT_PREDICATE);
+		return bind(object, InMemoryFormat.defaultInstance());
 	}
 
 	/**
 	 * Creates a new config bound to the fields of a object.
 	 *
-	 * @param object               the class to bind
-	 * @param supportTypePredicate the Predicate that determines the supported types
+	 * @param object       the class to bind
+	 * @param configFormat the Config format
 	 * @return a config bound to the fields of the object
 	 */
-	public Config bind(Object object, Predicate<Class<?>> supportTypePredicate) {
-		return bind(object, object.getClass(), supportTypePredicate);
+	public Config bind(Object object, ConfigFormat<?, ?, ?> configFormat) {
+		return bind(object, object.getClass(), configFormat);
 	}
 
 	/**
 	 * Creates a bound config.
 	 *
-	 * @param object               the object to bind, or null to bind the static fields of the
-	 *                             class
-	 * @param clazz                the object class, or the class to bind if the object is null
-	 * @param supportTypePredicate the predicate that determines the supported types
+	 * @param object       the object to bind, or null to bind the static fields of the
+	 *                     class
+	 * @param clazz        the object class, or the class to bind if the object is null
+	 * @param configFormat the Config format
 	 * @return a config bound to the specified object or class
 	 */
-	private Config bind(Object object, Class<?> clazz, Predicate<Class<?>> supportTypePredicate) {
-		BoundConfig boundConfig = createBoundConfig(object, clazz, supportTypePredicate);
+	private Config bind(Object object, Class<?> clazz, ConfigFormat<?, ?, ?> configFormat) {
+		BoundConfig boundConfig = createBoundConfig(object, clazz, configFormat);
 		List<String> annotatedPath = AnnotationUtils.getPath(clazz);
 		if (annotatedPath != null) {
 			Config parentConfig = new SimpleConfig(configFormat);
@@ -108,8 +109,8 @@ public final class ObjectBinder {
 	 * Binds an object or a class to a config.
 	 */
 	private BoundConfig createBoundConfig(Object object, Class<?> clazz,
-										  Predicate<Class<?>> supportTypePredicate) {
-		final BoundConfig boundConfig = new BoundConfig(object, supportTypePredicate, bypassFinal);
+										  ConfigFormat<?, ?, ?> configFormat) {
+		final BoundConfig boundConfig = new BoundConfig(object, configFormat, bypassFinal);
 		for (Field field : clazz.getDeclaredFields()) {
 			if (!field.isAccessible()) {
 				field.setAccessible(true);// Enforces field access if needed
@@ -125,11 +126,10 @@ public final class ObjectBinder {
 			}
 			try {
 				Object value = converter.convertFromField(field.get(object));
-				if (value == null || supportTypePredicate.test(value.getClass())) {
+				if (value == null || configFormat.supportsType(value.getClass())) {
 					fieldInfos = new FieldInfos(field, null, converter);
 				} else {
-					BoundConfig subConfig = createBoundConfig(value, field.getType(),
-															  supportTypePredicate);
+					BoundConfig subConfig = createBoundConfig(value, field.getType(), configFormat);
 					fieldInfos = new FieldInfos(field, subConfig, converter);
 				}
 			} catch (IllegalAccessException e) {
@@ -146,23 +146,23 @@ public final class ObjectBinder {
 	private static final class BoundConfig implements Config {
 		private Object object;// may be null
 		private final Map<String, Object> dataMap;// contains FieldInfos and subconfigs
-		private final Predicate<Class<?>> supportPredicate;
+		private final ConfigFormat<?, ?, ?> configFormat;
 		private final boolean bypassFinal;
 
 		private BoundConfig(Object object, Map<String, Object> dataMap,
-							Predicate<Class<?>> supportPredicate, boolean bypassFinal) {
+							ConfigFormat<?, ?, ?> configFormat, boolean bypassFinal) {
 			this.object = object;
 			this.dataMap = dataMap;
-			this.supportPredicate = supportPredicate;
+			this.configFormat = configFormat;
 			this.bypassFinal = bypassFinal;
 		}
 
 		/**
 		 * Creates a new BoundConfig with an empty HashMap.
 		 */
-		private BoundConfig(Object object, Predicate<Class<?>> supportPredicate,
+		private BoundConfig(Object object, ConfigFormat<?, ?, ?> configFormat,
 							boolean bypassFinal) {
-			this(object, new HashMap<>(), supportPredicate, bypassFinal);
+			this(object, new HashMap<>(), configFormat, bypassFinal);
 		}
 
 		/**
@@ -175,7 +175,7 @@ public final class ObjectBinder {
 				final Object currentValue = currentMap.get(currentKey);
 				final BoundConfig config;
 				if (currentValue == null) {// missing intermediary level
-					config = new BoundConfig(null, new HashMap<>(1), supportPredicate, bypassFinal);
+					config = new BoundConfig(null, new HashMap<>(1), configFormat, bypassFinal);
 					currentMap.put(currentKey, config);
 				} else if (!(currentValue instanceof BoundConfig)) {// incompatible intermediary level
 					throw new IllegalArgumentException(
@@ -276,8 +276,8 @@ public final class ObjectBinder {
 		}
 
 		@Override
-		public boolean supportsType(Class<?> type) {
-			return supportPredicate.test(type);
+		public ConfigFormat<?, ?, ?> configFormat() {
+			return configFormat;
 		}
 
 		@Override

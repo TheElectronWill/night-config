@@ -123,10 +123,10 @@ public final class ObjectConverter {
 				value = converter.convertFromField(value);
 			}
 			List<String> path = AnnotationUtils.getPath(field);
-			if (value != null && (!destination.supportsType(value.getClass())
+			if (value != null && (!destination.configFormat().supportsType(value.getClass())
 								  || field.isAnnotationPresent(ForceBreakdown.class))) {
-				Config subConfig = new SimpleConfig(destination::supportsType);
 				convertToConfig(value, subConfig);// Writes as a subconfig
+				Config subConfig = new SimpleConfig(destination.configFormat());
 				destination.set(path, subConfig);
 			} else {
 				destination.set(path, value);// Writes as a plain value

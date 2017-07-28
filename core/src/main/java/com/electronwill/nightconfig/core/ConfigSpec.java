@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core;
 
+import com.electronwill.nightconfig.core.io.InMemoryFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -65,7 +66,7 @@ import static com.electronwill.nightconfig.core.utils.StringUtils.split;
  * @author TheElectronWill
  */
 public final class ConfigSpec {
-	private final Config storage = new SimpleConfig(type -> true);
+	private final Config storage = new SimpleConfig(InMemoryFormat.withUniversalSupport());
 
 	/**
 	 * Defines an entry. To be correct, the type of the config value must be of the same as or a
@@ -532,7 +533,7 @@ public final class ConfigSpec {
 		if (config instanceof AbstractConfig) {
 			subConfigSupplier = ((AbstractConfig)config)::createSubConfig;
 		} else {
-			subConfigSupplier = () -> new SimpleConfig(t -> true);
+			subConfigSupplier = () -> new SimpleConfig(InMemoryFormat.withUniversalSupport());
 		}
 		return correct(config.valueMap(), storage.valueMap(), new ArrayList<>(), listener,
 					   subConfigSupplier);

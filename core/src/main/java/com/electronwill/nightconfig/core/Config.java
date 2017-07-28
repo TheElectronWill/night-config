@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core;
 
+import com.electronwill.nightconfig.core.io.ConfigFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -113,13 +114,18 @@ public interface Config extends UnmodifiableConfig {
 			public Set<? extends Entry> entrySet() {
 				return Config.this.entrySet();
 			}
+
+			@Override
+			public ConfigFormat<?, ?, ?> configFormat() {
+				return Config.this.configFormat();
+			}
 		};
 	}
 
 	/**
 	 * Returns a checked view of the config. It checks that all the values put into the config are
-	 * supported (as per the {@link Config#supportsType(Class)} method. Trying to insert an
-	 * unsupported value throws an IllegalArgumentException.
+	 * supported by the config's format (as per the {@link ConfigFormat#supportsType(Class)}
+	 * method. Trying to insert an unsupported value throws an IllegalArgumentException.
 	 * <p>
 	 * The values that are in the config when this method is called are also checked.
 	 *
@@ -128,18 +134,6 @@ public interface Config extends UnmodifiableConfig {
 	default Config checked() {
 		return new CheckedConfig(this);
 	}
-
-	/**
-	 * Checks if the given type is supported by this config. If the type is null, it checks if the
-	 * config supports null values.
-	 * <p>
-	 * Please note that an implementation of the Config interface is <b>not</b> required to check
-	 * the type of the values that you add to it.
-	 *
-	 * @param type the type's class, or {@code null} to check if the config supports null values
-	 * @return {@code true} if it is supported, {@code false} if it isn't.
-	 */
-	boolean supportsType(Class<?> type);
 
 	/**
 	 * Returns a Map view of the config's values. Any change to the map is reflected in the config

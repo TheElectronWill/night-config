@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core.conversion;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.io.ConfigFormat;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
 import com.electronwill.nightconfig.core.utils.UnmodifiableConfigWrapper;
@@ -181,6 +182,11 @@ public final class ConversionTable implements Cloneable {
 				};
 				return new TransformingSet<>(config.entrySet(), readTransfo, o -> null, e -> e);
 			}
+
+			@Override
+			public ConfigFormat<?, ?, ?> configFormat() {
+				return config.configFormat();
+			}
 		};
 	}
 
@@ -204,7 +210,8 @@ public final class ConversionTable implements Cloneable {
 	 * @return a wrapper that converts the values read from the config
 	 */
 	public CommentedConfig wrapRead(CommentedConfig config) {
-		return new CommentedConvertedConfig(config, this::convert, v -> v, config::supportsType);
+		return new CommentedConvertedConfig(config, this::convert, v -> v,
+											config.configFormat()::supportsType);
 	}
 
 	/**

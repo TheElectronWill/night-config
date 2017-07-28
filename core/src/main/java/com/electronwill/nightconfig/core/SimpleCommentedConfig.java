@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core;
 
-import java.util.function.Predicate;
+import com.electronwill.nightconfig.core.io.ConfigFormat;
+import com.electronwill.nightconfig.core.io.InMemoryFormat;
 
 /**
  * A basic commented configuration.
@@ -8,78 +9,79 @@ import java.util.function.Predicate;
  * @author TheElectronWill
  */
 public final class SimpleCommentedConfig extends AbstractCommentedConfig {
-
-	private final Predicate<Class<?>> supportPredicate;
+	private final ConfigFormat<?, ?, ?> configFormat;
 
 	/**
-	 * Creates a SimpleCommentedConfig that supports the following types:
-	 * <ul>
-	 * <li>Integer, Long, Float and Double
-	 * <li>Boolean
-	 * <li>String
-	 * <li>List and all its implementations
-	 * <li>Config and all its implementations
-	 * </ul>
+	 * Creates a SimpleCommentedConfig with the format {@link InMemoryFormat#defaultInstance()}
 	 */
 	public SimpleCommentedConfig() {
-		this.supportPredicate = SimpleConfig.BASIC_SUPPORT_PREDICATE;
+		this(InMemoryFormat.defaultInstance());
 	}
 
 	/**
-	 * Creates a SimpleCommentedConfig that uses the specified Predicate to determines what types
-	 * it supports.
+	 * Creates a SimpleCommentedConfig with the specified format.
 	 *
-	 * @param supportPredicate the Predicate that returns true when the class it's given is
-	 *                         supported by the config
+	 * @param configFormat the config's format
 	 */
-	public SimpleCommentedConfig(Predicate<Class<?>> supportPredicate) {
-		this.supportPredicate = supportPredicate;
+	public SimpleCommentedConfig(ConfigFormat<?, ?, ?> configFormat) {
+		this.configFormat = configFormat;
 	}
 
 	/**
-	 * Creates a SimpleCommentedConfig by copying a config. The supportPredicate will be
-	 * {@link SimpleConfig#BASIC_SUPPORT_PREDICATE}.
+	 * Creates a SimpleCommentedConfig by copying a config. The format will be the one of the copied
+	 * config.
 	 *
 	 * @param toCopy the config to copy
 	 */
 	public SimpleCommentedConfig(UnmodifiableConfig toCopy) {
-		this(toCopy, SimpleConfig.BASIC_SUPPORT_PREDICATE);
+		this(toCopy, toCopy.configFormat());
 	}
 
 	/**
-	 * Creates a SimpleConfig by copying a config.
+	 * Creates a SimpleCommentedConfig by copying a config and with the specified format.
 	 *
-	 * @param toCopy           the config to copy
-	 * @param supportPredicate the Predicate that returns true when the class it's given is
-	 *                         supported by the config
+	 * @param toCopy       the config to copy
+	 * @param configFormat the config's format
 	 */
-	public SimpleCommentedConfig(UnmodifiableConfig toCopy, Predicate<Class<?>> supportPredicate) {
+	public SimpleCommentedConfig(UnmodifiableConfig toCopy, ConfigFormat<?, ?, ?> configFormat) {
 		super(toCopy);
-		this.supportPredicate = supportPredicate;
+		this.configFormat = configFormat;
 	}
 
 	/**
-	 * Creates a SimpleCommentedConfig by copying a config. The SimpleConfig will supports the same
-	 * types as the specified config.
+	 * Creates a SimpleCommentedConfig by copying a config. The format will be the one of the copied
+	 * config.
 	 *
 	 * @param toCopy the config to copy
 	 */
-	public SimpleCommentedConfig(Config toCopy) {
-		this(toCopy, toCopy::supportsType);
+	public SimpleCommentedConfig(UnmodifiableCommentedConfig toCopy) {
+		this(toCopy, toCopy.configFormat());
+	}
+
+	/**
+	 * Creates a SimpleCommentedConfig by copying a config and with the specified format.
+	 *
+	 * @param toCopy       the config to copy
+	 * @param configFormat the config's format
+	 */
+	public SimpleCommentedConfig(UnmodifiableCommentedConfig toCopy,
+								 ConfigFormat<?, ?, ?> configFormat) {
+		super(toCopy);
+		this.configFormat = configFormat;
 	}
 
 	@Override
-	public boolean supportsType(Class<?> type) {
-		return supportPredicate.test(type);
+	public ConfigFormat<?, ?, ?> configFormat() {
+		return configFormat;
+	}
+
+	@Override
+	protected SimpleCommentedConfig createSubConfig() {
+		return new SimpleCommentedConfig(configFormat);
 	}
 
 	@Override
 	public AbstractCommentedConfig clone() {
 		return new SimpleCommentedConfig(this);
-	}
-
-	@Override
-	protected AbstractCommentedConfig createSubConfig() {
-		return new SimpleCommentedConfig();
 	}
 }

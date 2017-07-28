@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core;
 
+import com.electronwill.nightconfig.core.io.ConfigFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -145,6 +146,11 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 			@Override
 			public Set<? extends Entry> entrySet() {
 				return CommentedConfig.this.entrySet();
+			}
+
+			@Override
+			public ConfigFormat<?, ?, ?> configFormat() {
+				return CommentedConfig.this.configFormat();
 			}
 		};
 	}

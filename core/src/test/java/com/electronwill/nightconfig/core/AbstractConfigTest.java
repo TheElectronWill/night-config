@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core;
 
+import com.electronwill.nightconfig.core.io.InMemoryFormat;
 import com.electronwill.nightconfig.core.utils.StringUtils;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,7 +41,7 @@ public class AbstractConfigTest {
 		config.set("stringList", stringList);
 		assert config.<List<String>>get("stringList") == stringList;
 
-		Config subConfig = new SimpleConfig(type -> true);
+		Config subConfig = new SimpleConfig(InMemoryFormat.withUniversalSupport());
 		subConfig.set("string", "test!");
 		subConfig.set("subSubConfig.string", "another test!");
 		config.set("subConfig", subConfig);
@@ -63,7 +64,7 @@ public class AbstractConfigTest {
 		String[] jsplit = ".a...a.".split("\\.");
 		System.out.println("String#split: " + Arrays.toString(jsplit));
 
-		AbstractConfig config = new SimpleConfig(type -> true);
+		AbstractConfig config = new SimpleConfig(InMemoryFormat.withUniversalSupport());
 		config.set(".a...a.", "value");
 		assert config.contains(".a...a.");
 		assert config.<String>get(".a...a.").equals("value");

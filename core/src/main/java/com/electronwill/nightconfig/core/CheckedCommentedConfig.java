@@ -1,11 +1,12 @@
 package com.electronwill.nightconfig.core;
 
+import com.electronwill.nightconfig.core.io.ConfigFormat;
 import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
 
 /**
  * A checker wrapped around a commented configuration. It checks that all the values put into the
- * config are supported (as per the {@link Config#supportsType(Class)} method. Trying to insert an
- * unsupported value throws an IllegalArgumentException.
+ * config are supported by the config's format (as per the {@link ConfigFormat#supportsType(Class)}
+ * method. Trying to insert an unsupported value throws an IllegalArgumentException.
  *
  * @author TheElectronWill
  */
@@ -40,10 +41,11 @@ public final class CheckedCommentedConfig extends CommentedConfigWrapper<Comment
 	 * isn't supported.
 	 */
 	private void checkValue(Object value) {
-		if (value != null && !supportsType(value.getClass())) {
+		ConfigFormat<?, ?, ?> format = configFormat();
+		if (value != null && !format.supportsType(value.getClass())) {
 			throw new IllegalArgumentException(
 					"Unsupported value type: " + value.getClass().getTypeName());
-		} else if (value == null && !supportsType(null)) {
+		} else if (value == null && !format.supportsType(null)) {
 			throw new IllegalArgumentException(
 					"Null values aren't supported by this configuration.");
 		}

@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
+import com.electronwill.nightconfig.core.io.InMemoryFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -14,7 +15,7 @@ public class ObjectConverterTest {
 
 	static final List<String> list1 = Arrays.asList("a", "b", "c");
 	static final List<String> list2 = Collections.singletonList("element");
-	static final Config config1 = new SimpleConfig(type -> true), config2 = new SimpleConfig();
+	static final Config config1 = new SimpleConfig(InMemoryFormat.withUniversalSupport()), config2 = new SimpleConfig();
 
 	private final Config config = new SimpleConfig();
 

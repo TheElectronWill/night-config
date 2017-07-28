@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.utils;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.io.ConfigFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -55,5 +56,10 @@ public abstract class UnmodifiableConfigWrapper<C extends UnmodifiableConfig>
 	@Override
 	public int hashCode() {
 		return config.hashCode();
+	}
+
+	@Override
+	public ConfigFormat<?, ?, ?> configFormat() {
+		return config.configFormat();
 	}
 }
