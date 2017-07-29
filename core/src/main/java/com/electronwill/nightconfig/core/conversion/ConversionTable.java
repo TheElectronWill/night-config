@@ -210,7 +210,7 @@ public final class ConversionTable implements Cloneable {
 	 * @return a wrapper that converts the values read from the config
 	 */
 	public CommentedConfig wrapRead(CommentedConfig config) {
-		return new CommentedConvertedConfig(config, this::convert, v -> v,
+		return new ConvertedCommentedConfig(config, this::convert, v -> v,
 											config.configFormat()::supportsType);
 	}
 
@@ -238,7 +238,7 @@ public final class ConversionTable implements Cloneable {
 	 */
 	public CommentedConfig wrapWrite(CommentedConfig config,
 									 Predicate<Class<?>> supportValueTypePredicate) {
-		return new CommentedConvertedConfig(config, v -> v, this::convert,
+		return new ConvertedCommentedConfig(config, v -> v, this::convert,
 											supportValueTypePredicate);
 	}
 
