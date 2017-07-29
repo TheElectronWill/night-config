@@ -4,50 +4,24 @@ import com.electronwill.nightconfig.core.Config;
 import java.io.File;
 
 /**
- * Interface for configurations that can be parsed from files and written to files.
- *
  * @author TheElectronWill
  */
 public interface FileConfig extends Config {
+	/**
+	 * @return the config's file
+	 */
+	File getFile();
 
 	/**
-	 * Writes the config to a file. The content of the file is overwritten. This method is
-	 * equivalent to <pre>write(file, false)</pre>
-	 *
-	 * @param file the file to write to
-	 * @throws WritingException if an I/O error occurs
+	 * Saves this config as soon as possible. This method may return quickly and perform the IO
+	 * operations in background, or it may block until the operations are done.
 	 */
-	default void write(File file) {
-		write(file, false);
+	void save();
+
+	/**
+	 * (Re)loads this config from the file. This method blocks until the read operation completes.
+	 */
+	void load();
 	}
 
-	/**
-	 * Writes the config to a file.
-	 *
-	 * @param file   the file to write to
-	 * @param append {@code true} to append the data to the file, {@code false} to overwrite the file.
-	 * @throws WritingException if an I/O error occurs
-	 */
-	void write(File file, boolean append);
-
-	/**
-	 * Parses the config from a file. The content of the config is replaced by the parse one. This
-	 * method is equivalent to <pre>parse(file, false)</pre>
-	 *
-	 * @param file the file to parse
-	 * @throws ParsingException if an I/O error occurs
-	 */
-	default void parse(File file) {
-		parse(file, false);
-	}
-
-	/**
-	 * Parses the config from a file.
-	 *
-	 * @param file  the file to parse
-	 * @param merge {@code true} to merge the current data with the parse one, {@code false} to
-	 *              replace the current data with the parse one.
-	 * @throws ParsingException if an I/O error occurs
-	 */
-	void parse(File file, boolean merge);
 }
