@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.utils.FastStringReader;
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,6 +25,11 @@ import java.nio.charset.StandardCharsets;
  */
 public interface ConfigParser<C extends D, D extends Config> {
 	/**
+	 * @return the format supported by this parser
+	 */
+	ConfigFormat<C, D, ? extends UnmodifiableConfig> getFormat();
+
+	/**
 	 * Parses a configuration.
 	 *
 	 * @param reader the reader to parse
@@ -39,7 +45,7 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param reader      the reader to parse
 	 * @param destination the config where to put the data
 	 */
-	void parse(Reader reader, D destination);
+	void parse(Reader reader, D destination, ParsingMode parsingMode);
 
 	/**
 	 * Parses a configuration String.
@@ -60,8 +66,8 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param destination the config where to put the data
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(String input, D destination) {
-		parse(new StringReader(input), destination);
+	default void parse(String input, D destination, ParsingMode parsingMode) {
+		parse(new StringReader(input), destination, parsingMode);
 	}
 
 	/**
@@ -84,9 +90,9 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param destination the config where to put the data
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(InputStream input, D destination) {
+	default void parse(InputStream input, D destination, ParsingMode parsingMode) {
 		Reader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8));
-		parse(reader, destination);
+		parse(reader, destination, parsingMode);
 	}
 
 	/**
@@ -97,13 +103,30 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 *
 	 * @throws ParsingException if an error occurs
 	 */
-	default C parse(File file) {
-		try (Reader reader = new BufferedReader(
-				new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-			return parse(reader);
+	default C parse(File file, FileNotFoundAction nefAction, Charset charset) {
+		try {
+			if (!file.exists() && !nefAction.run(file)) {
+				return getFormat().createConfig();
+			}
+			try (Reader reader = new BufferedReader(
+					new InputStreamReader(new FileInputStream(file), charset))) {
+				return parse(reader);
+			}
 		} catch (IOException e) {
 			throw new WritingException("An I/O error occured", e);
 		}
+	}
+
+	/**
+	 * Parses a configuration with the UTF-8 charset.
+	 *
+	 * @param file the file to parse
+	 * @return a Config
+	 *
+	 * @throws ParsingException if an error occurs
+	 */
+	default C parse(File file, FileNotFoundAction nefAction) {
+		return parse(file, nefAction, StandardCharsets.UTF_8);
 	}
 
 	/**
@@ -113,13 +136,31 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param destination the config where to put the data
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(File file, D destination) {
-		try (Reader reader = new BufferedReader(
-				new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-			parse(reader, destination);
+	default void parse(File file, D destination, ParsingMode parsingMode,
+					   FileNotFoundAction nefAction, Charset charset) {
+		try {
+			if (!file.exists() && !nefAction.run(file)) {
+				return;
+			}
+			try (Reader reader = new BufferedReader(
+					new InputStreamReader(new FileInputStream(file), charset))) {
+				parse(reader, destination, parsingMode);
+			}
 		} catch (IOException e) {
 			throw new WritingException("An I/O error occured", e);
 		}
+	}
+
+	/**
+	 * Parses a configuration with the UTF-8 charset.
+	 *
+	 * @param file        the file to parse
+	 * @param destination the config where to put the data
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(File file, D destination, ParsingMode parsingMode,
+					   FileNotFoundAction nefAction) {
+		parse(file, destination, parsingMode, nefAction, StandardCharsets.UTF_8);
 	}
 
 	/**
@@ -153,7 +194,7 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param destination the config where to put the data
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(URL url, D destination) {
+	default void parse(URL url, D destination, ParsingMode parsingMode) {
 		URLConnection connection;
 		try {
 			connection = url.openConnection();
@@ -163,7 +204,7 @@ public interface ConfigParser<C extends D, D extends Config> {
 		String encoding = connection.getContentEncoding();
 		Charset charset = (encoding == null) ? StandardCharsets.UTF_8 : Charset.forName(encoding);
 		try (Reader reader = new BufferedReader(new InputStreamReader(url.openStream(), charset))) {
-			parse(reader, destination);
+			parse(reader, destination, parsingMode);
 		} catch (IOException e) {
 			throw new WritingException("An I/O error occured", e);
 		}

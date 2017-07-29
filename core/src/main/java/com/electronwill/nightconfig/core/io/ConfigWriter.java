@@ -35,9 +35,20 @@ public interface ConfigWriter<T extends UnmodifiableConfig> {
 	 * @param output the output to write it to
 	 * @throws WritingException if an error occurs
 	 */
-	default void write(T config, OutputStream output) {
-		Writer writer = new BufferedWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8));
+	default void write(T config, OutputStream output, Charset charset) {
+		Writer writer = new BufferedWriter(new OutputStreamWriter(output, charset));
 		write(config, writer);
+	}
+
+	/**
+	 * Writes a configuration.
+	 *
+	 * @param config the config to write
+	 * @param output the output to write it to
+	 * @throws WritingException if an error occurs
+	 */
+	default void write(T config, OutputStream output) {
+		write(config, output, StandardCharsets.UTF_8);
 	}
 
 	/**
@@ -48,8 +59,8 @@ public interface ConfigWriter<T extends UnmodifiableConfig> {
 	 * @param file   the file to write it to
 	 * @throws WritingException if an error occurs
 	 */
-	default void write(T config, File file) {
-		write(config, file, false);
+	default void write(T config, File file, WritingMode writingMode) {
+		write(config, file, writingMode, StandardCharsets.UTF_8);
 	}
 
 	/**
@@ -57,14 +68,12 @@ public interface ConfigWriter<T extends UnmodifiableConfig> {
 	 *
 	 * @param config the config to write
 	 * @param file   the file to write it to
-	 * @param append {@code true} to write to the end of the file, {@code false} to
-	 *               write to the beginning (which overwrites the file)
 	 * @throws WritingException if an error occurs
 	 */
-	default void write(T config, File file, boolean append) {
+	default void write(T config, File file, WritingMode writingMode, Charset charset) {
+		boolean append = (writingMode == WritingMode.APPEND);
 		try (Writer writer = new BufferedWriter(
-				new OutputStreamWriter(new FileOutputStream(file, append),
-									   StandardCharsets.UTF_8))) {
+				new OutputStreamWriter(new FileOutputStream(file, append), charset))) {
 			write(config, writer);
 		} catch (IOException e) {
 			throw new WritingException("An I/O error occured", e);
