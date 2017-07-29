@@ -113,7 +113,7 @@ public final class ObjectBinder {
 		final BoundConfig boundConfig = new BoundConfig(object, configFormat, bypassFinal);
 		for (Field field : clazz.getDeclaredFields()) {
 			final int fieldModifiers = field.getModifiers();
-			if(object == null && Modifier.isStatic(fieldModifiers)) {
+			if (object == null && Modifier.isStatic(fieldModifiers)) {
 				continue;// Don't process static fields of object instances
 			}
 			if (!bypassTransient && Modifier.isTransient(fieldModifiers)) {
@@ -249,6 +249,11 @@ public final class ObjectBinder {
 				throw new UnsupportedOperationException(
 						"Cannot modify non-field elements of a bound config");
 			}
+		}
+
+		@Override
+		public void add(List<String> path, Object value) {
+			throw new UnsupportedOperationException("Cannot add elements to a bound config");
 		}
 
 		@Override
