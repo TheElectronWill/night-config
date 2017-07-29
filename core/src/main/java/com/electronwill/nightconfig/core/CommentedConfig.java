@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core;
 
 import com.electronwill.nightconfig.core.io.ConfigFormat;
+import com.electronwill.nightconfig.core.io.InMemoryCommentedFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -190,5 +191,14 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 		 * @return the previous comment, or {@code null} if none.
 		 */
 		String removeComment();
+	}
+
+	static CommentedConfig of(ConfigFormat<? extends CommentedConfig, ? super CommentedConfig, ? super
+			CommentedConfig> format) {
+		return new SimpleCommentedConfig(format);
+	}
+
+	static CommentedConfig inMemory() {
+		return new SimpleCommentedConfig(InMemoryCommentedFormat.defaultInstance());
 	}
 }

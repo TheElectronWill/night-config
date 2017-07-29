@@ -22,6 +22,14 @@ public interface FileConfig extends Config {
 	 * (Re)loads this config from the file. This method blocks until the read operation completes.
 	 */
 	void load();
+
+	static FileConfig of(File file,
+						 ConfigFormat<? extends Config, ? super Config, ? super Config> format) {
+		return builder(file, format).build();
 	}
 
+	static FileConfigBuilder<Config> builder(File file,
+											 ConfigFormat<? extends Config, ? super Config, ? super Config> format) {
+		return new FileConfigBuilder<>(file, format);
+	}
 }

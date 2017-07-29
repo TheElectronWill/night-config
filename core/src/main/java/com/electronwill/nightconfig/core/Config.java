@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core;
 
 import com.electronwill.nightconfig.core.io.ConfigFormat;
+import com.electronwill.nightconfig.core.io.InMemoryFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -160,5 +161,13 @@ public interface Config extends UnmodifiableConfig {
 		 * @return the previous value
 		 */
 		<T> T setValue(Object value);
+	}
+
+	static Config of(ConfigFormat<? extends Config, ? super Config, ? super Config> format) {
+		return new SimpleConfig(format);
+	}
+
+	static Config inMemory() {
+		return new SimpleConfig(InMemoryFormat.defaultInstance());
 	}
 }
