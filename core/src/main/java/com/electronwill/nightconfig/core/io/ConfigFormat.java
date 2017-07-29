@@ -43,7 +43,7 @@ public interface ConfigFormat<C extends D, D extends Config, W extends Unmodifia
 
 	/**
 	 * Checks if this format is in memory only and therefore cannot create writers nor parsers.
-	 * @return {@code true} iff this format is in memory only
+	 * @return {@code true} iff this format is only in memory.
 	 */
 	default boolean isInMemory() {
 		return false;
