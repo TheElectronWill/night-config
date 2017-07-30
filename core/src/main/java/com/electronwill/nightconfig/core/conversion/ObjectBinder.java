@@ -2,8 +2,8 @@ package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
-import com.electronwill.nightconfig.core.io.ConfigFormat;
-import com.electronwill.nightconfig.core.io.InMemoryFormat;
+import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.InMemoryFormat;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
 import java.lang.reflect.Field;

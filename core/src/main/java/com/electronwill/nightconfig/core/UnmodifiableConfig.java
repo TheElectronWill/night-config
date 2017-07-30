@@ -1,6 +1,5 @@
 package com.electronwill.nightconfig.core;
 
-import com.electronwill.nightconfig.core.io.ConfigFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

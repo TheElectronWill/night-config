@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.utils.FastStringReader;

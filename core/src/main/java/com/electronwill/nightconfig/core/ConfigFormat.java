@@ -1,7 +1,7 @@
-package com.electronwill.nightconfig.core.io;
+package com.electronwill.nightconfig.core;
 
-import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.io.ConfigParser;
+import com.electronwill.nightconfig.core.io.ConfigWriter;
 
 /**
  * @author TheElectronWill

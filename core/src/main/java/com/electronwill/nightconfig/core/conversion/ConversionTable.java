@@ -3,7 +3,7 @@ package com.electronwill.nightconfig.core.conversion;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import com.electronwill.nightconfig.core.io.ConfigFormat;
+import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
 import com.electronwill.nightconfig.core.utils.UnmodifiableConfigWrapper;

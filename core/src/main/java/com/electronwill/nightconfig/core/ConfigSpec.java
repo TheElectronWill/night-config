@@ -1,6 +1,5 @@
 package com.electronwill.nightconfig.core;
 
-import com.electronwill.nightconfig.core.io.InMemoryFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

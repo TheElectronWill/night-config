@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.io.ConfigFormat;
+import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import java.util.List;

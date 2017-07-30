@@ -1,7 +1,5 @@
 package com.electronwill.nightconfig.core;
 
-import com.electronwill.nightconfig.core.io.ConfigFormat;
-import com.electronwill.nightconfig.core.io.InMemoryFormat;
 
 /**
  * A simple configuration that allows the user to specify which types of value it supports.

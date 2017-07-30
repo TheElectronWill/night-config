@@ -2,7 +2,7 @@ package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import com.electronwill.nightconfig.core.io.ConfigFormat;
+import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import java.util.function.Predicate;

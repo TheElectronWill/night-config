@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.core.utils;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.io.ConfigFormat;
+import com.electronwill.nightconfig.core.ConfigFormat;
 import java.util.List;
 import java.util.Set;
 

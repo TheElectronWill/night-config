@@ -2,7 +2,7 @@ package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.SimpleConfig;
-import com.electronwill.nightconfig.core.io.InMemoryFormat;
+import com.electronwill.nightconfig.core.InMemoryFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
