@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core;
 
+import java.util.Map;
 
 /**
  * A simple configuration that allows the user to specify which types of value it supports.
@@ -20,6 +21,23 @@ public final class SimpleConfig extends AbstractConfig {
 	 * @param configFormat the config's format
 	 */
 	public SimpleConfig(ConfigFormat<?, ?, ?> configFormat) {
+		this.configFormat = configFormat;
+	}
+
+	/**
+	 * Creates a SimpleConfig with the specified data and the format {@link
+	 * InMemoryFormat#defaultInstance()}. The map is used as it is and isn't copied.
+	 */
+	public SimpleConfig(Map<String, Object> valueMap) {
+		this(valueMap, InMemoryFormat.defaultInstance());
+	}
+
+	/**
+	 * Creates a SimpleConfig with the specified data and format. The map is used as it is and
+	 * isn't copied.
+	 */
+	public SimpleConfig(Map<String, Object> valueMap, ConfigFormat<?, ?, ?> configFormat) {
+		super(valueMap);
 		this.configFormat = configFormat;
 	}
 
