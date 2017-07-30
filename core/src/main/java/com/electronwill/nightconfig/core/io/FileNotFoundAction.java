@@ -34,31 +34,31 @@ public interface FileNotFoundAction {
 		throw new NoSuchFileException(f.getAbsolutePath());
 	};
 
-	static FileNotFoundAction copyResource(URL resource) {
+	static FileNotFoundAction copyData(URL url) {
 		return f -> {
-			Files.copy(resource.openStream(), f.toPath());
+			Files.copy(url.openStream(), f.toPath());
 			return true;
 		};
 	}
 
-	static FileNotFoundAction copyResource(File resource) {
-		// copyResource(new FIS(resource)) isn't used here to avoid dealing with the exception
+	static FileNotFoundAction copyData(File file) {
+		// copyResource(new FIS(file)) isn't used here to avoid dealing with the exception
 		// declared by the FIS constructor
 		return f -> {
-			Files.copy(new FileInputStream(resource), f.toPath());
+			Files.copy(new FileInputStream(file), f.toPath());
 			return true;
 		};
 	}
 
-	static FileNotFoundAction copyResource(InputStream resource) {
+	static FileNotFoundAction copyData(InputStream data) {
 		return f -> {
-			Files.copy(resource, f.toPath());
+			Files.copy(data, f.toPath());
 			return true;
 		};
 	}
 
-	static FileNotFoundAction copyInnerResource(String resource) {
-		return copyResource(
-				FileNotFoundAction.class.getClassLoader().getResourceAsStream(resource));
+	static FileNotFoundAction copyResource(String resourcePath) {
+		return copyData(
+				FileNotFoundAction.class.getClassLoader().getResourceAsStream(resourcePath));
 	}
 }
