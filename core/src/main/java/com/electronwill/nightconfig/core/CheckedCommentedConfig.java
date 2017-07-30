@@ -10,7 +10,7 @@ import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
  *
  * @author TheElectronWill
  */
-public final class CheckedCommentedConfig extends CommentedConfigWrapper<CommentedConfig>
+class CheckedCommentedConfig extends CommentedConfigWrapper<CommentedConfig>
 		implements CommentedConfig {
 	/**
 	 * Creates a new CheckedConfig around a commented configuration.
@@ -19,11 +19,10 @@ public final class CheckedCommentedConfig extends CommentedConfigWrapper<Comment
 	 *
 	 * @param config the configuration to wrap
 	 */
-	public CheckedCommentedConfig(CommentedConfig config) {
+	CheckedCommentedConfig(CommentedConfig config) {
 		super(config);
 		config.valueMap().forEach((k, v) -> checkValue(v));
 		//The config might already contain some elements and we must be sure that they are all supported
-
 	}
 
 	@Override

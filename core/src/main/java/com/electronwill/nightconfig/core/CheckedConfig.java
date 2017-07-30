@@ -10,7 +10,7 @@ import com.electronwill.nightconfig.core.utils.ConfigWrapper;
  *
  * @author TheElectronWill
  */
-public final class CheckedConfig extends ConfigWrapper<Config> {
+class CheckedConfig extends ConfigWrapper<Config> {
 	/**
 	 * Creates a new CheckedConfig around a given configuration.
 	 * <p>
@@ -18,7 +18,7 @@ public final class CheckedConfig extends ConfigWrapper<Config> {
 	 *
 	 * @param config the configuration to wrap
 	 */
-	public CheckedConfig(Config config) {
+	CheckedConfig(Config config) {
 		super(config);
 		config.valueMap().forEach((k, v) -> checkValue(v));
 		//The config might already contain some elements and we must be sure that they are all supported
