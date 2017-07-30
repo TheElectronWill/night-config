@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.utils;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -39,5 +40,22 @@ final class TransformingMapEntry<K, InternalV, ExternalV> implements Map.Entry<K
 	@Override
 	public ExternalV setValue(ExternalV value) {
 		return readTransformation.apply(internalEntry.setValue(writeTransformation.apply(value)));
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == this) {
+			return true;
+		} else if (!(obj instanceof Map.Entry)) {
+			return false;
+		}
+		Map.Entry<?, ?> entry = (Map.Entry<?, ?>)obj;
+		return Objects.equals(getKey(), entry.getKey()) && Objects.equals(getValue(),
+																		  entry.getValue());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(getKey()) ^ Objects.hashCode(getValue());
 	}
 }
