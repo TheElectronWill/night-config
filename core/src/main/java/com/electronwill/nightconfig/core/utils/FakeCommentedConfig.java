@@ -68,10 +68,10 @@ public final class FakeCommentedConfig extends ConfigWrapper<Config> implements 
 	}
 
 	@Override
-	public void setComments(Map<String, CommentNode> comments) {}
+	public void putAllComments(Map<String, CommentNode> comments) {}
 
 	@Override
-	public void setComments(UnmodifiableCommentedConfig commentedConfig) {}
+	public void putAllComments(UnmodifiableCommentedConfig commentedConfig) {}
 
 	@Override
 	public Map<String, String> commentMap() {

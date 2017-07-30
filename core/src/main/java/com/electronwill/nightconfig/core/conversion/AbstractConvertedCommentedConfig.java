@@ -51,13 +51,13 @@ abstract class AbstractConvertedCommentedConfig<C extends CommentedConfig>
 	}
 
 	@Override
-	public void setComments(Map<String, CommentNode> comments) {
-		config.setComments(comments);
+	public void putAllComments(Map<String, CommentNode> comments) {
+		config.putAllComments(comments);
 	}
 
 	@Override
-	public void setComments(UnmodifiableCommentedConfig commentedConfig) {
-		config.setComments(commentedConfig);
+	public void putAllComments(UnmodifiableCommentedConfig commentedConfig) {
+		config.putAllComments(commentedConfig);
 	}
 
 	@Override

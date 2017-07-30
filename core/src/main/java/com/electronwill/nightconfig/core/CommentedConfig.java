@@ -57,12 +57,12 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	void clearComments();
 
 	/**
-	 * Sets the comments of the config to the content of the specified Map. The Map isn't
-	 * directly used, its content is copied.
+	 * Puts the comments in the given map to this config. Existing comments are replaced, missing
+	 * comments are created.
 	 *
 	 * @param comments the comments to set
 	 */
-	default void setComments(Map<String, CommentNode> comments) {
+	default void putAllComments(Map<String, CommentNode> comments) {
 		for (Map.Entry<String, CommentNode> entry : comments.entrySet()) {
 			String key = entry.getKey();
 			CommentNode node = entry.getValue();
@@ -73,17 +73,18 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 			Map<String, CommentNode> children = node.getChildren();
 			if (children != null) {
 				CommentedConfig config = get(Collections.singletonList(key));
-				config.setComments(children);
+				config.putAllComments(children);
 			}
 		}
 	}
 
 	/**
-	 * Copies the comments of a config to this config.
+	 * Puts the comments in the given config to this config. Existing comments are replaced, missing
+	 * comments are created.
 	 *
 	 * @param commentedConfig the config to copy its comments
 	 */
-	default void setComments(UnmodifiableCommentedConfig commentedConfig) {
+	default void putAllComments(UnmodifiableCommentedConfig commentedConfig) {
 		for (UnmodifiableCommentedConfig.Entry entry : commentedConfig.entrySet()) {
 			String key = entry.getKey();
 			String comment = entry.getComment();
@@ -93,7 +94,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 			Object value = entry.getValue();
 			if (value instanceof UnmodifiableCommentedConfig) {
 				CommentedConfig config = get(Collections.singletonList(key));
-				config.setComments((UnmodifiableCommentedConfig)value);
+				config.putAllComments((UnmodifiableCommentedConfig)value);
 			}
 
 		}
