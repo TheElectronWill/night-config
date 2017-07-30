@@ -30,6 +30,16 @@ public interface Config extends UnmodifiableConfig {
 	}
 
 	/**
+	 * Sets a config value.
+	 *
+	 * @param path  the value's path, each element of the list is a different part of the path.
+	 * @param value the value to set
+	 * @param <T>   the type of the old value
+	 * @return the old value if any, or {@code null}
+	 */
+	<T> T set(List<String> path, Object value);
+
+	/**
 	 * Adds a config value. The value is set iff there is no value associated with the given path.
 	 *
 	 * @param path  the value's path, each element of the list is a different part of the path.
@@ -46,16 +56,6 @@ public interface Config extends UnmodifiableConfig {
 	default void add(String path, Object value) {
 		add(split(path, '.'), value);
 	}
-
-	/**
-	 * Sets a config value.
-	 *
-	 * @param path  the value's path, each element of the list is a different part of the path.
-	 * @param value the value to set
-	 * @param <T>   the type of the old value
-	 * @return the old value if any, or {@code null}
-	 */
-	<T> T set(List<String> path, Object value);
 
 	/**
 	 * Removes a value from the config.
