@@ -191,12 +191,79 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 		String removeComment();
 	}
 
-	static CommentedConfig of(ConfigFormat<? extends CommentedConfig, ? super CommentedConfig, ? super
-			CommentedConfig> format) {
+	/**
+	 * Creates a CommentedConfig of the given format.
+	 *
+	 * @param format the config's format
+	 * @return a new empty config
+	 */
+	static CommentedConfig of(
+			ConfigFormat<? extends CommentedConfig, ? super CommentedConfig, ? super CommentedConfig> format) {
 		return new SimpleCommentedConfig(format);
 	}
 
+	/**
+	 * Creates a CommentedConfig with format {@link InMemoryFormat#defaultInstance()}.
+	 *
+	 * @return a new empty config
+	 */
 	static CommentedConfig inMemory() {
 		return new SimpleCommentedConfig(InMemoryCommentedFormat.defaultInstance());
+	}
+
+	/**
+	 * Creates a CommentedConfig backed by a Map. Any change to the map is reflected in the config
+	 * and vice-versa.
+	 *
+	 * @param map    the Map to use
+	 * @param format the config's format
+	 * @return a new config backed by the map
+	 */
+	static CommentedConfig wrap(Map<String, Object> map, ConfigFormat<?, ?, ?> format) {
+		return new SimpleCommentedConfig(map, format);
+	}
+
+	/**
+	 * Creates a new CommentedConfig with the content of the given config. The returned config will
+	 * have the same format as the copied config.
+	 *
+	 * @param config the config to copy
+	 * @return a copy of the config
+	 */
+	static CommentedConfig copy(UnmodifiableConfig config) {
+		return new SimpleCommentedConfig(config, config.configFormat());
+	}
+
+	/**
+	 * Creates a new CommentedConfig with the content of the given config.
+	 *
+	 * @param config the config to copy
+	 * @param format the config's format
+	 * @return a copy of the config
+	 */
+	static CommentedConfig copy(UnmodifiableConfig config, ConfigFormat<?, ?, ?> format) {
+		return new SimpleCommentedConfig(config, format);
+	}
+
+	/**
+	 * Creates a new CommentedConfig with the content of the given config. The returned config will
+	 * have the same format as the copied config.
+	 *
+	 * @param config the config to copy
+	 * @return a copy of the config
+	 */
+	static CommentedConfig copy(UnmodifiableCommentedConfig config) {
+		return new SimpleCommentedConfig(config, config.configFormat());
+	}
+
+	/**
+	 * Creates a new CommentedConfig with the content of the given config.
+	 *
+	 * @param config the config to copy
+	 * @param format the config's format
+	 * @return a copy of the config
+	 */
+	static CommentedConfig copy(UnmodifiableCommentedConfig config, ConfigFormat<?, ?, ?> format) {
+		return new SimpleCommentedConfig(config, format);
 	}
 }
