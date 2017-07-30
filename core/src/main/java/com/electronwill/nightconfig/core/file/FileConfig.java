@@ -26,7 +26,7 @@ public interface FileConfig extends Config {
 
 	@Override
 	default FileConfig checked() {
-		return null;
+		return new CheckedFileConfig(this);
 	}
 
 	static FileConfig of(File file,
