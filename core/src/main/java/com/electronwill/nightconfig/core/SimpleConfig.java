@@ -5,49 +5,25 @@ import java.util.Map;
 /**
  * A simple configuration that allows the user to specify which types of value it supports.
  */
-public final class SimpleConfig extends AbstractConfig {
+final class SimpleConfig extends AbstractConfig {
 	private final ConfigFormat<?, ?, ?> configFormat;
-
-	/**
-	 * Creates a SimpleConfig with the format {@link InMemoryFormat#defaultInstance()}
-	 */
-	public SimpleConfig() {
-		this(InMemoryFormat.defaultInstance());
-	}
 
 	/**
 	 * Creates a SimpleConfig with the specified format.
 	 *
 	 * @param configFormat the config's format
 	 */
-	public SimpleConfig(ConfigFormat<?, ?, ?> configFormat) {
+	SimpleConfig(ConfigFormat<?, ?, ?> configFormat) {
 		this.configFormat = configFormat;
-	}
-
-	/**
-	 * Creates a SimpleConfig with the specified data and the format {@link
-	 * InMemoryFormat#defaultInstance()}. The map is used as it is and isn't copied.
-	 */
-	public SimpleConfig(Map<String, Object> valueMap) {
-		this(valueMap, InMemoryFormat.defaultInstance());
 	}
 
 	/**
 	 * Creates a SimpleConfig with the specified data and format. The map is used as it is and
 	 * isn't copied.
 	 */
-	public SimpleConfig(Map<String, Object> valueMap, ConfigFormat<?, ?, ?> configFormat) {
+	SimpleConfig(Map<String, Object> valueMap, ConfigFormat<?, ?, ?> configFormat) {
 		super(valueMap);
 		this.configFormat = configFormat;
-	}
-
-	/**
-	 * Creates a SimpleConfig by copying a config. The format will be the one of the copied config.
-	 *
-	 * @param toCopy the config to copy
-	 */
-	public SimpleConfig(UnmodifiableConfig toCopy) {
-		this(toCopy, toCopy.configFormat());
 	}
 
 	/**
@@ -56,7 +32,7 @@ public final class SimpleConfig extends AbstractConfig {
 	 * @param toCopy       the config to copy
 	 * @param configFormat the config's format
 	 */
-	public SimpleConfig(UnmodifiableConfig toCopy, ConfigFormat<?, ?, ?> configFormat) {
+	SimpleConfig(UnmodifiableConfig toCopy, ConfigFormat<?, ?, ?> configFormat) {
 		super(toCopy);
 		this.configFormat = configFormat;
 	}
@@ -73,6 +49,6 @@ public final class SimpleConfig extends AbstractConfig {
 
 	@Override
 	public SimpleConfig clone() {
-		return new SimpleConfig(this);
+		return new SimpleConfig(this, configFormat);
 	}
 }
