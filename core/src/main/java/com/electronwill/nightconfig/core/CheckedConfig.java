@@ -1,7 +1,11 @@
 package com.electronwill.nightconfig.core;
 
-import com.electronwill.nightconfig.core.io.ConfigFormat;
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
+import com.electronwill.nightconfig.core.utils.TransformingMap;
+import com.electronwill.nightconfig.core.utils.TransformingSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A checker wrapped around a configuration. It checks that all the values put into the config are
@@ -30,8 +34,28 @@ class CheckedConfig extends ConfigWrapper<Config> {
 	}
 
 	@Override
+	public <T> T set(List<String> path, Object value) {
+		return super.set(path, checkedValue(value));
+	}
+
+	@Override
+	public void add(List<String> path, Object value) {
+		super.add(path, checkedValue(value));
+	}
+
+	@Override
+	public Map<String, Object> valueMap() {
+		return new TransformingMap<>(super.valueMap(), v -> v, this::checkedValue, o -> o);
+	}
+
+	@Override
+	public Set<? extends Config.Entry> entrySet() {
+		return new TransformingSet<>(super.entrySet(), v -> v, this::checkedValue, o -> o);
+	}
+
+	@Override
 	public String toString() {
-		return "CheckedConfig of " + config;
+		return "checked of " + config;
 	}
 
 	/**

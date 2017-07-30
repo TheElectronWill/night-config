@@ -1,7 +1,11 @@
 package com.electronwill.nightconfig.core;
 
-import com.electronwill.nightconfig.core.io.ConfigFormat;
 import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
+import com.electronwill.nightconfig.core.utils.TransformingMap;
+import com.electronwill.nightconfig.core.utils.TransformingSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A checker wrapped around a commented configuration. It checks that all the values put into the
@@ -23,6 +27,7 @@ class CheckedCommentedConfig extends CommentedConfigWrapper<CommentedConfig>
 		super(config);
 		config.valueMap().forEach((k, v) -> checkValue(v));
 		//The config might already contain some elements and we must be sure that they are all supported
+
 	}
 
 	@Override
@@ -31,8 +36,28 @@ class CheckedCommentedConfig extends CommentedConfigWrapper<CommentedConfig>
 	}
 
 	@Override
+	public <T> T set(List<String> path, Object value) {
+		return super.set(path, checkedValue(value));
+	}
+
+	@Override
+	public void add(List<String> path, Object value) {
+		super.add(path, checkedValue(value));
+	}
+
+	@Override
+	public Map<String, Object> valueMap() {
+		return new TransformingMap<>(super.valueMap(), v -> v, this::checkedValue, o -> o);
+	}
+
+	@Override
+	public Set<? extends CommentedConfig.Entry> entrySet() {
+		return new TransformingSet<>(super.entrySet(), v -> v, this::checkedValue, o -> o);
+	}
+
+	@Override
 	public String toString() {
-		return "CheckedCommentedConfig of " + config;
+		return "checked " + config;
 	}
 
 	/**
