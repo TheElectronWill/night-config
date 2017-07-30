@@ -11,7 +11,20 @@ import java.nio.file.NoSuchFileException;
 /**
  * @author TheElectronWill
  */
+@FunctionalInterface
 public interface FileNotFoundAction {
+	/**
+	 * Performs the action.
+	 *
+	 * @return {@code true} to parse the file, {@code false} to stop after the action's execution
+	 * (thus making the config empty)
+	 *
+	 * @throws IOException if an IO error occurs
+	 */
+	boolean run(File file) throws IOException;
+
+	// --- Static members ---
+
 	FileNotFoundAction CREATE_EMPTY = f -> {
 		f.createNewFile();
 		return false;
@@ -48,14 +61,4 @@ public interface FileNotFoundAction {
 		return copyResource(
 				FileNotFoundAction.class.getClassLoader().getResourceAsStream(resource));
 	}
-
-	/**
-	 * Performs the action.
-	 *
-	 * @return {@code true} to parse the file, {@code false} to stop after the action's execution
-	 * (thus making the config empty)
-	 *
-	 * @throws IOException if an IO error occurs
-	 */
-	boolean run(File file) throws IOException;
 }
