@@ -54,6 +54,10 @@ public class FileConfigBuilder<C extends Config> {
 		return this;
 	}
 
+	public FileConfigBuilder<C> defaultResource(String resourcePath) {
+		return onFileNotFound(FileNotFoundAction.copyResource(resourcePath));
+	}
+
 	public FileConfigBuilder<C> sync() {
 		sync = true;
 		return this;
