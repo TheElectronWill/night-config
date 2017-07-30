@@ -1,6 +1,12 @@
-package com.electronwill.nightconfig.core.io;
+package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.io.CharsWrapper;
+import com.electronwill.nightconfig.core.io.ConfigParser;
+import com.electronwill.nightconfig.core.io.ConfigWriter;
+import com.electronwill.nightconfig.core.io.ParsingMode;
+import com.electronwill.nightconfig.core.io.WritingException;
+import com.electronwill.nightconfig.core.io.WritingMode;
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 import java.io.File;
 import java.io.IOException;

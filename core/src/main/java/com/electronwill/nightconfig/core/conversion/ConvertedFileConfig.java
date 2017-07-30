@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.core.conversion;
 
-import com.electronwill.nightconfig.core.io.FileConfig;
+import com.electronwill.nightconfig.core.file.FileConfig;
 import java.io.File;
 import java.util.function.Function;
 import java.util.function.Predicate;

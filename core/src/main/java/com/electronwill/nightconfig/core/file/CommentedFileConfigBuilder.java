@@ -1,6 +1,9 @@
-package com.electronwill.nightconfig.core.io;
+package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.io.ConfigFormat;
+import com.electronwill.nightconfig.core.io.ConfigParser;
+import com.electronwill.nightconfig.core.io.ConfigWriter;
 import java.io.File;
 
 /**

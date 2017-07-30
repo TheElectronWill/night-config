@@ -1,11 +1,8 @@
-package com.electronwill.nightconfig.core.io;
+package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.SimpleConfig;
 import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
 import java.io.File;
-import java.nio.charset.Charset;
 
 /**
  * @author TheElectronWill

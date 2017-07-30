@@ -1,6 +1,7 @@
-package com.electronwill.nightconfig.core.io;
+package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.io.ConfigFormat;
 import java.io.File;
 
 /**
@@ -22,6 +23,11 @@ public interface FileConfig extends Config {
 	 * (Re)loads this config from the file. This method blocks until the read operation completes.
 	 */
 	void load();
+
+	@Override
+	default FileConfig checked() {
+		return null;
+	}
 
 	static FileConfig of(File file,
 						 ConfigFormat<? extends Config, ? super Config, ? super Config> format) {

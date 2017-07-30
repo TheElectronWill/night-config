@@ -1,4 +1,4 @@
-package com.electronwill.nightconfig.core.io;
+package com.electronwill.nightconfig.core.file;
 
 import java.io.IOException;
 import java.nio.file.Path;

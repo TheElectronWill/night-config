@@ -1,4 +1,4 @@
-package com.electronwill.nightconfig.core.io;
+package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 import com.electronwill.nightconfig.core.utils.ObservedMap;
