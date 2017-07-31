@@ -8,13 +8,25 @@ import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 
 /**
+ * Represents the Hocon config format.
+ *
  * @author TheElectronWill
  */
 public final class HoconFormat implements ConfigFormat<CommentedConfig, Config, UnmodifiableConfig> {
 	private static final HoconFormat INSTANCE = new HoconFormat();
 
+	/**
+	 * @return the unique instance of HoconFormat
+	 */
 	public static HoconFormat instance() {
 		return INSTANCE;
+	}
+
+	/**
+	 * @return a new config with the hocon format
+	 */
+	public static CommentedConfig newConfig() {
+		return INSTANCE.createConfig();
 	}
 
 	private HoconFormat() {}
