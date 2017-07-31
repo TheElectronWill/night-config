@@ -1,9 +1,9 @@
 package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.SimpleConfig;
-import com.electronwill.nightconfig.core.io.FileConfig;
+import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.io.IndentStyle;
+import com.electronwill.nightconfig.core.io.WritingMode;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -19,43 +19,45 @@ import org.junit.jupiter.api.Test;
  * @author TheElectronWill
  */
 public class JsonConfigTest {
-	private final FileConfig config = new JsonConfig();
+	private final Config config = JsonFormat.minimalInstance().createConfig();
 
 	{
-		Config config2 = new SimpleConfig();
+		Config config2 = Config.inMemory();
 		config2.set("boolean", true);
 		config2.set("false", false);
 
-		config.setValue("string",
+		config.set("string",
 						"This is a string with a lot of characters to escape \n\r\t \\ \" ");
-		config.setValue("int", 123456);
-		config.setValue("long", 1234567890l);
-		config.setValue("float", 0.123456f);
-		config.setValue("double", 0.123456d);
-		config.setValue("config", config2);
-		config.setValue("list", Arrays.asList("a", "b", 3, null, true, false, 17.5));
-		config.setValue("null", null);
+		config.set("int", 123456);
+		config.set("long", 1234567890l);
+		config.set("float", 0.123456f);
+		config.set("double", 0.123456d);
+		config.set("config", config2);
+		config.set("list", Arrays.asList("a", "b", 3, null, true, false, 17.5));
+		config.set("null", null);
 	}
 
 	private final File file = new File("test.json");
 
 	@Test
 	public void testWriteThenRead() throws IOException {
-		config.write(file);
-		JsonConfig read = new JsonConfig();
-		read.parse(file);
+		FancyJsonWriter writer = new FancyJsonWriter();
+		writer.write(config, file, WritingMode.REPLACE);
+
+		Config read = new JsonParser().parse(file, FileNotFoundAction.THROW_ERROR);
+
 		System.out.println("config: " + config);
 		System.out.println("read: " + read);
 	}
 
 	@Test
 	public void testWrite() throws IOException {
-		config.write(file);
+		new FancyJsonWriter().write(config, file, WritingMode.REPLACE);
 	}
 
 	@Test
 	public void testRead() throws IOException {
-		config.parse(file);
+		new JsonParser().parse(file, FileNotFoundAction.READ_NOTHING);
 		System.out.println(config);
 	}
 
