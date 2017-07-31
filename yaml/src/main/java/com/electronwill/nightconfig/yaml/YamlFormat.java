@@ -1,14 +1,12 @@
 package com.electronwill.nightconfig.yaml;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import java.util.List;
 import java.util.Set;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -18,12 +16,28 @@ public final class YamlFormat implements ConfigFormat<Config, Config, Unmodifiab
 	private static final ThreadLocal<YamlFormat> LOCAL_DEFAULT_FORMAT = ThreadLocal.withInitial(
 			() -> new YamlFormat(new Yaml()));
 
+	/**
+	 * @return the default instance of HoconFormat
+	 */
 	public static YamlFormat defaultInstance() {
 		return LOCAL_DEFAULT_FORMAT.get();
 	}
 
+	/**
+	 * Creates an instance of YamlFormat, set with the specified Yaml object.
+	 *
+	 * @param yaml the Yaml object to use
+	 * @return a new instance of YamlFormat
+	 */
 	public static YamlFormat configuredInstance(Yaml yaml) {
 		return new YamlFormat(yaml);
+	}
+
+	/**
+	 * @return a new config with the format {@link YamlFormat#defaultInstance()}.
+	 */
+	public static Config newConfig() {
+		return defaultInstance().createConfig();
 	}
 
 	final Yaml yaml;
