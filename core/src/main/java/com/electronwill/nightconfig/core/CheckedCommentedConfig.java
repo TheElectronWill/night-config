@@ -52,7 +52,7 @@ class CheckedCommentedConfig extends CommentedConfigWrapper<CommentedConfig>
 
 	@Override
 	public Set<? extends CommentedConfig.Entry> entrySet() {
-		return new TransformingSet<>(super.entrySet(), v -> v, this::checkedValue, o -> o);
+		return new TransformingSet<>((Set<CommentedConfig.Entry>)super.entrySet(), v -> v, this::checkedValue, o -> o);
 	}
 
 	@Override

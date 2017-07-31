@@ -62,7 +62,7 @@ class CheckedFileConfig extends ConfigWrapper<FileConfig> implements FileConfig 
 
 	@Override
 	public Set<? extends Config.Entry> entrySet() {
-		return new TransformingSet<>(super.entrySet(), v -> v, this::checkedValue, o -> o);
+		return new TransformingSet<>((Set<Config.Entry>)super.entrySet(), v -> v, this::checkedValue, o -> o);
 	}
 
 	@Override
