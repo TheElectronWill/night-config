@@ -1,5 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
+import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import java.io.File;
 import java.io.StringReader;
@@ -23,14 +25,14 @@ public class TomlParserTest {
 
 	private static void parseAndPrint(String tomlString) {
 		TomlParser parser = new TomlParser();
-		TomlConfig parsed = parser.parse(new StringReader(tomlString));
+		CommentedConfig parsed = parser.parse(new StringReader(tomlString));
 		System.out.println("parsed: " + parsed);
 	}
 
 	@Test
 	public void readWriteReadAgain() {
 		File file = new File("test.toml");
-		TomlConfig parsed = new TomlParser().parse(file);
+		CommentedConfig parsed = new TomlParser().parse(file, FileNotFoundAction.THROW_ERROR);
 
 		System.out.println("--- parsed --- \n" + parsed);
 		System.out.println("--------------------------------------------");
@@ -40,7 +42,7 @@ public class TomlParserTest {
 		System.out.println("--- written --- \n" + sw);
 		System.out.println("--------------------------------------------");
 
-		TomlConfig reparsed = new TomlParser().parse(new StringReader(sw.toString()));
+		CommentedConfig reparsed = new TomlParser().parse(new StringReader(sw.toString()));
 		System.out.println("--- reparsed --- \n" + reparsed);
 		assertEquals(parsed, reparsed);
 	}

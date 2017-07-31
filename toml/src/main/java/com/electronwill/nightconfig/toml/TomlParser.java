@@ -2,10 +2,13 @@ package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.CharacterInput;
 import com.electronwill.nightconfig.core.io.CharsWrapper;
+import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ParsingException;
+import com.electronwill.nightconfig.core.io.ParsingMode;
 import com.electronwill.nightconfig.core.io.ReaderInput;
 import com.electronwill.nightconfig.core.utils.FakeCommentedConfig;
 import java.io.Reader;
@@ -20,19 +23,19 @@ import java.util.Map;
  * @author TheElectronWill
  * @see <a href="https://github.com/toml-lang/toml">TOML specification</a>
  */
-public final class TomlParser implements ConfigParser<TomlConfig, Config> {
+public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 	// --- Parser's settings ---
 	private int initialStringBuilderCapacity = 16, initialListCapacity = 10;
 	private boolean lenientBareKeys = false;
 
 	// --- Parser's methods ---
 	@Override
-	public TomlConfig parse(Reader reader) {
-		return parse(new ReaderInput(reader), new TomlConfig());
+	public CommentedConfig parse(Reader reader) {
+		return parse(new ReaderInput(reader), TomlFormat.instance().createConfig());
 	}
 
 	@Override
-	public void parse(Reader reader, Config destination) {
+	public void parse(Reader reader, Config destination, ParsingMode mode) {
 		parse(new ReaderInput(reader), destination);
 	}
 
@@ -59,8 +62,8 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 					throw new ParsingException("Cannot create entry " + path + " because of an invalid " +
 						"parent that isn't a table.");
 				}
-				TomlConfig table = TableParser.parseNormal(input, this);
-				List<TomlConfig> arrayOfTables = (List)parentMap.get(lastKey);
+				CommentedConfig table = TableParser.parseNormal(input, this);
+				List<CommentedConfig> arrayOfTables = (List)parentMap.get(lastKey);
 				if (arrayOfTables == null) {
 					arrayOfTables = createList();
 					parentMap.put(lastKey, arrayOfTables);
@@ -73,7 +76,7 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 				}
 				Object alreadyDeclared = parentMap.get(lastKey);
 				if (alreadyDeclared == null) {
-					TomlConfig table = TableParser.parseNormal(input, this);
+					CommentedConfig table = TableParser.parseNormal(input, this);
 					parentMap.put(lastKey, table);
 				} else {
 					if (alreadyDeclared instanceof Config) {
@@ -98,7 +101,7 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 		for (String key : path) {
 			Object value = currentMap.get(key);
 			if (value == null) {
-				Config sub = new TomlConfig();
+				Config sub = TomlFormat.instance().createConfig();
 				currentMap.put(key, sub);
 				currentMap = sub.valueMap();
 			} else if (value instanceof Config) {
@@ -144,6 +147,11 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 	public TomlParser setInitialListCapacity(int initialListCapacity) {
 		this.initialListCapacity = initialListCapacity;
 		return this;
+	}
+
+	@Override
+	public ConfigFormat<CommentedConfig, Config, ?> getFormat() {
+		return TomlFormat.instance();
 	}
 
 	// --- Configured objects creation ---

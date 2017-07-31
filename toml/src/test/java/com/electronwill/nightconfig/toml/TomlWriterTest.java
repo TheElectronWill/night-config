@@ -16,17 +16,17 @@ public class TomlWriterTest {
 
 	@Test
 	public void writeToString() throws IOException {
-		Config subConfig = new TomlConfig();
+		Config subConfig = TomlFormat.instance().createConfig();
 		subConfig.set("string", "test");
 		subConfig.set("dateTime", ZonedDateTime.now());
-		subConfig.set("sub", new TomlConfig());
+		subConfig.set("sub", TomlFormat.instance().createConfig());
 
 		List<Config> tableArray = new ArrayList<>();
 		tableArray.add(subConfig);
 		tableArray.add(subConfig);
 		tableArray.add(subConfig);
 
-		Config config = new TomlConfig();
+		Config config = TomlFormat.instance().createConfig();
 		config.set("string", "\"value\"");
 		config.set("integer", 2);
 		config.set("long", 123456789L);

@@ -17,8 +17,8 @@ final class TableParser {
 
 	private static final char[] KEY_END = {'\t', ' ', '=', '.', '\n', '\r', ']'};
 
-	static TomlConfig parseInline(CharacterInput input, TomlParser parser) {
-		TomlConfig config = new TomlConfig();
+	static CommentedConfig parseInline(CharacterInput input, TomlParser parser) {
+		CommentedConfig config = TomlFormat.instance().createConfig();
 		while (true) {
 			char keyFirst = Toml.readNonSpaceChar(input, false);
 			if (keyFirst == '}') {
@@ -95,8 +95,8 @@ final class TableParser {
 		}
 	}
 
-	static TomlConfig parseNormal(CharacterInput input, TomlParser parser) {
-		return parseNormal(input, parser, new TomlConfig());
+	static CommentedConfig parseNormal(CharacterInput input, TomlParser parser) {
+		return parseNormal(input, parser, TomlFormat.instance().createConfig());
 	}
 
 	static List<String> parseTableName(CharacterInput input, TomlParser parser, boolean array) {
@@ -160,7 +160,7 @@ final class TableParser {
 			if (bareKey.isEmpty()) {
 				throw new ParsingException("Empty bare keys aren't allowed.");
 			}
-			if(!Toml.isValidBareKey(bareKey, parser.isLenientWithBareKeys())) {
+			if (!Toml.isValidBareKey(bareKey, parser.isLenientWithBareKeys())) {
 				throw new ParsingException("Invalid bare key: " + bareKey);
 			}
 			return bareKey;
