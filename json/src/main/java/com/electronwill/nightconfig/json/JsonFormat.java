@@ -35,12 +35,25 @@ public abstract class JsonFormat<W extends ConfigWriter<UnmodifiableConfig>>
 		}
 	};
 
+	/**
+	 * @return the unique instance of JsonFormat that creates FancyJsonWriters.
+	 */
 	public static JsonFormat<FancyJsonWriter> fancyInstance() {
 		return FANCY;
 	}
 
+	/**
+	 * @return the unique instance of JsonFormat that creates MinimalJsonWriters.
+	 */
 	public static JsonFormat<MinimalJsonWriter> minimalInstance() {
 		return MINIMAL;
+	}
+
+	/**
+	 * @return a new config with the format {@link JsonFormat#fancyInstance()}.
+	 */
+	public static Config newConfig() {
+		return FANCY.createConfig();
 	}
 
 	private JsonFormat() {}
