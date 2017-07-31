@@ -14,7 +14,7 @@ public class AbstractConfigTest {
 
 	@Test
 	public void basicTest() {
-		AbstractConfig config = new SimpleConfig();
+		Config config = Config.inMemory();
 		config.set("true", true);
 		config.set("false", false);
 		assert config.<Boolean>get("true");

@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.SimpleConfig;
 import com.electronwill.nightconfig.core.InMemoryFormat;
 import com.electronwill.nightconfig.core.utils.StringUtils;
 import java.util.Arrays;
@@ -16,7 +15,7 @@ public class ObjectConverterTest2 {
 	@Test
 	public void testSupportBasic() throws Exception {
 		ObjectConverter converter = new ObjectConverter();
-		Config config = new SimpleConfig();
+		Config config = Config.inMemory();
 		MyObject object = new MyObject();
 		converter.toConfig(object, config);
 
@@ -42,7 +41,7 @@ public class ObjectConverterTest2 {
 	@Test
 	public void testSupportAll() throws Exception {
 		ObjectConverter converter = new ObjectConverter();
-		Config config = new SimpleConfig(InMemoryFormat.withUniversalSupport());
+		Config config = InMemoryFormat.withUniversalSupport().createConfig();
 		MyObject object = new MyObject();
 		converter.toConfig(object, config);
 
@@ -63,7 +62,7 @@ public class ObjectConverterTest2 {
 		double decimal = Math.PI;
 		String string = "value";
 		List<String> stringList = Arrays.asList("a", "b", "c");
-		Config config = new SimpleConfig(InMemoryFormat.withUniversalSupport());
+		Config config = InMemoryFormat.withUniversalSupport().createConfig();
 		MyObject subObject;
 
 		@Conversion(CoordinatesConverter.class)

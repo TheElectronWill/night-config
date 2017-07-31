@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 /**
  * @author TheElectronWill
  */
-public final class InMemoryFormat implements ConfigFormat<SimpleConfig, Config, Config> {
+public final class InMemoryFormat implements ConfigFormat<Config, Config, Config> {
 	static final Predicate<Class<?>> DEFAULT_PREDICATE = type -> type.isPrimitive()
 																 || type == Integer.class
 																 || type == Long.class
@@ -47,14 +47,14 @@ public final class InMemoryFormat implements ConfigFormat<SimpleConfig, Config, 
 	}
 
 	@Override
-	public ConfigParser<SimpleConfig, Config> createParser() {
+	public ConfigParser<Config, Config> createParser() {
 		throw new UnsupportedOperationException(
 				"In memory configurations aren't mean to be " + "parsed.");
 	}
 
 	@Override
-	public SimpleConfig createConfig() {
-		return new SimpleConfig();
+	public Config createConfig() {
+		return Config.of(this);
 	}
 
 	@Override

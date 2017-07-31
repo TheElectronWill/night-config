@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.SimpleConfig;
 import com.electronwill.nightconfig.core.InMemoryFormat;
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,9 +14,10 @@ public class ObjectConverterTest {
 
 	static final List<String> list1 = Arrays.asList("a", "b", "c");
 	static final List<String> list2 = Collections.singletonList("element");
-	static final Config config1 = new SimpleConfig(InMemoryFormat.withUniversalSupport()), config2 = new SimpleConfig();
+	static final Config config1 = InMemoryFormat.withUniversalSupport().createConfig();
+	static final Config config2 = Config.inMemory();
 
-	private final Config config = new SimpleConfig();
+	private final Config config = Config.inMemory();
 
 	{
 		config.set("integer", 1234568790);
@@ -37,7 +37,7 @@ public class ObjectConverterTest {
 	public void configToObjectToConfig() throws Exception {
 		ObjectConverter converter = new ObjectConverter();
 		MyObject object = converter.toObject(config, MyObject::new);
-		Config myConfig = new SimpleConfig();
+		Config myConfig = Config.inMemory();
 		converter.toConfig(object, myConfig);
 
 		System.out.println("Original config: " + config);

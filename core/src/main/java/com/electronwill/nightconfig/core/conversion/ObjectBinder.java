@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.SimpleConfig;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.InMemoryFormat;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
@@ -98,7 +97,7 @@ public final class ObjectBinder {
 		BoundConfig boundConfig = createBoundConfig(object, clazz, configFormat);
 		List<String> annotatedPath = AnnotationUtils.getPath(clazz);
 		if (annotatedPath != null) {
-			Config parentConfig = new SimpleConfig(configFormat);
+			Config parentConfig = configFormat.createConfig();
 			parentConfig.set(annotatedPath, boundConfig);
 			return parentConfig;
 		}
@@ -265,7 +264,7 @@ public final class ObjectBinder {
 				return (T)searchResult.fieldInfos.removeValue(searchResult.parentConfig.object,
 															  bypassFinal);
 			} else {
-				SimpleConfig copy = new SimpleConfig(searchResult.subConfig);
+				Config copy = Config.copy(searchResult.subConfig);
 				searchResult.subConfig.clear();
 				return (T)copy;
 			}

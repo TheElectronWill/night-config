@@ -8,7 +8,7 @@ import java.util.function.Predicate;
  * @author TheElectronWill
  */
 public class InMemoryCommentedFormat
-		implements ConfigFormat<SimpleCommentedConfig, Config, Config> {
+		implements ConfigFormat<CommentedConfig, Config, Config> {
 	private static final InMemoryCommentedFormat DEFAULT_INSTANCE = new InMemoryCommentedFormat(
 			InMemoryFormat.DEFAULT_PREDICATE);
 
@@ -33,14 +33,14 @@ public class InMemoryCommentedFormat
 	}
 
 	@Override
-	public ConfigParser<SimpleCommentedConfig, Config> createParser() {
+	public ConfigParser<CommentedConfig, Config> createParser() {
 		throw new UnsupportedOperationException(
 				"In memory configurations aren't mean to be " + "parsed.");
 	}
 
 	@Override
-	public SimpleCommentedConfig createConfig() {
-		return new SimpleCommentedConfig();
+	public CommentedConfig createConfig() {
+		return CommentedConfig.of(this);
 	}
 
 	@Override

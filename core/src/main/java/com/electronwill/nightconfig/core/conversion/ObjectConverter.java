@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.SimpleConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -146,7 +145,7 @@ public final class ObjectConverter {
 			List<String> path = AnnotationUtils.getPath(field);
 			if (value != null && (!destination.configFormat().supportsType(value.getClass())
 								  || field.isAnnotationPresent(ForceBreakdown.class))) {
-				Config subConfig = new SimpleConfig(destination.configFormat());
+				Config subConfig = destination.configFormat().createConfig();
 				convertToConfig(value, field.getType(), subConfig);// Writes as a subconfig
 				destination.set(path, subConfig);
 			} else {

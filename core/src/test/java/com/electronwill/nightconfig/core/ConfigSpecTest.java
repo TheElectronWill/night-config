@@ -20,7 +20,7 @@ class ConfigSpecTest {
 		spec.defineList("a.list", Arrays.asList("1", "2"), element -> element instanceof String);
 
 		{
-			Config config = new SimpleConfig();
+			Config config = Config.inMemory();
 			config.set("a.i", 256);
 			config.set("a.l", 1234567890);
 			config.set("a.f", 12f);
@@ -36,7 +36,7 @@ class ConfigSpecTest {
 		}
 
 		{
-			Config config = new SimpleConfig();
+			Config config = Config.inMemory();
 			config.set("a.i", 18);
 			config.set("a.l", 18);
 			config.set("a.f", 0.15f);
