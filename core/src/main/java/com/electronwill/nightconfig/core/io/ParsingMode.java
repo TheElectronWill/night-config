@@ -16,6 +16,7 @@ public enum ParsingMode {
 
 	/**
 	 * Merges the parsed config with the existing one: the parsed values are prioritary.
+	 * This mode performs a shallow merge, not a deep one.
 	 */
 	MERGE(c -> {}, Config::set),
 
