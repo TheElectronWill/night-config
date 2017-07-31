@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.hocon;
 
+import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -14,16 +15,16 @@ import org.junit.jupiter.api.Test;
 public class HoconWriterTest {
 	@Test
 	public void testWrite() throws IOException {
-		Config subConfig = new HoconConfig();
+		Config subConfig = CommentedConfig.inMemory();
 		subConfig.set("string", "test");
-		subConfig.set("sub", new HoconConfig());
+		subConfig.set("sub", CommentedConfig.inMemory());
 
 		List<Config> configList = new ArrayList<>();
 		configList.add(subConfig);
 		configList.add(subConfig);
 		configList.add(subConfig);
 
-		HoconConfig config = new HoconConfig();
+		CommentedConfig config = CommentedConfig.inMemory();
 		config.set("string", "\"value\"");
 		config.set("integer", 2);
 		config.set("long", 123456789L);

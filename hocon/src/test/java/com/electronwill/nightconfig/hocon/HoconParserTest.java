@@ -1,5 +1,7 @@
 package com.electronwill.nightconfig.hocon;
 
+import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -15,7 +17,7 @@ class HoconParserTest {
 	@Test
 	public void readWriteReadAgain() {
 		File file = new File("test.hocon");
-		HoconConfig parsed = new HoconParser().parse(file);
+		CommentedConfig parsed = new HoconParser().parse(file, FileNotFoundAction.THROW_ERROR);
 
 		System.out.println("--- parsed --- \n" + parsed);
 		System.out.println("--------------------------------------------");
@@ -25,7 +27,7 @@ class HoconParserTest {
 		System.out.println("--- written --- \n" + sw);
 		System.out.println("--------------------------------------------");
 
-		HoconConfig reparsed = new HoconParser().parse(new StringReader(sw.toString()));
+		CommentedConfig reparsed = new HoconParser().parse(new StringReader(sw.toString()));
 		System.out.println("--- reparsed --- \n" + reparsed);
 		assertEquals(parsed, reparsed);
 	}
