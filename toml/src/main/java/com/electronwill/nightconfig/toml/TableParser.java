@@ -29,9 +29,8 @@ final class TableParser {
 			checkInvalidSeparator(sep, key);
 
 			Object value = ValueParser.parse(input, parser);
-			Object previous = config.valueMap().putIfAbsent(key, value);/* bypasses path parsing (in
-																		order to be faster) */
-			checkDuplicateKey(key, previous);
+			Object previous = parser.getParsingMode().put(config.valueMap(), key, value);
+			checkDuplicateKey(key, previous, true);
 
 			char after = Toml.readNonSpaceChar(input, false);
 			if (after == '}') {
@@ -58,9 +57,8 @@ final class TableParser {
 			checkInvalidSeparator(sep, key);
 
 			Object value = ValueParser.parse(input, parser);
-			Object previous = config.valueMap().putIfAbsent(key, value);/* bypasses path parsing (in
-																		order to be faster) */
-			checkDuplicateKey(key, previous);
+			Object previous = parser.getParsingMode().put(config.valueMap(), key, value);
+			checkDuplicateKey(key, previous, parser.configWasEmpty());
 
 			int after = Toml.readNonSpace(input, false);
 			if (after == -1) {// End of the stream
@@ -82,8 +80,13 @@ final class TableParser {
 		}
 	}
 
-	private static void checkDuplicateKey(String key, Object previousValue) {
-		if (previousValue != null) {
+	private static void checkDuplicateKey(String key, Object previousValue, boolean emptyConfig) {
+		/*
+		If the config wasn't empty at the beginning of the parsing, there is no way to know if
+		previousValue isn't null because we parsed the data twice or because it was in the config
+		from the beginning.
+		 */
+		if (previousValue != null && emptyConfig) {
 			throw new ParsingException(
 					"Invalid TOML data: entry \"" + key + "\" defined twice" + " in its table.");
 		}

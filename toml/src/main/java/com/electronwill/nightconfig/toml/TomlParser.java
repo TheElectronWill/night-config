@@ -2,10 +2,9 @@ package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.io.CharacterInput;
 import com.electronwill.nightconfig.core.io.CharsWrapper;
-import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.ParsingMode;
@@ -19,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A configurable parser of TOML configurations.
+ * A configurable parser of TOML configurations. It is not thread-safe.
  *
  * @author TheElectronWill
  * @see <a href="https://github.com/toml-lang/toml">TOML specification</a>
@@ -28,19 +27,27 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 	// --- Parser's settings ---
 	private int initialStringBuilderCapacity = 16, initialListCapacity = 10;
 	private boolean lenientBareKeys = false;
+	private boolean configWasEmpty = false;
+	private ParsingMode parsingMode;
 
 	// --- Parser's methods ---
 	@Override
 	public CommentedConfig parse(Reader reader) {
-		return parse(new ReaderInput(reader), TomlFormat.instance().createConfig());
+		configWasEmpty = true;
+		return parse(new ReaderInput(reader), TomlFormat.instance().createConfig(), ParsingMode.MERGE);
 	}
 
 	@Override
-	public void parse(Reader reader, Config destination, ParsingMode mode) {
-		parse(new ReaderInput(reader), destination);
+	public void parse(Reader reader, Config destination, ParsingMode parsingMode) {
+		if(parsingMode == ParsingMode.REPLACE) {
+			configWasEmpty = true;
+		}
+		parse(new ReaderInput(reader), destination, parsingMode);
 	}
 
-	private <T extends Config> T parse(CharacterInput input, T destination) {
+	private <T extends Config> T parse(CharacterInput input, T destination, ParsingMode parsingMode) {
+		this.parsingMode = parsingMode;
+		parsingMode.prepareParsing(destination);
 		CommentedConfig commentedConfig = FakeCommentedConfig.getCommented(destination);
 		CommentedConfig rootTable = TableParser.parseNormal(input, this, commentedConfig);
 		int next;
@@ -56,11 +63,8 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 			final Config parentConfig = getSubTable(rootTable, parentPath);
 			final Map<String, Object> parentMap = (parentConfig != null) ? parentConfig.valueMap()
 																		 : null;
-
 			if (hasPendingComment()) {// Handles comments that are before the table declaration
 				String comment = consumeComment();
-				System.out.println("path: " + path);
-				System.out.println("comment: \"" + comment + "\"");
 				if (parentConfig instanceof CommentedConfig) {
 					List<String> lastPath = Collections.singletonList(lastKey);
 					((CommentedConfig)parentConfig).setComment(lastPath, comment);
@@ -97,7 +101,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 						checkContainsOnlySubtables(table, path);
 						CommentedConfig commentedTable = FakeCommentedConfig.getCommented(table);
 						TableParser.parseNormal(input, this, commentedTable);
-					} else {
+					} else if (configWasEmpty) {
 						throw new ParsingException("Entry " + path + " has been defined twice.");
 					}
 				}
@@ -123,7 +127,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 				List<?> list = (List<?>)value;
 				if (!list.isEmpty() && list.get(0) instanceof Config) {// Arrays of tables
 					int lastIndex = list.size() - 1;
-					currentConfig = ((Config)list.get(lastIndex));
+					currentConfig = (Config)list.get(lastIndex);
 				} else {
 					return null;
 				}
@@ -165,6 +169,14 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 	@Override
 	public ConfigFormat<CommentedConfig, Config, ?> getFormat() {
 		return TomlFormat.instance();
+	}
+
+	boolean configWasEmpty() {
+		return configWasEmpty;
+	}
+
+	ParsingMode getParsingMode() {
+		return parsingMode;
 	}
 
 	// --- Configured objects creation ---
