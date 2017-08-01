@@ -38,9 +38,8 @@ final class TableWriter {
 	}
 
 	static void writeNormal(UnmodifiableConfig config, List<String> configPath,
-									CharacterOutput output, TomlWriter writer) {
-		UnmodifiableCommentedConfig commentedConfig = FakeUnmodifiableCommentedConfig
-			.getCommented(config);
+							CharacterOutput output, TomlWriter writer) {
+		UnmodifiableCommentedConfig commentedConfig = FakeUnmodifiableCommentedConfig.getCommented(config);
 		writeNormal(commentedConfig, configPath, output, writer);
 	}
 
@@ -127,7 +126,7 @@ final class TableWriter {
 		output.write(begin);
 		Iterator<String> it = name.iterator();
 		writer.writeKey(it.next(), output);// Writes the first part
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			output.write('.');// part separator
 			writer.writeKey(it.next(), output);
 		}

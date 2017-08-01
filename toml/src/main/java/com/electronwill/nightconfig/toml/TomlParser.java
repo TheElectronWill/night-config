@@ -68,8 +68,10 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 			}
 			if (isArray) {// It's an element of an array of tables
 				if (parentMap == null) {
-					throw new ParsingException("Cannot create entry " + path + " because of an invalid " +
-						"parent that isn't a table.");
+					throw new ParsingException("Cannot create entry "
+											   + path
+											   + " because of an invalid "
+											   + "parent that isn't a table.");
 				}
 				CommentedConfig table = TableParser.parseNormal(input, this);
 				List<CommentedConfig> arrayOfTables = (List)parentMap.get(lastKey);
@@ -80,8 +82,10 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 				arrayOfTables.add(table);
 			} else {// It's a table
 				if (parentMap == null) {
-					throw new ParsingException("Cannot create entry " + path + " because of an invalid " +
-						"parent that isn't a table.");
+					throw new ParsingException("Cannot create entry "
+											   + path
+											   + " because of an invalid "
+											   + "parent that isn't a table.");
 				}
 				Object alreadyDeclared = parentMap.get(lastKey);
 				if (alreadyDeclared == null) {
@@ -186,8 +190,8 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 	}
 
 	void setComment(CharsWrapper comment) {
-		if(comment != null) {
-			if(currentComment == null) {
+		if (comment != null) {
+			if (currentComment == null) {
 				currentComment = comment.toString();
 			} else {
 				currentComment = currentComment + '\n' + comment.toString();
