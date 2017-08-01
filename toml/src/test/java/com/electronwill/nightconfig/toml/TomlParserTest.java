@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author TheElectronWill
@@ -36,6 +37,10 @@ public class TomlParserTest {
 
 		System.out.println("--- parsed --- \n" + parsed);
 		System.out.println("--------------------------------------------");
+		assertTrue(parsed.getComment("without_comment") == null);
+		assertTrue(parsed.getComment("with_comments") != null);
+		assertTrue(parsed.getComment("with_comments").contains("\n"));
+
 		java.io.StringWriter sw = new StringWriter();
 		TomlWriter writer = new TomlWriter();
 		writer.write(parsed, sw);

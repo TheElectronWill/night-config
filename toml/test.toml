@@ -26,8 +26,12 @@ literalMultiline= '''
 First line
 Second line'''
 
+without_comment = 'This value has no comment'
+# CommentA
+with_comments = 'This value has two comments' # CommentB
+
 # Comment above a table
-[table] #comment
+[table] # comment next to a table
     'key' = '"literal string"\n\t'
 [table.subTable.subDefinedFirst]
     test = 'this is valid TOML'
@@ -44,6 +48,7 @@ Second line'''
 [[array.ofTables]]
     a = true
 
+# Comment above an array of tables
 [[fruit]]
   name = "apple"
 
