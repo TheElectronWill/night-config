@@ -15,6 +15,7 @@ import java.nio.charset.Charset;
 final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> implements FileConfig {
 	private final File file;
 	private final Charset charset;
+	private boolean closed;
 
 	private final ConfigWriter<? super C> writer;
 	private final WritingMode writingMode;
@@ -43,11 +44,22 @@ final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> imple
 
 	@Override
 	public void save() {
+		if (closed) {
+			throw new IllegalStateException("Cannot save a closed FileConfig");
+		}
 		writer.write(config, file, writingMode, charset);
 	}
 
 	@Override
 	public void load() {
+		if (closed) {
+			throw new IllegalStateException("Cannot (re)load a closed FileConfig");
+		}
 		parser.parse(file, config, parsingMode, nefAction);
+	}
+
+	@Override
+	public void close() {
+		closed = true;
 	}
 }

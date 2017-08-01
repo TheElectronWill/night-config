@@ -30,4 +30,9 @@ class SimpleCommentedFileConfig extends CommentedConfigWrapper<CommentedConfig>
 	public void load() {
 		fileConfig.load();
 	}
+
+	@Override
+	public void close() {
+		fileConfig.close();
+	}
 }

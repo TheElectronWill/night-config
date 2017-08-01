@@ -43,6 +43,11 @@ class CheckedCommentedFileConfig extends CommentedConfigWrapper<CommentedFileCon
 	}
 
 	@Override
+	public void close() {
+		config.close();
+	}
+
+	@Override
 	public CommentedFileConfig checked() {
 		return this;
 	}

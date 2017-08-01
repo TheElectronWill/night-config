@@ -41,6 +41,11 @@ class CheckedFileConfig extends ConfigWrapper<FileConfig> implements FileConfig 
 	}
 
 	@Override
+	public void close() {
+		config.close();
+	}
+
+	@Override
 	public FileConfig checked() {
 		return this;
 	}

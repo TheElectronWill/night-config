@@ -28,6 +28,8 @@ import static java.nio.file.StandardOpenOption.WRITE;
 final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> implements FileConfig {
 	private final File file;
 	private final Charset charset;
+	private boolean closed;
+
 	/**
 	 * The channel used to write asynchronously to the file.
 	 */
@@ -78,7 +80,15 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 
 	@Override
 	public void save() {
+		if (closed) {
+			throw new IllegalStateException("Cannot save a closed FileConfig");
+		}
 		save(true);
+	}
+
+	@Override
+	public void close() {
+		closed = true;
 	}
 
 	private void save(boolean saveLaterIfWriting) {
@@ -107,6 +117,9 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 
 	@Override
 	public void load() {
+		if (closed) {
+			throw new IllegalStateException("Cannot (re)load a closed FileConfig");
+		}
 		parser.parse(file, config, parsingMode, nefAction);//blocking read, not async
 	}
 

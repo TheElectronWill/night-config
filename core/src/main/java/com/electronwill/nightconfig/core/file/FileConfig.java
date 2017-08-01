@@ -7,7 +7,7 @@ import java.io.File;
 /**
  * @author TheElectronWill
  */
-public interface FileConfig extends Config {
+public interface FileConfig extends Config, AutoCloseable {
 	/**
 	 * @return the config's file
 	 */
@@ -23,6 +23,14 @@ public interface FileConfig extends Config {
 	 * (Re)loads this config from the file. This method blocks until the read operation completes.
 	 */
 	void load();
+
+	/**
+	 * Closes this FileConfig and release its associated resources, if any. A closed FileConfig
+	 * can still be used via the Config's methods, but {@link #save()} and {@link #load()} will
+	 * throw an IllegalStateException. Closing an aleady closed FileConfig has no effect.
+	 */
+	@Override
+	void close();
 
 	@Override
 	default FileConfig checked() {
