@@ -7,6 +7,8 @@ import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.ParsingMode;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import java.io.Reader;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -50,7 +52,14 @@ public final class YamlParser implements ConfigParser<Config, Config> {
 	public void parse(Reader reader, Config destination, ParsingMode parsingMode) {
 		try {
 			Map<String, Object> wrappedMap = wrap(yaml.loadAs(reader, Map.class));
-			destination.valueMap().putAll(wrappedMap);
+			parsingMode.prepareParsing(destination);
+			if(parsingMode == ParsingMode.ADD) {
+				for (Map.Entry<String, Object> entry : wrappedMap.entrySet()) {
+					destination.valueMap().putIfAbsent(entry.getKey(), entry.getValue());
+				}
+			} else {
+				destination.valueMap().putAll(wrappedMap);
+			}
 		} catch (Exception e) {
 			throw new ParsingException("YAML parsing failed", e);
 		}
