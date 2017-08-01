@@ -119,7 +119,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 			Object value = currentConfig.valueMap().get(key);
 			if (value == null) {
 				Config sub = TomlFormat.instance().createConfig();
-				sub.valueMap().put(key, sub);
+				currentConfig.valueMap().put(key, sub);
 				currentConfig = sub;
 			} else if (value instanceof Config) {
 				currentConfig = (Config)value;
