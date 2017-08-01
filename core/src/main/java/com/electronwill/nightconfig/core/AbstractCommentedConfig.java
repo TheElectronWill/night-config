@@ -197,5 +197,12 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	@Override
 	public void clearComments() {
 		commentMap.clear();
+		// Recursively clears the comments of the subconfigs:
+		for (Object o : map.values()) {
+			if (o instanceof CommentedConfig) {
+				((CommentedConfig)o).clearComments();
+			}
+		}
+		//NB: The UnmodifiableCommentedConfigs cannot be cleared from their comments.
 	}
 }
