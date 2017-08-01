@@ -11,7 +11,7 @@ repositories {
 dependencies {
 	compile project(':core')
 	compile 'org.yaml:snakeyaml:1.18'
-	testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.0-M3'
+	testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.0-M4'
 }
 
 // Jar files
