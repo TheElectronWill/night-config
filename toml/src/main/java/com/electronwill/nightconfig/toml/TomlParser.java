@@ -10,6 +10,7 @@ import com.electronwill.nightconfig.core.io.ReaderInput;
 import com.electronwill.nightconfig.core.utils.FakeCommentedConfig;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -49,10 +50,18 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 			final int lastIndex = path.size() - 1;
 			final String lastKey = path.get(lastIndex);
 			final List<String> parentPath = path.subList(0, lastIndex);
-			final Map<String, Object> parentMap = getSubTableMap(rootTable, parentPath);
+			final Config parentConfig = getSubTable(rootTable, parentPath);
+			final Map<String, Object> parentMap = (parentConfig != null) ? parentConfig.valueMap()
+																		 : null;
 
 			if (hasPendingComment()) {// Handles comments that are before the table declaration
-				rootTable.setComment(path, consumeComment());
+				String comment = consumeComment();
+				System.out.println("path: " + path);
+				System.out.println("comment: \"" + comment + "\"");
+				if (parentConfig instanceof CommentedConfig) {
+					List<String> lastPath = Collections.singletonList(lastKey);
+					((CommentedConfig)parentConfig).setComment(lastPath, comment);
+				}
 			}
 			if (isArray) {// It's an element of an array of tables
 				if (parentMap == null) {
@@ -90,24 +99,24 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 		return destination;
 	}
 
-	private Map<String, Object> getSubTableMap(Config parentTable, List<String> path) {
+	private Config getSubTable(Config parentTable, List<String> path) {
 		if (path.isEmpty()) {
-			return parentTable.valueMap();
+			return parentTable;
 		}
-		Map<String, Object> currentMap = parentTable.valueMap();
+		Config currentConfig = parentTable;
 		for (String key : path) {
-			Object value = currentMap.get(key);
+			Object value = currentConfig.valueMap().get(key);
 			if (value == null) {
 				Config sub = new TomlConfig();
-				currentMap.put(key, sub);
-				currentMap = sub.valueMap();
+				currentConfig.valueMap().put(key, sub);
+				currentConfig = sub;
 			} else if (value instanceof Config) {
-				currentMap = ((Config)value).valueMap();
+				currentConfig = (Config)value;
 			} else if (value instanceof List) {
 				List<?> list = (List<?>)value;
 				if (!list.isEmpty() && list.get(0) instanceof Config) {// Arrays of tables
 					int lastIndex = list.size() - 1;
-					currentMap = ((Config)list.get(lastIndex)).valueMap();
+					currentConfig = ((Config)list.get(lastIndex));
 				} else {
 					return null;
 				}
@@ -115,7 +124,7 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 				return null;
 			}
 		}
-		return currentMap;
+		return currentConfig;
 	}
 
 	private void checkContainsOnlySubtables(Config table, List<String> path) {
@@ -187,7 +196,7 @@ public final class TomlParser implements ConfigParser<TomlConfig, Config> {
 				builder.append('\n');
 				builder.append(it.next());
 			}
+			setComment(builder.build());// Appends the builder to the current comment if any
 		}
-		currentComment = builder.toString();
 	}
 }
