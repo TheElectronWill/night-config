@@ -5,8 +5,10 @@ import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.ParsingMode;
+import com.electronwill.nightconfig.core.io.WritingException;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -186,6 +188,15 @@ public class FileConfigBuilder<C extends Config> {
 													parser, parsingMode, nefAction);
 		}
 		if (autoreload) {
+			if (!file.exists()) {
+				try {
+					nefAction.run(file);
+				} catch (IOException e) {
+					throw new WritingException("An exception occured while executing the "
+											   + "FileNotFoundAction for file "
+											   + file, e);
+				}
+			}
 			fileConfig = new AutoreloadFileConfig<>(fileConfig);
 		}
 		if (autosave) {
