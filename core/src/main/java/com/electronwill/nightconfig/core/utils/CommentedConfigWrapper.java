@@ -70,4 +70,9 @@ public abstract class CommentedConfigWrapper<C extends CommentedConfig> extends 
 	public CommentedConfig createSubConfig() {
 		return config.createSubConfig();
 	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + ':' + config;
+	}
 }

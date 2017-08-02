@@ -49,4 +49,9 @@ public abstract class ConfigWrapper<C extends Config> extends UnmodifiableConfig
 	public Config createSubConfig() {
 		return config.createSubConfig();
 	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + ':' + config;
+	}
 }

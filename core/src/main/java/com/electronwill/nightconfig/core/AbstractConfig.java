@@ -182,7 +182,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 
 	@Override
 	public String toString() {
-		return valueMap().toString();
+		return getClass().getSimpleName() + ':' + valueMap();
 	}
 
 	/**
