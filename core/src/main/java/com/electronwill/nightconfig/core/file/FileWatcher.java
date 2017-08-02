@@ -177,6 +177,7 @@ public final class FileWatcher {
 					LockSupport.parkNanos(SLEEP_TIME_NANOS);
 				}
 			}
+			// Closes the WatchServices
 			for (WatchedDir watchedDir : watchedDirs.values()) {
 				try {
 					watchedDir.watchService.close();
@@ -184,6 +185,9 @@ public final class FileWatcher {
 					throw new RuntimeException(e);
 				}
 			}
+			// Clears the maps
+			watchedDirs.clear();
+			watchedFiles.clear();
 		}
 	}
 
