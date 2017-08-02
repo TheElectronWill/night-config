@@ -162,7 +162,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 */
 	static FileConfigBuilder<Config> builder(File file) {
 		ConfigFormat format = FormatDetector.detect(file);
-		if (format == null || !format.supportsComments()) {
+		if (format == null) {
 			throw new NoFormatFoundException("No suitable format for " + file.getName());
 		}
 		return builder(file, format);
