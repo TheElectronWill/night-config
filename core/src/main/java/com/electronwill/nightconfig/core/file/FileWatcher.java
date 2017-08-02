@@ -33,7 +33,7 @@ public final class FileWatcher {
 	 * @return the default FileWatcher
 	 */
 	public static synchronized FileWatcher defaultInstance() {
-		if (DEFAULT_INSTANCE == null || DEFAULT_INSTANCE.run == false) {// null or closed watcher
+		if (DEFAULT_INSTANCE == null || !DEFAULT_INSTANCE.run) {// null or stopped FileWatcher
 			DEFAULT_INSTANCE = new FileWatcher();
 		}
 		return DEFAULT_INSTANCE;
