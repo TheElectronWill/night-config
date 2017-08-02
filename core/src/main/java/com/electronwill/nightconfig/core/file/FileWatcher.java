@@ -69,6 +69,7 @@ public final class FileWatcher {
 	 * @param changeHandler the handler to call when the file is modified
 	 */
 	public void addWatch(Path file, Runnable changeHandler) throws IOException {
+		file = file.toAbsolutePath();// Ensures that the Path is absolute
 		Path dir = file.getParent();
 		WatchedDir watchedDir = watchedDirs.computeIfAbsent(dir, k -> new WatchedDir(dir));
 		WatchKey watchKey = dir.register(watchedDir.watchService,
@@ -96,6 +97,7 @@ public final class FileWatcher {
 	 * @param changeHandler the handler to call when the file is modified
 	 */
 	public void setWatch(Path file, Runnable changeHandler) throws IOException {
+		file = file.toAbsolutePath();// Ensures that the Path is absolute
 		WatchedFile watchedFile = watchedFiles.get(file);
 		if (watchedFile == null) {
 			addWatch(file, changeHandler);
@@ -119,6 +121,7 @@ public final class FileWatcher {
 	 * @param file the file to stop watching
 	 */
 	public void removeWatch(Path file) {
+		file = file.toAbsolutePath();// Ensures that the Path is absolute
 		Path dir = file.getParent();
 		WatchedDir watchedDir = watchedDirs.get(dir);
 		int remainingChildCount = watchedDir.watchedFileCount.decrementAndGet();
