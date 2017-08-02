@@ -120,4 +120,9 @@ public final class FakeCommentedConfig extends ConfigWrapper<Config> implements 
 			return entry.setValue(value);
 		}
 	}
+
+	@Override
+	public CommentedConfig createSubConfig() {
+		return CommentedConfig.fake(super.createSubConfig());
+	}
 }

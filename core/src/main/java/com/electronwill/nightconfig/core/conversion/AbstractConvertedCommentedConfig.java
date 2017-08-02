@@ -100,4 +100,9 @@ abstract class AbstractConvertedCommentedConfig<C extends CommentedConfig>
 		};
 		return new TransformingSet<>(config.entrySet(), readTransfo, o -> null, e -> e);
 	}
+
+	@Override
+	public CommentedConfig createSubConfig() {
+		return config.createSubConfig();
+	}
 }

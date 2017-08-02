@@ -145,7 +145,7 @@ public final class ObjectConverter {
 			List<String> path = AnnotationUtils.getPath(field);
 			if (value != null && (!destination.configFormat().supportsType(value.getClass())
 								  || field.isAnnotationPresent(ForceBreakdown.class))) {
-				Config subConfig = destination.configFormat().createConfig();
+				Config subConfig = destination.createSubConfig();
 				convertToConfig(value, field.getType(), subConfig);// Writes as a subconfig
 				destination.set(path, subConfig);
 			} else {

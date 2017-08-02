@@ -528,14 +528,8 @@ public final class ConfigSpec {
 	 * @return the number of added, removed or replaced values.
 	 */
 	public int correct(Config config, CorrectionListener listener) {
-		Supplier<Config> subConfigSupplier;
-		if (config instanceof AbstractConfig) {
-			subConfigSupplier = ((AbstractConfig)config)::createSubConfig;
-		} else {
-			subConfigSupplier = () -> new SimpleConfig(InMemoryFormat.withUniversalSupport());
-		}
 		return correct(config.valueMap(), storage.valueMap(), new ArrayList<>(), listener,
-					   subConfigSupplier);
+					   config::createSubConfig);
 	}
 
 	/**

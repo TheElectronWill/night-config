@@ -171,6 +171,14 @@ public interface Config extends UnmodifiableConfig {
 		<T> T setValue(Object value);
 	}
 
+	/**
+	 * Creates a new sub config of this config, as created when a subconfig's creation is
+	 * implied by {@link #set(List, Object)} or {@link #add(List, Object)}.
+	 *
+	 * @return a new sub config
+	 */
+	Config createSubConfig();
+
 	//--- Static methods ---
 
 	/**

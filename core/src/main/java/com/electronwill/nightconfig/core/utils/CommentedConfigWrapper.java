@@ -65,4 +65,9 @@ public abstract class CommentedConfigWrapper<C extends CommentedConfig> extends 
 	public Map<String, CommentNode> getComments() {
 		return config.getComments();
 	}
+
+	@Override
+	public CommentedConfig createSubConfig() {
+		return config.createSubConfig();
+	}
 }

@@ -289,6 +289,11 @@ public final class ObjectBinder {
 		}
 
 		@Override
+		public Config createSubConfig() {
+			return new BoundConfig(null, new HashMap<>(1), configFormat, bypassFinal);
+		}
+
+		@Override
 		public Map<String, Object> valueMap() {
 			Function<Object, Object> readConversion = o -> {
 				if (o instanceof FieldInfos) {

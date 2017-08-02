@@ -192,6 +192,9 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 		String removeComment();
 	}
 
+	@Override
+	CommentedConfig createSubConfig();
+
 	/**
 	 * Creates a CommentedConfig of the given format.
 	 *

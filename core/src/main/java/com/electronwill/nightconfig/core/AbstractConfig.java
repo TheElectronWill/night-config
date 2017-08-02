@@ -115,7 +115,6 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		return currentMap;
 	}
 
-	protected abstract AbstractConfig createSubConfig();
 	/**
 	 * Returns the Map associated to the given path, or null if there is none.
 	 *

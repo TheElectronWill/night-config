@@ -132,9 +132,6 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	@Override
 	public abstract AbstractCommentedConfig clone();
 
-	@Override
-	protected abstract AbstractCommentedConfig createSubConfig();
-
 	protected class CommentedEntryWrapper extends EntryWrapper implements CommentedConfig.Entry {
 		private List<String> path = null;
 
