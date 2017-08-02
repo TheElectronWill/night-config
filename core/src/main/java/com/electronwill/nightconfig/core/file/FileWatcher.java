@@ -18,11 +18,26 @@ import java.util.concurrent.locks.LockSupport;
  * <p>
  * New watches are added with the {@link #addWatch(Path, Runnable)} method, which specifies the
  * task to execute when the file is modified.
+ * <p>
+ * This class is thread-safe.
  *
  * @author TheElectronWill
  */
 public final class FileWatcher {
 	private static final long SLEEP_TIME_NANOS = 1000;
+	private static volatile FileWatcher DEFAULT_INSTANCE;
+
+	/**
+	 * Gets the default, global instance of FileWatcher.
+	 *
+	 * @return the default FileWatcher
+	 */
+	public static synchronized FileWatcher defaultInstance() {
+		if (DEFAULT_INSTANCE == null || DEFAULT_INSTANCE.run == false) {// null or closed watcher
+			DEFAULT_INSTANCE = new FileWatcher();
+		}
+		return DEFAULT_INSTANCE;
+	}
 
 	private final Map<Path, WatchedDir> watchedDirs = new ConcurrentHashMap<>();//dir -> watchService & infos
 	private final Map<Path, WatchedFile> watchedFiles = new ConcurrentHashMap<>();//file -> watchKey & handler
@@ -79,6 +94,15 @@ public final class FileWatcher {
 		} else {
 			watchedFile.changeHandler = changeHandler;
 		}
+	}
+
+	/**
+	 * Stops watching a file.
+	 *
+	 * @param file the file to stop watching
+	 */
+	public void removeWatch(File file) {
+		removeWatch(file.toPath());
 	}
 
 	/**
