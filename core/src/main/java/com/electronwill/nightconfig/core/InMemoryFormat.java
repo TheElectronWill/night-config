@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.function.Predicate;
 
 /**
+ * A ConfigFormat that is only in memory. Its method {@link #isInMemory()} returns always true.
+ *
  * @author TheElectronWill
  */
 public final class InMemoryFormat implements ConfigFormat<Config, Config, Config> {
@@ -55,6 +57,11 @@ public final class InMemoryFormat implements ConfigFormat<Config, Config, Config
 	@Override
 	public Config createConfig() {
 		return Config.of(this);
+	}
+
+	@Override
+	public Config createConcurrentConfig() {
+		return Config.ofConcurrent(this);
 	}
 
 	@Override

@@ -39,7 +39,7 @@ final class TableWriter {
 
 	static void writeNormal(UnmodifiableConfig config, List<String> configPath,
 							CharacterOutput output, TomlWriter writer) {
-		UnmodifiableCommentedConfig commentedConfig = FakeUnmodifiableCommentedConfig.getCommented(config);
+		UnmodifiableCommentedConfig commentedConfig = UnmodifiableCommentedConfig.fake(config);
 		writeNormal(commentedConfig, configPath, output, writer);
 	}
 

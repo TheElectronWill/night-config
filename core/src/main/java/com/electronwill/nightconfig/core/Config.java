@@ -188,7 +188,18 @@ public interface Config extends UnmodifiableConfig {
 	 * @return a new empty config
 	 */
 	static Config of(ConfigFormat<? extends Config, ? super Config, ? super Config> format) {
-		return new SimpleConfig(format);
+		return new SimpleConfig(format, false);
+	}
+
+	/**
+	 * Creates a thread-safe Config of the given format.
+	 *
+	 * @param format the config's format
+	 * @return a new empty, thread-safe config
+	 */
+	static Config ofConcurrent(
+			ConfigFormat<? extends Config, ? super Config, ? super Config> format) {
+		return new SimpleConfig(format, true);
 	}
 
 	/**
@@ -197,7 +208,16 @@ public interface Config extends UnmodifiableConfig {
 	 * @return a new empty config
 	 */
 	static Config inMemory() {
-		return new SimpleConfig(InMemoryFormat.defaultInstance());
+		return InMemoryFormat.defaultInstance().createConfig();
+	}
+
+	/**
+	 * Creates a Config with format {@link InMemoryFormat#defaultInstance()}.
+	 *
+	 * @return a new empty config
+	 */
+	static Config inMemoryConcurrent() {
+		return InMemoryFormat.defaultInstance().createConcurrentConfig();
 	}
 
 	/**
@@ -220,7 +240,7 @@ public interface Config extends UnmodifiableConfig {
 	 * @return a copy of the config
 	 */
 	static Config copy(UnmodifiableConfig config) {
-		return new SimpleConfig(config, config.configFormat());
+		return new SimpleConfig(config, config.configFormat(), false);
 	}
 
 	/**
@@ -231,6 +251,28 @@ public interface Config extends UnmodifiableConfig {
 	 * @return a copy of the config
 	 */
 	static Config copy(UnmodifiableConfig config, ConfigFormat<?, ?, ?> format) {
-		return new SimpleConfig(config, format);
+		return new SimpleConfig(config, format, false);
+	}
+
+	/**
+	 * Creates a new Config with the content of the given config. The returned config will have
+	 * the same format as the copied config.
+	 *
+	 * @param config the config to copy
+	 * @return a thread-safe copy of the config
+	 */
+	static Config concurrentCopy(UnmodifiableConfig config) {
+		return new SimpleConfig(config, config.configFormat(), true);
+	}
+
+	/**
+	 * Creates a new Config with the content of the given config.
+	 *
+	 * @param config the config to copy
+	 * @param format the config's format
+	 * @return a thread-safe copy of the config
+	 */
+	static Config concurrentCopy(UnmodifiableConfig config, ConfigFormat<?, ?, ?> format) {
+		return new SimpleConfig(config, format, true);
 	}
 }

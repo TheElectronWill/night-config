@@ -39,4 +39,9 @@ public final class ConvertedCommentedFileConfig
 	public void load() {
 		config.load();
 	}
+
+	@Override
+	public void close() {
+		config.close();
+	}
 }

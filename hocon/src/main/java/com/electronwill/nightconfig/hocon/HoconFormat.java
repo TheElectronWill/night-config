@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.file.FormatDetector;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 
@@ -12,7 +13,8 @@ import com.electronwill.nightconfig.core.io.ConfigWriter;
  *
  * @author TheElectronWill
  */
-public final class HoconFormat implements ConfigFormat<CommentedConfig, Config, UnmodifiableConfig> {
+public final class HoconFormat
+		implements ConfigFormat<CommentedConfig, Config, UnmodifiableConfig> {
 	private static final HoconFormat INSTANCE = new HoconFormat();
 
 	/**
@@ -26,6 +28,13 @@ public final class HoconFormat implements ConfigFormat<CommentedConfig, Config, 
 	 * @return a new config with the hocon format
 	 */
 	public static CommentedConfig newConfig() {
+		return INSTANCE.createConfig();
+	}
+
+	/**
+	 * @return a new thread-safe config with the hocon format
+	 */
+	public static CommentedConfig newConcurrentConfig() {
 		return INSTANCE.createConfig();
 	}
 
@@ -49,6 +58,11 @@ public final class HoconFormat implements ConfigFormat<CommentedConfig, Config, 
 	@Override
 	public CommentedConfig createConfig() {
 		return CommentedConfig.of(this);
+	}
+
+	@Override
+	public CommentedConfig createConcurrentConfig() {
+		return CommentedConfig.ofConcurrent(this);
 	}
 
 	@Override

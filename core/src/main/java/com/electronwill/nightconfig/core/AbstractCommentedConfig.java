@@ -7,15 +7,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * An abstract CommentedConfig backed by two maps: one for the values and one for the comments.
+ * The comments of the subconfigs are stored in these subconfigs.
+ *
  * @author TheElectronWill
  */
 public abstract class AbstractCommentedConfig extends AbstractConfig implements CommentedConfig {
 	private final Map<String, String> commentMap;
 
-	public AbstractCommentedConfig() {
-		this.commentMap = new HashMap<>();
+	public AbstractCommentedConfig(boolean concurrent) {
+		super(concurrent);
+		this.commentMap = concurrent ? new ConcurrentHashMap<>() : new HashMap<>();
 	}
 
 	/**
@@ -33,9 +38,9 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	 *
 	 * @param toCopy the config to copy
 	 */
-	public AbstractCommentedConfig(UnmodifiableConfig toCopy) {
-		super(toCopy);
-		this.commentMap = new HashMap<>();
+	public AbstractCommentedConfig(UnmodifiableConfig toCopy, boolean concurrent) {
+		super(toCopy, concurrent);
+		this.commentMap = concurrent ? new ConcurrentHashMap<>() : new HashMap<>();
 	}
 
 	/**
@@ -43,7 +48,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	 *
 	 * @param toCopy the config to copy
 	 */
-	public AbstractCommentedConfig(UnmodifiableCommentedConfig toCopy) {
+	public AbstractCommentedConfig(UnmodifiableCommentedConfig toCopy, boolean concurrent) {
 		super(toCopy.valueMap());
 		this.commentMap = new HashMap<>(toCopy.commentMap());
 	}

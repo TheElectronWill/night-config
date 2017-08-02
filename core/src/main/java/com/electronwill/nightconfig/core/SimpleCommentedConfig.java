@@ -1,9 +1,13 @@
 package com.electronwill.nightconfig.core;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
- * A basic commented configuration.
+ * Default concrete implementation of CommentedConfig. The values are stored in a map, generally a
+ * HashMap, or a ConcurrentHashMap if the config is concurrent.
  *
  * @author TheElectronWill
  */
@@ -15,7 +19,8 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 	 *
 	 * @param configFormat the config's format
 	 */
-	SimpleCommentedConfig(ConfigFormat<?, ?, ?> configFormat) {
+	SimpleCommentedConfig(ConfigFormat<?, ?, ?> configFormat, boolean concurrent) {
+		super(concurrent ? new ConcurrentHashMap<>() : new HashMap<>());
 		this.configFormat = configFormat;
 	}
 
@@ -34,8 +39,9 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 	 * @param toCopy       the config to copy
 	 * @param configFormat the config's format
 	 */
-	SimpleCommentedConfig(UnmodifiableConfig toCopy, ConfigFormat<?, ?, ?> configFormat) {
-		super(toCopy);
+	SimpleCommentedConfig(UnmodifiableConfig toCopy, ConfigFormat<?, ?, ?> configFormat,
+						  boolean concurrent) {
+		super(toCopy, concurrent);
 		this.configFormat = configFormat;
 	}
 
@@ -45,8 +51,9 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 	 * @param toCopy       the config to copy
 	 * @param configFormat the config's format
 	 */
-	SimpleCommentedConfig(UnmodifiableCommentedConfig toCopy, ConfigFormat<?, ?, ?> configFormat) {
-		super(toCopy);
+	SimpleCommentedConfig(UnmodifiableCommentedConfig toCopy, ConfigFormat<?, ?, ?> configFormat,
+						  boolean concurrent) {
+		super(toCopy, concurrent);
 		this.configFormat = configFormat;
 	}
 
@@ -56,12 +63,12 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 	}
 
 	@Override
-	protected SimpleCommentedConfig createSubConfig() {
-		return new SimpleCommentedConfig(configFormat);
+	public SimpleCommentedConfig createSubConfig() {
+		return new SimpleCommentedConfig(configFormat, map instanceof ConcurrentMap);
 	}
 
 	@Override
 	public AbstractCommentedConfig clone() {
-		return new SimpleCommentedConfig(this, configFormat);
+		return new SimpleCommentedConfig(this, configFormat, map instanceof ConcurrentMap);
 	}
 }

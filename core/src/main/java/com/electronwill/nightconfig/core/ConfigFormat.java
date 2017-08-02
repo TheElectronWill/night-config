@@ -4,6 +4,8 @@ import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 
 /**
+ * A configuration format, that can parse, create and write some types of configurations.
+ *
  * @author TheElectronWill
  */
 public interface ConfigFormat<C extends D, D extends Config, W extends UnmodifiableConfig> {
@@ -21,6 +23,13 @@ public interface ConfigFormat<C extends D, D extends Config, W extends Unmodifia
 	 * @return a config of this format
 	 */
 	C createConfig();
+
+	/**
+	 * Creates a config of this format. The returned config is guaranteed to be thread-safe.
+	 *
+	 * @return a concurrent config of this format
+	 */
+	C createConcurrentConfig();
 
 	/**
 	 * Checks if this format supports CommentedConfigs. Note that supporting CommentedConfigs
@@ -43,6 +52,7 @@ public interface ConfigFormat<C extends D, D extends Config, W extends Unmodifia
 
 	/**
 	 * Checks if this format is in memory only and therefore cannot create writers nor parsers.
+	 *
 	 * @return {@code true} iff this format is only in memory.
 	 */
 	default boolean isInMemory() {

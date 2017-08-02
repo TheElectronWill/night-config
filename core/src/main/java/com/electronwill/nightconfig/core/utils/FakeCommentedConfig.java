@@ -15,26 +15,12 @@ import java.util.Set;
  */
 public final class FakeCommentedConfig extends ConfigWrapper<Config> implements CommentedConfig {
 	/**
-	 * If config is a CommentedConfig, returns it, otherwise returns a new FakeCommentedConfig.
-	 *
-	 * @param config the config to be commented
-	 * @return a CommentedConfig with the same values as the specified config
-	 */
-	public static CommentedConfig getCommented(Config config) {
-		if (config instanceof CommentedConfig) {
-			return (CommentedConfig)config;
-		}
-		return new FakeCommentedConfig(config);
-	}
-
-	/**
 	 * Creates a FakeUnmodifiableCommentedConfig that gets all its values from the given config.
 	 * The FakeUnmodifiableCommentedConfig implements CommentedConfig but all operations on
 	 * comments do nothing.
 	 *
 	 * @param config the config to use for the values
 	 */
-
 	public FakeCommentedConfig(Config config) {
 		super(config);
 	}

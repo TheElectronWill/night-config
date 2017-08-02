@@ -40,7 +40,7 @@ public class AbstractConfigTest {
 		config.set("stringList", stringList);
 		assert config.<List<String>>get("stringList") == stringList;
 
-		Config subConfig = new SimpleConfig(InMemoryFormat.withUniversalSupport());
+		Config subConfig = InMemoryFormat.withUniversalSupport().createConfig();
 		subConfig.set("string", "test!");
 		subConfig.set("subSubConfig.string", "another test!");
 		config.set("subConfig", subConfig);
@@ -63,7 +63,7 @@ public class AbstractConfigTest {
 		String[] jsplit = ".a...a.".split("\\.");
 		System.out.println("String#split: " + Arrays.toString(jsplit));
 
-		AbstractConfig config = new SimpleConfig(InMemoryFormat.withUniversalSupport());
+		Config config = InMemoryFormat.withUniversalSupport().createConfig();
 		config.set(".a...a.", "value");
 		assert config.contains(".a...a.");
 		assert config.<String>get(".a...a.").equals("value");
@@ -81,11 +81,11 @@ public class AbstractConfigTest {
 
 	@Test
 	public void size() {
-		AbstractConfig config = new SimpleConfig(InMemoryFormat.withUniversalSupport());
+		Config config = InMemoryFormat.withUniversalSupport().createConfig();
 		config.set("a.b.c", "value");
 		config.set("pi", Math.PI);
 
-		Config subConfig = new SimpleConfig(InMemoryFormat.withUniversalSupport());
+		Config subConfig = InMemoryFormat.withUniversalSupport().createConfig();
 		subConfig.set("string", "test!");
 		config.set("subConfig", subConfig);
 
@@ -95,7 +95,7 @@ public class AbstractConfigTest {
 
 	@Test
 	public void asMap() {
-		AbstractConfig config = new SimpleConfig(InMemoryFormat.withUniversalSupport());
+		Config config = InMemoryFormat.withUniversalSupport().createConfig();
 		config.set("a.b.c", "value");
 		config.set("pi", Math.PI);
 
@@ -115,7 +115,7 @@ public class AbstractConfigTest {
 
 	@Test
 	public void containsValue() {
-		AbstractConfig config = new SimpleConfig(InMemoryFormat.withUniversalSupport());
+		Config config = InMemoryFormat.withUniversalSupport().createConfig();
 		config.set("a.b.c", "value");
 		assert config.contains("a");
 

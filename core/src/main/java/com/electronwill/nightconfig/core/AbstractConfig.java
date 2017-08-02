@@ -6,9 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Abstract configuration that uses a {@link java.util.Map} to store its values.
+ * An abstract Config that uses a {@link java.util.Map} to store its values. In practise it's
+ * often a HashMap, or a ConcurrentHashMap if the config is concurrent, but it accepts any type
+ * of Map.
  *
  * @author TheElectronWill
  */
@@ -18,8 +21,8 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	/**
 	 * Creates a new AbstractConfig backed by a new {@link Map}.
 	 */
-	public AbstractConfig() {
-		this(new HashMap<>());
+	public AbstractConfig(boolean concurrent) {
+		this.map = concurrent ? new ConcurrentHashMap<>() : new HashMap<>();
 	}
 
 	/**
@@ -36,8 +39,9 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	 *
 	 * @param toCopy the config to copy
 	 */
-	public AbstractConfig(UnmodifiableConfig toCopy) {
-		this.map = new HashMap<>(toCopy.valueMap());
+	public AbstractConfig(UnmodifiableConfig toCopy, boolean concurrent) {
+		Map<String, Object> valueMap = toCopy.valueMap();
+		this.map = concurrent ? new ConcurrentHashMap<>(valueMap) : new HashMap<>(valueMap);
 	}
 
 	@Override

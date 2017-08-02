@@ -5,10 +5,11 @@ import com.electronwill.nightconfig.core.io.ConfigWriter;
 import java.util.function.Predicate;
 
 /**
+ * The commented version of {@link InMemoryFormat}
+ *
  * @author TheElectronWill
  */
-public class InMemoryCommentedFormat
-		implements ConfigFormat<CommentedConfig, Config, Config> {
+public class InMemoryCommentedFormat implements ConfigFormat<CommentedConfig, Config, Config> {
 	private static final InMemoryCommentedFormat DEFAULT_INSTANCE = new InMemoryCommentedFormat(
 			InMemoryFormat.DEFAULT_PREDICATE);
 
@@ -41,6 +42,11 @@ public class InMemoryCommentedFormat
 	@Override
 	public CommentedConfig createConfig() {
 		return CommentedConfig.of(this);
+	}
+
+	@Override
+	public CommentedConfig createConcurrentConfig() {
+		return CommentedConfig.ofConcurrent(this);
 	}
 
 	@Override

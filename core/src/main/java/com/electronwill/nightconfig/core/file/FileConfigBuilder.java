@@ -29,26 +29,19 @@ import java.nio.charset.StandardCharsets;
  */
 public class FileConfigBuilder<C extends Config> {
 	protected final File file;
-	protected final C config;
+	protected C config;
+	protected final ConfigFormat format;// <? extends C, ? super C, ? super C> doesn't compile
 	protected final ConfigWriter<? super C> writer;
 	protected final ConfigParser<?, ? super C> parser;
 	protected Charset charset = StandardCharsets.UTF_8;
 	protected WritingMode writingMode = WritingMode.REPLACE;
 	protected ParsingMode parsingMode = ParsingMode.REPLACE;
 	protected FileNotFoundAction nefAction = FileNotFoundAction.CREATE_EMPTY;
-	protected boolean sync = false, autosave = false;
-
-	FileConfigBuilder(File file, C config, ConfigWriter<? super C> writer,
-					  ConfigParser<?, ? super C> parser) {
-		this.file = file;
-		this.config = config;
-		this.writer = writer;
-		this.parser = parser;
-	}
+	protected boolean sync = false, autosave = false, autoreload = false;
 
 	<T extends C> FileConfigBuilder(File file, ConfigFormat<T, ? super C, ? super C> format) {
 		this.file = file;
-		this.config = format.createConfig();
+		this.format = format;
 		this.writer = format.createWriter();
 		this.parser = format.createParser();
 	}
@@ -166,11 +159,24 @@ public class FileConfigBuilder<C extends Config> {
 	}
 
 	/**
+	 * Makes the configuration concurrent, that is, thread-safe.
+	 *
+	 * @return this builder
+	 */
+	public FileConfigBuilder<C> concurrent() {
+		config = (C)format.createConcurrentConfig();
+		return this;
+	}
+
+	/**
 	 * Creates a new FileConfig with the chosen settings.
 	 *
 	 * @return the config
 	 */
 	public FileConfig build() {
+		if (config == null) {// concurrent() has not been called
+			config = (C)format.createConfig();
+		}
 		FileConfig fileConfig;
 		if (sync) {
 			fileConfig = new WriteSyncFileConfig<>(config, file, charset, writer, writingMode,

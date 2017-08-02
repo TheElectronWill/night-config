@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.json;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.file.FormatDetector;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 
@@ -56,6 +57,13 @@ public abstract class JsonFormat<W extends ConfigWriter<UnmodifiableConfig>>
 		return FANCY.createConfig();
 	}
 
+	/**
+	 * @return a new thread-safe config with the format {@link JsonFormat#fancyInstance()}.
+	 */
+	public static Config newConcurrentConfig() {
+		return FANCY.createConcurrentConfig();
+	}
+
 	static {
 		FormatDetector.registerExtension("json", FANCY);
 	}
@@ -71,6 +79,11 @@ public abstract class JsonFormat<W extends ConfigWriter<UnmodifiableConfig>>
 	@Override
 	public Config createConfig() {
 		return Config.of(this);
+	}
+
+	@Override
+	public Config createConcurrentConfig() {
+		return Config.ofConcurrent(this);
 	}
 
 	@Override

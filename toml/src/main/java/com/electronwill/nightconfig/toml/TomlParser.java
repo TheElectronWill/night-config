@@ -48,7 +48,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 	private <T extends Config> T parse(CharacterInput input, T destination, ParsingMode parsingMode) {
 		this.parsingMode = parsingMode;
 		parsingMode.prepareParsing(destination);
-		CommentedConfig commentedConfig = FakeCommentedConfig.getCommented(destination);
+		CommentedConfig commentedConfig = CommentedConfig.fake(destination);
 		CommentedConfig rootTable = TableParser.parseNormal(input, this, commentedConfig);
 		int next;
 		while ((next = input.peek()) != -1) {
@@ -99,7 +99,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 					if (alreadyDeclared instanceof Config) {
 						Config table = (Config)alreadyDeclared;
 						checkContainsOnlySubtables(table, path);
-						CommentedConfig commentedTable = FakeCommentedConfig.getCommented(table);
+						CommentedConfig commentedTable = CommentedConfig.fake(table);
 						TableParser.parseNormal(input, this, commentedTable);
 					} else if (configWasEmpty) {
 						throw new ParsingException("Entry " + path + " has been defined twice.");

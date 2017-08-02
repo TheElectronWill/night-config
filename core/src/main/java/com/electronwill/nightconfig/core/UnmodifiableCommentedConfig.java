@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core;
 
+import com.electronwill.nightconfig.core.utils.FakeUnmodifiableCommentedConfig;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -161,5 +162,21 @@ public interface UnmodifiableCommentedConfig extends UnmodifiableConfig {
 		 * @return the entry's comment, may contain several lines
 		 */
 		String getComment();
+	}
+
+	/**
+	 * If the specified config is an instance of UnmodifiableCommentedConfig, returns it. Else,
+	 * returns a "fake" UnmodifiableCommentedConfig instance with the same values (ie the valueMaps
+	 * are equal) as the config. This fake UnmodifiableCommentedConfig doesn't actually store nor
+	 * process comments, it just provides the methods of UnmodifiableCommentedConfig.
+	 *
+	 * @param config the config
+	 * @return an UnmodifiableCommentedConfig instance backed by the specified config
+	 */
+	static UnmodifiableCommentedConfig fake(UnmodifiableConfig config) {
+		if (config instanceof UnmodifiableCommentedConfig) {
+			return (UnmodifiableCommentedConfig)config;
+		}
+		return new FakeUnmodifiableCommentedConfig(config);
 	}
 }

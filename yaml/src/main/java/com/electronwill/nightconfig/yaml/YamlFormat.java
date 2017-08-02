@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.yaml;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.file.FormatDetector;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import java.util.List;
@@ -40,6 +41,13 @@ public final class YamlFormat implements ConfigFormat<Config, Config, Unmodifiab
 		return defaultInstance().createConfig();
 	}
 
+	/**
+	 * @return a new concurrent config with the format {@link YamlFormat#defaultInstance()}.
+	 */
+	public static Config newConcurrentConfig() {
+		return defaultInstance().createConcurrentConfig();
+	}
+
 	static {
 		FormatDetector.registerExtension("yaml", YamlFormat::defaultInstance);
 		FormatDetector.registerExtension("yml", YamlFormat::defaultInstance);
@@ -64,6 +72,11 @@ public final class YamlFormat implements ConfigFormat<Config, Config, Unmodifiab
 	@Override
 	public Config createConfig() {
 		return Config.of(this);
+	}
+
+	@Override
+	public Config createConcurrentConfig() {
+		return Config.ofConcurrent(this);
 	}
 
 	@Override

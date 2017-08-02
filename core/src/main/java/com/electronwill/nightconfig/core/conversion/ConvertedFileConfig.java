@@ -29,4 +29,9 @@ public class ConvertedFileConfig extends AbstractConvertedConfig<FileConfig> imp
 	public void load() {
 		config.load();
 	}
+
+	@Override
+	public void close() {
+		config.close();
+	}
 }

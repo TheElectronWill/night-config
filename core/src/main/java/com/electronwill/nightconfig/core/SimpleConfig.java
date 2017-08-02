@@ -1,9 +1,13 @@
 package com.electronwill.nightconfig.core;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
- * A simple configuration that allows the user to specify which types of value it supports.
+ * Default concrete implementation of Config. The values are stored in a map, generally a HashMap,
+ * or a ConcurrentHashMap if the config is concurrent.
  */
 final class SimpleConfig extends AbstractConfig {
 	private final ConfigFormat<?, ?, ?> configFormat;
@@ -13,7 +17,8 @@ final class SimpleConfig extends AbstractConfig {
 	 *
 	 * @param configFormat the config's format
 	 */
-	SimpleConfig(ConfigFormat<?, ?, ?> configFormat) {
+	SimpleConfig(ConfigFormat<?, ?, ?> configFormat, boolean concurrent) {
+		super(concurrent ? new ConcurrentHashMap<>() : new HashMap<>());
 		this.configFormat = configFormat;
 	}
 
@@ -32,8 +37,9 @@ final class SimpleConfig extends AbstractConfig {
 	 * @param toCopy       the config to copy
 	 * @param configFormat the config's format
 	 */
-	SimpleConfig(UnmodifiableConfig toCopy, ConfigFormat<?, ?, ?> configFormat) {
-		super(toCopy);
+	SimpleConfig(UnmodifiableConfig toCopy, ConfigFormat<?, ?, ?> configFormat,
+				 boolean concurrent) {
+		super(toCopy, concurrent);
 		this.configFormat = configFormat;
 	}
 
@@ -43,12 +49,12 @@ final class SimpleConfig extends AbstractConfig {
 	}
 
 	@Override
-	protected SimpleConfig createSubConfig() {
-		return new SimpleConfig(configFormat);
+	public SimpleConfig createSubConfig() {
+		return new SimpleConfig(configFormat, map instanceof ConcurrentMap);
 	}
 
 	@Override
 	public SimpleConfig clone() {
-		return new SimpleConfig(this, configFormat);
+		return new SimpleConfig(this, configFormat, map instanceof ConcurrentMap);
 	}
 }

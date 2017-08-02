@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core;
 
+import com.electronwill.nightconfig.core.utils.FakeCommentedConfig;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -203,7 +204,27 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 */
 	static CommentedConfig of(
 			ConfigFormat<? extends CommentedConfig, ? super CommentedConfig, ? super CommentedConfig> format) {
-		return new SimpleCommentedConfig(format);
+		return new SimpleCommentedConfig(format, false);
+	}
+
+	/**
+	 * Creates a thread-safe CommentedConfig of the given format.
+	 *
+	 * @param format the config's format
+	 * @return a new empty, thread-safe config
+	 */
+	static CommentedConfig ofConcurrent(
+			ConfigFormat<? extends CommentedConfig, ? super CommentedConfig, ? super CommentedConfig> format) {
+		return new SimpleCommentedConfig(format, false);
+	}
+
+	/**
+	 * Creates a CommentedConfig with format {@link InMemoryCommentedFormat#defaultInstance()}.
+	 *
+	 * @return a new empty config
+	 */
+	static CommentedConfig inMemory() {
+		return InMemoryCommentedFormat.defaultInstance().createConfig();
 	}
 
 	/**
@@ -211,8 +232,8 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 *
 	 * @return a new empty config
 	 */
-	static CommentedConfig inMemory() {
-		return new SimpleCommentedConfig(InMemoryCommentedFormat.defaultInstance());
+	static CommentedConfig inMemoryConcurrent() {
+		return InMemoryCommentedFormat.defaultInstance().createConcurrentConfig();
 	}
 
 	/**
@@ -235,7 +256,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * @return a copy of the config
 	 */
 	static CommentedConfig copy(UnmodifiableConfig config) {
-		return new SimpleCommentedConfig(config, config.configFormat());
+		return new SimpleCommentedConfig(config, config.configFormat(), false);
 	}
 
 	/**
@@ -246,7 +267,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * @return a copy of the config
 	 */
 	static CommentedConfig copy(UnmodifiableConfig config, ConfigFormat<?, ?, ?> format) {
-		return new SimpleCommentedConfig(config, format);
+		return new SimpleCommentedConfig(config, format, false);
 	}
 
 	/**
@@ -257,7 +278,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * @return a copy of the config
 	 */
 	static CommentedConfig copy(UnmodifiableCommentedConfig config) {
-		return new SimpleCommentedConfig(config, config.configFormat());
+		return new SimpleCommentedConfig(config, config.configFormat(), false);
 	}
 
 	/**
@@ -268,6 +289,67 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * @return a copy of the config
 	 */
 	static CommentedConfig copy(UnmodifiableCommentedConfig config, ConfigFormat<?, ?, ?> format) {
-		return new SimpleCommentedConfig(config, format);
+		return new SimpleCommentedConfig(config, format, false);
+	}
+
+	/**
+	 * Creates a new CommentedConfig with the content of the given config. The returned config will
+	 * have the same format as the copied config.
+	 *
+	 * @param config the config to copy
+	 * @return a thread-safe copy of the config
+	 */
+	static CommentedConfig concurrentCopy(UnmodifiableConfig config) {
+		return new SimpleCommentedConfig(config, config.configFormat(), true);
+	}
+
+	/**
+	 * Creates a new CommentedConfig with the content of the given config.
+	 *
+	 * @param config the config to copy
+	 * @param format the config's format
+	 * @return a thread-safe copy of the config
+	 */
+	static CommentedConfig concurrentCopy(UnmodifiableConfig config, ConfigFormat<?, ?, ?> format) {
+		return new SimpleCommentedConfig(config, format, true);
+	}
+
+	/**
+	 * Creates a new CommentedConfig with the content of the given config. The returned config will
+	 * have the same format as the copied config.
+	 *
+	 * @param config the config to copy
+	 * @return a thread-safe copy of the config
+	 */
+	static CommentedConfig concurrentCopy(UnmodifiableCommentedConfig config) {
+		return new SimpleCommentedConfig(config, config.configFormat(), true);
+	}
+
+	/**
+	 * Creates a new CommentedConfig with the content of the given config.
+	 *
+	 * @param config the config to copy
+	 * @param format the config's format
+	 * @return a thread-safe copy of the config
+	 */
+	static CommentedConfig concurrentCopy(UnmodifiableCommentedConfig config,
+										  ConfigFormat<?, ?, ?> format) {
+		return new SimpleCommentedConfig(config, format, true);
+	}
+
+	/**
+	 * If the specified config is an instance of CommentedConfig, returns it. Else, returns a
+	 * "fake" CommentedConfig instance with the same values (ie the valueMaps are equal) as the
+	 * config. This fake CommentedConfig doesn't actually store nor process comments, it just
+	 * provides the methods of CommentedConfig.
+	 *
+	 * @param config the config
+	 * @return a CommentedConfig instance backed by the specified config
+	 */
+	static CommentedConfig fake(Config config) {
+		if (config instanceof CommentedConfig) {
+			return (CommentedConfig)config;
+		}
+		return new FakeCommentedConfig(config);
 	}
 }

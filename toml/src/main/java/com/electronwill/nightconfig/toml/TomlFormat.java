@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.file.FormatDetector;
 
 /**
  * @author TheElectronWill
@@ -25,6 +26,13 @@ public final class TomlFormat implements ConfigFormat<CommentedConfig, Config, U
 		return INSTANCE.createConfig();
 	}
 
+	/**
+	 * @return a new thread-safe config with the toml format
+	 */
+	public static CommentedConfig newConcurrentConfig() {
+		return INSTANCE.createConcurrentConfig();
+	}
+
 	static {
 		FormatDetector.registerExtension("toml", INSTANCE);
 	}
@@ -44,6 +52,11 @@ public final class TomlFormat implements ConfigFormat<CommentedConfig, Config, U
 	@Override
 	public CommentedConfig createConfig() {
 		return CommentedConfig.of(this);
+	}
+
+	@Override
+	public CommentedConfig createConcurrentConfig() {
+		return CommentedConfig.ofConcurrent(this);
 	}
 
 	@Override
