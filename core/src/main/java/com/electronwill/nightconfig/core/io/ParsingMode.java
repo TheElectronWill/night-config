@@ -2,7 +2,6 @@ package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.utils.StringUtils;
-import com.sun.org.apache.bcel.internal.generic.RETURN;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -26,7 +25,10 @@ public enum ParsingMode {
 	 * Adds the parsed values to the config: the existing values are prioritary and will not be
 	 * replaced.
 	 */
-	ADD(c -> {}, (cfg, path, value) -> {cfg.add(path, value); return null;}, Map::putIfAbsent);
+	ADD(c -> {}, (cfg, path, value) -> {
+		cfg.add(path, value);
+		return null;
+	}, Map::putIfAbsent);
 
 	private final Consumer<? super Config> preparationAction;
 	private final PutAction putAction;
@@ -39,18 +41,39 @@ public enum ParsingMode {
 		this.mapPutAction = mapPutAction;
 	}
 
+	/**
+	 * Prepare the config to be parsed with this mode. This method is called before the parsed
+	 * data is put into the config.
+	 *
+	 * @param config the config that will be parsed
+	 */
 	public void prepareParsing(Config config) {
 		preparationAction.accept(config);
 	}
 
+	/**
+	 * Puts (set or add) a value into the config
+	 *
+	 * @return the previous value if any, or null if none
+	 */
 	public Object put(Config config, List<String> key, Object value) {
 		return putAction.put(config, key, value);
 	}
 
+	/**
+	 * Puts (set or add) a value into the config
+	 *
+	 * @return the previous value if any, or null if none
+	 */
 	public Object put(Config config, String key, Object value) {
 		return putAction.put(config, key, value);
 	}
 
+	/**
+	 * Puts (set or add) a value into the config
+	 *
+	 * @return the previous value if any, or null if none
+	 */
 	public Object put(Map<String, Object> map, String key, Object value) {
 		return mapPutAction.put(map, key, value);
 	}
