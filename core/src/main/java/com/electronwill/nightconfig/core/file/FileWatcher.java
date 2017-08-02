@@ -71,8 +71,8 @@ public final class FileWatcher {
 	public void addWatch(Path file, Runnable changeHandler) throws IOException {
 		Path dir = file.getParent();
 		WatchedDir watchedDir = watchedDirs.computeIfAbsent(dir, k -> new WatchedDir(dir));
-		WatchKey watchKey = file.register(watchedDir.watchService,
-										  StandardWatchEventKinds.ENTRY_MODIFY);
+		WatchKey watchKey = dir.register(watchedDir.watchService,
+										 StandardWatchEventKinds.ENTRY_MODIFY);
 		watchedFiles.computeIfAbsent(file,
 									 k -> new WatchedFile(watchedDir, watchKey, changeHandler));
 	}
