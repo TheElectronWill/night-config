@@ -4,3 +4,5 @@ include ':json'
 include ':toml'
 include ':hocon'
 include ':yaml'
+include ':examples'
+

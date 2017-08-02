@@ -18,3 +18,6 @@ nbproject
 # IntelliJ files
 *.iml
 .idea
+
+# Working directory of code examples
+examples/working_dir/

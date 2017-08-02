@@ -1,0 +1,15 @@
+version '3.0'
+description 'NightConfig examples'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+	compile project(':toml')
+	compile project(':json')
+}
