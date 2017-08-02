@@ -140,6 +140,10 @@ public final class FileWatcher {
 	}
 
 	private final class WatcherThread extends Thread {
+		{
+			setDaemon(true);
+		}
+
 		@Override
 		public void run() {
 			while (run) {
