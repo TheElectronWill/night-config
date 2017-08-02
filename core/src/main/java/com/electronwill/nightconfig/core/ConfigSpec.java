@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -590,13 +591,14 @@ public final class ConfigSpec {
 			}
 		}
 		// Second step: removes the unspecified values
-		for (Map.Entry<String, Object> configEntry : configMap.entrySet()) {
+		for (Iterator<Map.Entry<String, Object>> it = configMap.entrySet().iterator(); it.hasNext();) {
+			Map.Entry<String, Object> configEntry = it.next();
 			final String key = configEntry.getKey();
 			final Object configValue = configEntry.getValue();
 			final Object specValue = specMap.get(key);
 			if (specValue == null) {
 				// Removes the value and notifies the listener:
-				configMap.remove(key);
+				it.remove();
 				handleCorrection(parentPath, key, configValue, null, listener, REMOVE);
 				count++;
 			}
