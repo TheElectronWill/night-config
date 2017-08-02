@@ -18,8 +18,8 @@ import java.nio.charset.Charset;
 import java.nio.file.OpenOption;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
@@ -66,9 +66,9 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 		this.parsingMode = parsingMode;
 		this.nefAction = nefAction;
 		if (writingMode == WritingMode.APPEND) {
-			this.openOptions = new OpenOption[]{APPEND, CREATE};
-		} else {
 			this.openOptions = new OpenOption[]{WRITE, CREATE};
+		} else {
+			this.openOptions = new OpenOption[]{WRITE, CREATE, TRUNCATE_EXISTING};
 		}
 		this.writeCompletedHandler = new WriteCompletedHandler();
 	}
@@ -105,7 +105,7 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 			synchronized (channelGuard) {
 				try {
 					channel = AsynchronousFileChannel.open(file.toPath(), openOptions);
-					channel.write(buffer, 0, null, writeCompletedHandler);
+					channel.write(buffer, channel.size(), null, writeCompletedHandler);
 				} catch (IOException e) {
 					writeCompletedHandler.failed(e, null);
 				}
