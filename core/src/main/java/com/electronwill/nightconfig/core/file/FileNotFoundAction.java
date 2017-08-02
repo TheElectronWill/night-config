@@ -9,6 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 
 /**
+ * Defines the action to perform when the file is not found.
+ *
  * @author TheElectronWill
  */
 @FunctionalInterface
@@ -34,6 +36,12 @@ public interface FileNotFoundAction {
 		throw new NoSuchFileException(f.getAbsolutePath());
 	};
 
+	/**
+	 * Action: copies the data at the given url.
+	 *
+	 * @param url the data url
+	 * @return a FileNotFoundAction that copies the url's data if the file is not found
+	 */
 	static FileNotFoundAction copyData(URL url) {
 		return f -> {
 			Files.copy(url.openStream(), f.toPath());
@@ -41,6 +49,12 @@ public interface FileNotFoundAction {
 		};
 	}
 
+	/**
+	 * Action: copies the specified file.
+	 *
+	 * @param file the data url
+	 * @return a FileNotFoundAction that copies the file's data if the file is not found
+	 */
 	static FileNotFoundAction copyData(File file) {
 		// copyResource(new FIS(file)) isn't used here to avoid dealing with the exception
 		// declared by the FIS constructor
@@ -50,6 +64,12 @@ public interface FileNotFoundAction {
 		};
 	}
 
+	/**
+	 * Action: copies the stream's data.
+	 *
+	 * @param data the stream containing the data
+	 * @return a FileNotFoundAction that copies the stream's data if the file is not found
+	 */
 	static FileNotFoundAction copyData(InputStream data) {
 		return f -> {
 			Files.copy(data, f.toPath());
@@ -57,8 +77,15 @@ public interface FileNotFoundAction {
 		};
 	}
 
+	/**
+	 * Action: copies the inner resource.
+	 *
+	 * @param resourcePath the resource's path
+	 * @return a FileNotFoundAction that copies the url's data if the file is not found
+	 *
+	 * @see Class#getResource(String)
+	 */
 	static FileNotFoundAction copyResource(String resourcePath) {
-		return copyData(
-				FileNotFoundAction.class.getClassLoader().getResourceAsStream(resourcePath));
+		return copyData(FileNotFoundAction.class.getResource(resourcePath));
 	}
 }
