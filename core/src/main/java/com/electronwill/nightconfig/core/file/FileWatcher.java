@@ -45,6 +45,14 @@ public final class FileWatcher {
 	private volatile boolean run = true;
 
 	/**
+	 * Creates a new FileWatcher. The watcher is immediately functional, there is no need (and no
+	 * way, actually) to start it manually.
+	 */
+	public FileWatcher() {
+		thread.start();
+	}
+
+	/**
 	 * Watches a file, if not already watched by this FileWatcher.
 	 *
 	 * @param file          the file to watch
