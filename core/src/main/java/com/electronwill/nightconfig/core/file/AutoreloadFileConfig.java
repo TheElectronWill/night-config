@@ -15,7 +15,7 @@ final class AutoreloadFileConfig<C extends FileConfig> extends ConfigWrapper<C> 
 		try {
 			watcher.addWatch(config.getFile(), config::load);
 		} catch (IOException e) {
-			throw new RuntimeException("Unable to create the autoreloaded config");
+			throw new RuntimeException("Unable to create the autoreloaded config", e);
 		}
 	}
 
