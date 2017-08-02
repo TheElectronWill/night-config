@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-	testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.0-M4'
+	testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.0-M5'
 }
 
 // Jar files
