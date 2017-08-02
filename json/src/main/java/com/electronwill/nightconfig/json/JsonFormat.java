@@ -56,6 +56,10 @@ public abstract class JsonFormat<W extends ConfigWriter<UnmodifiableConfig>>
 		return FANCY.createConfig();
 	}
 
+	static {
+		FormatDetector.registerExtension("json", FANCY);
+	}
+
 	private JsonFormat() {}
 
 	@Override

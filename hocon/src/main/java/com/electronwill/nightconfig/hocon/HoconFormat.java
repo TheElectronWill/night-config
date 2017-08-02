@@ -29,6 +29,11 @@ public final class HoconFormat implements ConfigFormat<CommentedConfig, Config, 
 		return INSTANCE.createConfig();
 	}
 
+	static {
+		FormatDetector.registerExtension("hocon", INSTANCE);
+		FormatDetector.registerExtension("conf", INSTANCE);
+	}
+
 	private HoconFormat() {}
 
 	@Override

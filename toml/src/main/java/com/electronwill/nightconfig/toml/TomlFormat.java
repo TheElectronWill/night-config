@@ -25,6 +25,10 @@ public final class TomlFormat implements ConfigFormat<CommentedConfig, Config, U
 		return INSTANCE.createConfig();
 	}
 
+	static {
+		FormatDetector.registerExtension("toml", INSTANCE);
+	}
+
 	private TomlFormat() {}
 
 	@Override

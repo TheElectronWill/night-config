@@ -40,6 +40,11 @@ public final class YamlFormat implements ConfigFormat<Config, Config, Unmodifiab
 		return defaultInstance().createConfig();
 	}
 
+	static {
+		FormatDetector.registerExtension("yaml", YamlFormat::defaultInstance);
+		FormatDetector.registerExtension("yml", YamlFormat::defaultInstance);
+	}
+
 	final Yaml yaml;
 
 	private YamlFormat(Yaml yaml) {
