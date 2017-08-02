@@ -41,55 +41,69 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public <T> T get(List<String> path) {
 		final int lastIndex = path.size() - 1;
-		Map<String, Object> currentMap = map;
-		for (String key : path.subList(0, lastIndex)) {
-			Object value = currentMap.get(key);
-			if (!(value instanceof Config)) {//missing or incompatible intermediary level
-				return null;//the specified path doesn't exist -> return null
-			}
-			currentMap = ((Config)value).valueMap();
+		Map<String, Object> parentMap = getMap(path.subList(0, lastIndex));
+		if (parentMap == null) {
+			return null;
 		}
 		String lastKey = path.get(lastIndex);
-		return (T)currentMap.get(lastKey);
+		return (T)parentMap.get(lastKey);
 	}
 
 	@Override
 	public <T> T set(List<String> path, Object value) {
 		final int lastIndex = path.size() - 1;
-		Map<String, Object> currentMap = map;
-		for (String currentKey : path.subList(0, lastIndex)) {
-			final Object currentValue = currentMap.get(currentKey);
-			final Config config;
-			if (currentValue == null) {//missing intermediary level
-				config = createSubConfig();
-				currentMap.put(currentKey, config);
-			} else if (!(currentValue instanceof Config)) {//incompatible intermediary level
-				throw new IllegalArgumentException(
-						"Cannot add an element to an intermediary value of type: "
-						+ currentValue.getClass());
-			} else {//existing intermediary level
-				config = (Config)currentValue;
-			}
-			currentMap = config.valueMap();
-		}
+		Map<String, Object> parentMap = getOrCreateMap(path.subList(0, lastIndex));
 		String lastKey = path.get(lastIndex);
-		return (T)currentMap.put(lastKey, value);
+		return (T)parentMap.put(lastKey, value);
 	}
 
 	@Override
 	public void add(List<String> path, Object value) {
 		final int lastIndex = path.size() - 1;
+		Map<String, Object> parentMap = getOrCreateMap(path.subList(0, lastIndex));
+		String lastKey = path.get(lastIndex);
+		parentMap.putIfAbsent(lastKey, value);
+	}
+
+	@Override
+	public <T> T remove(List<String> path) {
+		final int lastIndex = path.size() - 1;
+		Map<String, Object> parentMap = getMap(path.subList(0, lastIndex));
+		if (parentMap == null) {
+			return null;
+		}
+		String lastKey = path.get(lastIndex);
+		return (T)parentMap.remove(lastKey);
+	}
+
+	@Override
+	public boolean contains(List<String> path) {
+		final int lastIndex = path.size() - 1;
+		Map<String, Object> parentMap = getMap(path.subList(0, lastIndex));
+		if (parentMap == null) {
+			return false;
+		}
+		String lastKey = path.get(lastIndex);
+		return parentMap.containsKey(lastKey);
+	}
+
+	/**
+	 * Returns the Map associated to the given path. Any missing level is created.
+	 *
+	 * @param path the map's path
+	 * @return the Map, not null
+	 */
+	private Map<String, Object> getOrCreateMap(List<String> path) {
 		Map<String, Object> currentMap = map;
-		for (String currentKey : path.subList(0, lastIndex)) {
+		for (String currentKey : path) {
 			final Object currentValue = currentMap.get(currentKey);
 			final Config config;
-			if (currentValue == null) {//missing intermediary level
+			if (currentValue == null) {// missing intermediary level
 				config = createSubConfig();
 				currentMap.put(currentKey, config);
-			} else if (!(currentValue instanceof Config)) {//incompatible intermediary level
+			} else if (!(currentValue instanceof Config)) {// incompatible intermediary level
 				throw new IllegalArgumentException(
 						"Cannot add an element to an intermediary value of type: "
 						+ currentValue.getClass());
@@ -98,40 +112,26 @@ public abstract class AbstractConfig implements Config, Cloneable {
 			}
 			currentMap = config.valueMap();
 		}
-		String lastKey = path.get(lastIndex);
-		currentMap.putIfAbsent(lastKey, value);
+		return currentMap;
 	}
 
 	protected abstract AbstractConfig createSubConfig();
-
-	@Override
-	public <T> T remove(List<String> path) {
-		final int lastIndex = path.size() - 1;
+	/**
+	 * Returns the Map associated to the given path, or null if there is none.
+	 *
+	 * @param path the map's path
+	 * @return the Map if any, or null if none
+	 */
+	private Map<String, Object> getMap(List<String> path) {
 		Map<String, Object> currentMap = map;
-		for (String key : path.subList(0, lastIndex)) {
+		for (String key : path) {
 			Object value = currentMap.get(key);
-			if (!(value instanceof Config)) {//missing or incompatible intermediary level
-				return null;//the specified path doesn't exist -> stop here
+			if (!(value instanceof Config)) {// missing or incompatible intermediary level
+				return null;// the specified path doesn't exist -> stop here
 			}
 			currentMap = ((Config)value).valueMap();
 		}
-		String lastKey = path.get(lastIndex);
-		return (T)currentMap.remove(lastKey);
-	}
-
-	@Override
-	public boolean contains(List<String> path) {
-		final int lastIndex = path.size() - 1;
-		Map<String, Object> currentMap = map;
-		for (String key : path.subList(0, lastIndex)) {
-			Object value = currentMap.get(key);
-			if (!(value instanceof Config)) {//missing or incompatible intermediary level
-				return false;//the specified path doesn't exist -> return false
-			}
-			currentMap = ((Config)value).valueMap();
-		}
-		String lastKey = path.get(lastIndex);
-		return currentMap.containsKey(lastKey);
+		return currentMap;
 	}
 
 	@Override
