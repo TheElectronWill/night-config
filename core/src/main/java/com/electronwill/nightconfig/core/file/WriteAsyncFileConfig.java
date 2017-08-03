@@ -28,8 +28,10 @@ import static java.nio.file.StandardOpenOption.WRITE;
 final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> implements FileConfig {
 	private final File file;
 	private final Charset charset;
-	private boolean closed;
-
+	/**
+	 * True if this file config has been closed.
+	 */
+	private final AtomicBoolean closed = new AtomicBoolean();
 	/**
 	 * The channel used to write asynchronously to the file.
 	 */
@@ -80,7 +82,7 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 
 	@Override
 	public void save() {
-		if (closed) {
+		if (closed.get()) {
 			throw new IllegalStateException("Cannot save a closed FileConfig");
 		}
 		save(true);
@@ -88,7 +90,19 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 
 	@Override
 	public void close() {
-		closed = true;
+		if (closed.compareAndSet(false, true)) {// The content of this block is called only once
+			synchronized (channelGuard) {
+				while (currentlyWriting.get()) {// Writing in progres
+					// Waits for the operation to complete, to ensure that the data is written:
+					try {
+						channelGuard.wait();
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+						break;// Exits from the loop and returns from the method
+					}
+				}
+			}
+		}
 	}
 
 	private void save(boolean saveLaterIfWriting) {
@@ -110,14 +124,14 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 					writeCompletedHandler.failed(e, null);
 				}
 			}
-		} else if (saveLaterIfWriting) {//there is a writing in progress: start one later
+		} else if (saveLaterIfWriting) {// there is a writing in progress: start one later
 			mustWriteAgain.set(true);
 		}
 	}
 
 	@Override
 	public void load() {
-		if (closed) {
+		if (closed.get()) {
 			throw new IllegalStateException("Cannot (re)load a closed FileConfig");
 		}
 		parser.parse(file, config, parsingMode, nefAction);//blocking read, not async
@@ -138,6 +152,8 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 						channel = null;
 					} catch (IOException e) {
 						failed(e, null);
+					} finally {
+						channelGuard.notify();// Notifies the waiter (if any). See method close()
 					}
 				}
 			}
