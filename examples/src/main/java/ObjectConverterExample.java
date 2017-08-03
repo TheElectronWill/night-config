@@ -46,6 +46,10 @@ public class ObjectConverterExample {
 		System.out.println("Object: " + object);
 		/* See that the created object isn't linked to the config. They are independant, so you
 		can modify the config without affecting the object and vice-versa. */
+
+		// Of course it is possible to do the inverse operation: to convert an object to a config:
+		Config configFromObject = converter.toConfig(object, Config::inMemory);
+		System.out.println("\nConfig from object: " + configFromObject);
 	}
 
 	static class ConfigData {
