@@ -9,6 +9,12 @@ public class FileConfigExample {
 	public static void main(String[] args) {
 		// Creates the FileConfig:
 		FileConfig config = FileConfig.of("config.toml");
+
+		// Loads the config (reads the file):
+		config.load();
+		// Note: the load() call is always blocking: it returns when the reading operation terminates.
+		// load() is also used to reload the configuration.
+
 		System.out.println("Config: " + config);
 
 		// Modifies the config:
@@ -35,13 +41,11 @@ public class FileConfigExample {
 		// Note: by default, the save operation is done in the background, and config.save()
 		// returns immediately without waiting for the operation to terminates.
 
-		// Reloads the config from the file:
-		config.load();
-		// Note: the load() call is always blocking: it returns when the reading operation terminates.
-
 		/* Once you don't need the FileConfig anymore, remember to close it, in order to release
 		the associated resources. There aren't always such resources, but it's a good practise to
-		call the close() method anyway. */
+		call the close() method anyway.
+		Closing the FileConfig also ensures that all the data has been written, in particular it
+		waits for the background saving operations to complete. */
 		config.close();
 	}
 }
