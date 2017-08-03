@@ -183,6 +183,82 @@ public interface Config extends UnmodifiableConfig {
 	 */
 	Config createSubConfig();
 
+	//--- Scala convenience methods ---
+
+	/**
+	 * For scala: gets a config value.
+	 *
+	 * @param path the value's path, each part separated by a dot. Example "a.b.c"
+	 * @param <T>  the value's type
+	 * @see #get(String)
+	 */
+	default <T> T apply(String path) {
+		return get(path);
+	}
+
+	/**
+	 * For scala: gets a config value.
+	 *
+	 * @param path the value's path, each element of the list is a different part of the path.
+	 * @param <T>  the value's type
+	 * @see #get(List)
+	 */
+	default <T> T apply(List<String> path) {
+		return get(path);
+	}
+
+	/**
+	 * For scala: sets a config value.
+	 *
+	 * @param path  the value's path, each part separated by a dot. Example "a.b.c"
+	 * @param value the value to set
+	 * @see #set(String, Object)
+	 */
+	default void update(String path, Object value) {
+		set(path, value);
+	}
+
+	/**
+	 * For scala: sets a config value.
+	 *
+	 * @param path  the value's path, each element of the list is a different part of the path.
+	 * @param value the value to set
+	 * @see #set(List, Object)
+	 */
+	default void update(List<String> path, Object value) {
+		set(path, value);
+	}
+
+	/**
+	 * For scala: adds a config value. The value is set iff there is no value associated with the
+	 * given path.
+	 *
+	 * @param path  the value's path, each part separated by a dot. Example "a.b.c"
+	 * @param value the value to set
+	 * @return true if the value has been added, false if a value is already associated with the
+	 * given path
+	 *
+	 * @see #add(String, Object)
+	 */
+	default boolean $plus$eq(String path, Object value) {
+		return add(path, value);
+	}
+
+	/**
+	 * For scala: adds a config value. The value is set iff there is no value associated with the
+	 * given path.
+	 *
+	 * @param path  the value's path, each element of the list is a different part of the path.
+	 * @param value the value to set
+	 * @return true if the value has been added, false if a value is already associated with the
+	 * given path
+	 *
+	 * @see #add(List, Object)
+	 */
+	default boolean $plus$eq(List<String> path, Object value) {
+		return add(path, value);
+	}
+
 	//--- Static methods ---
 
 	/**
