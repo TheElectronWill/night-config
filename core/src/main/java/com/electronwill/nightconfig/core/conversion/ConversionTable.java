@@ -272,4 +272,9 @@ public final class ConversionTable implements Cloneable {
 	public ConversionTable clone() {
 		return new ConversionTable(this);
 	}
+
+	@Override
+	public String toString() {
+		return "ConversionTable: " + conversionMap;
+	}
 }
