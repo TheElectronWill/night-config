@@ -17,6 +17,20 @@ final class AnnotationUtils {
 	private AnnotationUtils() {}
 
 	/**
+	 * Checks if an annotated element is annotated with {@link PreserveNotNull}.
+	 */
+	static boolean hasPreserveNotNull(AnnotatedElement annotatedElement) {
+		return annotatedElement.isAnnotationPresent(PreserveNotNull.class);
+	}
+
+	/**
+	 * Checks if a field or its class is annotated with {@link PreserveNotNull}
+	 */
+	static boolean mustPreserve(Field field, Class<?> fieldClass) {
+		return hasPreserveNotNull(field) || hasPreserveNotNull(fieldClass);
+	}
+
+	/**
 	 * Creates and returns an instance of the converter specified by the @Conversion annotation
 	 * of the field. If there is no @Conversion annotation, returns {@code null}.
 	 *

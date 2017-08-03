@@ -190,12 +190,17 @@ public final class ObjectConverter {
 					if (fieldValue == null) {
 						fieldValue = createInstance(fieldType);
 						field.set(object, fieldValue);
+						convertToObject((UnmodifiableConfig)value, fieldValue, field.getType());
+					} else if (!AnnotationUtils.mustPreserve(field, clazz)) {
+						convertToObject((UnmodifiableConfig)value, fieldValue, field.getType());
 					}
-					convertToObject((UnmodifiableConfig)value, fieldValue, field.getType());
-				} else {
-					// Reads as a plain value
-					AnnotationUtils.checkField(field, value);// Checks that the value is conform
-					field.set(object, value);
+				} else { // Reads as a plain value
+					if (value == null && AnnotationUtils.mustPreserve(field, clazz)) {
+						AnnotationUtils.checkField(field, field.get(object));
+					} else {
+						AnnotationUtils.checkField(field, value);
+						field.set(object, value);
+					}
 				}
 			} catch (ReflectiveOperationException ex) {
 				throw new ReflectionException("Unable to work with field " + field, ex);
