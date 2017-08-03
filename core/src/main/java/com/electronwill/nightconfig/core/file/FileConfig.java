@@ -40,7 +40,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	/**
 	 * Creates a new FileConfig based on the specified file and format.
 	 *
-	 * @param file   the file to use to save & load the config
+	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new FileConfig associated to the specified file
 	 */
@@ -52,7 +52,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	/**
 	 * Creates a new FileConfig based on the specified file. The format is detected automatically.
 	 *
-	 * @param file the file to use to save & load the config
+	 * @param file the file to use to save and load the config
 	 * @return a new FileConfig associated to the specified file
 	 *
 	 * @throws NoFormatFoundException if the format detection fails
@@ -92,7 +92,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	/**
 	 * Creates a new thread-safe FileConfig based on the specified file and format.
 	 *
-	 * @param file   the file to use to save & load the config
+	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new thread-safe FileConfig associated to the specified file
 	 */
@@ -105,7 +105,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * Creates a new thread-safe FileConfig based on the specified file. The format is detected
 	 * automatically.
 	 *
-	 * @param file the file to use to save & load the config
+	 * @param file the file to use to save and load the config
 	 * @return a new thread-safe FileConfig associated to the specified file
 	 *
 	 * @throws NoFormatFoundException if the format detection fails
@@ -142,7 +142,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	/**
 	 * Returns a FileConfigBuilder to create a FileConfig with many options.
 	 *
-	 * @param file   the file to use to save & load the config
+	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
 	 */
@@ -155,7 +155,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * Returns a FileConfigBuilder to create a FileConfig with many options. The format is detected
 	 * automatically.
 	 *
-	 * @param file the file to use to save & load the config
+	 * @param file the file to use to save and load the config
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
 	 *
 	 * @throws NoFormatFoundException if the format detection fails

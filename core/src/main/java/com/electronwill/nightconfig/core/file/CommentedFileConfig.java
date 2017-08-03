@@ -16,7 +16,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	/**
 	 * Creates a new FileConfig based on the specified file and format.
 	 *
-	 * @param file   the file to use to save & load the config
+	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new FileConfig associated to the specified file
 	 */
@@ -29,7 +29,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * Creates a new FileConfig based on the specified file and format. The format is detected
 	 * automatically.
 	 *
-	 * @param file the file to use to save & load the config
+	 * @param file the file to use to save and load the config
 	 * @return a new FileConfig associated to the specified file
 	 *
 	 * @throws NoFormatFoundException if the format detection fails
@@ -70,7 +70,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	/**
 	 * Creates a new trhead-safe CommentedFileConfig based on the specified file and format.
 	 *
-	 * @param file   the file to use to save & load the config
+	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new thread-safe CommentedFileConfig associated to the specified file
 	 */
@@ -83,7 +83,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * Creates a new thread-safe CommentedFileConfig based on the specified file and format. The
 	 * format is detected automatically.
 	 *
-	 * @param file the file to use to save & load the config
+	 * @param file the file to use to save and load the config
 	 * @return a new thread-safe CommentedFileConfig associated to the specified file
 	 *
 	 * @throws NoFormatFoundException if the format detection fails
@@ -120,7 +120,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	/**
 	 * Returns a CommentedFileConfigBuilder to create a CommentedFileConfig with many options.
 	 *
-	 * @param file   the file to use to save & load the config
+	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new FileConfigBuilder that will build a CommentedFileConfig associated to the
 	 * specified file
@@ -134,7 +134,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * Returns a CommentedFileConfigBuilder to create a CommentedFileConfig with many options. The
 	 * format is detected automatically.
 	 *
-	 * @param file the file to use to save & load the config
+	 * @param file the file to use to save and load the config
 	 * @return a new FileConfigBuilder that will build a CommentedFileConfig associated to the
 	 * specified file
 	 *
