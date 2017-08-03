@@ -12,7 +12,8 @@ import java.util.function.Predicate;
 /**
  * @author TheElectronWill
  */
-abstract class AbstractConvertedConfig<C extends Config> extends ConfigWrapper<C> implements Config {
+abstract class AbstractConvertedConfig<C extends Config> extends ConfigWrapper<C>
+		implements Config {
 	final Function<Object, Object> readConversion, writeConversion;
 	final Predicate<Class<?>> supportPredicate;
 	final ConfigFormat<?, ?, ?> format;
@@ -46,5 +47,10 @@ abstract class AbstractConvertedConfig<C extends Config> extends ConfigWrapper<C
 	@Override
 	public ConfigFormat<?, ?, ?> configFormat() {
 		return format;
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + ':' + valueMap() + " (original: " + config + ')';
 	}
 }
