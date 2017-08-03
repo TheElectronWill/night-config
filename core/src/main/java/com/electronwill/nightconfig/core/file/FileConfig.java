@@ -25,9 +25,12 @@ public interface FileConfig extends Config, AutoCloseable {
 	void load();
 
 	/**
-	 * Closes this FileConfig and release its associated resources, if any. A closed FileConfig
-	 * can still be used via the Config's methods, but {@link #save()} and {@link #load()} will
-	 * throw an IllegalStateException. Closing an aleady closed FileConfig has no effect.
+	 * Closes this FileConfig, releases its associated resources (if any), and ensure that the
+	 * ongoing saving operations complete.
+	 * <p>
+	 * A closed FileConfig can still be used via the Config's methods, but {@link #save()} and
+	 * {@link #load()} will throw an IllegalStateException. Closing an aleady closed FileConfig has
+	 * no effect.
 	 */
 	@Override
 	void close();
