@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
@@ -228,6 +229,18 @@ public final class ConversionTable implements Cloneable {
 	}
 
 	/**
+	 * Returns an Config that converts "just-in-time" the values that are read from the specified
+	 * Config.
+	 *
+	 * @param config the config to wrap
+	 * @return a wrapper that converts the values read from the config
+	 */
+	public CommentedFileConfig wrapRead(CommentedFileConfig config) {
+		return new ConvertedCommentedFileConfig(config, this::convert, v -> v,
+												config.configFormat()::supportsType);
+	}
+
+	/**
 	 * Returns an Config that converts "just-in-time" the values that are put into the specified
 	 * Config.
 	 *
@@ -266,6 +279,21 @@ public final class ConversionTable implements Cloneable {
 	 */
 	public FileConfig wrapWrite(FileConfig config, Predicate<Class<?>> supportValueTypePredicate) {
 		return new ConvertedFileConfig(config, v -> v, this::convert, supportValueTypePredicate);
+	}
+
+	/**
+	 * Returns an Config that converts "just-in-time" the values that are put into the specified
+	 * Config.
+	 *
+	 * @param config                    the config to wrap
+	 * @param supportValueTypePredicate Predicate that checks if a given class is supported by the
+	 *                                  returned config
+	 * @return a wrapper that converts the values put into the config
+	 */
+	public CommentedFileConfig wrapWrite(CommentedFileConfig config,
+										 Predicate<Class<?>> supportValueTypePredicate) {
+		return new ConvertedCommentedFileConfig(config, v -> v, this::convert,
+												supportValueTypePredicate);
 	}
 
 	@Override
