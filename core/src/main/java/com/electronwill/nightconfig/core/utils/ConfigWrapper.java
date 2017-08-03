@@ -26,8 +26,8 @@ public abstract class ConfigWrapper<C extends Config> extends UnmodifiableConfig
 	}
 
 	@Override
-	public void add(List<String> path, Object value) {
-		config.add(path, value);
+	public boolean add(List<String> path, Object value) {
+		return config.add(path, value);
 	}
 
 	@Override

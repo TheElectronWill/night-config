@@ -251,7 +251,7 @@ public final class ObjectBinder {
 		}
 
 		@Override
-		public void add(List<String> path, Object value) {
+		public boolean add(List<String> path, Object value) {
 			throw new UnsupportedOperationException("Cannot add elements to a bound config");
 		}
 

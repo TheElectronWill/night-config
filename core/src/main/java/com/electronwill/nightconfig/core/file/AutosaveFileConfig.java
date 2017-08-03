@@ -22,9 +22,10 @@ final class AutosaveFileConfig<C extends FileConfig> extends ConfigWrapper<C> im
 	}
 
 	@Override
-	public void add(List<String> path, Object value) {
-		super.add(path, value);
+	public boolean add(List<String> path, Object value) {
+		boolean result = super.add(path, value);
 		save();
+		return result;
 	}
 
 	@Override

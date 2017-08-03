@@ -42,17 +42,21 @@ public interface Config extends UnmodifiableConfig {
 	 *
 	 * @param path  the value's path, each element of the list is a different part of the path.
 	 * @param value the value to set
+	 * @return true if the value has been added, false if a value is already associated with the
+	 * given path
 	 */
-	void add(List<String> path, Object value);
+	boolean add(List<String> path, Object value);
 
 	/**
 	 * Adds a config value. The value is set iff there is no value associated with the given path.
 	 *
 	 * @param path  the value's path, each part separated by a dot. Example "a.b.c"
 	 * @param value the value to set
+	 * @return true if the value has been added, false if a value is already associated with the
+	 * given path
 	 */
-	default void add(String path, Object value) {
-		add(split(path, '.'), value);
+	default boolean add(String path, Object value) {
+		return add(split(path, '.'), value);
 	}
 
 	/**

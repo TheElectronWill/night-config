@@ -9,9 +9,14 @@ import java.util.function.Predicate;
  * @author TheElectronWill
  */
 public class ConvertedFileConfig extends AbstractConvertedConfig<FileConfig> implements FileConfig {
-	ConvertedFileConfig(FileConfig config, Function<Object, Object> readConversion,
-						Function<Object, Object> writeConversion,
-						Predicate<Class<?>> supportPredicate) {
+	public ConvertedFileConfig(FileConfig config, ConversionTable readTable,
+							   ConversionTable writeTable, Predicate<Class<?>> supportPredicate) {
+		this(config, readTable::convert, writeTable::convert, supportPredicate);
+	}
+
+	public ConvertedFileConfig(FileConfig config, Function<Object, Object> readConversion,
+							   Function<Object, Object> writeConversion,
+							   Predicate<Class<?>> supportPredicate) {
 		super(config, readConversion, writeConversion, supportPredicate);
 	}
 

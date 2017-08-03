@@ -41,8 +41,8 @@ class CheckedCommentedConfig extends CommentedConfigWrapper<CommentedConfig>
 	}
 
 	@Override
-	public void add(List<String> path, Object value) {
-		super.add(path, checkedValue(value));
+	public boolean add(List<String> path, Object value) {
+		return super.add(path, checkedValue(value));
 	}
 
 	@Override

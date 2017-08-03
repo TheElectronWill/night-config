@@ -64,11 +64,11 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	}
 
 	@Override
-	public void add(List<String> path, Object value) {
+	public boolean add(List<String> path, Object value) {
 		final int lastIndex = path.size() - 1;
 		Map<String, Object> parentMap = getOrCreateMap(path.subList(0, lastIndex));
 		String lastKey = path.get(lastIndex);
-		parentMap.putIfAbsent(lastKey, value);
+		return parentMap.putIfAbsent(lastKey, value) == null;
 	}
 
 	@Override
