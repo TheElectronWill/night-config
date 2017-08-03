@@ -126,8 +126,21 @@ public final class ConversionTable implements Cloneable {
 
 	@SuppressWarnings("unchecked")
 	private Function<Object, Object> getConversionFunction(Object value) {
-		Class<?> classToConvert = (value == null) ? null : value.getClass();
-		return (Function<Object, Object>)conversionMap.get(classToConvert);
+		if (value == null) {
+			return (Function<Object, Object>)conversionMap.get(null);
+		} else {
+			Class<?> clazz = value.getClass();
+			Function<?, Object> conversionFunction = conversionMap.get(clazz);
+			// Traverses the class hierarchy:
+			while (conversionFunction == null) {
+				clazz = clazz.getSuperclass();
+				if (clazz == null) {
+					break;
+				}
+				conversionFunction = conversionMap.get(clazz);
+			}
+			return (Function<Object, Object>)conversionFunction;
+		}
 	}
 
 	/**
