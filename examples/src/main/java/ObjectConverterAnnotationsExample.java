@@ -7,8 +7,10 @@ import com.electronwill.nightconfig.core.conversion.SpecDoubleInRange;
 import com.electronwill.nightconfig.core.conversion.SpecIntInRange;
 import com.electronwill.nightconfig.core.conversion.SpecNotNull;
 import com.electronwill.nightconfig.core.conversion.SpecStringInArray;
+import com.electronwill.nightconfig.core.conversion.SpecValidator;
 import com.electronwill.nightconfig.core.utils.StringUtils;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * @author TheElectronWill
@@ -47,6 +49,8 @@ public class ObjectConverterAnnotationsExample {
 		    new instance of the specified class is created when calling toObject, therefore the
 		    class need to have a constructor without arguments (access level doesn't matter: it
 		    can be private)
+		    - @SpecValidator defines that the value must be checked by a custom class. As for
+		    @Conversion, the class need to have a constructor without arguments.
 		 */
 	}
 
@@ -69,6 +73,7 @@ public class ObjectConverterAnnotationsExample {
 		Object some;
 
 		@Conversion(PointToStringConverter.class)
+		@SpecValidator(CustomPointValidator.class)
 		Point2D point;
 
 		@Override
@@ -111,8 +116,8 @@ public class ObjectConverterAnnotationsExample {
 
 		@Override
 		public Point2D convertToField(String value) {
-			value = value.substring(1, value.length() - 1);
-			List<String> splitted = StringUtils.split(value, ',');
+			value = value.substring(1, value.length() - 1);// removes the parentheses
+			List<String> splitted = StringUtils.split(value, ',');// splits the string
 			int x = Integer.parseInt(splitted.get(0));
 			int y = Integer.parseInt(splitted.get(1));
 			return new Point2D(x, y);
@@ -121,6 +126,17 @@ public class ObjectConverterAnnotationsExample {
 		@Override
 		public String convertFromField(Point2D value) {
 			return "(" + value.x + "," + value.y + ")";
+		}
+	}
+
+	static class CustomPointValidator implements Predicate<Object> {
+		@Override
+		public boolean test(Object o) {// Returns true if the value is valid, false otherwise.
+			if (!(o instanceof Point2D)) {
+				return false;
+			}
+			Point2D point = (Point2D)o;
+			return point.x >= 0 && point.y >= 0;
 		}
 	}
 }
