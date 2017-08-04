@@ -25,6 +25,12 @@ task sourcesJar(type: Jar) {
 	from sourceSets.main.java.srcDirs
 }
 
+task fatJar(type: Jar) {
+	baseName = project.name + '-all'
+	from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+	with jar
+}
+
 artifacts {
 	archives sourcesJar
 	archives javadocJar
