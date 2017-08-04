@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Utility class for the annotations.
@@ -136,6 +137,29 @@ final class AnnotationUtils {
 		SpecIntInRange specIntInRange = field.getDeclaredAnnotation(SpecIntInRange.class);
 		if (specIntInRange != null) {
 			checkFieldSpec(field, value, specIntInRange);
+		}
+
+		// --- Custom check with a validator --
+		SpecValidator specValidator = field.getDeclaredAnnotation(SpecValidator.class);
+		if (specValidator != null) {
+			checkFieldSpec(field, value, specValidator);
+		}
+	}
+
+	private static void checkFieldSpec(Field field, Object value, SpecValidator spec) {
+		final Predicate<Object> validatorInstance;
+		try {
+			Constructor<? extends Predicate<Object>> constructor = spec.value()
+																	   .getDeclaredConstructor();
+			constructor.setAccessible(true);
+			validatorInstance = constructor.newInstance();
+		} catch (ReflectiveOperationException ex) {
+			throw new ReflectionException("Cannot create a converter for field " + field, ex);
+		}
+		if (!validatorInstance.test(value)) {
+			throw new InvalidValueException(
+					"Invalid value \"%s\" for field %s: it doesn't conform to " + "%s", value,
+					field, spec);
 		}
 	}
 
