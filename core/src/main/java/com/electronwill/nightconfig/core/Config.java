@@ -186,28 +186,6 @@ public interface Config extends UnmodifiableConfig {
 	//--- Scala convenience methods ---
 
 	/**
-	 * For scala: gets a config value.
-	 *
-	 * @param path the value's path, each part separated by a dot. Example "a.b.c"
-	 * @param <T>  the value's type
-	 * @see #get(String)
-	 */
-	default <T> T apply(String path) {
-		return get(path);
-	}
-
-	/**
-	 * For scala: gets a config value.
-	 *
-	 * @param path the value's path, each element of the list is a different part of the path.
-	 * @param <T>  the value's type
-	 * @see #get(List)
-	 */
-	default <T> T apply(List<String> path) {
-		return get(path);
-	}
-
-	/**
 	 * For scala: sets a config value.
 	 *
 	 * @param path  the value's path, each part separated by a dot. Example "a.b.c"
