@@ -318,4 +318,29 @@ public final class ConversionTable implements Cloneable {
 	public String toString() {
 		return "ConversionTable: " + conversionMap;
 	}
+
+	//--- Scala convenience methods ---
+
+	/**
+	 * For scala: puts a conversion function to the table. If a function is already defined for
+	 * the specified class then it is replaced.
+	 *
+	 * @param classToConvert     the class of the values that the function can convert, may be null
+	 * @param conversionFunction the conversion function
+	 * @param <T>                the type of the values that the function can convert
+	 * @see #put(Class, Function)
+	 */
+	public <T> void $plus$eq(Class<T> classToConvert,
+							 Function<? super T, Object> conversionFunction) {
+		put(classToConvert, conversionFunction);
+	}
+
+	/**
+	 * For scala: Removes the function that is currently defined for the specified class, if any.
+	 *
+	 * @param classToConvert the class of the values that the function we want to remove converts
+	 */
+	public void $minus$eq(Class<?> classToConvert) {
+		remove(classToConvert);
+	}
 }
