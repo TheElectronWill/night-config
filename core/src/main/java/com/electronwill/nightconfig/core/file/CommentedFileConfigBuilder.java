@@ -97,6 +97,6 @@ public final class CommentedFileConfigBuilder extends FileConfigBuilder<Commente
 	}
 
 	public CommentedFileConfig build() {
-		return new SimpleCommentedFileConfig(super.config, super.build());
+		return new SimpleCommentedFileConfig(getConfig(), super.build());
 	}
 }

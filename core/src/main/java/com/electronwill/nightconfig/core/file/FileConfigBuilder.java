@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class FileConfigBuilder<C extends Config> {
 	protected final File file;
-	protected C config;
+	private C config;
 	protected final ConfigFormat format;// <? extends C, ? super C, ? super C> doesn't compile
 	protected final ConfigWriter<? super C> writer;
 	protected final ConfigParser<?, ? super C> parser;
@@ -176,15 +176,12 @@ public class FileConfigBuilder<C extends Config> {
 	 * @return the config
 	 */
 	public FileConfig build() {
-		if (config == null) {// concurrent() has not been called
-			config = (C)format.createConfig();
-		}
 		FileConfig fileConfig;
 		if (sync) {
-			fileConfig = new WriteSyncFileConfig<>(config, file, charset, writer, writingMode,
+			fileConfig = new WriteSyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
 												   parser, parsingMode, nefAction);
 		} else {
-			fileConfig = new WriteAsyncFileConfig<>(config, file, charset, writer, writingMode,
+			fileConfig = new WriteAsyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
 													parser, parsingMode, nefAction);
 		}
 		if (autoreload) {
@@ -203,5 +200,12 @@ public class FileConfigBuilder<C extends Config> {
 			fileConfig = new AutosaveFileConfig<>(fileConfig);
 		}
 		return fileConfig;
+	}
+
+	protected final C getConfig() {
+		if (config == null) {// concurrent() has not been called
+			config = (C)format.createConfig();
+		}
+		return config;
 	}
 }
