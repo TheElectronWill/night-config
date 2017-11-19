@@ -1,4 +1,4 @@
-version '3.0.1'
+version '3.0.3'
 
 apply plugin: 'maven'
 apply plugin: 'java'
@@ -10,7 +10,7 @@ repositories {
 
 dependencies {
 	compile project(':core')
-	testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.0-M5'
+	testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.2'
 }
 
 // Jar files
