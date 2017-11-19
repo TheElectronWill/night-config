@@ -4,6 +4,7 @@ long = 1234567890000
 double = 1.2345678901
 spaces = 10_000_999.01_02_03 # this is valid!
 bool_array = [true, false, true, false,] # comment
+inline_table = { id = 1, data = 0}
 int_array = [0, 2]
 nested_arrays = [ [1], [true, false], ['a', "b"]]
 multilineArray = [
