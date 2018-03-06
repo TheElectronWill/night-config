@@ -62,7 +62,7 @@ final class Toml {
 	static CharsWrapper readLine(CharacterInput input) {
 		CharsWrapper chars = input.readUntil(NEWLINE);
 		int lastIndex = chars.length() - 1;
-		if (chars.get(lastIndex) == '\r') {
+		if (lastIndex >= 0 && chars.get(lastIndex) == '\r') {
 			return chars.subView(0, lastIndex);
 		}
 		return chars;
