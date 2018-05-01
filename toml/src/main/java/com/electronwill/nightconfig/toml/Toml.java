@@ -84,5 +84,9 @@ final class Toml {
 		return true;
 	}
 
+	static boolean isKeyValueSeparator(char c, boolean lenient) {
+		return c == '=' || (lenient && c == ':');
+	}
+
 	private Toml() {}
 }

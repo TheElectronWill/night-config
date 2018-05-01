@@ -27,6 +27,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 	// --- Parser's settings ---
 	private int initialStringBuilderCapacity = 16, initialListCapacity = 10;
 	private boolean lenientBareKeys = false;
+	private boolean lenientSeparators = false;
 	private boolean configWasEmpty = false;
 	private ParsingMode parsingMode;
 
@@ -147,6 +148,15 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 	}
 
 	// --- Getters/setters for the settings ---
+	public boolean isLenientWithSeparators() {
+		return lenientSeparators;
+	}
+
+	public TomlParser setLenientWithSeparators(boolean lenientSeparators) {
+		this.lenientSeparators = lenientSeparators;
+		return this;
+	}
+
 	public boolean isLenientWithBareKeys() {
 		return lenientBareKeys;
 	}

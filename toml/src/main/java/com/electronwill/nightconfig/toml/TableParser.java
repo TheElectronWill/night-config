@@ -15,7 +15,7 @@ import java.util.List;
  */
 final class TableParser {
 
-	private static final char[] KEY_END = {'\t', ' ', '=', '.', '\n', '\r', ']'};
+	private static final char[] KEY_END = {'\t', ' ', '=', '.', '\n', '\r', ']', ':'};
 
 	static CommentedConfig parseInline(CharacterInput input, TomlParser parser) {
 		CommentedConfig config = TomlFormat.instance().createConfig();
@@ -26,7 +26,7 @@ final class TableParser {
 			}
 			String key = parseKey(input, keyFirst, parser);
 			char sep = Toml.readNonSpaceChar(input, false);
-			checkInvalidSeparator(sep, key);
+			checkInvalidSeparator(sep, key, parser);
 
 			Object value = ValueParser.parse(input, parser);
 			Object previous = parser.getParsingMode().put(config.valueMap(), key, value);
@@ -90,8 +90,8 @@ final class TableParser {
 		}
 	}
 
-	private static void checkInvalidSeparator(char sep, String key) {
-		if (sep != '=') {
+	private static void checkInvalidSeparator(char sep, String key, TomlParser parser) {
+		if (!Toml.isKeyValueSeparator(sep, parser.isLenientWithSeparators())) {
 			throw new ParsingException(
 					"Invalid separator '" + sep + "'after key \"" + key + "\" in some table.");
 		}
