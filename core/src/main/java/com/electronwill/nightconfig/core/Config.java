@@ -207,36 +207,6 @@ public interface Config extends UnmodifiableConfig {
 		set(path, value);
 	}
 
-	/**
-	 * For scala: adds a config value. The value is set iff there is no value associated with the
-	 * given path.
-	 *
-	 * @param path  the value's path, each part separated by a dot. Example "a.b.c"
-	 * @param value the value to set
-	 * @return true if the value has been added, false if a value is already associated with the
-	 * given path
-	 *
-	 * @see #add(String, Object)
-	 */
-	default boolean $plus$eq(String path, Object value) {
-		return add(path, value);
-	}
-
-	/**
-	 * For scala: adds a config value. The value is set iff there is no value associated with the
-	 * given path.
-	 *
-	 * @param path  the value's path, each element of the list is a different part of the path.
-	 * @param value the value to set
-	 * @return true if the value has been added, false if a value is already associated with the
-	 * given path
-	 *
-	 * @see #add(List, Object)
-	 */
-	default boolean $plus$eq(List<String> path, Object value) {
-		return add(path, value);
-	}
-
 	//--- Static methods ---
 
 	/**
