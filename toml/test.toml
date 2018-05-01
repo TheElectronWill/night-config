@@ -31,6 +31,16 @@ without_comment = 'This value has no comment'
 # CommentA
 with_comments = 'This value has two comments' # CommentB
 
+dotted.key = 12
+# INVALID: dotted.key.sublevel = 13
+dotted.sub.subsub.key = {a = "b", c = "d"}# more comments
+dotted.more_data = 'some string' # comments here!
+
+# Numbers in different bases
+hexa = 0xffff
+octal = 0o777
+binary = 0b101011
+
 # Comment above a table
 [table] # comment next to a table
     'key' = '"literal string"\n\t'
