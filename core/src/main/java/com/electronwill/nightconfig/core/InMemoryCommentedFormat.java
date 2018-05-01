@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core;
 
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
+
 import java.util.function.Predicate;
 
 /**
@@ -11,7 +12,9 @@ import java.util.function.Predicate;
  */
 public class InMemoryCommentedFormat implements ConfigFormat<CommentedConfig, Config, Config> {
 	private static final InMemoryCommentedFormat DEFAULT_INSTANCE = new InMemoryCommentedFormat(
-			InMemoryFormat.DEFAULT_PREDICATE);
+		InMemoryFormat.DEFAULT_PREDICATE);
+	private static final InMemoryCommentedFormat UNIVERSAL_INSTANCE = new InMemoryCommentedFormat(
+		t -> true);
 
 	public static InMemoryCommentedFormat defaultInstance() {
 		return DEFAULT_INSTANCE;
@@ -19,6 +22,10 @@ public class InMemoryCommentedFormat implements ConfigFormat<CommentedConfig, Co
 
 	public static InMemoryCommentedFormat withSupport(Predicate<Class<?>> supportPredicate) {
 		return new InMemoryCommentedFormat(supportPredicate);
+	}
+
+	public static InMemoryCommentedFormat withUniversalSupport() {
+		return UNIVERSAL_INSTANCE;
 	}
 
 	private final Predicate<Class<?>> supportPredicate;
@@ -30,13 +37,13 @@ public class InMemoryCommentedFormat implements ConfigFormat<CommentedConfig, Co
 	@Override
 	public ConfigWriter<Config> createWriter() {
 		throw new UnsupportedOperationException(
-				"In memory configurations aren't mean to be " + "written.");
+			"In memory configurations aren't mean to be " + "written.");
 	}
 
 	@Override
 	public ConfigParser<CommentedConfig, Config> createParser() {
 		throw new UnsupportedOperationException(
-				"In memory configurations aren't mean to be " + "parsed.");
+			"In memory configurations aren't mean to be " + "parsed.");
 	}
 
 	@Override
