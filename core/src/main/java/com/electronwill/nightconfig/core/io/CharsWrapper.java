@@ -269,6 +269,28 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	}
 
 	/**
+	 * Checks if this CharsWrapper starts with the same characters as the given CharSequence.
+	 *
+	 * @param cs the sequence to compare to the beginning of this CharsWrapper
+	 * @return true if the first characters of this wrapper are the same as the given sequence
+	 */
+	public boolean startsWith(CharSequence cs) {
+		if (cs == null) {
+			return false;
+		}
+		final int l = cs.length();
+		if (l > length()) {
+			return false;
+		}
+		for (int i = 0; i < l; i++) {
+			if (chars[offset + i] != cs.charAt(i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * {@inheritDoc}
 	 * <p>
 	 * This method copies the data so the returned CharsWrapper doesn't share its array with this

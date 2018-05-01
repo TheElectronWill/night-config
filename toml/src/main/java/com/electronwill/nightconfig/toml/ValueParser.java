@@ -71,7 +71,25 @@ final class ValueParser {
 		if (valueChars.indexOfFirst(ONLY_IN_FP_NUMBER) != -1) {
 			return Utils.parseDouble(valueChars);
 		}
-		long longValue = Utils.parseLong(valueChars, 10);
+		CharsWrapper numberChars = valueChars;
+		int base = 10;
+		if (valueChars.length() > 2) {
+			switch (valueChars.subView(0, 2).toString()) {
+				case "0x":
+					base = 16;
+					break;
+				case "0b":
+					base = 2;
+					break;
+				case "0o":
+					base = 8;
+					break;
+			}
+			if (base != 10) {
+				numberChars = valueChars.subView(2);
+			}
+		}
+		long longValue = Utils.parseLong(numberChars, base);
 		int intValue = (int)longValue;
 		if (intValue == longValue) {
 			return intValue;// returns an int if it is enough to represent the value correctly
