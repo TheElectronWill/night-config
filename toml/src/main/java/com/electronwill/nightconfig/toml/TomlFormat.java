@@ -6,6 +6,8 @@ import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FormatDetector;
 
+import java.time.temporal.Temporal;
+
 /**
  * @author TheElectronWill
  */
@@ -62,5 +64,10 @@ public final class TomlFormat implements ConfigFormat<CommentedConfig, Config, U
 	@Override
 	public boolean supportsComments() {
 		return true;
+	}
+
+	@Override
+	public boolean supportsType(Class<?> type) {
+		return ConfigFormat.super.supportsType(type) || Temporal.class.isAssignableFrom(type);
 	}
 }
