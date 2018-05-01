@@ -52,12 +52,10 @@ final class TableParser {
 				parser.setComment(commentsList);// Saves the comments that are above the next table
 				return config;// No more data, or beginning of an other table
 			}
-			String key = parseKey(input, (char)keyFirst, parser);
-			char sep = Toml.readNonSpaceChar(input, false);
-			checkInvalidSeparator(sep, key);
+			List<String> key = parseDottedKey(input, (char)keyFirst, parser);
 
 			Object value = ValueParser.parse(input, parser);
-			Object previous = parser.getParsingMode().put(config.valueMap(), key, value);
+			Object previous = parser.getParsingMode().put(config, key, value);
 			checkDuplicateKey(key, previous, parser.configWasEmpty());
 
 			int after = Toml.readNonSpace(input, false);
@@ -76,11 +74,11 @@ final class TableParser {
 										   + value);
 			}
 			parser.setComment(commentsList);
-			config.setComment(Collections.singletonList(key), parser.consumeComment());
+			config.setComment(key, parser.consumeComment());
 		}
 	}
 
-	private static void checkDuplicateKey(String key, Object previousValue, boolean emptyConfig) {
+	private static void checkDuplicateKey(Object key, Object previousValue, boolean emptyConfig) {
 		/*
 		If the config wasn't empty at the beginning of the parsing, there is no way to know if
 		previousValue isn't null because we parsed the data twice or because it was in the config
@@ -140,12 +138,21 @@ final class TableParser {
 		}
 	}
 
-	static List<String> parseTableName(CharacterInput input, TomlParser parser) {
-		return parseTableName(input, parser, false);
-	}
+	static List<String> parseDottedKey(CharacterInput input, char firstChar, TomlParser parser) {
+		List<String> list = parser.createList();
+		char first = firstChar;
+		while (true) {
+			String part = parseKey(input, first, parser);
+			list.add(part);
 
-	static List<String> parseTableArrayName(CharacterInput input, TomlParser parser) {
-		return parseTableName(input, parser, true);
+			char sep = Toml.readNonSpaceChar(input, false);
+			if (Toml.isKeyValueSeparator(sep, parser.isLenientWithSeparators())) {
+				return list;
+			} else if (sep != '.') {
+				throw new ParsingException("Invalid character '" + sep + "' after key " + list);
+			}
+			first = Toml.readNonSpaceChar(input, false);
+		}
 	}
 
 	static String parseKey(CharacterInput input, char firstChar, TomlParser parser) {
