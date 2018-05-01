@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
 
@@ -55,6 +56,58 @@ public interface UnmodifiableConfig {
 	 */
 	default <T> Optional<T> getOptional(List<String> path) {
 		return Optional.ofNullable(get(path));
+	}
+
+	/**
+	 * Gets a value from the config. If the value doesn't exist, returns the default value.
+	 *
+	 * @param path         the value's path, each part separated by a dot. Example "a.b.c"
+	 * @param defaultValue the default value to return if not found
+	 * @param <T>          the value's type
+	 * @return the value at the given path, or the default value if not found.
+	 */
+	default <T> T getOrElse(String path, T defaultValue) {
+		T value = get(path);
+		return (value == null) ? defaultValue : value;
+	}
+
+	/**
+	 * Gets a value from the config. If the value doesn't exist, returns the default value.
+	 *
+	 * @param path         the value's path, each element of the list is a different part of the path.
+	 * @param defaultValue the default value to return if not found
+	 * @param <T>          the value's type
+	 * @return the value at the given path, or the default value if not found.
+	 */
+	default <T> T getOrElse(List<String> path, T defaultValue) {
+		T value = get(path);
+		return (value == null) ? defaultValue : value;
+	}
+
+	/**
+	 * Gets a value from the config. If the value doesn't exist, returns the default value.
+	 *
+	 * @param path                 the value's path, each element of the list is a different part of the path.
+	 * @param defaultValueSupplier the Supplier of the default value
+	 * @param <T>                  the value's type
+	 * @return the value at the given path, or the default value if not found.
+	 */
+	default <T> T getOrElse(List<String> path, Supplier<T> defaultValueSupplier) {
+		T value = get(path);
+		return (value == null) ? defaultValueSupplier.get() : value;
+	}
+
+	/**
+	 * Gets a value from the config. If the value doesn't exist, returns the default value.
+	 *
+	 * @param path                 the value's path, each part separated by a dot. Example "a.b.c"
+	 * @param defaultValueSupplier the Supplier of the default value
+	 * @param <T>                  the value's type
+	 * @return the value at the given path, or the default value if not found.
+	 */
+	default <T> T getOrElse(String path, Supplier<T> defaultValueSupplier) {
+		T value = get(path);
+		return (value == null) ? defaultValueSupplier.get() : value;
 	}
 
 	/**
