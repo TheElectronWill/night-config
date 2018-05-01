@@ -152,6 +152,14 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 		return lenientSeparators;
 	}
 
+	/**
+	 * Makes this parser lenient (if true) or strict (if false - this is the default) with
+	 * key/values separators. In lenient mode, the parser accepts both '=' and ':' between
+	 * keys and values. In strict mode, only the standard '=' is accepted.
+	 *
+	 * @param lenientSeparators true for lenient, false for strict
+	 * @return this parser
+	 */
 	public TomlParser setLenientWithSeparators(boolean lenientSeparators) {
 		this.lenientSeparators = lenientSeparators;
 		return this;
@@ -161,6 +169,14 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 		return lenientBareKeys;
 	}
 
+	/**
+	 * Makes this parser lenient (if true) or strict (if false - this is the default) with bar keys.
+	 * In lenient mode, almost all characters are allowed in bare keys. In struct mode, only the
+	 * standard A-Za-z0-9_- range is allowed.
+	 *
+	 * @param lenientBareKeys true for lenient, false for strict
+	 * @return this parser
+	 */
 	public TomlParser setLenientWithBareKeys(boolean lenientBareKeys) {
 		this.lenientBareKeys = lenientBareKeys;
 		return this;
