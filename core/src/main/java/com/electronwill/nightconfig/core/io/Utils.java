@@ -73,17 +73,6 @@ public final class Utils {
 	}
 
 	/**
-	 * Parses an array of chars that represents a long value in the specified base.
-	 *
-	 * @param chars the array of characters representing a long
-	 * @param base  the base of the number
-	 * @return the long value represented by the CharsWrapper
-	 */
-	public static long parseLong(char[] chars, int base) {
-		return parseLong(new CharsWrapper(chars), base);
-	}
-
-	/**
 	 * Parses a CharsWrapper that represents an int value in the specified base.
 	 *
 	 * @param chars the CharsWrapper representing an int
@@ -91,17 +80,6 @@ public final class Utils {
 	 * @return the int value represented by the CharsWrapper
 	 */
 	public static int parseInt(CharsWrapper chars, int base) {
-		return (int)parseLong(chars, base);
-	}
-
-	/**
-	 * Parses an array of chars that represents an int value in the specified base.
-	 *
-	 * @param chars the array of characters representing an int
-	 * @param base  the base of the number
-	 * @return the int value represented by the CharsWrapper
-	 */
-	public static int parseInt(char[] chars, int base) {
 		return (int)parseLong(chars, base);
 	}
 

@@ -45,13 +45,13 @@ public final class InMemoryFormat implements ConfigFormat<Config, Config, Config
 	@Override
 	public ConfigWriter<Config> createWriter() {
 		throw new UnsupportedOperationException(
-				"In memory configurations aren't mean to be " + "written.");
+			"In memory configurations aren't mean to be written.");
 	}
 
 	@Override
 	public ConfigParser<Config, Config> createParser() {
 		throw new UnsupportedOperationException(
-				"In memory configurations aren't mean to be " + "parsed.");
+			"In memory configurations aren't mean to be parsed.");
 	}
 
 	@Override

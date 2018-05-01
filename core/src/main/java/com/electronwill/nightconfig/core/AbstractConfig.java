@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * An abstract Config that uses a {@link java.util.Map} to store its values. In practise it's
+ * An abstract Config that uses a {@link java.util.Map} to store its values. In practice it's
  * often a HashMap, or a ConcurrentHashMap if the config is concurrent, but it accepts any type
  * of Map.
  *
@@ -220,8 +220,8 @@ public abstract class AbstractConfig implements Config, Cloneable {
 			}
 			if (obj instanceof EntryWrapper) {
 				EntryWrapper other = (EntryWrapper)obj;
-				return Objects.equals(getKey(), other.getKey()) && Objects.equals(getValue(),
-																				  other.getValue());
+				return Objects.equals(getKey(), other.getKey())
+					&& Objects.equals(getValue(), other.getValue());
 			}
 			return false;
 		}
