@@ -69,7 +69,11 @@ final class ValueParser {
 	private static Number parseNumber(CharsWrapper valueChars) {
 		valueChars = simplifyNumber(valueChars);
 		if (valueChars.indexOfFirst(ONLY_IN_FP_NUMBER) != -1) {
-			return Utils.parseDouble(valueChars);
+			try {
+				return Utils.parseDouble(valueChars);
+			} catch (NumberFormatException ex) {
+				throw new ParsingException("Invalid value: " + valueChars);
+			}
 		}
 		CharsWrapper numberChars = valueChars;
 		int base = 10;
@@ -89,7 +93,12 @@ final class ValueParser {
 				numberChars = valueChars.subView(2);
 			}
 		}
-		long longValue = Utils.parseLong(numberChars, base);
+		long longValue;
+		try {
+			longValue = Utils.parseLong(numberChars, base);
+		} catch (NumberFormatException ex) {
+			throw new ParsingException("Invalid value: " + valueChars);
+		}
 		int intValue = (int)longValue;
 		if (intValue == longValue) {
 			return intValue;// returns an int if it is enough to represent the value correctly
