@@ -135,9 +135,6 @@ public class FileConfigBuilder<C extends Config> {
 	/**
 	 * Makes the configuration "autosaved", that is, its {@link FileConfig#save()} method is
 	 * automatically called when it is modified.
-	 * <p>
-	 * <b>Warning: Using autoreload with autosave will lead to bad performance</b>, because the
-	 * file will be written and read on each modification.
 	 *
 	 * @return this builder
 	 */
@@ -149,9 +146,6 @@ public class FileConfigBuilder<C extends Config> {
 	/**
 	 * Makes the configuration "autoreloaded", that is, its {@link FileConfig#load()} method is
 	 * automatically called when the file is modified.
-	 * <p>
-	 * <b>Warning: Using autoreload with autosave will lead to bad performance</b>, because the
-	 * file will be written and read on each modification.
 	 *
 	 * @return this builder
 	 */
