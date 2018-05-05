@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core.utils;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+
 import java.util.List;
 import java.util.Set;
 
@@ -41,7 +42,7 @@ public abstract class ConfigWrapper<C extends Config> extends UnmodifiableConfig
 	}
 
 	@Override
-	public ConfigFormat<?, ?, ?> configFormat() {
+	public ConfigFormat<?> configFormat() {
 		return config.configFormat();
 	}
 

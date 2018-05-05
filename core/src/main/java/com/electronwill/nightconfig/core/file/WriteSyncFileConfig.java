@@ -18,17 +18,17 @@ final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> imple
 	private final Charset charset;
 	private boolean closed;
 
-	private final ConfigWriter<? super C> writer;
+	private final ConfigWriter writer;
 	private final WritingMode writingMode;
 
-	private final ConfigParser<?, ? super C> parser;
+	private final ConfigParser<?> parser;
 	private final FileNotFoundAction nefAction;
 	private final ParsingMode parsingMode;
 
 	private volatile boolean currentlyWriting = false;
 
-	WriteSyncFileConfig(C config, File file, Charset charset, ConfigWriter<? super C> writer,
-						 WritingMode writingMode, ConfigParser<?, ? super C> parser,
+	WriteSyncFileConfig(C config, File file, Charset charset, ConfigWriter writer,
+						 WritingMode writingMode, ConfigParser<?> parser,
 						 ParsingMode parsingMode, FileNotFoundAction nefAction) {
 		super(config);
 		this.file = file;

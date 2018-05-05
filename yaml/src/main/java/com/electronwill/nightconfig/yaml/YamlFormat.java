@@ -2,18 +2,18 @@ package com.electronwill.nightconfig.yaml;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FormatDetector;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
+import org.yaml.snakeyaml.Yaml;
+
 import java.util.List;
 import java.util.Set;
-import org.yaml.snakeyaml.Yaml;
 
 /**
  * @author TheElectronWill
  */
-public final class YamlFormat implements ConfigFormat<Config, Config, UnmodifiableConfig> {
+public final class YamlFormat implements ConfigFormat<Config> {
 	private static final ThreadLocal<YamlFormat> LOCAL_DEFAULT_FORMAT = ThreadLocal.withInitial(
 			() -> new YamlFormat(new Yaml()));
 
@@ -60,12 +60,12 @@ public final class YamlFormat implements ConfigFormat<Config, Config, Unmodifiab
 	}
 
 	@Override
-	public ConfigWriter<UnmodifiableConfig> createWriter() {
+	public ConfigWriter createWriter() {
 		return new YamlWriter(yaml);
 	}
 
 	@Override
-	public ConfigParser<Config, Config> createParser() {
+	public ConfigParser<Config> createParser() {
 		return new YamlParser(this);
 	}
 

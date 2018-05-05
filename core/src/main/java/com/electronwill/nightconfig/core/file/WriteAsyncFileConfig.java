@@ -43,16 +43,16 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 	 */
 	private final AtomicBoolean mustWriteAgain = new AtomicBoolean();
 
-	private final ConfigWriter<? super C> writer;
+	private final ConfigWriter writer;
 	private final WriteCompletedHandler writeCompletedHandler;
 	private final OpenOption[] openOptions;
 
-	private final ConfigParser<?, ? super C> parser;
+	private final ConfigParser<?> parser;
 	private final FileNotFoundAction nefAction;
 	private final ParsingMode parsingMode;
 
-	WriteAsyncFileConfig(C config, File file, Charset charset, ConfigWriter<? super C> writer,
-						 WritingMode writingMode, ConfigParser<?, ? super C> parser,
+	WriteAsyncFileConfig(C config, File file, Charset charset, ConfigWriter writer,
+						 WritingMode writingMode, ConfigParser<?> parser,
 						 ParsingMode parsingMode, FileNotFoundAction nefAction) {
 		super(config);
 		this.file = file;

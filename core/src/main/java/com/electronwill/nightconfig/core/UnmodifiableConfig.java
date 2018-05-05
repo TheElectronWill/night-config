@@ -182,7 +182,7 @@ public interface UnmodifiableConfig {
 	 *
 	 * @return the config's format
 	 */
-	ConfigFormat<?, ?, ?> configFormat();
+	ConfigFormat<?> configFormat();
 
 	//--- Scala convenience methods ---
 

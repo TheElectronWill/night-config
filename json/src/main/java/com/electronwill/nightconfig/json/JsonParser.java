@@ -2,14 +2,8 @@ package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import com.electronwill.nightconfig.core.io.CharacterInput;
-import com.electronwill.nightconfig.core.io.CharsWrapper;
-import com.electronwill.nightconfig.core.io.ConfigParser;
-import com.electronwill.nightconfig.core.io.ParsingException;
-import com.electronwill.nightconfig.core.io.ParsingMode;
-import com.electronwill.nightconfig.core.io.ReaderInput;
-import com.electronwill.nightconfig.core.io.Utils;
+import com.electronwill.nightconfig.core.io.*;
+
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,24 +13,24 @@ import java.util.List;
  *
  * @author TheElectronWill
  */
-public final class JsonParser implements ConfigParser<Config, Config> {
+public final class JsonParser implements ConfigParser<Config> {
 	private static final char[] SPACES = {' ', '\t', '\n', '\r'};
 	private static final char[] TRUE_LAST = {'r', 'u', 'e'}, FALSE_LAST = {'a', 'l', 's', 'e'};
 	private static final char[] NULL_LAST = {'u', 'l', 'l'};
 	private static final char[] NUMBER_END = {',', '}', ']', ' ', '\t', '\n', '\r'};
 
-	private final ConfigFormat<Config, Config, ?> configFormat;
+	private final ConfigFormat<Config> configFormat;
 
 	public JsonParser() {
 		this(JsonFormat.fancyInstance());
 	}
 
-	JsonParser(ConfigFormat<Config, Config, ?> configFormat) {
+	JsonParser(ConfigFormat<Config> configFormat) {
 		this.configFormat = configFormat;
 	}
 
 	@Override
-	public ConfigFormat<Config, Config, ?> getFormat() {
+	public ConfigFormat<Config> getFormat() {
 		return configFormat;
 	}
 

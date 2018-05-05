@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core;
 
 import com.electronwill.nightconfig.core.utils.FakeCommentedConfig;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -150,7 +151,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 			}
 
 			@Override
-			public ConfigFormat<?, ?, ?> configFormat() {
+			public ConfigFormat<?> configFormat() {
 				return CommentedConfig.this.configFormat();
 			}
 		};
@@ -202,8 +203,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * @param format the config's format
 	 * @return a new empty config
 	 */
-	static CommentedConfig of(
-			ConfigFormat<? extends CommentedConfig, ? super CommentedConfig, ? super CommentedConfig> format) {
+	static CommentedConfig of(ConfigFormat<? extends CommentedConfig> format) {
 		return new SimpleCommentedConfig(format, false);
 	}
 
@@ -213,8 +213,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * @param format the config's format
 	 * @return a new empty, thread-safe config
 	 */
-	static CommentedConfig ofConcurrent(
-			ConfigFormat<? extends CommentedConfig, ? super CommentedConfig, ? super CommentedConfig> format) {
+	static CommentedConfig ofConcurrent(ConfigFormat<? extends CommentedConfig> format) {
 		return new SimpleCommentedConfig(format, false);
 	}
 
@@ -244,7 +243,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * @param format the config's format
 	 * @return a new config backed by the map
 	 */
-	static CommentedConfig wrap(Map<String, Object> map, ConfigFormat<?, ?, ?> format) {
+	static CommentedConfig wrap(Map<String, Object> map, ConfigFormat<?> format) {
 		return new SimpleCommentedConfig(map, format);
 	}
 
@@ -266,7 +265,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * @param format the config's format
 	 * @return a copy of the config
 	 */
-	static CommentedConfig copy(UnmodifiableConfig config, ConfigFormat<?, ?, ?> format) {
+	static CommentedConfig copy(UnmodifiableConfig config, ConfigFormat<?> format) {
 		return new SimpleCommentedConfig(config, format, false);
 	}
 
@@ -288,7 +287,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * @param format the config's format
 	 * @return a copy of the config
 	 */
-	static CommentedConfig copy(UnmodifiableCommentedConfig config, ConfigFormat<?, ?, ?> format) {
+	static CommentedConfig copy(UnmodifiableCommentedConfig config, ConfigFormat<?> format) {
 		return new SimpleCommentedConfig(config, format, false);
 	}
 
@@ -310,7 +309,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * @param format the config's format
 	 * @return a thread-safe copy of the config
 	 */
-	static CommentedConfig concurrentCopy(UnmodifiableConfig config, ConfigFormat<?, ?, ?> format) {
+	static CommentedConfig concurrentCopy(UnmodifiableConfig config, ConfigFormat<?> format) {
 		return new SimpleCommentedConfig(config, format, true);
 	}
 
@@ -333,7 +332,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * @return a thread-safe copy of the config
 	 */
 	static CommentedConfig concurrentCopy(UnmodifiableCommentedConfig config,
-										  ConfigFormat<?, ?, ?> format) {
+										  ConfigFormat<?> format) {
 		return new SimpleCommentedConfig(config, format, true);
 	}
 

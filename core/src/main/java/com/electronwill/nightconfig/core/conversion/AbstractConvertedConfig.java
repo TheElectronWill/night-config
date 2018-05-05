@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
+
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -16,7 +17,7 @@ abstract class AbstractConvertedConfig<C extends Config> extends ConfigWrapper<C
 		implements Config {
 	final Function<Object, Object> readConversion, writeConversion;
 	final Predicate<Class<?>> supportPredicate;
-	final ConfigFormat<?, ?, ?> format;
+	final ConfigFormat<?> format;
 
 	AbstractConvertedConfig(C config, Function<Object, Object> readConversion,
 							Function<Object, Object> writeConversion,
@@ -45,7 +46,7 @@ abstract class AbstractConvertedConfig<C extends Config> extends ConfigWrapper<C
 	}
 
 	@Override
-	public ConfigFormat<?, ?, ?> configFormat() {
+	public ConfigFormat<?> configFormat() {
 		return format;
 	}
 

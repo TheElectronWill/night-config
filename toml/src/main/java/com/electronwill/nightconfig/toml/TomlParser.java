@@ -3,19 +3,10 @@ package com.electronwill.nightconfig.toml;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.io.CharacterInput;
-import com.electronwill.nightconfig.core.io.CharsWrapper;
-import com.electronwill.nightconfig.core.io.ConfigParser;
-import com.electronwill.nightconfig.core.io.ParsingException;
-import com.electronwill.nightconfig.core.io.ParsingMode;
-import com.electronwill.nightconfig.core.io.ReaderInput;
-import com.electronwill.nightconfig.core.utils.FakeCommentedConfig;
+import com.electronwill.nightconfig.core.io.*;
+
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A configurable parser of TOML configurations. It is not thread-safe.
@@ -23,7 +14,7 @@ import java.util.Map;
  * @author TheElectronWill
  * @see <a href="https://github.com/toml-lang/toml">TOML specification</a>
  */
-public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
+public final class TomlParser implements ConfigParser<CommentedConfig> {
 	// --- Parser's settings ---
 	private int initialStringBuilderCapacity = 16, initialListCapacity = 10;
 	private boolean lenientBareKeys = false;
@@ -193,7 +184,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig, Config> {
 	}
 
 	@Override
-	public ConfigFormat<CommentedConfig, Config, ?> getFormat() {
+	public ConfigFormat<CommentedConfig> getFormat() {
 		return TomlFormat.instance();
 	}
 

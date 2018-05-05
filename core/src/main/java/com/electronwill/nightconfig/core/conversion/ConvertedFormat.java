@@ -2,17 +2,15 @@ package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
+
 import java.util.function.Predicate;
 
 /**
  * @author TheElectronWill
  */
-public final class ConvertedFormat<C extends D, D extends Config, W extends UnmodifiableConfig,
-		F extends ConfigFormat<C, D, W>>
-		implements ConfigFormat<C, D, W> {
+public final class ConvertedFormat<C extends Config, F extends ConfigFormat<C>> implements ConfigFormat<C> {
 	private final F initialFormat;
 	private final Predicate<Class<?>> supportPredicate;
 
@@ -22,12 +20,12 @@ public final class ConvertedFormat<C extends D, D extends Config, W extends Unmo
 	}
 
 	@Override
-	public ConfigWriter<W> createWriter() {
+	public ConfigWriter createWriter() {
 		return initialFormat.createWriter();
 	}
 
 	@Override
-	public ConfigParser<C, D> createParser() {
+	public ConfigParser<C> createParser() {
 		return initialFormat.createParser();
 	}
 

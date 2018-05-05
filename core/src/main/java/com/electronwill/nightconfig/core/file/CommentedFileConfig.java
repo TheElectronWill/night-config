@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.ConfigFormat;
+
 import java.io.File;
 
 /**
@@ -20,8 +21,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @param format the config's format
 	 * @return a new FileConfig associated to the specified file
 	 */
-	static CommentedFileConfig of(File file,
-								  ConfigFormat<? extends CommentedConfig, ? super CommentedConfig, ? super CommentedConfig> format) {
+	static CommentedFileConfig of(File file, ConfigFormat<? extends CommentedConfig> format) {
 		return builder(file, format).build();
 	}
 
@@ -49,8 +49,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @param format   the config's format
 	 * @return a new FileConfig associated to the specified file
 	 */
-	static CommentedFileConfig of(String filePath,
-								  ConfigFormat<? extends CommentedConfig, ? super CommentedConfig, ? super CommentedConfig> format) {
+	static CommentedFileConfig of(String filePath, ConfigFormat<? extends CommentedConfig> format) {
 		return of(new File(filePath), format);
 	}
 
@@ -74,8 +73,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @param format the config's format
 	 * @return a new thread-safe CommentedFileConfig associated to the specified file
 	 */
-	static CommentedFileConfig ofConcurrent(File file,
-											ConfigFormat<? extends CommentedConfig, ? super CommentedConfig, ? super CommentedConfig> format) {
+	static CommentedFileConfig ofConcurrent(File file, ConfigFormat<? extends CommentedConfig> format) {
 		return builder(file, format).concurrent().build();
 	}
 
@@ -99,8 +97,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @param format   the config's format
 	 * @return a new thread-safe CommentedFileConfig associated to the specified file
 	 */
-	static CommentedFileConfig ofConcurrent(String filePath,
-											ConfigFormat<? extends CommentedConfig, ? super CommentedConfig, ? super CommentedConfig> format) {
+	static CommentedFileConfig ofConcurrent(String filePath, ConfigFormat<? extends CommentedConfig> format) {
 		return ofConcurrent(new File(filePath), format);
 	}
 
@@ -125,8 +122,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @return a new FileConfigBuilder that will build a CommentedFileConfig associated to the
 	 * specified file
 	 */
-	static CommentedFileConfigBuilder builder(File file,
-											  ConfigFormat<? extends CommentedConfig, ? super CommentedConfig, ? super CommentedConfig> format) {
+	static CommentedFileConfigBuilder builder(File file, ConfigFormat<? extends CommentedConfig> format) {
 		return new CommentedFileConfigBuilder(file, format);
 	}
 
@@ -156,8 +152,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @return a new FileConfigBuilder that will build a CommentedFileConfig associated to the
 	 * specified file
 	 */
-	static CommentedFileConfigBuilder builder(String filePath,
-											  ConfigFormat<? extends CommentedConfig, ? super CommentedConfig, ? super CommentedConfig> format) {
+	static CommentedFileConfigBuilder builder(String filePath, ConfigFormat<? extends CommentedConfig> format) {
 		return builder(new File(filePath), format);
 	}
 

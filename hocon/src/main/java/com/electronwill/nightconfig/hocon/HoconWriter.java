@@ -2,15 +2,10 @@ package com.electronwill.nightconfig.hocon;
 
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import com.electronwill.nightconfig.core.io.CharacterOutput;
-import com.electronwill.nightconfig.core.io.ConfigWriter;
-import com.electronwill.nightconfig.core.io.IndentStyle;
-import com.electronwill.nightconfig.core.io.NewlineStyle;
-import com.electronwill.nightconfig.core.io.Utils;
-import com.electronwill.nightconfig.core.io.WriterOutput;
-import com.electronwill.nightconfig.core.io.WritingException;
+import com.electronwill.nightconfig.core.io.*;
 import com.electronwill.nightconfig.core.utils.FakeUnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.utils.StringUtils;
+
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Iterator;
@@ -24,7 +19,7 @@ import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
  *
  * @author TheElectronWill
  */
-public final class HoconWriter implements ConfigWriter<UnmodifiableConfig> {
+public final class HoconWriter implements ConfigWriter {
 	// --- Constant char arrays ---
 	private static final char[] NULL_CHARS = {'n', 'u', 'l', 'l'};
 	private static final char[] TRUE_CHARS = {'t', 'r', 'u', 'e'};

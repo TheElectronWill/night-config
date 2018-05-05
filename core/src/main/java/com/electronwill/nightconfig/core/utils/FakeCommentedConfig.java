@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core.utils;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;

@@ -2,17 +2,10 @@ package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.utils.FastStringReader;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
+
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
@@ -22,14 +15,13 @@ import java.nio.charset.StandardCharsets;
  * Interface for reading configurations.
  *
  * @param <C> the type of config created by the parser
- * @param <D> the type of config that can be populated by the parser
  * @author TheElectronWill
  */
-public interface ConfigParser<C extends D, D extends Config> {
+public interface ConfigParser<C extends Config> {
 	/**
 	 * @return the format supported by this parser
 	 */
-	ConfigFormat<C, D, ? extends UnmodifiableConfig> getFormat();
+	ConfigFormat<C> getFormat();
 
 	/**
 	 * Parses a configuration.
@@ -47,7 +39,7 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param reader      the reader to parse
 	 * @param destination the config where to put the data
 	 */
-	void parse(Reader reader, D destination, ParsingMode parsingMode);
+	void parse(Reader reader, Config destination, ParsingMode parsingMode);
 
 	/**
 	 * Parses a configuration String.
@@ -68,7 +60,7 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param destination the config where to put the data
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(String input, D destination, ParsingMode parsingMode) {
+	default void parse(String input, Config destination, ParsingMode parsingMode) {
 		parse(new StringReader(input), destination, parsingMode);
 	}
 
@@ -92,7 +84,7 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param destination the config where to put the data
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(InputStream input, D destination, ParsingMode parsingMode) {
+	default void parse(InputStream input, Config destination, ParsingMode parsingMode) {
 		Reader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8));
 		parse(reader, destination, parsingMode);
 	}
@@ -138,7 +130,7 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param destination the config where to put the data
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(File file, D destination, ParsingMode parsingMode,
+	default void parse(File file, Config destination, ParsingMode parsingMode,
 					   FileNotFoundAction nefAction, Charset charset) {
 		try {
 			if (!file.exists() && !nefAction.run(file)) {
@@ -160,7 +152,7 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param destination the config where to put the data
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(File file, D destination, ParsingMode parsingMode,
+	default void parse(File file, Config destination, ParsingMode parsingMode,
 					   FileNotFoundAction nefAction) {
 		parse(file, destination, parsingMode, nefAction, StandardCharsets.UTF_8);
 	}
@@ -196,7 +188,7 @@ public interface ConfigParser<C extends D, D extends Config> {
 	 * @param destination the config where to put the data
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(URL url, D destination, ParsingMode parsingMode) {
+	default void parse(URL url, Config destination, ParsingMode parsingMode) {
 		URLConnection connection;
 		try {
 			connection = url.openConnection();

@@ -9,6 +9,7 @@ import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
 import com.electronwill.nightconfig.core.utils.UnmodifiableConfigWrapper;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -199,7 +200,7 @@ public final class ConversionTable implements Cloneable {
 			}
 
 			@Override
-			public ConfigFormat<?, ?, ?> configFormat() {
+			public ConfigFormat<?> configFormat() {
 				return config.configFormat();
 			}
 		};

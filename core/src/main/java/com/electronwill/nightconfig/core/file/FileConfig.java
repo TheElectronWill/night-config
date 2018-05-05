@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+
 import java.io.File;
 
 /**
@@ -47,8 +48,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format the config's format
 	 * @return a new FileConfig associated to the specified file
 	 */
-	static FileConfig of(File file,
-						 ConfigFormat<? extends Config, ? super Config, ? super Config> format) {
+	static FileConfig of(File file, ConfigFormat<? extends Config> format) {
 		return builder(file, format).build();
 	}
 
@@ -75,8 +75,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format   the config's format
 	 * @return a new FileConfig associated to the specified file
 	 */
-	static FileConfig of(String filePath,
-						 ConfigFormat<? extends Config, ? super Config, ? super Config> format) {
+	static FileConfig of(String filePath, ConfigFormat<?> format) {
 		return of(new File(filePath), format);
 	}
 
@@ -99,8 +98,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format the config's format
 	 * @return a new thread-safe FileConfig associated to the specified file
 	 */
-	static FileConfig ofConcurrent(File file,
-								   ConfigFormat<? extends Config, ? super Config, ? super Config> format) {
+	static FileConfig ofConcurrent(File file, ConfigFormat<?> format) {
 		return builder(file, format).concurrent().build();
 	}
 
@@ -124,8 +122,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format   the config's format
 	 * @return a new thread-safe FileConfig associated to the specified file
 	 */
-	static FileConfig ofConcurrent(String filePath,
-								   ConfigFormat<? extends Config, ? super Config, ? super Config> format) {
+	static FileConfig ofConcurrent(String filePath, ConfigFormat<?> format) {
 		return ofConcurrent(new File(filePath), format);
 	}
 
@@ -149,8 +146,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format the config's format
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
 	 */
-	static FileConfigBuilder<Config> builder(File file,
-											 ConfigFormat<? extends Config, ? super Config, ? super Config> format) {
+	static FileConfigBuilder<Config> builder(File file, ConfigFormat<?> format) {
 		return new FileConfigBuilder<>(file, format);
 	}
 
@@ -178,8 +174,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format   the config's format
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
 	 */
-	static FileConfigBuilder<Config> builder(String filePath,
-											 ConfigFormat<? extends Config, ? super Config, ? super Config> format) {
+	static FileConfigBuilder<Config> builder(String filePath, ConfigFormat<?> format) {
 		return builder(new File(filePath), format);
 	}
 

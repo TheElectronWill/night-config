@@ -19,9 +19,9 @@ import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
  *
  * @author TheElectronWill
  */
-public final class YamlParser implements ConfigParser<Config, Config> {
+public final class YamlParser implements ConfigParser<Config> {
 	private final Yaml yaml;
-	private final ConfigFormat<Config, Config, ?> configFormat;
+	private final ConfigFormat<Config> configFormat;
 
 	public YamlParser(YamlFormat configFormat) {
 		this.yaml = configFormat.yaml;
@@ -38,7 +38,7 @@ public final class YamlParser implements ConfigParser<Config, Config> {
 	}
 
 	@Override
-	public ConfigFormat<Config, Config, ?> getFormat() {
+	public ConfigFormat<Config> getFormat() {
 		return configFormat;
 	}
 

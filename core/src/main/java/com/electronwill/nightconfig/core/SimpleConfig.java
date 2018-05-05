@@ -10,14 +10,14 @@ import java.util.concurrent.ConcurrentMap;
  * or a ConcurrentHashMap if the config is concurrent.
  */
 final class SimpleConfig extends AbstractConfig {
-	private final ConfigFormat<?, ?, ?> configFormat;
+	private final ConfigFormat<?> configFormat;
 
 	/**
 	 * Creates a SimpleConfig with the specified format.
 	 *
 	 * @param configFormat the config's format
 	 */
-	SimpleConfig(ConfigFormat<?, ?, ?> configFormat, boolean concurrent) {
+	SimpleConfig(ConfigFormat<?> configFormat, boolean concurrent) {
 		super(concurrent ? new ConcurrentHashMap<>() : new HashMap<>());
 		this.configFormat = configFormat;
 	}
@@ -26,7 +26,7 @@ final class SimpleConfig extends AbstractConfig {
 	 * Creates a SimpleConfig with the specified data and format. The map is used as it is and
 	 * isn't copied.
 	 */
-	SimpleConfig(Map<String, Object> valueMap, ConfigFormat<?, ?, ?> configFormat) {
+	SimpleConfig(Map<String, Object> valueMap, ConfigFormat<?> configFormat) {
 		super(valueMap);
 		this.configFormat = configFormat;
 	}
@@ -37,14 +37,14 @@ final class SimpleConfig extends AbstractConfig {
 	 * @param toCopy       the config to copy
 	 * @param configFormat the config's format
 	 */
-	SimpleConfig(UnmodifiableConfig toCopy, ConfigFormat<?, ?, ?> configFormat,
+	SimpleConfig(UnmodifiableConfig toCopy, ConfigFormat<?> configFormat,
 				 boolean concurrent) {
 		super(toCopy, concurrent);
 		this.configFormat = configFormat;
 	}
 
 	@Override
-	public ConfigFormat<?, ?, ?> configFormat() {
+	public ConfigFormat<?> configFormat() {
 		return configFormat;
 	}
 

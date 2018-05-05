@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
+
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;

@@ -6,18 +6,19 @@ import com.electronwill.nightconfig.core.io.ConfigWriter;
 /**
  * A configuration format, that can parse, create and write some types of configurations.
  *
+ * @param <C>the type of configurations createdby this format
  * @author TheElectronWill
  */
-public interface ConfigFormat<C extends D, D extends Config, W extends UnmodifiableConfig> {
+public interface ConfigFormat<C extends Config> {
 	/**
 	 * @return a writer of this config format
 	 */
-	ConfigWriter<W> createWriter();
+	ConfigWriter createWriter();
 
 	/**
 	 * @return a parser of this config format
 	 */
-	ConfigParser<C, D> createParser();
+	ConfigParser<C> createParser();
 
 	/**
 	 * @return a config of this format

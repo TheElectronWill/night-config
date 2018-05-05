@@ -129,7 +129,7 @@ public interface Config extends UnmodifiableConfig {
 			}
 
 			@Override
-			public ConfigFormat<?, ?, ?> configFormat() {
+			public ConfigFormat<?> configFormat() {
 				return Config.this.configFormat();
 			}
 		};
@@ -215,7 +215,7 @@ public interface Config extends UnmodifiableConfig {
 	 * @param format the config's format
 	 * @return a new empty config
 	 */
-	static Config of(ConfigFormat<? extends Config, ? super Config, ? super Config> format) {
+	static Config of(ConfigFormat<? extends Config> format) {
 		return new SimpleConfig(format, false);
 	}
 
@@ -225,8 +225,7 @@ public interface Config extends UnmodifiableConfig {
 	 * @param format the config's format
 	 * @return a new empty, thread-safe config
 	 */
-	static Config ofConcurrent(
-			ConfigFormat<? extends Config, ? super Config, ? super Config> format) {
+	static Config ofConcurrent(ConfigFormat<? extends Config> format) {
 		return new SimpleConfig(format, true);
 	}
 
@@ -256,7 +255,7 @@ public interface Config extends UnmodifiableConfig {
 	 * @param format the config's format
 	 * @return a new config backed by the map
 	 */
-	static Config wrap(Map<String, Object> map, ConfigFormat<?, ?, ?> format) {
+	static Config wrap(Map<String, Object> map, ConfigFormat<?> format) {
 		return new SimpleConfig(map, format);
 	}
 
@@ -278,7 +277,7 @@ public interface Config extends UnmodifiableConfig {
 	 * @param format the config's format
 	 * @return a copy of the config
 	 */
-	static Config copy(UnmodifiableConfig config, ConfigFormat<?, ?, ?> format) {
+	static Config copy(UnmodifiableConfig config, ConfigFormat<?> format) {
 		return new SimpleConfig(config, format, false);
 	}
 
@@ -300,7 +299,7 @@ public interface Config extends UnmodifiableConfig {
 	 * @param format the config's format
 	 * @return a thread-safe copy of the config
 	 */
-	static Config concurrentCopy(UnmodifiableConfig config, ConfigFormat<?, ?, ?> format) {
+	static Config concurrentCopy(UnmodifiableConfig config, ConfigFormat<?> format) {
 		return new SimpleConfig(config, format, true);
 	}
 }

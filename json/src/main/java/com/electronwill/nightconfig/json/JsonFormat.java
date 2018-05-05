@@ -2,8 +2,6 @@ package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.NullObject;
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FormatDetector;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
@@ -11,8 +9,7 @@ import com.electronwill.nightconfig.core.io.ConfigWriter;
 /**
  * @author TheElectronWill
  */
-public abstract class JsonFormat<W extends ConfigWriter<UnmodifiableConfig>>
-		implements ConfigFormat<Config, Config, UnmodifiableConfig> {
+public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat<Config> {
 
 	private static final JsonFormat<FancyJsonWriter> FANCY = new JsonFormat<FancyJsonWriter>() {
 		@Override
@@ -21,7 +18,7 @@ public abstract class JsonFormat<W extends ConfigWriter<UnmodifiableConfig>>
 		}
 
 		@Override
-		public ConfigParser<Config, Config> createParser() {
+		public ConfigParser<Config> createParser() {
 			return new JsonParser(this);
 		}
 	};
@@ -32,7 +29,7 @@ public abstract class JsonFormat<W extends ConfigWriter<UnmodifiableConfig>>
 		}
 
 		@Override
-		public ConfigParser<Config, Config> createParser() {
+		public ConfigParser<Config> createParser() {
 			return new JsonParser(this);
 		}
 	};
@@ -75,7 +72,7 @@ public abstract class JsonFormat<W extends ConfigWriter<UnmodifiableConfig>>
 	public abstract W createWriter();
 
 	@Override
-	public abstract ConfigParser<Config, Config> createParser();
+	public abstract ConfigParser<Config> createParser();
 
 	@Override
 	public Config createConfig() {

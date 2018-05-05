@@ -1,11 +1,8 @@
 package com.electronwill.nightconfig.core;
 
 import com.electronwill.nightconfig.core.utils.FakeUnmodifiableCommentedConfig;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+
+import java.util.*;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
 

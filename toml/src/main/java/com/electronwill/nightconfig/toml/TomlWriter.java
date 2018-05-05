@@ -1,12 +1,9 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import com.electronwill.nightconfig.core.io.CharacterOutput;
-import com.electronwill.nightconfig.core.io.ConfigWriter;
-import com.electronwill.nightconfig.core.io.IndentStyle;
-import com.electronwill.nightconfig.core.io.NewlineStyle;
-import com.electronwill.nightconfig.core.io.WriterOutput;
+import com.electronwill.nightconfig.core.io.*;
 import com.electronwill.nightconfig.core.utils.StringUtils;
+
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +12,7 @@ import java.util.function.Predicate;
 /**
  * @author TheElectronWill
  */
-public final class TomlWriter implements ConfigWriter<UnmodifiableConfig> {
+public final class TomlWriter implements ConfigWriter {
 	// --- Writer's settings ---
 	private boolean lenientBareKeys = false;
 	private Predicate<UnmodifiableConfig> writeTableInlinePredicate = UnmodifiableConfig::isEmpty;

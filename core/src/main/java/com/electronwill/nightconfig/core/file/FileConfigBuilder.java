@@ -2,11 +2,8 @@ package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.io.ConfigParser;
-import com.electronwill.nightconfig.core.io.ConfigWriter;
-import com.electronwill.nightconfig.core.io.ParsingMode;
-import com.electronwill.nightconfig.core.io.WritingException;
-import com.electronwill.nightconfig.core.io.WritingMode;
+import com.electronwill.nightconfig.core.io.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -32,16 +29,16 @@ import java.nio.charset.StandardCharsets;
 public class FileConfigBuilder<C extends Config> {
 	protected final File file;
 	private C config;
-	protected final ConfigFormat format;// <? extends C, ? super C, ? super C> doesn't compile
-	protected final ConfigWriter<? super C> writer;
-	protected final ConfigParser<?, ? super C> parser;
+	protected final ConfigFormat<?> format;
+	protected final ConfigWriter writer;
+	protected final ConfigParser<?> parser;
 	protected Charset charset = StandardCharsets.UTF_8;
 	protected WritingMode writingMode = WritingMode.REPLACE;
 	protected ParsingMode parsingMode = ParsingMode.REPLACE;
 	protected FileNotFoundAction nefAction = FileNotFoundAction.CREATE_EMPTY;
 	protected boolean sync = false, autosave = false, autoreload = false;
 
-	<T extends C> FileConfigBuilder(File file, ConfigFormat<T, ? super C, ? super C> format) {
+	FileConfigBuilder(File file, ConfigFormat<? extends C> format) {
 		this.file = file;
 		this.format = format;
 		this.writer = format.createWriter();

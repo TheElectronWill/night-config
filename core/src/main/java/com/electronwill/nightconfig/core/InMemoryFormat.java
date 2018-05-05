@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core;
 
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
+
 import java.util.Collection;
 import java.util.function.Predicate;
 
@@ -10,7 +11,7 @@ import java.util.function.Predicate;
  *
  * @author TheElectronWill
  */
-public final class InMemoryFormat implements ConfigFormat<Config, Config, Config> {
+public final class InMemoryFormat implements ConfigFormat<Config> {
 	static final Predicate<Class<?>> DEFAULT_PREDICATE = type -> type.isPrimitive()
 																 || type == Integer.class
 																 || type == Long.class
@@ -44,13 +45,13 @@ public final class InMemoryFormat implements ConfigFormat<Config, Config, Config
 	}
 
 	@Override
-	public ConfigWriter<Config> createWriter() {
+	public ConfigWriter createWriter() {
 		throw new UnsupportedOperationException(
 			"In memory configurations aren't mean to be written.");
 	}
 
 	@Override
-	public ConfigParser<Config, Config> createParser() {
+	public ConfigParser<Config> createParser() {
 		throw new UnsupportedOperationException(
 			"In memory configurations aren't mean to be parsed.");
 	}

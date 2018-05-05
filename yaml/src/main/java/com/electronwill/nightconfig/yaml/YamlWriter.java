@@ -17,7 +17,7 @@ import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
  *
  * @author TheElectronWill
  */
-public final class YamlWriter implements ConfigWriter<UnmodifiableConfig> {
+public final class YamlWriter implements ConfigWriter {
 	private final Yaml yaml;
 
 	public YamlWriter() {

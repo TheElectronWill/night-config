@@ -3,7 +3,6 @@ package com.electronwill.nightconfig.hocon;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.ParsingMode;
@@ -24,13 +23,13 @@ import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
  * @see <a href="https://github.com/typesafehub/config/blob/master/HOCON.md">HOCON spec by
  * typesafehub</a>
  */
-public final class HoconParser implements ConfigParser<CommentedConfig, Config> {
+public final class HoconParser implements ConfigParser<CommentedConfig> {
 	private static final ConfigParseOptions OPTIONS = ConfigParseOptions.defaults()
 																		.setAllowMissing(false)
 																		.setSyntax(ConfigSyntax.CONF);
 
 	@Override
-	public ConfigFormat<CommentedConfig, Config, ?> getFormat() {
+	public ConfigFormat<CommentedConfig> getFormat() {
 		return HoconFormat.instance();
 	}
 

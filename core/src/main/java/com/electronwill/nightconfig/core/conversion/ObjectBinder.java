@@ -5,6 +5,7 @@ import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.InMemoryFormat;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
@@ -59,7 +60,7 @@ public final class ObjectBinder {
 	 * @param configFormat the Config format
 	 * @return a config bound to the static fields of the class
 	 */
-	public Config bind(Class<?> clazz, ConfigFormat<?, ?, ?> configFormat) {
+	public Config bind(Class<?> clazz, ConfigFormat<?> configFormat) {
 		return bind(null, clazz, configFormat);
 	}
 
@@ -80,7 +81,7 @@ public final class ObjectBinder {
 	 * @param configFormat the Config format
 	 * @return a config bound to the fields of the object
 	 */
-	public Config bind(Object object, ConfigFormat<?, ?, ?> configFormat) {
+	public Config bind(Object object, ConfigFormat<?> configFormat) {
 		return bind(object, object.getClass(), configFormat);
 	}
 
@@ -93,7 +94,7 @@ public final class ObjectBinder {
 	 * @param configFormat the Config format
 	 * @return a config bound to the specified object or class
 	 */
-	private Config bind(Object object, Class<?> clazz, ConfigFormat<?, ?, ?> configFormat) {
+	private Config bind(Object object, Class<?> clazz, ConfigFormat<?> configFormat) {
 		BoundConfig boundConfig = createBoundConfig(object, clazz, configFormat);
 		List<String> annotatedPath = AnnotationUtils.getPath(clazz);
 		if (annotatedPath != null) {
@@ -108,7 +109,7 @@ public final class ObjectBinder {
 	 * Binds an object or a class to a config.
 	 */
 	private BoundConfig createBoundConfig(Object object, Class<?> clazz,
-										  ConfigFormat<?, ?, ?> configFormat) {
+										  ConfigFormat<?> configFormat) {
 		final BoundConfig boundConfig = new BoundConfig(object, configFormat, bypassFinal);
 		for (Field field : clazz.getDeclaredFields()) {
 			final int fieldModifiers = field.getModifiers();
@@ -149,11 +150,11 @@ public final class ObjectBinder {
 	private static final class BoundConfig implements Config {
 		private Object object;// may be null
 		private final Map<String, Object> dataMap;// contains FieldInfos and subconfigs
-		private final ConfigFormat<?, ?, ?> configFormat;
+		private final ConfigFormat<?> configFormat;
 		private final boolean bypassFinal;
 
 		private BoundConfig(Object object, Map<String, Object> dataMap,
-							ConfigFormat<?, ?, ?> configFormat, boolean bypassFinal) {
+							ConfigFormat<?> configFormat, boolean bypassFinal) {
 			this.object = object;
 			this.dataMap = dataMap;
 			this.configFormat = configFormat;
@@ -163,7 +164,7 @@ public final class ObjectBinder {
 		/**
 		 * Creates a new BoundConfig with an empty HashMap.
 		 */
-		private BoundConfig(Object object, ConfigFormat<?, ?, ?> configFormat,
+		private BoundConfig(Object object, ConfigFormat<?> configFormat,
 							boolean bypassFinal) {
 			this(object, new HashMap<>(), configFormat, bypassFinal);
 		}
@@ -284,7 +285,7 @@ public final class ObjectBinder {
 		}
 
 		@Override
-		public ConfigFormat<?, ?, ?> configFormat() {
+		public ConfigFormat<?> configFormat() {
 			return configFormat;
 		}
 

@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
+
 import java.io.File;
 import java.io.IOException;
 

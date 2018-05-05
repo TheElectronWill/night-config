@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core.conversion;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

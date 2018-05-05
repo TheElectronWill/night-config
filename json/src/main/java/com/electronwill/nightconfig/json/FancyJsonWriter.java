@@ -1,21 +1,11 @@
 package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import com.electronwill.nightconfig.core.io.CharacterOutput;
-import com.electronwill.nightconfig.core.io.ConfigWriter;
-import com.electronwill.nightconfig.core.io.IndentStyle;
-import com.electronwill.nightconfig.core.io.NewlineStyle;
-import com.electronwill.nightconfig.core.io.Utils;
-import com.electronwill.nightconfig.core.io.WriterOutput;
-import com.electronwill.nightconfig.core.io.WritingException;
+import com.electronwill.nightconfig.core.io.*;
+
 import java.io.Writer;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
@@ -26,7 +16,7 @@ import static com.electronwill.nightconfig.json.MinimalJsonWriter.*;
  *
  * @author TheElectronWill
  */
-public final class FancyJsonWriter implements ConfigWriter<UnmodifiableConfig> {
+public final class FancyJsonWriter implements ConfigWriter {
 	private static final char[] ENTRY_SEPARATOR = {':', ' '}, VALUE_SEPARATOR = {',', ' '};
 
 	// --- Writer's settings ---

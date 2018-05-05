@@ -1,18 +1,10 @@
 package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import com.electronwill.nightconfig.core.io.CharacterOutput;
-import com.electronwill.nightconfig.core.io.ConfigWriter;
-import com.electronwill.nightconfig.core.io.Utils;
-import com.electronwill.nightconfig.core.io.WriterOutput;
-import com.electronwill.nightconfig.core.io.WritingException;
+import com.electronwill.nightconfig.core.io.*;
+
 import java.io.Writer;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.RandomAccess;
+import java.util.*;
 
 /**
  * A simple JSON writer that produces a minimized output: no line breaks, no spaces, no indentation.
@@ -20,7 +12,7 @@ import java.util.RandomAccess;
  *
  * @author TheElectronWill
  */
-public final class MinimalJsonWriter implements ConfigWriter<UnmodifiableConfig> {
+public final class MinimalJsonWriter implements ConfigWriter {
 	static final char[] NULL_CHARS = {'n', 'u', 'l', 'l'};
 	static final char[] TRUE_CHARS = {'t', 'r', 'u', 'e'};
 	static final char[] FALSE_CHARS = {'f', 'a', 'l', 's', 'e'};

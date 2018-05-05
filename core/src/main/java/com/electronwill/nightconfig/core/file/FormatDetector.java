@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.utils.StringUtils;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,7 @@ import java.util.function.Supplier;
  * @author TheElectronWill
  */
 public final class FormatDetector {
-	private static final Map<String, Supplier<ConfigFormat<?, ?, ?>>> registry = new ConcurrentHashMap<>();
+	private static final Map<String, Supplier<ConfigFormat<?>>> registry = new ConcurrentHashMap<>();
 
 	/**
 	 * Registers a ConfigFormat for a specific fileExtension.
@@ -22,7 +23,7 @@ public final class FormatDetector {
 	 * @param fileExtension the file extension
 	 * @param format        the config format
 	 */
-	public static void registerExtension(String fileExtension, ConfigFormat<?, ?, ?> format) {
+	public static void registerExtension(String fileExtension, ConfigFormat<?> format) {
 		registry.put(fileExtension, () -> format);
 	}
 
@@ -33,7 +34,7 @@ public final class FormatDetector {
 	 * @param formatSupplier the Supplier of the config format
 	 */
 	public static void registerExtension(String fileExtension,
-										 Supplier<ConfigFormat<?, ?, ?>> formatSupplier) {
+										 Supplier<ConfigFormat<?>> formatSupplier) {
 		registry.put(fileExtension, formatSupplier);
 	}
 
@@ -43,7 +44,7 @@ public final class FormatDetector {
 	 * @param file the file
 	 * @return the associated ConfigFormat, or null if not found
 	 */
-	public static ConfigFormat<?, ?, ?> detect(File file) {
+	public static ConfigFormat<?> detect(File file) {
 		return detectByName(file.getName());
 	}
 
@@ -53,10 +54,10 @@ public final class FormatDetector {
 	 * @param fileName the file name
 	 * @return the associated ConfigFormat, or null if not found
 	 */
-	public static ConfigFormat<?, ?, ?> detectByName(String fileName) {
+	public static ConfigFormat<?> detectByName(String fileName) {
 		List<String> splitted = StringUtils.split(fileName, '.');
 		String fileExtension = splitted.get(splitted.size() - 1);//the last part
-		Supplier<ConfigFormat<?, ?, ?>> supplier = registry.get(fileExtension);
+		Supplier<ConfigFormat<?>> supplier = registry.get(fileExtension);
 		return (supplier == null) ? null : supplier.get();
 	}
 

@@ -12,14 +12,14 @@ import java.util.concurrent.ConcurrentMap;
  * @author TheElectronWill
  */
 final class SimpleCommentedConfig extends AbstractCommentedConfig {
-	private final ConfigFormat<?, ?, ?> configFormat;
+	private final ConfigFormat<?> configFormat;
 
 	/**
 	 * Creates a SimpleCommentedConfig with the specified format.
 	 *
 	 * @param configFormat the config's format
 	 */
-	SimpleCommentedConfig(ConfigFormat<?, ?, ?> configFormat, boolean concurrent) {
+	SimpleCommentedConfig(ConfigFormat<?> configFormat, boolean concurrent) {
 		super(concurrent ? new ConcurrentHashMap<>() : new HashMap<>());
 		this.configFormat = configFormat;
 	}
@@ -28,7 +28,7 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 	 * Creates a SimpleConfig with the specified data and format. The map is used as it is and
 	 * isn't copied.
 	 */
-	SimpleCommentedConfig(Map<String, Object> valueMap, ConfigFormat<?, ?, ?> configFormat) {
+	SimpleCommentedConfig(Map<String, Object> valueMap, ConfigFormat<?> configFormat) {
 		super(valueMap);
 		this.configFormat = configFormat;
 	}
@@ -39,7 +39,7 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 	 * @param toCopy       the config to copy
 	 * @param configFormat the config's format
 	 */
-	SimpleCommentedConfig(UnmodifiableConfig toCopy, ConfigFormat<?, ?, ?> configFormat,
+	SimpleCommentedConfig(UnmodifiableConfig toCopy, ConfigFormat<?> configFormat,
 						  boolean concurrent) {
 		super(toCopy, concurrent);
 		this.configFormat = configFormat;
@@ -51,14 +51,14 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 	 * @param toCopy       the config to copy
 	 * @param configFormat the config's format
 	 */
-	SimpleCommentedConfig(UnmodifiableCommentedConfig toCopy, ConfigFormat<?, ?, ?> configFormat,
+	SimpleCommentedConfig(UnmodifiableCommentedConfig toCopy, ConfigFormat<?> configFormat,
 						  boolean concurrent) {
 		super(toCopy, concurrent);
 		this.configFormat = configFormat;
 	}
 
 	@Override
-	public ConfigFormat<?, ?, ?> configFormat() {
+	public ConfigFormat<?> configFormat() {
 		return configFormat;
 	}
 

@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.io.ParsingMode;
 import com.electronwill.nightconfig.core.io.WritingMode;
+
 import java.io.File;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -25,8 +26,7 @@ import java.nio.charset.Charset;
  * @author TheElectronWill
  */
 public final class CommentedFileConfigBuilder extends FileConfigBuilder<CommentedConfig> {
-	CommentedFileConfigBuilder(File file,
-							   ConfigFormat<? extends CommentedConfig, ? super CommentedConfig, ? super CommentedConfig> format) {
+	CommentedFileConfigBuilder(File file, ConfigFormat<? extends CommentedConfig> format) {
 		super(file, format);
 	}
 

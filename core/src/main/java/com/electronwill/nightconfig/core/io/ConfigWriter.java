@@ -1,13 +1,8 @@
 package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
@@ -18,7 +13,7 @@ import java.nio.charset.StandardCharsets;
  *
  * @author TheElectronWill
  */
-public interface ConfigWriter<T extends UnmodifiableConfig> {
+public interface ConfigWriter {
 	/**
 	 * Writes a configuration.
 	 *
@@ -26,7 +21,7 @@ public interface ConfigWriter<T extends UnmodifiableConfig> {
 	 * @param writer the writer to write it to
 	 * @throws WritingException if an error occurs
 	 */
-	void write(T config, Writer writer);
+	void write(UnmodifiableConfig config, Writer writer);
 
 	/**
 	 * Writes a configuration.
@@ -35,7 +30,7 @@ public interface ConfigWriter<T extends UnmodifiableConfig> {
 	 * @param output the output to write it to
 	 * @throws WritingException if an error occurs
 	 */
-	default void write(T config, OutputStream output, Charset charset) {
+	default void write(UnmodifiableConfig config, OutputStream output, Charset charset) {
 		Writer writer = new BufferedWriter(new OutputStreamWriter(output, charset));
 		write(config, writer);
 	}
@@ -47,7 +42,7 @@ public interface ConfigWriter<T extends UnmodifiableConfig> {
 	 * @param output the output to write it to
 	 * @throws WritingException if an error occurs
 	 */
-	default void write(T config, OutputStream output) {
+	default void write(UnmodifiableConfig config, OutputStream output) {
 		write(config, output, StandardCharsets.UTF_8);
 	}
 
@@ -59,7 +54,7 @@ public interface ConfigWriter<T extends UnmodifiableConfig> {
 	 * @param file   the file to write it to
 	 * @throws WritingException if an error occurs
 	 */
-	default void write(T config, File file, WritingMode writingMode) {
+	default void write(UnmodifiableConfig config, File file, WritingMode writingMode) {
 		write(config, file, writingMode, StandardCharsets.UTF_8);
 	}
 
@@ -70,7 +65,7 @@ public interface ConfigWriter<T extends UnmodifiableConfig> {
 	 * @param file   the file to write it to
 	 * @throws WritingException if an error occurs
 	 */
-	default void write(T config, File file, WritingMode writingMode, Charset charset) {
+	default void write(UnmodifiableConfig config, File file, WritingMode writingMode, Charset charset) {
 		boolean append = (writingMode == WritingMode.APPEND);
 		try (Writer writer = new BufferedWriter(
 				new OutputStreamWriter(new FileOutputStream(file, append), charset))) {
@@ -87,7 +82,7 @@ public interface ConfigWriter<T extends UnmodifiableConfig> {
 	 * @param url    the url to write it to
 	 * @throws WritingException if an error occurs
 	 */
-	default void write(T config, URL url) {
+	default void write(UnmodifiableConfig config, URL url) {
 		URLConnection connection;
 		try {
 			connection = url.openConnection();
@@ -112,7 +107,7 @@ public interface ConfigWriter<T extends UnmodifiableConfig> {
 	 *
 	 * @throws WritingException if an error occurs
 	 */
-	default String writeToString(T config) {
+	default String writeToString(UnmodifiableConfig config) {
 		CharsWrapper.Builder builder = new CharsWrapper.Builder(64);
 		write(config, builder);
 		return builder.toString();

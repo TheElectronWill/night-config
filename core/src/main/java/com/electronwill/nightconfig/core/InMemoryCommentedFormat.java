@@ -10,11 +10,9 @@ import java.util.function.Predicate;
  *
  * @author TheElectronWill
  */
-public class InMemoryCommentedFormat implements ConfigFormat<CommentedConfig, Config, Config> {
-	private static final InMemoryCommentedFormat DEFAULT_INSTANCE = new InMemoryCommentedFormat(
-		InMemoryFormat.DEFAULT_PREDICATE);
-	private static final InMemoryCommentedFormat UNIVERSAL_INSTANCE = new InMemoryCommentedFormat(
-		t -> true);
+public class InMemoryCommentedFormat implements ConfigFormat<CommentedConfig> {
+	private static final InMemoryCommentedFormat DEFAULT_INSTANCE = new InMemoryCommentedFormat(InMemoryFormat.DEFAULT_PREDICATE);
+	private static final InMemoryCommentedFormat UNIVERSAL_INSTANCE = new InMemoryCommentedFormat(t -> true);
 
 	public static InMemoryCommentedFormat defaultInstance() {
 		return DEFAULT_INSTANCE;
@@ -35,13 +33,13 @@ public class InMemoryCommentedFormat implements ConfigFormat<CommentedConfig, Co
 	}
 
 	@Override
-	public ConfigWriter<Config> createWriter() {
+	public ConfigWriter createWriter() {
 		throw new UnsupportedOperationException(
 			"In memory configurations aren't mean to be " + "written.");
 	}
 
 	@Override
-	public ConfigParser<CommentedConfig, Config> createParser() {
+	public ConfigParser<CommentedConfig> createParser() {
 		throw new UnsupportedOperationException(
 			"In memory configurations aren't mean to be " + "parsed.");
 	}

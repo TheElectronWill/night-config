@@ -1,9 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FormatDetector;
 
 import java.time.temporal.Temporal;
@@ -11,7 +9,7 @@ import java.time.temporal.Temporal;
 /**
  * @author TheElectronWill
  */
-public final class TomlFormat implements ConfigFormat<CommentedConfig, Config, UnmodifiableConfig> {
+public final class TomlFormat implements ConfigFormat<CommentedConfig> {
 	private static final TomlFormat INSTANCE = new TomlFormat();
 
 	/**

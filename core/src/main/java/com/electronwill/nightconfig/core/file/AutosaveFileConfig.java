@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 import com.electronwill.nightconfig.core.utils.ObservedMap;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;

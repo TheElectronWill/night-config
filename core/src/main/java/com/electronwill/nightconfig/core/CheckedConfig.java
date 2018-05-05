@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core;
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,7 +64,7 @@ class CheckedConfig extends ConfigWrapper<Config> {
 	 * isn't supported.
 	 */
 	private void checkValue(Object value) {
-		ConfigFormat<?, ?, ?> format = configFormat();
+		ConfigFormat<?> format = configFormat();
 		if (value != null && !format.supportsType(value.getClass())) {
 			throw new IllegalArgumentException(
 					"Unsupported value type: " + value.getClass().getTypeName());

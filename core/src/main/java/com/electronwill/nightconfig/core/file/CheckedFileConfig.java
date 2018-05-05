@@ -5,6 +5,7 @@ import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +81,7 @@ class CheckedFileConfig extends ConfigWrapper<FileConfig> implements FileConfig 
 	 * isn't supported.
 	 */
 	private void checkValue(Object value) {
-		ConfigFormat<?, ?, ?> format = configFormat();
+		ConfigFormat<?> format = configFormat();
 		if (value != null && !format.supportsType(value.getClass())) {
 			throw new IllegalArgumentException(
 					"Unsupported value type: " + value.getClass().getTypeName());

@@ -1,9 +1,7 @@
 package com.electronwill.nightconfig.hocon;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FormatDetector;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
@@ -13,8 +11,7 @@ import com.electronwill.nightconfig.core.io.ConfigWriter;
  *
  * @author TheElectronWill
  */
-public final class HoconFormat
-		implements ConfigFormat<CommentedConfig, Config, UnmodifiableConfig> {
+public final class HoconFormat implements ConfigFormat<CommentedConfig> {
 	private static final HoconFormat INSTANCE = new HoconFormat();
 
 	/**
@@ -46,12 +43,12 @@ public final class HoconFormat
 	private HoconFormat() {}
 
 	@Override
-	public ConfigWriter<UnmodifiableConfig> createWriter() {
+	public ConfigWriter createWriter() {
 		return new HoconWriter();
 	}
 
 	@Override
-	public ConfigParser<CommentedConfig, Config> createParser() {
+	public ConfigParser<CommentedConfig> createParser() {
 		return new HoconParser();
 	}
 

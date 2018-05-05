@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+
 import java.util.function.Function;
 import java.util.function.Predicate;
 
