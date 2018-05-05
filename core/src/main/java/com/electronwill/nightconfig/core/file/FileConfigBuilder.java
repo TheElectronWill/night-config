@@ -175,6 +175,11 @@ public class FileConfigBuilder<C extends Config> {
 			fileConfig = new WriteSyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
 												   parser, parsingMode, nefAction);
 		} else {
+			if (autoreload) {
+				concurrent();
+				// Autoreloading is done from a background thread, therefore we need thread-safety
+				// This isn't needed with WriteSyncFileConfig because it synchronizes loads and writes.
+			}
 			fileConfig = new WriteAsyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
 													parser, parsingMode, nefAction);
 		}
