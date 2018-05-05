@@ -6,6 +6,8 @@ import com.electronwill.nightconfig.core.io.*;
 import java.io.Writer;
 import java.util.*;
 
+import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
+
 /**
  * A simple JSON writer that produces a minimized output: no line breaks, no spaces, no indentation.
  * Use the {@link FancyJsonWriter} if you want a nicer output.
@@ -73,7 +75,7 @@ public final class MinimalJsonWriter implements ConfigWriter {
 	}
 
 	private void writeValue(Object v, CharacterOutput output) {
-		if (v == null) {
+		if (v == null || v == NULL_OBJECT) {
 			output.write(NULL_CHARS);
 		} else if (v instanceof CharSequence) {
 			writeString((CharSequence)v, output);
