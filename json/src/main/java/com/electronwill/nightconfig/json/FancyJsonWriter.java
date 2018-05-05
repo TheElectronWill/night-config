@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 import static com.electronwill.nightconfig.json.MinimalJsonWriter.*;
 
 /**
@@ -95,7 +96,7 @@ public final class FancyJsonWriter implements ConfigWriter<UnmodifiableConfig> {
 	 * @param output the output to write to
 	 */
 	private void writeValue(Object v, CharacterOutput output) {
-		if (v == null) {
+		if (v == null || v == NULL_OBJECT) {
 			output.write(NULL_CHARS);
 		} else if (v instanceof CharSequence) {
 			writeString((CharSequence)v, output);

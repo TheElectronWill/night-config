@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.NullObject;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FormatDetector;
 import com.electronwill.nightconfig.core.io.ConfigParser;
@@ -89,5 +90,10 @@ public abstract class JsonFormat<W extends ConfigWriter<UnmodifiableConfig>>
 	@Override
 	public boolean supportsComments() {
 		return false;
+	}
+
+	@Override
+	public boolean supportsType(Class<?> type) {
+		return ConfigFormat.super.supportsType(type) || type == NullObject.class;
 	}
 }
