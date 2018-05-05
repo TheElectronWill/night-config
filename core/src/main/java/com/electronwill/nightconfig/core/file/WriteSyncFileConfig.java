@@ -6,6 +6,7 @@ import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.ParsingMode;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
+
 import java.io.File;
 import java.nio.charset.Charset;
 
@@ -23,6 +24,8 @@ final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> imple
 	private final ConfigParser<?, ? super C> parser;
 	private final FileNotFoundAction nefAction;
 	private final ParsingMode parsingMode;
+
+	private volatile boolean currentlyWriting = false;
 
 	WriteSyncFileConfig(C config, File file, Charset charset, ConfigWriter<? super C> writer,
 						 WritingMode writingMode, ConfigParser<?, ? super C> parser,
@@ -44,18 +47,26 @@ final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> imple
 
 	@Override
 	public void save() {
-		if (closed) {
-			throw new IllegalStateException("Cannot save a closed FileConfig");
+		synchronized (this) {
+			if (closed) {
+				throw new IllegalStateException("Cannot save a closed FileConfig");
+			}
+			currentlyWriting = true;
+			writer.write(config, file, writingMode, charset);
+			currentlyWriting = false;
 		}
-		writer.write(config, file, writingMode, charset);
 	}
 
 	@Override
 	public void load() {
-		if (closed) {
-			throw new IllegalStateException("Cannot (re)load a closed FileConfig");
+		if (!currentlyWriting) {
+			synchronized (this) {
+				if (closed) {
+					throw new IllegalStateException("Cannot (re)load a closed FileConfig");
+				}
+				parser.parse(file, config, parsingMode, nefAction);
+			}
 		}
-		parser.parse(file, config, parsingMode, nefAction);
 	}
 
 	@Override
