@@ -12,19 +12,19 @@ It supports the following formats:
 - [TOML](https://github.com/toml-lang/toml)
 - [HOCON](https://github.com/typesafehub/config/blob/master/HOCON.md)
 
+# Code examples
+- Code examples are available [here.](https://github.com/TheElectronWill/Night-Config/tree/master/examples/src/main/java)
+*Note: these examples are for the last **stable** version, and may not work with the master branch.*
+- You can also read the [wiki](https://github.com/TheElectronWill/Night-Config/wiki).
+
 # Project management
 NightConfig is managed with gradle. It is divided in several modules, the "core" module plus one module per supported format of configuration.
 
 The project is available on [jitpack](https://jitpack.io/#TheElectronWill/Night-Config).
 
 The repository has several branches:
-- Branches of old (but still maintened) versions:
+- Branches of old unmaintened versions:
 [stable-1.x](https://github.com/TheElectronWill/Night-Config/tree/stable-1.x),
 [stable-2.x](https://github.com/TheElectronWill/Night-Config/tree/stable-2.x)
 [stable-2.1.x](https://github.com/TheElectronWill/Night-Config/tree/stable-2.1.x)
 - Current in-development branch: [master](https://github.com/TheElectronWill/Night-Config/tree/master)
-
-# Code examples
-- Code examples are available [here.](https://github.com/TheElectronWill/Night-Config/tree/master/examples/src/main/java)  
-*Note: these examples are for the last **stable** version, and may not work with the master branch.*
-- You can also read the [wiki](https://github.com/TheElectronWill/Night-Config/wiki).
