@@ -6,12 +6,13 @@ import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.ParsingMode;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
-import java.io.Reader;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+
+import java.io.Reader;
+import java.util.Map;
+
+import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 
 /**
  * A YAML parser that uses the snakeYaml library.
@@ -53,7 +54,7 @@ public final class YamlParser implements ConfigParser<Config, Config> {
 		try {
 			Map<String, Object> wrappedMap = wrap(yaml.loadAs(reader, Map.class));
 			parsingMode.prepareParsing(destination);
-			if(parsingMode == ParsingMode.ADD) {
+			if (parsingMode == ParsingMode.ADD) {
 				for (Map.Entry<String, Object> entry : wrappedMap.entrySet()) {
 					destination.valueMap().putIfAbsent(entry.getKey(), entry.getValue());
 				}
@@ -65,13 +66,17 @@ public final class YamlParser implements ConfigParser<Config, Config> {
 		}
 	}
 
-	private static Map<String, Object> wrap(Map<String, Object> map) {
-		return new TransformingMap<>(map, YamlParser::wrap, v -> v, v -> v);
+	private Map<String, Object> wrap(Map<String, Object> map) {
+		return new TransformingMap<>(map, this::wrap, v -> v, v -> v);
 	}
 
-	private static Object wrap(Object value) {
+	private Object wrap(Object value) {
 		if (value instanceof Map) {
-			return wrap((Map)value);
+			Map<String, Object> map = wrap((Map)value);
+			return Config.wrap(map, configFormat);
+		}
+		if (value == null) {
+			return NULL_OBJECT;
 		}
 		return value;
 	}

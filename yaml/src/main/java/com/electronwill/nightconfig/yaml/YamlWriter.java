@@ -4,10 +4,13 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.WritingException;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
-import java.io.Writer;
-import java.util.Map;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+
+import java.io.Writer;
+import java.util.Map;
+
+import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 
 /**
  * A YAML writer that uses the snakeYaml library.
@@ -46,6 +49,9 @@ public final class YamlWriter implements ConfigWriter<UnmodifiableConfig> {
 	private static Object unwrap(Object value) {
 		if (value instanceof UnmodifiableConfig) {
 			return unwrap((UnmodifiableConfig)value);
+		}
+		if (value == NULL_OBJECT) {
+			return null;
 		}
 		return value;
 	}
