@@ -1,13 +1,9 @@
 package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.io.CharsWrapper;
-import com.electronwill.nightconfig.core.io.ConfigParser;
-import com.electronwill.nightconfig.core.io.ConfigWriter;
-import com.electronwill.nightconfig.core.io.ParsingMode;
-import com.electronwill.nightconfig.core.io.WritingException;
-import com.electronwill.nightconfig.core.io.WritingMode;
+import com.electronwill.nightconfig.core.io.*;
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -18,9 +14,7 @@ import java.nio.charset.Charset;
 import java.nio.file.OpenOption;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.nio.file.StandardOpenOption.WRITE;
+import static java.nio.file.StandardOpenOption.*;
 
 /**
  * @author TheElectronWill
@@ -134,7 +128,9 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 		if (closed.get()) {
 			throw new IllegalStateException("Cannot (re)load a closed FileConfig");
 		}
-		parser.parse(file, config, parsingMode, nefAction);//blocking read, not async
+		if (!currentlyWriting.get()) { // Skips load when writing
+			parser.parse(file, config, parsingMode, nefAction);//blocking read, not async
+		}
 	}
 
 	private final class WriteCompletedHandler implements CompletionHandler<Integer, Object> {
