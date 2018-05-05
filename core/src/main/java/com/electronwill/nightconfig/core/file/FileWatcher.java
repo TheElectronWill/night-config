@@ -2,16 +2,13 @@ package com.electronwill.nightconfig.core.file;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
+import java.nio.file.*;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
+import java.util.function.Consumer;
 
 /**
  * A FileWatcher can watch several files asynchronously.
@@ -42,6 +39,7 @@ public final class FileWatcher {
 	private final Map<Path, WatchedDir> watchedDirs = new ConcurrentHashMap<>();//dir -> watchService & infos
 	private final Map<Path, WatchedFile> watchedFiles = new ConcurrentHashMap<>();//file -> watchKey & handler
 	private final Thread thread = new WatcherThread();
+	private final Consumer<Exception> exceptionHandler;
 	private volatile boolean run = true;
 
 	/**
@@ -49,6 +47,15 @@ public final class FileWatcher {
 	 * way, actually) to start it manually.
 	 */
 	public FileWatcher() {
+		this(Throwable::printStackTrace);
+	}
+
+	/**
+	 * Creates a new FileWatcher. The watcher is immediately functional, there is no need (and no
+	 * way, actually) to start it manually.
+	 */
+	public FileWatcher(Consumer<Exception> exceptionHandler) {
+		this.exceptionHandler = exceptionHandler;
 		thread.start();
 	}
 
@@ -152,8 +159,7 @@ public final class FileWatcher {
 			while (run) {
 				boolean allNull = true;
 				dirsIter:
-				for (Iterator<WatchedDir> it = watchedDirs.values().iterator(); it.hasNext()
-																				&& run; ) {
+				for (Iterator<WatchedDir> it = watchedDirs.values().iterator(); it.hasNext() && run; ) {
 					WatchedDir watchedDir = it.next();
 					WatchKey key = watchedDir.watchService.poll();
 					if (key == null) {
@@ -171,7 +177,11 @@ public final class FileWatcher {
 						Path filePath = watchedDir.dir.resolve(childPath);
 						WatchedFile watchedFile = watchedFiles.get(filePath);
 						if (watchedFile != null) {
-							watchedFile.changeHandler.run();
+							try {
+								watchedFile.changeHandler.run();
+							} catch (Exception e) {
+								exceptionHandler.accept(e);
+							}
 						}
 					}
 					key.reset();
@@ -185,7 +195,7 @@ public final class FileWatcher {
 				try {
 					watchedDir.watchService.close();
 				} catch (IOException e) {
-					throw new RuntimeException(e);
+					exceptionHandler.accept(e);
 				}
 			}
 			// Clears the maps
