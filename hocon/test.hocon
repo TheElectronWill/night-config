@@ -29,3 +29,4 @@ config {
 	string: test
 }
 long: 123456789
+nullSub: { a: test, n: null }

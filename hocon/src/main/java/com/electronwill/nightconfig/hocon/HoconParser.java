@@ -7,16 +7,15 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.ParsingMode;
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigParseOptions;
-import com.typesafe.config.ConfigSyntax;
-import com.typesafe.config.ConfigUtil;
-import com.typesafe.config.ConfigValue;
+import com.typesafe.config.*;
+
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 
 /**
  * A HOCON parser that uses the typesafehub config library.
@@ -45,8 +44,7 @@ public final class HoconParser implements ConfigParser<CommentedConfig, Config> 
 	@Override
 	public void parse(Reader reader, Config destination, ParsingMode parsingMode) {
 		try {
-			com.typesafe.config.Config parsed = ConfigFactory.parseReader(reader, OPTIONS)
-															 .resolve();
+			ConfigObject parsed = ConfigFactory.parseReader(reader, OPTIONS).resolve().root();
 			parsingMode.prepareParsing(destination);
 			if (destination instanceof CommentedConfig) {
 				put(parsed, (CommentedConfig)destination, parsingMode);
@@ -58,7 +56,7 @@ public final class HoconParser implements ConfigParser<CommentedConfig, Config> 
 		}
 	}
 
-	private static void put(com.typesafe.config.Config typesafeConfig, Config destination,
+	private static void put(ConfigObject typesafeConfig, Config destination,
 							ParsingMode parsingMode) {
 		for (Map.Entry<String, ConfigValue> entry : typesafeConfig.entrySet()) {
 			List<String> path = ConfigUtil.splitPath(entry.getKey());
@@ -66,7 +64,7 @@ public final class HoconParser implements ConfigParser<CommentedConfig, Config> 
 		}
 	}
 
-	private static void put(com.typesafe.config.Config typesafeConfig, CommentedConfig destination,
+	private static void put(ConfigObject typesafeConfig, CommentedConfig destination,
 							ParsingMode parsingMode) {
 		for (Map.Entry<String, ConfigValue> entry : typesafeConfig.entrySet()) {
 			List<String> path = ConfigUtil.splitPath(entry.getKey());
@@ -96,6 +94,8 @@ public final class HoconParser implements ConfigParser<CommentedConfig, Config> 
 				}
 				return configList;
 			}
+		} else if (o == null) {
+			return NULL_OBJECT;
 		}
 		return o;
 	}

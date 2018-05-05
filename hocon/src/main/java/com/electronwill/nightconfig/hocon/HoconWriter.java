@@ -17,6 +17,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
 
+import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
+
 /**
  * A configurable HOCON writer.
  *
@@ -115,7 +117,9 @@ public final class HoconWriter implements ConfigWriter<UnmodifiableConfig> {
 	}
 
 	private void writeValue(Object v, CharacterOutput output) {
-		if (v == null) { output.write(NULL_CHARS); } else if (v instanceof String) {
+		if (v == null || v == NULL_OBJECT) {
+			output.write(NULL_CHARS);
+		} else if (v instanceof String) {
 			writeString((String)v, output);
 		} else if (v instanceof Number) {
 			output.write(v.toString());
