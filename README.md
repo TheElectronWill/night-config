@@ -17,6 +17,22 @@ It supports the following formats:
 *Note: these examples are for the last **stable** version, and may not work with the master branch.*
 - You can also read the [wiki](https://github.com/TheElectronWill/Night-Config/wiki).
 
+## Sample
+```java
+FileConfig config = FileConfig.builder("myConfig.toml").defaultResource("defaultConfig.toml").autosave().build();
+config.load();
+
+String name = config.get("username");
+int id = config.get("account.id");
+int points = config.getOrElse("account.score", defaultScore);
+
+config.set("account.score", points*2);
+
+String comment = config.getComment("user");
+config.close();
+```
+
+
 # Project management
 NightConfig is managed with gradle. It is divided in several modules, the "core" module plus one module per supported format of configuration.
 
