@@ -18,6 +18,7 @@ public final class InMemoryFormat implements ConfigFormat<Config, Config, Config
 																 || type == Double.class
 																 || type == Boolean.class
 																 || type == String.class
+																 || type == NullObject.class
 																 || Collection.class.isAssignableFrom(type)
 																 || Config.class.isAssignableFrom(type);
 

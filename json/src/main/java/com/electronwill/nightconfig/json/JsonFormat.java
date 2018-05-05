@@ -91,9 +91,4 @@ public abstract class JsonFormat<W extends ConfigWriter<UnmodifiableConfig>>
 	public boolean supportsComments() {
 		return false;
 	}
-
-	@Override
-	public boolean supportsType(Class<?> type) {
-		return ConfigFormat.super.supportsType(type) || type == NullObject.class;
-	}
 }
