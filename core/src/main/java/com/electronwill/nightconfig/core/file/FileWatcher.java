@@ -164,7 +164,7 @@ public final class FileWatcher {
 						if (!run) {
 							break dirsIter;
 						}
-						if (event.kind() != StandardWatchEventKinds.ENTRY_MODIFY) {
+						if (event.kind() != StandardWatchEventKinds.ENTRY_MODIFY || event.count() > 1) {
 							continue;
 						}
 						Path childPath = ((WatchEvent<Path>)event).context();
