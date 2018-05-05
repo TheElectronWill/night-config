@@ -8,6 +8,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
+
 /**
  * An abstract Config that uses a {@link java.util.Map} to store its values. In practice it's
  * often a HashMap, or a ConcurrentHashMap if the config is concurrent, but it accepts any type
@@ -52,7 +54,8 @@ public abstract class AbstractConfig implements Config, Cloneable {
 			return null;
 		}
 		String lastKey = path.get(lastIndex);
-		return (T)parentMap.get(lastKey);
+		Object value = parentMap.get(lastKey);
+		return (value == NULL_OBJECT) ? null : (T)value;
 	}
 
 	@Override
@@ -60,7 +63,8 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		final int lastIndex = path.size() - 1;
 		Map<String, Object> parentMap = getOrCreateMap(path.subList(0, lastIndex));
 		String lastKey = path.get(lastIndex);
-		return (T)parentMap.put(lastKey, value);
+		Object nonNull = (value == null) ? NULL_OBJECT : value;
+		return (T)parentMap.put(lastKey, nonNull);
 	}
 
 	@Override
@@ -68,7 +72,8 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		final int lastIndex = path.size() - 1;
 		Map<String, Object> parentMap = getOrCreateMap(path.subList(0, lastIndex));
 		String lastKey = path.get(lastIndex);
-		return parentMap.putIfAbsent(lastKey, value) == null;
+		Object nonNull = (value == null) ? NULL_OBJECT : value;
+		return parentMap.putIfAbsent(lastKey, nonNull) == null;
 	}
 
 	@Override
