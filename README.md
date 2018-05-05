@@ -1,6 +1,6 @@
-![Night Config](logo.png)  
+![Night Config](logo.png)
 [![](https://jitpack.io/v/TheElectronWill/Night-Config.svg)](https://jitpack.io/#TheElectronWill/Night-Config)
-[![](https://img.shields.io/badge/javadoc-core-blue.svg)](https://jitpack.io/com/github/TheElectronWill/Night-Config/core/v3.0/javadoc/index.html)
+[![](https://img.shields.io/badge/javadoc-core-blue.svg)](https://jitpack.io/com/github/TheElectronWill/Night-Config/core/3.1.0/javadoc/index.html)
 ![](https://img.shields.io/github/commits-since/TheElectronWill/Night-Config/v3.0.svg)
 
 # Introduction
