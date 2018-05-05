@@ -1,9 +1,11 @@
 package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.io.IndentStyle;
 import com.electronwill.nightconfig.core.io.WritingMode;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -12,7 +14,10 @@ import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
+
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -26,8 +31,7 @@ public class JsonConfigTest {
 		config2.set("boolean", true);
 		config2.set("false", false);
 
-		config.set("string",
-						"This is a string with a lot of characters to escape \n\r\t \\ \" ");
+		config.set("string", "This is a string with a lot of characters to escape \n\r\t \\ \" ");
 		config.set("int", 123456);
 		config.set("long", 1234567890l);
 		config.set("float", 0.123456f);
@@ -38,6 +42,25 @@ public class JsonConfigTest {
 	}
 
 	private final File file = new File("test.json");
+
+	@Test
+	public void testAuto() throws InterruptedException {
+		FileConfig config = FileConfig.builder(file).autoreload().autosave().build();
+		config.load();
+		System.out.println(config);
+		double d;
+		for (int i = 0; i < 100; i++) {
+			d = Math.random();
+			config.set("double", d);
+			Thread.sleep(10);
+			System.out.println(i + ":" + d);
+			Assertions.assertEquals(d, config.<Double>get("double").doubleValue());
+		}
+		for (int i = 0; i < 1000; i++) {
+			config.set("double", 0.123456);
+		}
+		config.close();
+	}
 
 	@Test
 	public void testWriteThenRead() throws IOException {
@@ -64,7 +87,7 @@ public class JsonConfigTest {
 	@Test
 	public void testFancyWriter() throws IOException {
 		try (Writer fileWriter = new BufferedWriter(
-				new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
+			new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
 			FancyJsonWriter jsonWriter = new FancyJsonWriter().setIndent(IndentStyle.SPACES_4);
 			jsonWriter.write(config, fileWriter);
 		}// finally closes the writer
