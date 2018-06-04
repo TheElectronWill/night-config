@@ -2,7 +2,7 @@ package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.file.FormatDetector;
+import com.electronwill.nightconfig.core.io.FormatDetector;
 
 import java.time.temporal.Temporal;
 

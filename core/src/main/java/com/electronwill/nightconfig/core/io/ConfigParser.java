@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core.io;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
+import com.electronwill.nightconfig.core.path.PathNotFoundAction;
 import com.electronwill.nightconfig.core.utils.FastStringReader;
 
 import java.io.*;
@@ -10,6 +11,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Interface for reading configurations.
@@ -146,6 +149,28 @@ public interface ConfigParser<C extends Config> {
 	}
 
 	/**
+	 * Parses a configuration.
+	 *
+	 * @param path        the path to parse
+	 * @param destination the config where to put the data
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(Path path, Config destination, ParsingMode parsingMode,
+					   PathNotFoundAction nefAction, Charset charset) {
+		try {
+			if (!Files.exists(path) && !nefAction.run(path)) {
+				return;
+			}
+			try (Reader reader = new BufferedReader(
+				new InputStreamReader(Files.newInputStream(path), charset))) {
+				parse(reader, destination, parsingMode);
+			}
+		} catch (IOException e) {
+			throw new WritingException("An I/O error occured", e);
+		}
+	}
+
+	/**
 	 * Parses a configuration with the UTF-8 charset.
 	 *
 	 * @param file        the file to parse
@@ -155,6 +180,18 @@ public interface ConfigParser<C extends Config> {
 	default void parse(File file, Config destination, ParsingMode parsingMode,
 					   FileNotFoundAction nefAction) {
 		parse(file, destination, parsingMode, nefAction, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * Parses a configuration with the UTF-8 charset.
+	 *
+	 * @param path        the path to parse
+	 * @param destination the config where to put the data
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(Path path, Config destination, ParsingMode parsingMode,
+					   PathNotFoundAction nefAction) {
+		parse(path, destination, parsingMode, nefAction, StandardCharsets.UTF_8);
 	}
 
 	/**
