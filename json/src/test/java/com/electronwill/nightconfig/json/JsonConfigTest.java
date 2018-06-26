@@ -123,6 +123,7 @@ public class JsonConfigTest {
 		JsonFormat<?> f2 = JsonFormat.emptyTolerantInstance();
 		FileConfig c2 = FileConfig.of(f, f2);
 		c2.load();
+		Assertions.assertTrue(c2.isEmpty());
 
 		Assertions.assertEquals(0, f.length());
 	}
