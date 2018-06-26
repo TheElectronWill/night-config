@@ -3,8 +3,8 @@ package com.electronwill.nightconfig.core;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * A configuration format, that can parse, create and write some types of configurations.
@@ -69,5 +69,5 @@ public interface ConfigFormat<C extends Config> {
 	 *
 	 * @param f the existing file to initialize
 	 */
-	default void initEmptyFile(File f) throws IOException {}
+	default void initEmptyFile(Path f) throws IOException {}
 }

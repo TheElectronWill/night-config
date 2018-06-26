@@ -9,12 +9,13 @@ import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 
 /**
  * @author TheElectronWill
  */
 final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> implements FileConfig {
-	private final File file;
+	private final Path nioPath;
 	private final Charset charset;
 	private boolean closed;
 
@@ -27,11 +28,11 @@ final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> imple
 
 	private volatile boolean currentlyWriting = false;
 
-	WriteSyncFileConfig(C config, File file, Charset charset, ConfigWriter writer,
+	WriteSyncFileConfig(C config, Path nioPath, Charset charset, ConfigWriter writer,
 						 WritingMode writingMode, ConfigParser<?> parser,
 						 ParsingMode parsingMode, FileNotFoundAction nefAction) {
 		super(config);
-		this.file = file;
+		this.nioPath = nioPath;
 		this.charset = charset;
 		this.writer = writer;
 		this.parser = parser;
@@ -42,7 +43,12 @@ final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> imple
 
 	@Override
 	public File getFile() {
-		return file;
+		return nioPath.toFile();
+	}
+
+	@Override
+	public Path getNioPath() {
+		return nioPath;
 	}
 
 	@Override
@@ -52,7 +58,7 @@ final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> imple
 				throw new IllegalStateException("Cannot save a closed FileConfig");
 			}
 			currentlyWriting = true;
-			writer.write(config, file, writingMode, charset);
+			writer.write(config, nioPath, writingMode, charset);
 			currentlyWriting = false;
 		}
 	}
@@ -64,7 +70,7 @@ final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> imple
 				if (closed) {
 					throw new IllegalStateException("Cannot (re)load a closed FileConfig");
 				}
-				parser.parse(file, config, parsingMode, nefAction);
+				parser.parse(nioPath, config, parsingMode, nefAction);
 			}
 		}
 	}

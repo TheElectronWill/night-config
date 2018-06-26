@@ -12,6 +12,7 @@ import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.charset.Charset;
 import java.nio.file.OpenOption;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.nio.file.StandardOpenOption.*;
@@ -20,14 +21,14 @@ import static java.nio.file.StandardOpenOption.*;
  * @author TheElectronWill
  */
 final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> implements FileConfig {
-	private final File file;
+	private final Path nioPath;
 	private final Charset charset;
 	/**
-	 * True if this file config has been closed.
+	 * True if this nioPath config has been closed.
 	 */
 	private final AtomicBoolean closed = new AtomicBoolean();
 	/**
-	 * The channel used to write asynchronously to the file.
+	 * The channel used to write asynchronously to the nioPath.
 	 */
 	private AsynchronousFileChannel channel;
 	/**
@@ -51,11 +52,11 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 	private final FileNotFoundAction nefAction;
 	private final ParsingMode parsingMode;
 
-	WriteAsyncFileConfig(C config, File file, Charset charset, ConfigWriter writer,
+	WriteAsyncFileConfig(C config, Path nioPath, Charset charset, ConfigWriter writer,
 						 WritingMode writingMode, ConfigParser<?> parser,
 						 ParsingMode parsingMode, FileNotFoundAction nefAction) {
 		super(config);
-		this.file = file;
+		this.nioPath = nioPath;
 		this.charset = charset;
 		this.writer = writer;
 		this.parser = parser;
@@ -71,7 +72,12 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 
 	@Override
 	public File getFile() {
-		return file;
+		return nioPath.toFile();
+	}
+
+	@Override
+	public Path getNioPath() {
+		return nioPath;
 	}
 
 	@Override
@@ -100,8 +106,8 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 	}
 
 	private void save(boolean saveLaterIfWriting) {
-		boolean canSaveNow = currentlyWriting.compareAndSet(false,
-															true);// atomically sets to true if false
+		// atomically sets to true if false:
+		boolean canSaveNow = currentlyWriting.compareAndSet(false, true);
 		if (canSaveNow) {// no writing is in progress: start one immediately
 			// Writes the config data to a ByteBuffer
 			CharsWrapper.Builder builder = new CharsWrapper.Builder(512);
@@ -109,10 +115,10 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 			CharBuffer chars = CharBuffer.wrap(builder.build());
 			ByteBuffer buffer = charset.encode(chars);
 
-			// Writes the ByteBuffer to the file, asynchronously
+			// Writes the ByteBuffer to the nioPath, asynchronously
 			synchronized (channelGuard) {
 				try {
-					channel = AsynchronousFileChannel.open(file.toPath(), openOptions);
+					channel = AsynchronousFileChannel.open(nioPath, openOptions);
 					channel.write(buffer, channel.size(), null, writeCompletedHandler);
 				} catch (IOException e) {
 					writeCompletedHandler.failed(e, null);
@@ -129,7 +135,7 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 			throw new IllegalStateException("Cannot (re)load a closed FileConfig");
 		}
 		if (!currentlyWriting.get()) { // Skips load when writing
-			parser.parse(file, config, parsingMode, nefAction);//blocking read, not async
+			parser.parse(nioPath, config, parsingMode, nefAction);//blocking read, not async
 		}
 	}
 
@@ -157,7 +163,7 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 
 		@Override
 		public void failed(Throwable exc, Object attachment) {
-			throw new WritingException("Error while saving the FileConfig to " + file, exc);
+			throw new WritingException("Error while saving the FileConfig to " + nioPath, exc);
 		}
 	}
 }

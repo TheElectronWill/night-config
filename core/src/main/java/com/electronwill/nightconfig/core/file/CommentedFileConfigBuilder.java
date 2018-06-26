@@ -8,6 +8,7 @@ import com.electronwill.nightconfig.core.io.WritingMode;
 import java.io.File;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 
 /**
  * Builder for CommentedFileConfig. The default settings are:
@@ -26,7 +27,7 @@ import java.nio.charset.Charset;
  * @author TheElectronWill
  */
 public final class CommentedFileConfigBuilder extends FileConfigBuilder<CommentedConfig> {
-	CommentedFileConfigBuilder(File file, ConfigFormat<? extends CommentedConfig> format) {
+	CommentedFileConfigBuilder(Path file, ConfigFormat<? extends CommentedConfig> format) {
 		super(file, format);
 	}
 
@@ -62,6 +63,12 @@ public final class CommentedFileConfigBuilder extends FileConfigBuilder<Commente
 
 	@Override
 	public CommentedFileConfigBuilder defaultData(File file) {
+		super.defaultData(file);
+		return this;
+	}
+
+	@Override
+	public CommentedFileConfigBuilder defaultData(Path file) {
 		super.defaultData(file);
 		return this;
 	}

@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * @author TheElectronWill
@@ -23,6 +24,11 @@ final class AutoreloadFileConfig<C extends FileConfig> extends ConfigWrapper<C> 
 	@Override
 	public File getFile() {
 		return config.getFile();
+	}
+
+	@Override
+	public Path getNioPath() {
+		return config.getNioPath();
 	}
 
 	@Override

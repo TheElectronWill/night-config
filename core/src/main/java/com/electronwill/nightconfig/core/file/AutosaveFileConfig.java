@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 import com.electronwill.nightconfig.core.utils.ObservedMap;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +45,11 @@ final class AutosaveFileConfig<C extends FileConfig> extends ConfigWrapper<C> im
 	@Override
 	public File getFile() {
 		return config.getFile();
+	}
+
+	@Override
+	public Path getNioPath() {
+		return config.getNioPath();
 	}
 
 	@Override

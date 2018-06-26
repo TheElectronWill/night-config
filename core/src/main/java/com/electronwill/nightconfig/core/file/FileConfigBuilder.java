@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Builder for FileConfig. The default settings are:
@@ -27,7 +29,7 @@ import java.nio.charset.StandardCharsets;
  * @author TheElectronWill
  */
 public class FileConfigBuilder<C extends Config> {
-	protected final File file;
+	protected final Path file;
 	private C config;
 	protected final ConfigFormat<?> format;
 	protected final ConfigWriter writer;
@@ -38,7 +40,7 @@ public class FileConfigBuilder<C extends Config> {
 	protected FileNotFoundAction nefAction = FileNotFoundAction.CREATE_EMPTY;
 	protected boolean sync = false, autosave = false, autoreload = false;
 
-	FileConfigBuilder(File file, ConfigFormat<? extends C> format) {
+	FileConfigBuilder(Path file, ConfigFormat<? extends C> format) {
 		this.file = file;
 		this.format = format;
 		this.writer = format.createWriter();
@@ -104,6 +106,17 @@ public class FileConfigBuilder<C extends Config> {
 	 * @return this builder
 	 */
 	public FileConfigBuilder<C> defaultData(File file) {
+		return onFileNotFound(FileNotFoundAction.copyData(file));
+	}
+
+	/**
+	 * Sets the file to copy when the config's file is not found. This is a shortcut for {@code
+	 * onFileNotFound(FileNotFoundAction.copyData(file))}
+	 *
+	 * @param file the data file
+	 * @return this builder
+	 */
+	public FileConfigBuilder<C> defaultData(Path file) {
 		return onFileNotFound(FileNotFoundAction.copyData(file));
 	}
 
@@ -181,7 +194,7 @@ public class FileConfigBuilder<C extends Config> {
 													parser, parsingMode, nefAction);
 		}
 		if (autoreload) {
-			if (!file.exists()) {
+			if (Files.notExists(file)) {
 				try {
 					nefAction.run(file, format);
 				} catch (IOException e) {

@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
 
 import java.io.File;
+import java.nio.file.Path;
 
 /**
  * @author TheElectronWill
@@ -20,6 +21,11 @@ class SimpleCommentedFileConfig extends CommentedConfigWrapper<CommentedConfig>
 	@Override
 	public File getFile() {
 		return fileConfig.getFile();
+	}
+
+	@Override
+	public Path getNioPath() {
+		return fileConfig.getNioPath();
 	}
 
 	@Override

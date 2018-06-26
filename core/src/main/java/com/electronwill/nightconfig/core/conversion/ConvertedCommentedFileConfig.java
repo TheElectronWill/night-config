@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core.conversion;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -29,6 +30,11 @@ public final class ConvertedCommentedFileConfig
 	@Override
 	public File getFile() {
 		return config.getFile();
+	}
+
+	@Override
+	public Path getNioPath() {
+		return config.getNioPath();
 	}
 
 	@Override

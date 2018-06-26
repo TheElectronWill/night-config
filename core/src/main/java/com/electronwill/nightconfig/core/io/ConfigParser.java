@@ -10,6 +10,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Interface for reading configurations.
@@ -65,7 +67,7 @@ public interface ConfigParser<C extends Config> {
 	}
 
 	/**
-	 * Parses a configuration.
+	 * Parses a configuration with the UTF-8 charset.
 	 *
 	 * @param input the input to parse
 	 * @return a Config
@@ -73,8 +75,30 @@ public interface ConfigParser<C extends Config> {
 	 * @throws ParsingException if an error occurs
 	 */
 	default C parse(InputStream input) {
-		Reader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8));
-		return parse(reader);
+		return parse(input, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * Parses a configuration.
+	 *
+	 * @param input the input to parse
+	 * @return a Config
+	 *
+	 * @throws ParsingException if an error occurs
+	 */
+	default C parse(InputStream input, Charset charset) {
+		return parse(new BufferedReader(new InputStreamReader(input, charset)));
+	}
+
+	/**
+	 * Parses a configuration with the UTF-8 charset.
+	 *
+	 * @param input       the input to parse
+	 * @param destination the config where to put the data
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(InputStream input, Config destination, ParsingMode parsingMode) {
+		parse(input, destination, parsingMode, StandardCharsets.UTF_8);
 	}
 
 	/**
@@ -84,31 +108,9 @@ public interface ConfigParser<C extends Config> {
 	 * @param destination the config where to put the data
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(InputStream input, Config destination, ParsingMode parsingMode) {
-		Reader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8));
+	default void parse(InputStream input, Config destination, ParsingMode parsingMode, Charset charset) {
+		Reader reader = new BufferedReader(new InputStreamReader(input, charset));
 		parse(reader, destination, parsingMode);
-	}
-
-	/**
-	 * Parses a configuration.
-	 *
-	 * @param file the file to parse
-	 * @return a Config
-	 *
-	 * @throws ParsingException if an error occurs
-	 */
-	default C parse(File file, FileNotFoundAction nefAction, Charset charset) {
-		try {
-			if (!file.exists() && !nefAction.run(file, getFormat())) {
-				return getFormat().createConfig();
-			}
-			try (Reader reader = new BufferedReader(
-					new InputStreamReader(new FileInputStream(file), charset))) {
-				return parse(reader);
-			}
-		} catch (IOException e) {
-			throw new WritingException("An I/O error occured", e);
-		}
 	}
 
 	/**
@@ -126,23 +128,13 @@ public interface ConfigParser<C extends Config> {
 	/**
 	 * Parses a configuration.
 	 *
-	 * @param file        the file to parse
-	 * @param destination the config where to put the data
+	 * @param file the file to parse
+	 * @return a Config
+	 *
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(File file, Config destination, ParsingMode parsingMode,
-					   FileNotFoundAction nefAction, Charset charset) {
-		try {
-			if (!file.exists() && !nefAction.run(file, getFormat())) {
-				return;
-			}
-			try (Reader reader = new BufferedReader(
-					new InputStreamReader(new FileInputStream(file), charset))) {
-				parse(reader, destination, parsingMode);
-			}
-		} catch (IOException e) {
-			throw new WritingException("An I/O error occured", e);
-		}
+	default C parse(File file, FileNotFoundAction nefAction, Charset charset) {
+		return parse(file.toPath(), nefAction, charset);
 	}
 
 	/**
@@ -152,9 +144,83 @@ public interface ConfigParser<C extends Config> {
 	 * @param destination the config where to put the data
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(File file, Config destination, ParsingMode parsingMode,
-					   FileNotFoundAction nefAction) {
+	default void parse(File file, Config destination, ParsingMode parsingMode, FileNotFoundAction nefAction) {
 		parse(file, destination, parsingMode, nefAction, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * Parses a configuration.
+	 *
+	 * @param file        the file to parse
+	 * @param destination the config where to put the data
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(File file, Config destination, ParsingMode parsingMode,
+					   FileNotFoundAction nefAction, Charset charset) {
+		parse(file.toPath(), destination, parsingMode, nefAction, charset);
+	}
+
+	/**
+	 * Parses a configuration with the UTF-8 charset.
+	 *
+	 * @param file the nio Path to parse
+	 * @return a Config
+	 * @throws ParsingException if an error occurs
+	 */
+	default C parse(Path file, FileNotFoundAction nefAction) {
+		return parse(file, nefAction, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * Parses a configuration.
+	 *
+	 * @param file the nio Path to parse
+	 * @return a Config
+	 * @throws ParsingException if an error occurs
+	 */
+	default C parse(Path file, FileNotFoundAction nefAction, Charset charset) {
+		try {
+			if(Files.notExists(file) && !nefAction.run(file, getFormat())) {
+				return getFormat().createConfig();
+			}
+			try (InputStream input = Files.newInputStream(file)) {
+				return parse(input, charset);
+			}
+		} catch (IOException e) {
+			throw new WritingException("An I/O error occured", e);
+		}
+	}
+
+	/**
+	 * Parses a configuration with the UTF-8 charset.
+	 *
+	 * @param file     the nio Path to parse
+	 * @param destination the config where to put the data
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(Path file, Config destination, ParsingMode parsingMode, FileNotFoundAction nefAction) {
+		parse(file, destination, parsingMode, nefAction, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * Parses a configuration.
+	 *
+	 * @param file     the nio Path to parse
+	 * @param destination the config where to put the data
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(Path file, Config destination, ParsingMode parsingMode,
+					   FileNotFoundAction nefAction, Charset charset) {
+		try {
+			if (Files.notExists(file) && !nefAction.run(file, getFormat())) {
+				return;
+			}
+			try (InputStream input = Files.newInputStream(file)) {
+				parse(input, destination, parsingMode);
+			}
+		} catch (IOException e) {
+			throw new WritingException("An I/O error occured", e);
+		}
 	}
 
 	/**

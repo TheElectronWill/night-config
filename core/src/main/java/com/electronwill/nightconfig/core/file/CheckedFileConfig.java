@@ -7,6 +7,7 @@ import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +25,11 @@ class CheckedFileConfig extends ConfigWrapper<FileConfig> implements FileConfig 
 	 */
 	CheckedFileConfig(FileConfig config) {
 		super(config);
+	}
+
+	@Override
+	public Path getNioPath() {
+		return config.getNioPath();
 	}
 
 	@Override
