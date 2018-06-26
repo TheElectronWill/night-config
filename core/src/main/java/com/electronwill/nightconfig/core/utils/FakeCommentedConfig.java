@@ -103,7 +103,7 @@ public final class FakeCommentedConfig extends ConfigWrapper<Config> implements 
 		}
 
 		@Override
-		public Object setValue(Object value) {
+		public <T> T setValue(Object value) {
 			return entry.setValue(value);
 		}
 	}
