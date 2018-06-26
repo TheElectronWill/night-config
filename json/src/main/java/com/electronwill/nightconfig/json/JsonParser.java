@@ -105,10 +105,15 @@ public final class JsonParser implements ConfigParser<Config> {
 	}
 
 	private <T extends Config> T parseObject(CharacterInput input, T config, ParsingMode parsingMode) {
+		boolean first = true;
 		while (true) {
 			char keyFirst = input.readCharAndSkip(SPACES);// the first character of the key
-			if (keyFirst != '"') {
+			if (first && keyFirst == '}') {// checked here to detect empty json object {}
+				return config;
+			} else if (keyFirst != '"') {
 				throw new ParsingException("Invalid beginning of a key: " + keyFirst);
+			} else {
+				first = false;
 			}
 
 			String key = parseString(input);

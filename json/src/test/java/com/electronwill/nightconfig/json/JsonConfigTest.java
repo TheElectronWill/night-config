@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.io.IndentStyle;
+import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.WritingMode;
 
 import java.io.BufferedWriter;
@@ -82,6 +83,16 @@ public class JsonConfigTest {
 	public void testRead() throws IOException {
 		new JsonParser().parse(file, FileNotFoundAction.READ_NOTHING);
 		System.out.println(config);
+	}
+
+	@Test
+	public void testReadEmptyObject() throws IOException {
+		Config conf = new JsonParser().parse("{}");
+		System.out.println(conf);
+		Assertions.assertTrue(conf.isEmpty());
+		Assertions.assertThrows(ParsingException.class, () -> {
+			new JsonParser().parse("{\"this\":12, }");
+		});
 	}
 
 	@Test
