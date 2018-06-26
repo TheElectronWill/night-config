@@ -6,9 +6,11 @@ import com.electronwill.nightconfig.core.file.FormatDetector;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * @author TheElectronWill
@@ -53,6 +55,40 @@ public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat
 	}
 
 	/**
+	 * @return an instance of JsonFormat with a parser that accepts empty inputs and a fancy writer
+	 */
+	public static JsonFormat<FancyJsonWriter> emptyTolerantInstance() {
+		return new JsonFormat<FancyJsonWriter>() {
+			@Override
+			public FancyJsonWriter createWriter() {
+				return new FancyJsonWriter();
+			}
+
+			@Override
+			public ConfigParser<Config> createParser() {
+				return new JsonParser(this).setEmptyDataAccepted(true);
+			}
+		};
+	}
+
+	/**
+	 * @return an instance of JsonFormat with a parser that accepts empty inputs and a minimal writer
+	 */
+	public static JsonFormat<MinimalJsonWriter> minimalEmptyTolerantInstance() {
+		return new JsonFormat<MinimalJsonWriter>() {
+			@Override
+			public MinimalJsonWriter createWriter() {
+				return new MinimalJsonWriter();
+			}
+
+			@Override
+			public ConfigParser<Config> createParser() {
+				return new JsonParser(this).setEmptyDataAccepted(true);
+			}
+		};
+	}
+
+	/**
 	 * @return a new config with the format {@link JsonFormat#fancyInstance()}.
 	 */
 	public static Config newConfig() {
@@ -94,13 +130,13 @@ public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat
 	}
 
 	/**
-	 * Initializes an JSON file with an empty JSON object.
+	 * Initializes an JSON nioPath with an empty JSON object.
 	 *
-	 * @param f the existing file to initialize
+	 * @param f the existing nioPath to initialize
 	 */
 	@Override
-	public void initEmptyFile(File f) throws IOException {
-		try (FileWriter writer = new FileWriter(f)) {
+	public void initEmptyFile(Path f) throws IOException {
+		try (Writer writer = Files.newBufferedWriter(f)) {
 			writer.write("{}");
 		}
 	}

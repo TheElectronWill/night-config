@@ -20,6 +20,7 @@ public final class JsonParser implements ConfigParser<Config> {
 	private static final char[] NUMBER_END = {',', '}', ']', ' ', '\t', '\n', '\r'};
 
 	private final ConfigFormat<Config> configFormat;
+	private boolean emptyDataAccepted = false;
 
 	public JsonParser() {
 		this(JsonFormat.fancyInstance());
@@ -35,6 +36,25 @@ public final class JsonParser implements ConfigParser<Config> {
 	}
 
 	/**
+	 * @return true if the parser accepts empty data as a valid input, false otherwise (default)
+	 */
+	public boolean isEmptyDataAccepted() {
+		return emptyDataAccepted;
+	}
+
+	/**
+	 * Enables or disables the acceptance of empty input data. False by default. If set to true,
+	 * the parser will return an empty config (or an empty list in the case of a
+	 * {@link #parseList(Reader)} call) when the input is empty.
+	 *
+	 * @param emptyDataAccepted true to accept empty data as a valid input, false to reject it
+	 */
+	public JsonParser setEmptyDataAccepted(boolean emptyDataAccepted) {
+		this.emptyDataAccepted = emptyDataAccepted;
+		return this;
+	}
+
+	/**
 	 * Parses a JSON document, either a JSON object (parsed to a JsonConfig) or a JSON array
 	 * (parsed to a List).
 	 *
@@ -43,6 +63,14 @@ public final class JsonParser implements ConfigParser<Config> {
 	 */
 	public Object parseDocument(Reader reader) {
 		CharacterInput input = new ReaderInput(reader);
+		if (input.peek() == -1) {
+			if (emptyDataAccepted) {
+				// If data is empty && we accept empty data => return empty config
+				return configFormat.createConfig();
+			} else {
+				throw new ParsingException("No json data: input is empty");
+			}
+		}
 		char firstChar = input.readCharAndSkip(SPACES);
 		if (firstChar == '{') {
 			return parseObject(input, configFormat.createConfig(), ParsingMode.MERGE);
@@ -69,6 +97,14 @@ public final class JsonParser implements ConfigParser<Config> {
 	@Override
 	public void parse(Reader reader, Config destination, ParsingMode parsingMode) {
 		CharacterInput input = new ReaderInput(reader);
+		if (input.peek() == -1) {
+			if (emptyDataAccepted) {
+				// If data is empty && we accept empty data => let the config as it is
+				return;
+			} else {
+				throw new ParsingException("No json data: input is empty");
+			}
+		}
 		char firstChar = input.readCharAndSkip(SPACES);
 		if (firstChar != '{') {
 			throw new ParsingException("Invalid first character for a json object: " + firstChar);
@@ -97,6 +133,14 @@ public final class JsonParser implements ConfigParser<Config> {
 	 */
 	public void parseList(Reader reader, List<?> destination, ParsingMode parsingMode) {
 		CharacterInput input = new ReaderInput(reader);
+		if (input.peek() == -1) {
+			if (emptyDataAccepted) {
+				// If data is empty && we accept empty data => let the config as it is
+				return;
+			} else {
+				throw new ParsingException("No json data: input is empty");
+			}
+		}
 		char firstChar = input.readCharAndSkip(SPACES);
 		if (firstChar != '[') {
 			throw new ParsingException("Invalid first character for a json array: " + firstChar);

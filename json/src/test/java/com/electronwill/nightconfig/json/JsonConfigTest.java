@@ -97,15 +97,34 @@ public class JsonConfigTest {
 
 	@Test
 	public void testReadEmptyFile() throws IOException {
-		File f = new File("test_empty.json");
+		File f = new File("tmp.json");
 		FileConfig config = FileConfig.of(f);
 		config.load();
 		config.close();
 		Config conf = new JsonParser().parse(f, FileNotFoundAction.THROW_ERROR);
 		System.out.println(conf);
 		Assertions.assertTrue(conf.isEmpty());
-		System.out.println("test_empty.json:\n" + Files.readAllLines(f.toPath()).get(0));
+		System.out.println("tmp.json:\n" + Files.readAllLines(f.toPath()).get(0));
 		f.delete();
+	}
+
+	@Test
+	public void testEmptyDataTolerance() throws IOException {
+		File f = new File("empty.json");
+		Assertions.assertEquals(0, f.length());
+
+		FileConfig cDefault = FileConfig.of(f);
+		Assertions.assertThrows(ParsingException.class, cDefault::load);
+
+		JsonFormat<?> f1 = JsonFormat.fancyInstance();
+		FileConfig c1 = FileConfig.of(f, f1);
+		Assertions.assertThrows(ParsingException.class, c1::load);
+
+		JsonFormat<?> f2 = JsonFormat.emptyTolerantInstance();
+		FileConfig c2 = FileConfig.of(f, f2);
+		c2.load();
+
+		Assertions.assertEquals(0, f.length());
 	}
 
 	@Test
