@@ -171,7 +171,7 @@ public interface CharacterInput {
 	char peekChar(int n);
 
 	/**
-	 * Skips all the character that have been peeked and not parse yead.
+	 * Skips all the character that have been peeked and not parsed yet.
 	 */
 	void skipPeeks();
 
