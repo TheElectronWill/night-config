@@ -1,9 +1,10 @@
-package com.electronwill.nightconfig.core.file;
+package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.utils.StringUtils;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,6 +49,9 @@ public final class FormatDetector {
 		return detectByName(file.getName());
 	}
 
+	public static ConfigFormat<?> detect(Path path) {
+		return detectByName(path.getFileName().toString());
+	}
 	/**
 	 * Detects the ConfigFormat of a filename.
 	 *

@@ -7,6 +7,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 /**
  * Interface for writing configurations.
@@ -69,6 +72,23 @@ public interface ConfigWriter {
 		boolean append = (writingMode == WritingMode.APPEND);
 		try (Writer writer = new BufferedWriter(
 				new OutputStreamWriter(new FileOutputStream(file, append), charset))) {
+			write(config, writer);
+		} catch (IOException e) {
+			throw new WritingException("An I/O error occured", e);
+		}
+	}
+
+	/**
+	 * Writes a configuration.
+	 *
+	 * @param config the config to write
+	 * @param path   the path to write it to
+	 * @throws WritingException if an error occurs
+	 */
+	default void write(UnmodifiableConfig config, Path path, WritingMode writingMode, Charset charset) {
+		boolean append = (writingMode == WritingMode.APPEND);
+		try (Writer writer = new BufferedWriter(
+			new OutputStreamWriter(Files.newOutputStream(path, append? StandardOpenOption.APPEND: StandardOpenOption.TRUNCATE_EXISTING), charset))) {
 			write(config, writer);
 		} catch (IOException e) {
 			throw new WritingException("An I/O error occured", e);
