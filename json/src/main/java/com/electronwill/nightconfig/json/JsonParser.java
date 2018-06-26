@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.json;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.io.*;
+import com.electronwill.nightconfig.core.utils.FastStringReader;
 
 import java.io.Reader;
 import java.util.ArrayList;
@@ -52,6 +53,17 @@ public final class JsonParser implements ConfigParser<Config> {
 	public JsonParser setEmptyDataAccepted(boolean emptyDataAccepted) {
 		this.emptyDataAccepted = emptyDataAccepted;
 		return this;
+	}
+
+	/**
+	 * Parses a JSON document, either a JSON object (parsed to a JsonConfig) or a JSON array
+	 * (parsed to a List).
+	 *
+	 * @param json the data to parse
+	 * @return either a JsonConfig or a List, depending on the document's type
+	 */
+	public Object parseDocument(String json) {
+		return parseDocument(new FastStringReader(json));
 	}
 
 	/**
@@ -111,6 +123,16 @@ public final class JsonParser implements ConfigParser<Config> {
 		}
 		parsingMode.prepareParsing(destination);
 		parseObject(input, destination, parsingMode);
+	}
+
+	/**
+	 * Parses a JSON array to a List.
+	 *
+	 * @param json the data to parse
+	 * @return a List with the content of the parse array
+	 */
+	public List<Object> parseList(String json) {
+		return parseList(new FastStringReader(json));
 	}
 
 	/**
@@ -180,8 +202,13 @@ public final class JsonParser implements ConfigParser<Config> {
 	}
 
 	private <T> List<T> parseArray(CharacterInput input, List<T> list, ParsingMode parsingMode) {
+		boolean first = true;
 		while (true) {
 			char valueFirst = input.readCharAndSkip(SPACES);// the first character of the value
+			if (first && valueFirst == ']') {
+				return list;
+			}
+			first = false;
 			T value = (T)parseValue(input, valueFirst, parsingMode);
 			list.add(value);
 			char next = input.readCharAndSkip(SPACES);// the next character, should be ']' or ','

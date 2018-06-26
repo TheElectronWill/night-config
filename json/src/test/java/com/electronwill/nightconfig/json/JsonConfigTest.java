@@ -17,6 +17,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -126,6 +127,16 @@ public class JsonConfigTest {
 		Assertions.assertTrue(c2.isEmpty());
 
 		Assertions.assertEquals(0, f.length());
+	}
+
+	@Test
+	public void testEmptyArray() throws IOException {
+		List<?> list = new JsonParser().parseList("[]");
+		Assertions.assertEquals(0, list.size());
+
+		Object obj = new JsonParser().parseDocument("[]");
+		Assertions.assertTrue(obj instanceof List);
+		Assertions.assertEquals(0, ((List<?>)obj).size());
 	}
 
 	@Test
