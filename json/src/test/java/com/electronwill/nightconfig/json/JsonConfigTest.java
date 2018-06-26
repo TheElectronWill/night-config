@@ -96,6 +96,19 @@ public class JsonConfigTest {
 	}
 
 	@Test
+	public void testReadEmptyFile() throws IOException {
+		File f = new File("test_empty.json");
+		FileConfig config = FileConfig.of(f);
+		config.load();
+		config.close();
+		Config conf = new JsonParser().parse(f, FileNotFoundAction.THROW_ERROR);
+		System.out.println(conf);
+		Assertions.assertTrue(conf.isEmpty());
+		System.out.println("test_empty.json:\n" + Files.readAllLines(f.toPath()).get(0));
+		f.delete();
+	}
+
+	@Test
 	public void testFancyWriter() throws IOException {
 		try (Writer fileWriter = new BufferedWriter(
 			new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {

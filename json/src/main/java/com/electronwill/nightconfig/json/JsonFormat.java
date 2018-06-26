@@ -6,6 +6,10 @@ import com.electronwill.nightconfig.core.file.FormatDetector;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 /**
  * @author TheElectronWill
  */
@@ -87,5 +91,17 @@ public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat
 	@Override
 	public boolean supportsComments() {
 		return false;
+	}
+
+	/**
+	 * Initializes an JSON file with an empty JSON object.
+	 *
+	 * @param f the existing file to initialize
+	 */
+	@Override
+	public void initEmptyFile(File f) throws IOException {
+		try (FileWriter writer = new FileWriter(f)) {
+			writer.write("{}");
+		}
 	}
 }

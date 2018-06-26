@@ -3,6 +3,9 @@ package com.electronwill.nightconfig.core;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 
+import java.io.File;
+import java.io.IOException;
+
 /**
  * A configuration format, that can parse, create and write some types of configurations.
  *
@@ -59,4 +62,12 @@ public interface ConfigFormat<C extends Config> {
 	default boolean isInMemory() {
 		return false;
 	}
+
+	/**
+	 * Initializes an empty configuration file so that it can be parsed to an empty configuration.
+	 * Does nothing by default.
+	 *
+	 * @param f the existing file to initialize
+	 */
+	default void initEmptyFile(File f) throws IOException {}
 }

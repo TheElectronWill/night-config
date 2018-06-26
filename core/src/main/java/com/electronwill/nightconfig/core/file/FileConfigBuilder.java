@@ -183,7 +183,7 @@ public class FileConfigBuilder<C extends Config> {
 		if (autoreload) {
 			if (!file.exists()) {
 				try {
-					nefAction.run(file);
+					nefAction.run(file, format);
 				} catch (IOException e) {
 					throw new WritingException("An exception occured while executing the "
 											   + "FileNotFoundAction for file "

@@ -99,7 +99,7 @@ public interface ConfigParser<C extends Config> {
 	 */
 	default C parse(File file, FileNotFoundAction nefAction, Charset charset) {
 		try {
-			if (!file.exists() && !nefAction.run(file)) {
+			if (!file.exists() && !nefAction.run(file, getFormat())) {
 				return getFormat().createConfig();
 			}
 			try (Reader reader = new BufferedReader(
@@ -133,7 +133,7 @@ public interface ConfigParser<C extends Config> {
 	default void parse(File file, Config destination, ParsingMode parsingMode,
 					   FileNotFoundAction nefAction, Charset charset) {
 		try {
-			if (!file.exists() && !nefAction.run(file)) {
+			if (!file.exists() && !nefAction.run(file, getFormat())) {
 				return;
 			}
 			try (Reader reader = new BufferedReader(

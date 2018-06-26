@@ -1,5 +1,7 @@
 package com.electronwill.nightconfig.core.file;
 
+import com.electronwill.nightconfig.core.ConfigFormat;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,16 +25,17 @@ public interface FileNotFoundAction {
 	 *
 	 * @throws IOException if an IO error occurs
 	 */
-	boolean run(File file) throws IOException;
+	boolean run(File file, ConfigFormat<?> configFormat) throws IOException;
 
 	// --- Static members ---
 
-	FileNotFoundAction CREATE_EMPTY = f -> {
+	FileNotFoundAction CREATE_EMPTY = (f,c) -> {
 		f.createNewFile();
+		c.initEmptyFile(f);
 		return false;
 	};
-	FileNotFoundAction READ_NOTHING = f -> false;
-	FileNotFoundAction THROW_ERROR = f -> {
+	FileNotFoundAction READ_NOTHING = (f,c) -> false;
+	FileNotFoundAction THROW_ERROR = (f,c) -> {
 		throw new NoSuchFileException(f.getAbsolutePath());
 	};
 
@@ -43,7 +46,7 @@ public interface FileNotFoundAction {
 	 * @return a FileNotFoundAction that copies the url's data if the file is not found
 	 */
 	static FileNotFoundAction copyData(URL url) {
-		return f -> {
+		return (f,c) -> {
 			Files.copy(url.openStream(), f.toPath());
 			return true;
 		};
@@ -58,7 +61,7 @@ public interface FileNotFoundAction {
 	static FileNotFoundAction copyData(File file) {
 		// copyResource(new FIS(file)) isn't used here to avoid dealing with the exception
 		// declared by the FIS constructor
-		return f -> {
+		return (f,c) -> {
 			Files.copy(new FileInputStream(file), f.toPath());
 			return true;
 		};
@@ -71,7 +74,7 @@ public interface FileNotFoundAction {
 	 * @return a FileNotFoundAction that copies the stream's data if the file is not found
 	 */
 	static FileNotFoundAction copyData(InputStream data) {
-		return f -> {
+		return (f,c) -> {
 			Files.copy(data, f.toPath());
 			return true;
 		};
