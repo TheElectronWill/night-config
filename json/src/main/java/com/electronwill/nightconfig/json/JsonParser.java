@@ -245,7 +245,12 @@ public final class JsonParser implements ConfigParser<Config> {
 		if (chars.contains('.') || chars.contains('e') || chars.contains('E')) {// must be a double
 			return Utils.parseDouble(chars);
 		}
-		return Utils.parseLong(chars, 10);
+		long l = Utils.parseLong(chars, 10);
+		int small = (int)l;
+		if (l == small) {// small value => return an int instead of a long
+			return small;
+		}
+		return l;
 	}
 
 	private boolean parseTrue(CharacterInput input) {
