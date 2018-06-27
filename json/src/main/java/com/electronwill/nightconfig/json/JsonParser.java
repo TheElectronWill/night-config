@@ -129,9 +129,9 @@ public final class JsonParser implements ConfigParser<Config> {
 	 * Parses a JSON array to a List.
 	 *
 	 * @param json the data to parse
-	 * @return a List with the content of the parse array
+	 * @return a List with the content of the parsed array
 	 */
-	public List<Object> parseList(String json) {
+	public <T> List<T> parseList(String json) {
 		return parseList(new FastStringReader(json));
 	}
 
@@ -139,12 +139,12 @@ public final class JsonParser implements ConfigParser<Config> {
 	 * Parses a JSON array to a List.
 	 *
 	 * @param reader the Reader to parse
-	 * @return a List with the content of the parse array
+	 * @return a List with the content of the parsed array
 	 */
-	public List<Object> parseList(Reader reader) {
+	public <T> List<T> parseList(Reader reader) {
 		List<Object> list = new ArrayList<>();
 		parseList(reader, list, ParsingMode.MERGE);
-		return list;
+		return (List<T>)list;
 	}
 
 	/**
