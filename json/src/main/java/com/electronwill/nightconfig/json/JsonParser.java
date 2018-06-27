@@ -171,34 +171,38 @@ public final class JsonParser implements ConfigParser<Config> {
 	}
 
 	private <T extends Config> T parseObject(CharacterInput input, T config, ParsingMode parsingMode) {
-		boolean first = true;
-		while (true) {
-			char keyFirst = input.readCharAndSkip(SPACES);// the first character of the key
-			if (first && keyFirst == '}') {// checked here to detect empty json object {}
-				return config;
-			} else if (keyFirst != '"') {
-				throw new ParsingException("Invalid beginning of a key: " + keyFirst);
-			} else {
-				first = false;
-			}
-
-			String key = parseString(input);
-			char separator = input.readCharAndSkip(SPACES);// the char between the key and the value
-			if (separator != ':') {
-				throw new ParsingException("Invalid key/value separator: " + separator);
-			}
-
-			char valueFirst = input.readCharAndSkip(SPACES);// the first character of the value
-			Object value = parseValue(input, valueFirst, parsingMode);
-			parsingMode.put(config, key, value);
-
-			char next = input.readCharAndSkip(SPACES);// should be'}' or ','
-			if (next == '}') {// end of the object
-				return config;
-			} else if (next != ',') {
-				throw new ParsingException("Invalid value separator: " + next);
-			}
+		char kfirst = input.readCharAndSkip(SPACES);
+		if (kfirst == '}') {
+			return config;
+		} else if (kfirst != '"') {
+			throw new ParsingException("Invalid beginning of a key: " + kfirst);
 		}
+		parseKVPair(input, config, parsingMode);
+		while (true) {
+			char vsep = input.readCharAndSkip(SPACES);
+			if (vsep == '}') {// end of the object
+				return config;
+			} else if (vsep != ',') {
+				throw new ParsingException("Invalid value separator: " + vsep);
+			}
+			kfirst = input.readCharAndSkip(SPACES);
+			if (kfirst != '"') {
+				throw new ParsingException("Invalid beginning of a key: " + kfirst);
+			}
+			parseKVPair(input, config, parsingMode);
+		}
+	}
+
+	private void parseKVPair(CharacterInput input, Config config, ParsingMode parsingMode) {
+		String key = parseString(input);
+		char sep = input.readCharAndSkip(SPACES);
+		if (sep != ':') {
+			throw new ParsingException("Invalid key-value separator: " + sep);
+		}
+
+		char vfirst = input.readCharAndSkip(SPACES);
+		Object value = parseValue(input, vfirst, parsingMode);
+		parsingMode.put(config, key, value);
 	}
 
 	private <T> List<T> parseArray(CharacterInput input, List<T> list, ParsingMode parsingMode) {
