@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-	testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.2'
+	testCompile 'org.junit.jupiter:junit-jupiter-api:5.2.0'
 }
 
 // Jar files
@@ -28,4 +28,3 @@ artifacts {
 	archives sourcesJar
 	archives javadocJar
 }
-
