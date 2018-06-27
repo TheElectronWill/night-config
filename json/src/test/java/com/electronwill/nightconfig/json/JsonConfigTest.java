@@ -127,6 +127,9 @@ public class JsonConfigTest {
 		Assertions.assertTrue(c2.isEmpty());
 
 		Assertions.assertEquals(0, f.length());
+
+		Assertions.assertThrows(ParsingException.class, ()->new JsonParser().parse(""));
+		new JsonParser().setEmptyDataAccepted(true).parse("");
 	}
 
 	@Test
@@ -137,6 +140,59 @@ public class JsonConfigTest {
 		Object obj = new JsonParser().parseDocument("[]");
 		Assertions.assertTrue(obj instanceof List);
 		Assertions.assertEquals(0, ((List<?>)obj).size());
+	}
+
+	@Test
+	public void testIntegers() throws IOException {
+		List<Object> l = new JsonParser().parseList("[-17,0,17,123456789000]");
+		for (Object o : l) {
+			System.out.println(o + ":" + o.getClass());
+		}
+		Assertions.assertSame(l.get(0).getClass(), Integer.class);
+		Assertions.assertSame(l.get(1).getClass(), Integer.class);
+		Assertions.assertSame(l.get(2).getClass(), Integer.class);
+		Assertions.assertSame(l.get(3).getClass(), Long.class);
+	}
+
+	@Test
+	public void testNestedArrays() throws IOException {
+		List<?> a1 = new JsonParser().parseList("[[true, true], [false, false]]");
+		Assertions.assertEquals("[[true, true], [false, false]]", a1.toString());
+
+		List<?> a2 = new JsonParser().parseList("[[[ [[],[    ]] ]]]");
+		Assertions.assertEquals("[[[[[], []]]]]", a2.toString());
+	}
+
+	@Test
+	public void testNestedObjects() throws IOException {
+		Config a1 = new JsonParser().parse("{\"1\":{\"a\":\"va\"}, \"2\":{\"b\":\"vb\", \"a\":17}}");
+		Assertions.assertEquals("va", a1.get("1.a"));
+		Assertions.assertEquals("vb", a1.get("2.b"));
+		Assertions.assertEquals(Integer.valueOf(17), a1.get("2.a"));
+
+		Config a2 = new JsonParser().parse("{\"a\":{\"b\":{ \"c\": {\"d\":{},\"e\":{    }} }}}");
+		Assertions.assertTrue(a2.<Config>get("a.b.c.d").isEmpty());
+		Assertions.assertTrue(a2.<Config>get("a.b.c.e").isEmpty());
+	}
+
+	@Test
+	public void testGenericList() throws IOException {
+		List<Number> numberList = new JsonParser().parseList("[-17,0,17,123456789000]");
+		for (Number o : numberList) {
+			System.out.println(o.doubleValue());
+		}
+
+		List<String> stringList = new JsonParser().parseList("[\"a\", \"b\", \"c\"]");
+		for (String o : stringList) {
+			System.out.println(o.charAt(0));
+		}
+
+		List<List<Boolean>> nestedBoolList = new JsonParser().parseList("[[true, true], [false, false]]");
+		for (List<Boolean> booleanList : nestedBoolList) {
+			for (boolean b : booleanList) {
+				System.out.println(!b);
+			}
+		}
 	}
 
 	@Test
