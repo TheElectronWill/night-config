@@ -13,24 +13,28 @@ It supports the following formats:
 - [TOML](https://github.com/toml-lang/toml)
 - [HOCON](https://github.com/typesafehub/config/blob/master/HOCON.md)
 
-# Code examples
+# How to use
 - Code examples are available [here.](https://github.com/TheElectronWill/Night-Config/tree/master/examples/src/main/java)
-*Note: these examples are for the last **stable** version, and may not work with the master branch.*
+  *Note: these examples are for the last **stable** version, and may not work with the master branch.*
 - You can also read the [wiki](https://github.com/TheElectronWill/Night-Config/wiki).
 
-## Sample
+## Glimpse
 ```java
-FileConfig config = FileConfig.builder("myConfig.toml").defaultResource("defaultConfig.toml").autosave().build();
-config.load();
+// Nice builder, default resource, autosave and much more (-> cf the wiki)
+CommentedFileConfig config = FileConfig.builder("myConfig.toml").defaultResource("defaultConfig.toml").autosave().build();
+config.load(); // This actually reads the config
 
-String name = config.get("username");
-int id = config.get("account.id");
-int points = config.getOrElse("account.score", defaultScore);
+String name = config.get("username"); // Generic return type!
+int id = config.get("account.id"); // Compound path: key "id" in subconfig "account"
+int points = config.getOrElse("account.score", defaultScore); // Default value
 
 config.set("account.score", points*2);
 
 String comment = config.getComment("user");
-config.close();
+// NightConfig saves the config's comments (for TOML and HOCON)
+
+// config.save(); not needed here thanks to autosave()
+config.close(); // Close the FileConfig once you're done with it :)
 ```
 
 
