@@ -214,8 +214,11 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 */
 	static CommentedFileConfigBuilder builder(Path file) {
 		ConfigFormat format = FormatDetector.detect(file);
-		if (format == null || !format.supportsComments()) {
+		if (format == null) {
 			throw new NoFormatFoundException("No suitable format for " + file.getFileName());
+		} else if (!format.supportsComments()) {
+			throw new NoFormatFoundException(
+				"The available format doesn't support comments for " + file.getFileName());
 		}
 		return builder(file, format);
 	}
