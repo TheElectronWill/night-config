@@ -2,14 +2,10 @@ package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.io.*;
+import com.electronwill.nightconfig.core.io.ParsingMode;
+import com.electronwill.nightconfig.core.io.WritingMode;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -28,189 +24,10 @@ import java.nio.file.Path;
  *
  * @author TheElectronWill
  */
-public class FileConfigBuilder<C extends Config> {
-	protected final Path file;
-	private C config;
-	protected final ConfigFormat<?> format;
-	protected final ConfigWriter writer;
-	protected final ConfigParser<?> parser;
-	protected Charset charset = StandardCharsets.UTF_8;
-	protected WritingMode writingMode = WritingMode.REPLACE;
-	protected ParsingMode parsingMode = ParsingMode.REPLACE;
-	protected FileNotFoundAction nefAction = FileNotFoundAction.CREATE_EMPTY;
-	protected boolean sync = false, autosave = false, autoreload = false;
+public class FileConfigBuilder extends GenericBuilder<Config, FileConfig> {
 
-	FileConfigBuilder(Path file, ConfigFormat<? extends C> format) {
-		this.file = file;
-		this.format = format;
-		this.writer = format.createWriter();
-		this.parser = format.createParser();
-	}
-
-	/**
-	 * Sets the charset used for {@link FileConfig#save()} and {@link FileConfig#load()}.
-	 *
-	 * @return this builder
-	 */
-	public FileConfigBuilder<C> charset(Charset charset) {
-		this.charset = charset;
-		return this;
-	}
-
-	/**
-	 * Sets the WritingMode used for {@link FileConfig#save()}
-	 *
-	 * @return this builder
-	 */
-	public FileConfigBuilder<C> writingMode(WritingMode writingMode) {
-		this.writingMode = writingMode;
-		return this;
-	}
-
-	/**
-	 * Sets the ParsingMode used for {@link FileConfig#load()}
-	 *
-	 * @return this builder
-	 */
-	public FileConfigBuilder<C> parsingMode(ParsingMode parsingMode) {
-		this.parsingMode = parsingMode;
-		return this;
-	}
-
-	/**
-	 * Sets the action to execute when the config's file is not found.
-	 *
-	 * @return this builder
-	 */
-	public FileConfigBuilder<C> onFileNotFound(FileNotFoundAction nefAction) {
-		this.nefAction = nefAction;
-		return this;
-	}
-
-	/**
-	 * Sets the resource (in the jar) to copy when the config's file is not found. This is a
-	 * shortcut for {@code onFileNotFound(FileNotFoundAction.copyResource(resourcePath))}
-	 *
-	 * @param resourcePath the resource's path
-	 * @return this builder
-	 */
-	public FileConfigBuilder<C> defaultResource(String resourcePath) {
-		return onFileNotFound(FileNotFoundAction.copyResource(resourcePath));
-	}
-
-	/**
-	 * Sets the file to copy when the config's file is not found. This is a shortcut for {@code
-	 * onFileNotFound(FileNotFoundAction.copyData(file))}
-	 *
-	 * @param file the data file
-	 * @return this builder
-	 */
-	public FileConfigBuilder<C> defaultData(File file) {
-		return onFileNotFound(FileNotFoundAction.copyData(file));
-	}
-
-	/**
-	 * Sets the file to copy when the config's file is not found. This is a shortcut for {@code
-	 * onFileNotFound(FileNotFoundAction.copyData(file))}
-	 *
-	 * @param file the data file
-	 * @return this builder
-	 */
-	public FileConfigBuilder<C> defaultData(Path file) {
-		return onFileNotFound(FileNotFoundAction.copyData(file));
-	}
-
-	/**
-	 * Sets the URL of the data to copy when the config's file is not found. This is a shortcut for
-	 * {@code onFileNotFound(FileNotFoundAction.copyData(url))}
-	 *
-	 * @param url the data url
-	 * @return this builder
-	 */
-	public FileConfigBuilder<C> defaultData(URL url) {
-		return onFileNotFound(FileNotFoundAction.copyData(url));
-	}
-
-	/**
-	 * Makes the configuration "write-synchronized", that is, its {@link FileConfig#save()}
-	 * method blocks until the write operation completes.
-	 *
-	 * @return this builder
-	 */
-	public FileConfigBuilder<C> sync() {
-		sync = true;
-		return this;
-	}
-
-	/**
-	 * Makes the configuration "autosaved", that is, its {@link FileConfig#save()} method is
-	 * automatically called when it is modified.
-	 *
-	 * @return this builder
-	 */
-	public FileConfigBuilder<C> autosave() {
-		autosave = true;
-		return this;
-	}
-
-	/**
-	 * Makes the configuration "autoreloaded", that is, its {@link FileConfig#load()} method is
-	 * automatically called when the file is modified.
-	 *
-	 * @return this builder
-	 */
-	public FileConfigBuilder<C> autoreload() {
-		autoreload = true;
-		return this;
-	}
-
-	/**
-	 * Makes the configuration concurrent, that is, thread-safe.
-	 *
-	 * @return this builder
-	 */
-	public FileConfigBuilder<C> concurrent() {
-		if (config == null) {
-			config = (C)format.createConcurrentConfig();
-		}
-		return this;
-	}
-
-	/**
-	 * Creates a new FileConfig with the chosen settings.
-	 *
-	 * @return the config
-	 */
-	public FileConfig build() {
-		FileConfig fileConfig;
-		if (sync) {
-			fileConfig = new WriteSyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
-												   parser, parsingMode, nefAction);
-		} else {
-			if (autoreload) {
-				concurrent();
-				// Autoreloading is done from a background thread, therefore we need thread-safety
-				// This isn't needed with WriteSyncFileConfig because it synchronizes loads and writes.
-			}
-			fileConfig = new WriteAsyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
-													parser, parsingMode, nefAction);
-		}
-		if (autoreload) {
-			if (Files.notExists(file)) {
-				try {
-					nefAction.run(file, format);
-				} catch (IOException e) {
-					throw new WritingException("An exception occured while executing the "
-											   + "FileNotFoundAction for file "
-											   + file, e);
-				}
-			}
-			fileConfig = new AutoreloadFileConfig<>(fileConfig);
-		}
-		if (autosave) {
-			return buildAutosave(fileConfig);
-		}
-		return buildNormal(fileConfig);
+	FileConfigBuilder(Path file, ConfigFormat<? extends Config> format) {
+		super(file, format);
 	}
 
 	protected FileConfig buildAutosave(FileConfig chain) {
@@ -219,12 +36,5 @@ public class FileConfigBuilder<C extends Config> {
 
 	protected FileConfig buildNormal(FileConfig chain) {
 		return chain;
-	}
-
-	protected final C getConfig() {
-		if (config == null) {// concurrent() has not been called
-			config = (C)format.createConfig();
-		}
-		return config;
 	}
 }

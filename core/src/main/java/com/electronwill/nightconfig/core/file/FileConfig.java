@@ -202,7 +202,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 *
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
-	static FileConfigBuilder<Config> builder(File file) {
+	static FileConfigBuilder builder(File file) {
 		return builder(file.toPath());
 	}
 
@@ -213,7 +213,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format the config's format
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
 	 */
-	static FileConfigBuilder<Config> builder(File file, ConfigFormat<?> format) {
+	static FileConfigBuilder builder(File file, ConfigFormat<?> format) {
 		return builder(file.toPath(), format);
 	}
 
@@ -226,8 +226,8 @@ public interface FileConfig extends Config, AutoCloseable {
 	 *
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
-	static FileConfigBuilder<Config> builder(Path file) {
-		ConfigFormat format = FormatDetector.detect(file);
+	static FileConfigBuilder builder(Path file) {
+		ConfigFormat<?> format = FormatDetector.detect(file);
 		if (format == null) {
 			throw new NoFormatFoundException("No suitable format for " + file.getFileName());
 		}
@@ -241,8 +241,8 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format the config's format
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
 	 */
-	static FileConfigBuilder<Config> builder(Path file, ConfigFormat<?> format) {
-		return new FileConfigBuilder<>(file, format);
+	static FileConfigBuilder builder(Path file, ConfigFormat<?> format) {
+		return new FileConfigBuilder(file, format);
 	}
 
 	/**
@@ -254,7 +254,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 *
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
-	static FileConfigBuilder<Config> builder(String filePath) {
+	static FileConfigBuilder builder(String filePath) {
 		return builder(Paths.get(filePath));
 	}
 
@@ -265,7 +265,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format   the config's format
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
 	 */
-	static FileConfigBuilder<Config> builder(String filePath, ConfigFormat<?> format) {
+	static FileConfigBuilder builder(String filePath, ConfigFormat<?> format) {
 		return builder(Paths.get(filePath), format);
 	}
 }

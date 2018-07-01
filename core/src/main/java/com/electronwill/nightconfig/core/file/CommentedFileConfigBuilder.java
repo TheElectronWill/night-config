@@ -26,85 +26,9 @@ import java.nio.file.Path;
  *
  * @author TheElectronWill
  */
-public final class CommentedFileConfigBuilder extends FileConfigBuilder<CommentedConfig> {
+public final class CommentedFileConfigBuilder extends GenericBuilder<CommentedConfig, CommentedFileConfig> {
 	CommentedFileConfigBuilder(Path file, ConfigFormat<? extends CommentedConfig> format) {
 		super(file, format);
-	}
-
-	@Override
-	public CommentedFileConfigBuilder charset(Charset charset) {
-		super.charset(charset);
-		return this;
-	}
-
-	@Override
-	public CommentedFileConfigBuilder writingMode(WritingMode writingMode) {
-		super.writingMode(writingMode);
-		return this;
-	}
-
-	@Override
-	public CommentedFileConfigBuilder parsingMode(ParsingMode parsingMode) {
-		super.parsingMode(parsingMode);
-		return this;
-	}
-
-	@Override
-	public CommentedFileConfigBuilder onFileNotFound(FileNotFoundAction nefAction) {
-		super.onFileNotFound(nefAction);
-		return this;
-	}
-
-	@Override
-	public CommentedFileConfigBuilder defaultResource(String resourcePath) {
-		super.defaultResource(resourcePath);
-		return this;
-	}
-
-	@Override
-	public CommentedFileConfigBuilder defaultData(File file) {
-		super.defaultData(file);
-		return this;
-	}
-
-	@Override
-	public CommentedFileConfigBuilder defaultData(Path file) {
-		super.defaultData(file);
-		return this;
-	}
-
-	@Override
-	public CommentedFileConfigBuilder defaultData(URL url) {
-		super.defaultData(url);
-		return this;
-	}
-
-	@Override
-	public CommentedFileConfigBuilder sync() {
-		super.sync();
-		return this;
-	}
-
-	@Override
-	public CommentedFileConfigBuilder autosave() {
-		super.autosave();
-		return this;
-	}
-
-	@Override
-	public CommentedFileConfigBuilder autoreload() {
-		super.autoreload();
-		return this;
-	}
-
-	@Override
-	public CommentedFileConfigBuilder concurrent() {
-		super.concurrent();
-		return this;
-	}
-
-	public CommentedFileConfig build() {
-		return (CommentedFileConfig)super.build();
 	}
 
 	@Override
