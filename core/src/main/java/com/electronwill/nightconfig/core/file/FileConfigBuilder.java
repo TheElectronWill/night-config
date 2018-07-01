@@ -170,7 +170,9 @@ public class FileConfigBuilder<C extends Config> {
 	 * @return this builder
 	 */
 	public FileConfigBuilder<C> concurrent() {
-		config = (C)format.createConcurrentConfig();
+		if (config == null) {
+			config = (C)format.createConcurrentConfig();
+		}
 		return this;
 	}
 
