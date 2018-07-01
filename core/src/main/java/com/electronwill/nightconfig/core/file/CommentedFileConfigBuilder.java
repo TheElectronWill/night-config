@@ -104,6 +104,16 @@ public final class CommentedFileConfigBuilder extends FileConfigBuilder<Commente
 	}
 
 	public CommentedFileConfig build() {
-		return new SimpleCommentedFileConfig(getConfig(), super.build());
+		return (CommentedFileConfig)super.build();
+	}
+
+	@Override
+	protected CommentedFileConfig buildAutosave(FileConfig chain) {
+		return new AutosaveCommentedFileConfig(getConfig(), chain);
+	}
+
+	@Override
+	protected CommentedFileConfig buildNormal(FileConfig chain) {
+		return new SimpleCommentedFileConfig(getConfig(), chain);
 	}
 }

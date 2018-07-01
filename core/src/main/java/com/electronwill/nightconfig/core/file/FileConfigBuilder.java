@@ -208,9 +208,17 @@ public class FileConfigBuilder<C extends Config> {
 			fileConfig = new AutoreloadFileConfig<>(fileConfig);
 		}
 		if (autosave) {
-			fileConfig = new AutosaveFileConfig<>(fileConfig);
+			return buildAutosave(fileConfig);
 		}
-		return fileConfig;
+		return buildNormal(fileConfig);
+	}
+
+	protected FileConfig buildAutosave(FileConfig chain) {
+		return chain;
+	}
+
+	protected FileConfig buildNormal(FileConfig chain) {
+		return chain;
 	}
 
 	protected final C getConfig() {
