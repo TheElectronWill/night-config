@@ -42,6 +42,11 @@ public interface ConfigWriter {
 	default void write(UnmodifiableConfig config, OutputStream output, Charset charset) {
 		Writer writer = new BufferedWriter(new OutputStreamWriter(output, charset));
 		write(config, writer);
+		try {
+			writer.flush();
+		} catch (IOException e) {
+			throw new WritingException("Failed to flush the writer", e);
+		}
 	}
 
 	/**
