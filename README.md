@@ -21,7 +21,7 @@ It supports the following formats:
 ## Glimpse
 ```java
 // Nice builder, default resource, autosave and much more (-> cf the wiki)
-CommentedFileConfig config = FileConfig.builder("myConfig.toml").defaultResource("defaultConfig.toml").autosave().build();
+CommentedFileConfig config = CommentedFileConfig.builder("myConfig.toml").defaultResource("defaultConfig.toml").autosave().build();
 config.load(); // This actually reads the config
 
 String name = config.get("username"); // Generic return type!
