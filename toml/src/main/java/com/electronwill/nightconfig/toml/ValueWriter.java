@@ -33,6 +33,17 @@ final class ValueWriter {
 			}
 		} else if (value instanceof Temporal) {
 			TemporalWriter.write((Temporal)value, output);
+		} else if (value instanceof Float || value instanceof Double) {
+			double d = (double)value;
+			if (Double.isNaN(d)) {
+				output.write("nan");
+			} else if (d == Double.POSITIVE_INFINITY) {
+				output.write("+inf");
+			} else if (d == Double.NEGATIVE_INFINITY) {
+				output.write("-inf");
+			} else {
+				output.write(value.toString());
+			}
 		} else {
 			// Note: TOML doesn't support null values
 			output.write(value.toString());

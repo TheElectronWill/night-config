@@ -2,6 +2,12 @@ string = "value"
 integer = 2
 long = 1234567890000
 double = 1.2345678901
+infinity = inf
+m_inf = -inf
+p_inf = +inf
+nan = nan
+m_nan = -nan
+p_nan = +nan
 spaces = 10_000_999.01_02_03 # this is valid!
 bool_array = [true, false, true, false,] # comment
 inline_table = { id = 1, data = 0}

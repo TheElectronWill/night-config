@@ -17,6 +17,8 @@ final class ValueParser {
 	private static final char[] END_OF_VALUE_DATE = {'\t', '#', '\n', '\r', ',', ']', '}'};
 	private static final char[] TRUE_END = {'r', 'u', 'e'}, FALSE_END = {'a', 'l', 's', 'e'};
 	private static final char[] ONLY_IN_FP_NUMBER = {'.', 'e', 'E'};
+	private static final char[] FP_INFINITY = {'i', 'n', 'f'};
+	private static final char[] FP_NAN = {'n', 'a', 'n'};
 
 	/**
 	 * Parses a TOML value. The value's type is determinated with the first character, and with
@@ -69,6 +71,25 @@ final class ValueParser {
 
 	private static Number parseNumber(CharsWrapper valueChars) {
 		valueChars = simplifyNumber(valueChars);
+		// Parse +-inf and +-nan
+		char first = valueChars.get(0);
+		CharsWrapper remaining;
+		if (first == '-') {
+			remaining = valueChars.subView(1);
+			if (remaining.contentEquals(FP_INFINITY)) {
+				return Double.NEGATIVE_INFINITY;
+			}
+		} else if (first == '+') {
+			remaining = valueChars.subView(1);
+		} else {
+			remaining = valueChars;
+		}
+		if (remaining.contentEquals(FP_INFINITY)) {
+			return Double.POSITIVE_INFINITY;
+		} else if (remaining.contentEquals(FP_NAN)) {
+			return Double.NaN;
+		}
+		// Parse other fp values
 		if (valueChars.indexOfFirst(ONLY_IN_FP_NUMBER) != -1) {
 			try {
 				return Utils.parseDouble(valueChars);
@@ -76,6 +97,7 @@ final class ValueParser {
 				throw new ParsingException("Invalid value: " + valueChars);
 			}
 		}
+		// Parse integers
 		CharsWrapper numberChars = valueChars;
 		int base = 10;
 		if (valueChars.length() > 2) {
