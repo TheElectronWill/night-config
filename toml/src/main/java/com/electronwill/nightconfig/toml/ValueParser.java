@@ -14,6 +14,7 @@ import com.electronwill.nightconfig.core.io.Utils;
 final class ValueParser {
 
 	private static final char[] END_OF_VALUE = {'\t', ' ', '\n', '\r', ',', ']', '}'};
+	private static final char[] END_OF_VALUE_DATE = {'\t', '#', '\n', '\r', ',', ']', '}'};
 	private static final char[] TRUE_END = {'r', 'u', 'e'}, FALSE_END = {'a', 'l', 's', 'e'};
 	private static final char[] ONLY_IN_FP_NUMBER = {'.', 'e', 'E'};
 
@@ -49,7 +50,7 @@ final class ValueParser {
 				return parseNumber(input.readUntil(END_OF_VALUE));
 			default:
 				input.pushBack(firstChar);
-				CharsWrapper valueChars = input.readUntil(END_OF_VALUE);
+				CharsWrapper valueChars = input.readUntil(END_OF_VALUE_DATE);
 				if (shouldBeTemporal(valueChars)) {
 					return TemporalParser.parse(valueChars);
 				}

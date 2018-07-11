@@ -19,7 +19,7 @@ import java.time.temporal.Temporal;
  */
 final class TemporalParser {
 
-	private static final char[] ALLOWED_DT_SEPARATORS = {'T', 't'};
+	private static final char[] ALLOWED_DT_SEPARATORS = {'T', 't', ' '};
 	private static final char[] OFFSET_INDICATORS = {'Z', '+', '-'};
 
 	/**
