@@ -1,8 +1,12 @@
-version '3.2.0'
+group projectGroup
+version projectVersion
+description "$projectDescription - $name module"
 
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
 apply plugin: 'maven'
 apply plugin: 'java'
-sourceCompatibility = 1.8
+sourceCompatibility = javaVersion
 
 repositories {
 	mavenCentral()
@@ -10,7 +14,7 @@ repositories {
 
 dependencies {
 	compile project(':core')
-	testCompile 'org.junit.jupiter:junit-jupiter-api:5.2.0'
+	testCompile "org.junit.jupiter:junit-jupiter-api:$junitVersion"
 }
 
 // Jar files
@@ -27,4 +31,49 @@ task sourcesJar(type: Jar) {
 artifacts {
 	archives sourcesJar
 	archives javadocJar
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+			artifact sourcesJar
+			artifact javadocJar
+			pom {
+				name = "NightConfig ${project.name}".toString()
+				description = project.description
+				url = projectUrl
+				developers {
+					developer {
+						id = 'TheElectronWill'
+						url = 'https://github.com/TheElectronWill'
+					}
+				}
+				licenses {
+					license {
+						name = projectLicense
+						url = projectLicenseUrl
+					}
+				}
+				scm {
+					url = projectWebScm
+					connection = projectScm
+					developerConnection = projectScm
+				}
+			}
+		}
+	}
+	repositories {
+		maven {
+			credentials {
+				username ossrhUser
+				password ossrhPassword
+			}
+			url project.version.endsWith('SNAPSHOT') ? publishSnapshotUrl : publishReleaseUrl
+		}
+	}
+}
+
+signing {
+	sign publishing.publications.mavenJava
 }

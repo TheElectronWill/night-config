@@ -1,9 +1,10 @@
-version '3.3.0'
-description 'NightConfig examples'
+group projectGroup
+version projectVersion
+description "$projectDescription - $name module"
 
 apply plugin: 'java'
 
-sourceCompatibility = 1.8
+sourceCompatibility = javaVersion
 
 repositories {
     mavenCentral()
