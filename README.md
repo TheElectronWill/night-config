@@ -1,8 +1,9 @@
 ![Night Config](logo.png)
 
+[![Maven Central](https://img.shields.io/maven-central/v/com.electronwill.night-config/core.svg)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.electronwill.night-config%22)
 [![](https://jitpack.io/v/TheElectronWill/Night-Config.svg)](https://jitpack.io/#TheElectronWill/Night-Config)
-[![](https://img.shields.io/badge/javadoc-core-blue.svg)](https://jitpack.io/com/github/TheElectronWill/Night-Config/core/3.1.0/javadoc/index.html)
-![](https://img.shields.io/github/commits-since/TheElectronWill/Night-Config/v3.0.svg)
+[![](https://img.shields.io/badge/javadoc-core-blue.svg)](https://jitpack.io/com/github/TheElectronWill/Night-Config/core/3.3.0/javadoc/index.html)
+[![](https://img.shields.io/github/commits-since/TheElectronWill/Night-Config/v3.0.svg)](https://github.com/TheElectronWill/Night-Config/compare/v3.0...master)
 
 # Introduction
 NightConfig is a powerful yet easy-to-use java configuration library, written in Java 8.
@@ -10,7 +11,7 @@ NightConfig is a powerful yet easy-to-use java configuration library, written in
 It supports the following formats:
 - [JSON](http://www.json.org/)
 - [YAML v1.1](http://yaml.org/)
-- [TOML](https://github.com/toml-lang/toml)
+- [TOML v0.5](https://github.com/toml-lang/toml)
 - [HOCON](https://github.com/typesafehub/config/blob/master/HOCON.md)
 
 # How to use
@@ -20,7 +21,10 @@ It supports the following formats:
 
 ## Glimpse
 ```java
-// Nice builder, default resource, autosave and much more (-> cf the wiki)
+// Simple builder:
+FileConfig conf = FileConfig.of("the/file/config.toml");
+
+// Advanced builder, default resource, autosave and much more (-> cf the wiki)
 CommentedFileConfig config = CommentedFileConfig.builder("myConfig.toml").defaultResource("defaultConfig.toml").autosave().build();
 config.load(); // This actually reads the config
 
