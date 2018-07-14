@@ -42,11 +42,12 @@ config.close(); // Close the FileConfig once you're done with it :)
 ```
 
 
-# Project management
-NightConfig is managed with gradle. It is divided in several modules, the "core" module plus one module per supported format of configuration.
+# Project building
+NightConfig is built with Gradle. The project is divided in several modules, the "core" module plus one module per supported configuration format.
 
-The project is available on [jitpack](https://jitpack.io/#TheElectronWill/Night-Config).
+The releases are available on [Maven Central](https://search.maven.org/beta/search?q=com.electronwill.night-config) and [JitPack](https://jitpack.io/#TheElectronWill/Night-Config).
 
+# Repo branches
 The repository has several branches:
 - Branches of old unmaintened versions:
 [stable-1.x](https://github.com/TheElectronWill/Night-Config/tree/stable-1.x),
