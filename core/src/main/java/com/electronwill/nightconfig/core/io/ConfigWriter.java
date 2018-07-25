@@ -13,9 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.EnumSet;
 
-import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.WRITE;
+import static java.nio.file.StandardOpenOption.*;
 
 /**
  * Interface for writing configurations.
@@ -84,7 +82,7 @@ public interface ConfigWriter {
 		if (writingMode == WritingMode.APPEND) {
 			options = new StandardOpenOption[] { WRITE, CREATE, APPEND };
 		} else {
-			options = new StandardOpenOption[] { WRITE, CREATE };
+			options = new StandardOpenOption[] { WRITE, CREATE, TRUNCATE_EXISTING };
 		}
 		try (OutputStream output = Files.newOutputStream(file, options)) {
 			write(config, output, charset);
