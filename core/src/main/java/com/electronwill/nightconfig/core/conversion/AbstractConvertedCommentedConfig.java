@@ -90,8 +90,8 @@ abstract class AbstractConvertedCommentedConfig<C extends CommentedConfig>
 			}
 
 			@Override
-			public <T> T getValue() {
-				return (T)readConversion.apply(entry.getValue());
+			public <T> T getRawValue() {
+				return (T)readConversion.apply(entry.getRawValue());
 			}
 
 			@Override

@@ -56,8 +56,8 @@ public final class ConvertedConfig extends AbstractConvertedConfig<Config> {
 			}
 
 			@Override
-			public <T> T getValue() {
-				return (T)readConversion.apply(entry.getValue());
+			public <T> T getRawValue() {
+				return (T)readConversion.apply(entry.getRawValue());
 			}
 		};
 		return new TransformingSet<>(config.entrySet(), readTransfo, o -> null, e -> e);

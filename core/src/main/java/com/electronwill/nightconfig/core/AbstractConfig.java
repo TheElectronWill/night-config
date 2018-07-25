@@ -44,15 +44,14 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	}
 
 	@Override
-	public <T> T get(List<String> path) {
+	public <T> T getRaw(List<String> path) {
 		final int lastIndex = path.size() - 1;
 		Map<String, Object> parentMap = getMap(path.subList(0, lastIndex));
 		if (parentMap == null) {
 			return null;
 		}
 		String lastKey = path.get(lastIndex);
-		Object value = parentMap.get(lastKey);
-		return (value == NULL_OBJECT) ? null : (T)value;
+		return (T)parentMap.get(lastKey);
 	}
 
 	@Override
@@ -93,6 +92,18 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		}
 		String lastKey = path.get(lastIndex);
 		return parentMap.containsKey(lastKey);
+	}
+
+	@Override
+	public boolean isNull(List<String> path) {
+		final int lastIndex = path.size() - 1;
+		Map<String, Object> parentMap = getMap(path.subList(0, lastIndex));
+		if (parentMap == null) {
+			return false;
+		}
+		String lastKey = path.get(lastIndex);
+		Object value = parentMap.get(lastKey);
+		return value == NULL_OBJECT;
 	}
 
 	/**
@@ -204,15 +215,14 @@ public abstract class AbstractConfig implements Config, Cloneable {
 			return mapEntry.getKey();
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
-		public <T> T getValue() {
+		public <T> T getRawValue() {
 			return (T)mapEntry.getValue();
 		}
 
 		@Override
-		public Object setValue(Object value) {
-			return mapEntry.setValue(value);
+		public <T> T setValue(Object value) {
+			return (T)mapEntry.setValue(value);
 		}
 
 		@Override

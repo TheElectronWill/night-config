@@ -41,8 +41,8 @@ abstract class AbstractConvertedConfig<C extends Config> extends ConfigWrapper<C
 	}
 
 	@Override
-	public <T> T get(List<String> path) {
-		return (T)readConversion.apply(config.get(path));
+	public <T> T getRaw(List<String> path) {
+		return (T)readConversion.apply(config.getRaw(path));
 	}
 
 	@Override

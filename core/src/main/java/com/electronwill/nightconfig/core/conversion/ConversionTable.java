@@ -1,9 +1,6 @@
 package com.electronwill.nightconfig.core.conversion;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.*;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
@@ -16,6 +13,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 
 /**
  * Contains conversions functions organized by value's type. A ConversionTable grows as necessary.
@@ -174,8 +173,8 @@ public final class ConversionTable implements Cloneable {
 	public UnmodifiableConfig wrap(UnmodifiableConfig config) {
 		return new UnmodifiableConfigWrapper<UnmodifiableConfig>(config) {
 			@Override
-			public <T> T get(List<String> path) {
-				return (T)convert(config.get(path));
+			public <T> T getRaw(List<String> path) {
+				return (T)convert(config.getRaw(path));
 			}
 
 			@Override
@@ -192,8 +191,8 @@ public final class ConversionTable implements Cloneable {
 					}
 
 					@Override
-					public <T> T getValue() {
-						return (T)convert(entry.getValue());
+					public <T> T getRawValue() {
+						return (T)convert(entry.getRawValue());
 					}
 				};
 				return new TransformingSet<>(config.entrySet(), readTransfo, o -> null, e -> e);

@@ -88,8 +88,8 @@ public final class FakeCommentedConfig extends ConfigWrapper<Config> implements 
 		}
 
 		@Override
-		public <T> T getValue() {
-			return entry.getValue();
+		public <T> T getRawValue() {
+			return entry.getRawValue();
 		}
 
 		@Override

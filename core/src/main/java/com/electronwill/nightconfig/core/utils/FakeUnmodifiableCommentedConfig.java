@@ -71,8 +71,8 @@ public final class FakeUnmodifiableCommentedConfig
 		}
 
 		@Override
-		public <T> T getValue() {
-			return entry.getValue();
+		public <T> T getRawValue() {
+			return entry.getRawValue();
 		}
 	}
 }

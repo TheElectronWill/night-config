@@ -221,7 +221,7 @@ public final class ObjectBinder {
 		}
 
 		@Override
-		public <T> T get(List<String> path) {
+		public <T> T getRaw(List<String> path) {
 			final BoundSearchResult searchResult = searchInfosOrConfig(path);
 			if (searchResult == null) {
 				return null;
@@ -324,7 +324,7 @@ public final class ObjectBinder {
 				}
 
 				@Override
-				public <T> T getValue() {
+				public <T> T getRawValue() {
 					return (T)entry.getValue();
 				}
 			};

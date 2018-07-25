@@ -106,8 +106,8 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	default UnmodifiableCommentedConfig unmodifiable() {
 		return new UnmodifiableCommentedConfig() {
 			@Override
-			public <T> T get(List<String> path) {
-				return CommentedConfig.this.get(path);
+			public <T> T getRaw(List<String> path) {
+				return CommentedConfig.this.getRaw(path);
 			}
 
 			@Override

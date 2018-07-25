@@ -20,8 +20,8 @@ public abstract class UnmodifiableConfigWrapper<C extends UnmodifiableConfig>
 	}
 
 	@Override
-	public <T> T get(List<String> path) {
-		return config.get(path);
+	public <T> T getRaw(List<String> path) {
+		return config.getRaw(path);
 	}
 
 	@Override

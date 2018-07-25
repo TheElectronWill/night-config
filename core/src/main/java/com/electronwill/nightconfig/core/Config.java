@@ -104,8 +104,8 @@ public interface Config extends UnmodifiableConfig {
 	default UnmodifiableConfig unmodifiable() {
 		return new UnmodifiableConfig() {
 			@Override
-			public <T> T get(List<String> path) {
-				return Config.this.get(path);
+			public <T> T getRaw(List<String> path) {
+				return Config.this.getRaw(path);
 			}
 
 			@Override

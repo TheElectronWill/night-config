@@ -5,6 +5,7 @@ import java.util.function.IntSupplier;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
+import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
 
 /**
@@ -31,7 +32,30 @@ public interface UnmodifiableConfig {
 	 * @param <T>  the value's type
 	 * @return the value at the given path, or {@code null} if there is no such value.
 	 */
-	<T> T get(List<String> path);
+	default <T> T get(List<String> path) {
+		Object raw = getRaw(path);
+		return (raw == NULL_OBJECT) ? null : (T)raw;
+	}
+
+	/**
+	 * Gets a value from the config. Doesn't convert {@link NullObject#NULL_OBJECT} to {@code null}.
+	 *
+	 * @param path the value's path, each part separated by a dot. Example "a.b.c"
+	 * @param <T>  the value's type
+	 * @return the value at the given path, or {@code null} if there is no such value.
+	 */
+	default <T> T getRaw(String path) {
+		return getRaw(split(path, '.'));
+	}
+
+	/**
+	 * Gets a value from the config. Doesn't convert {@link NullObject#NULL_OBJECT} to {@code null}.
+	 *
+	 * @param path the value's path, each element of the list is a different part of the path.
+	 * @param <T>  the value's type
+	 * @return the value at the given path, or {@code null} if there is no such value.
+	 */
+	<T> T getRaw(List<String> path);
 
 	/**
 	 * Gets an optional value from the config.
@@ -378,6 +402,28 @@ public interface UnmodifiableConfig {
 	boolean contains(List<String> path);
 
 	/**
+	 * Checks if the config contains a null value at some path.
+	 *
+	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
+	 * @return {@code true} if the path is associated with {@link NullObject#NULL_OBJECT},
+	 * {@code false} if it's associated with another value or with no value.
+	 */
+	default boolean isNull(String path) {
+		return isNull(split(path, '.'));
+	}
+
+	/**
+	 * Checks if the config contains a null value at some path.
+	 *
+	 * @param path the path to check, each element of the list is a different part of the path.
+	 * @return {@code true} if the path is associated with {@link NullObject#NULL_OBJECT},
+	 * {@code false} if it's associated with another value or with no value.
+	 */
+	default boolean isNull(List<String> path) {
+		return getRaw(path) == NULL_OBJECT;
+	}
+
+	/**
 	 * Gets the size of the config.
 	 *
 	 * @return the number of top-level elements in the config.
@@ -420,10 +466,28 @@ public interface UnmodifiableConfig {
 		String getKey();
 
 		/**
+		 * Returns the entry's value without converting {@link NullObject#NULL_OBJECT} to {@code null}.
+		 *
 		 * @param <T> the value's type
 		 * @return the entry's value
 		 */
-		<T> T getValue();
+		<T> T getRawValue();
+
+		/**
+		 * @param <T> the value's type
+		 * @return the entry's value
+		 */
+		default <T> T getValue() {
+			Object raw = getRawValue();
+			return (raw == NULL_OBJECT) ? null : (T)raw;
+		}
+
+		/**
+		 * @return {@code true} if the value is {@link NullObject#NULL_OBJECT}.
+		 */
+		default boolean isNull() {
+			return getRawValue() == NULL_OBJECT;
+		}
 	}
 
 	/**
