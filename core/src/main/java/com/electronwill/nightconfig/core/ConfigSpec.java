@@ -435,7 +435,7 @@ public class ConfigSpec {
 	 * @return {@code true} if it's correct, {@code false} if it's incorrect
 	 */
 	public boolean isCorrect(List<String> path, Object value) {
-		ValueSpec spec = storage.get(path);
+		ValueSpec spec = storage.getRaw(path);
 		return spec.validator.test(value);
 	}
 
@@ -506,7 +506,7 @@ public class ConfigSpec {
 	 * @return the corrected value, or the value itself if's it already correct
 	 */
 	public Object correct(List<String> path, Object value) {
-		ValueSpec spec = storage.get(path);
+		ValueSpec spec = storage.getRaw(path);
 		return spec.validator.test(value) ? value : spec.defaultValueSupplier.get();
 	}
 

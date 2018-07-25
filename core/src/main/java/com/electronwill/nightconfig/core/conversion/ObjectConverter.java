@@ -51,7 +51,7 @@ public final class ObjectConverter {
 		Class<?> clazz = o.getClass();
 		List<String> annotatedPath = AnnotationUtils.getPath(clazz);
 		if (annotatedPath != null) {
-			destination = destination.get(annotatedPath);
+			destination = destination.getRaw(annotatedPath);
 		}
 		convertToConfig(o, clazz, destination);
 	}
@@ -60,7 +60,7 @@ public final class ObjectConverter {
 		Objects.requireNonNull(destination, "The config must not be null.");
 		List<String> annotatedPath = AnnotationUtils.getPath(clazz);
 		if (annotatedPath != null) {
-			destination = destination.get(annotatedPath);
+			destination = destination.getRaw(annotatedPath);
 		}
 		convertToConfig(null, clazz, destination);
 	}
@@ -97,7 +97,7 @@ public final class ObjectConverter {
 		Class<?> clazz = destination.getClass();
 		List<String> annotatedPath = AnnotationUtils.getPath(clazz);
 		if (annotatedPath != null) {
-			config = config.get(annotatedPath);
+			config = config.getRaw(annotatedPath);
 		}
 		convertToObject(config, destination, clazz);
 	}

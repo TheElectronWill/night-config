@@ -90,8 +90,7 @@ public interface UnmodifiableConfig {
 	 * @return the value at the given path, or the default value if not found.
 	 */
 	default <T> T getOrElse(String path, T defaultValue) {
-		T value = get(path);
-		return (value == null) ? defaultValue : value;
+		return getOrElse(split(path, '.'), defaultValue);
 	}
 
 	/**
@@ -103,8 +102,8 @@ public interface UnmodifiableConfig {
 	 * @return the value at the given path, or the default value if not found.
 	 */
 	default <T> T getOrElse(List<String> path, T defaultValue) {
-		T value = get(path);
-		return (value == null) ? defaultValue : value;
+		T value = getRaw(path);
+		return (value == null || value == NULL_OBJECT) ? defaultValue : value;
 	}
 
 	/**
@@ -116,8 +115,8 @@ public interface UnmodifiableConfig {
 	 * @return the value at the given path, or the default value if not found.
 	 */
 	default <T> T getOrElse(List<String> path, Supplier<T> defaultValueSupplier) {
-		T value = get(path);
-		return (value == null) ? defaultValueSupplier.get() : value;
+		T value = getRaw(path);
+		return (value == null || value == NULL_OBJECT) ? defaultValueSupplier.get() : value;
 	}
 
 	/**
@@ -129,8 +128,7 @@ public interface UnmodifiableConfig {
 	 * @return the value at the given path, or the default value if not found.
 	 */
 	default <T> T getOrElse(String path, Supplier<T> defaultValueSupplier) {
-		T value = get(path);
-		return (value == null) ? defaultValueSupplier.get() : value;
+		return getOrElse(split(path, '.'), defaultValueSupplier);
 	}
 
 	// ---- Primitive getters: int ----
@@ -147,7 +145,7 @@ public interface UnmodifiableConfig {
 	 * {@link Number}.
 	 */
 	default int getInt(List<String> path) {
-		return this.<Number>get(path).intValue();
+		return this.<Number>getRaw(path).intValue();
 	}
 
 	/**
@@ -207,7 +205,7 @@ public interface UnmodifiableConfig {
 	 * {@link Number}.
 	 */
 	default long getLong(String path) {
-		return this.<Number>get(path).longValue();
+		return this.<Number>getRaw(path).longValue();
 	}
 
 	/**
@@ -215,7 +213,7 @@ public interface UnmodifiableConfig {
 	 * {@link Number}.
 	 */
 	default long getLong(List<String> path) {
-		return this.<Number>get(path).longValue();
+		return this.<Number>getRaw(path).longValue();
 	}
 
 	/**
@@ -271,11 +269,11 @@ public interface UnmodifiableConfig {
 
 	// ---- Primitive getters: byte ----
 	default byte getByte(String path) {
-		return this.<Number>get(path).byteValue();
+		return this.<Number>getRaw(path).byteValue();
 	}
 
 	default byte getByte(List<String> path) {
-		return this.<Number>get(path).byteValue();
+		return this.<Number>getRaw(path).byteValue();
 	}
 
 	default byte getByteOrElse(String path, byte defaultValue) {
@@ -289,11 +287,11 @@ public interface UnmodifiableConfig {
 
 	// ---- Primitive getters: short ----
 	default short getShort(String path) {
-		return this.<Number>get(path).shortValue();
+		return this.<Number>getRaw(path).shortValue();
 	}
 
 	default short getShort(List<String> path) {
-		return this.<Number>get(path).shortValue();
+		return this.<Number>getRaw(path).shortValue();
 	}
 
 	default short getShortOrElse(String path, short defaultValue) {
@@ -309,6 +307,7 @@ public interface UnmodifiableConfig {
 
 	/**
 	 * Returns a char value from the configuration.
+	 * <p>
 	 * If the value is a Number, returns {@link Number#intValue()}, cast to char.
 	 * If the value is a CharSequence, returns its first character.
 	 * Otherwise, attempts to cast the value to a char.
@@ -322,6 +321,7 @@ public interface UnmodifiableConfig {
 
 	/**
 	 * Returns a char value from the configuration.
+	 * <p>
 	 * If the value is a Number, returns {@link Number#intValue()}, cast to char.
 	 * If the value is a CharSequence, returns its first character.
 	 * Otherwise, attempts to cast the value to a char.
@@ -330,7 +330,7 @@ public interface UnmodifiableConfig {
 	 * @return the value, as a single char
 	 */
 	default char getChar(List<String> path) {
-		Object value = get(path);
+		Object value = getRaw(path);
 		if (value instanceof Number) {
 			return (char)((Number)value).intValue();
 		} else if (value instanceof CharSequence) {
@@ -369,8 +369,8 @@ public interface UnmodifiableConfig {
 	 * @return the value, as a single char
 	 */
 	default char getCharOrElse(List<String> path, char defaultValue) {
-		Object value = get(path);
-		if (value == null) {
+		Object value = getRaw(path);
+		if (value == null || value == NULL_OBJECT) {
 			return defaultValue;
 		} else if (value instanceof Number) {
 			return (char)((Number)value).intValue();
@@ -498,8 +498,8 @@ public interface UnmodifiableConfig {
 		}
 
 		default <T> T getOrElse(T defaultValue) {
-			T value = getValue();
-			return (value == null) ? defaultValue : value;
+			T value = getRawValue();
+			return (value == null || value == NULL_OBJECT) ? defaultValue : value;
 		}
 
 		// ---- Primitive getters: int ----
@@ -508,16 +508,16 @@ public interface UnmodifiableConfig {
 		 * @return the entry's value as an int
 		 */
 		default int getInt() {
-			return this.<Number>getValue().intValue();
+			return this.<Number>getRawValue().intValue();
 		}
 
 		default OptionalInt getOptionalInt() {
-			Number value = getValue();
+			Number value = getRawValue();
 			return (value == null) ? OptionalInt.empty() : OptionalInt.of(value.intValue());
 		}
 
 		default int getIntOrElse(int defaultValue) {
-			Number value = getValue();
+			Number value = getRawValue();
 			return (value == null) ? defaultValue : value.intValue();
 		}
 
@@ -527,16 +527,16 @@ public interface UnmodifiableConfig {
 		 * @return the entry's value as a long
 		 */
 		default long getLong() {
-			return this.<Number>getValue().longValue();
+			return this.<Number>getRawValue().longValue();
 		}
 
 		default OptionalLong getOptionalLong() {
-			Number value = getValue();
+			Number value = getRawValue();
 			return (value == null) ? OptionalLong.empty() : OptionalLong.of(value.longValue());
 		}
 
 		default long getLongOrElse(long defaultValue) {
-			Number value = getValue();
+			Number value = getRawValue();
 			return (value == null) ? defaultValue : value.longValue();
 		}
 
@@ -546,11 +546,11 @@ public interface UnmodifiableConfig {
 		 * @return the entry's value as a byte
 		 */
 		default byte getByte() {
-			return this.<Number>getValue().byteValue();
+			return this.<Number>getRawValue().byteValue();
 		}
 
 		default byte getByteOrElse(byte defaultValue) {
-			Number value = getValue();
+			Number value = getRawValue();
 			return (value == null) ? defaultValue : value.byteValue();
 		}
 
@@ -558,11 +558,11 @@ public interface UnmodifiableConfig {
 		 * @return the entry's value as a short
 		 */
 		default short getShort() {
-			return this.<Number>getValue().shortValue();
+			return this.<Number>getRawValue().shortValue();
 		}
 
 		default short getShortOrElse(short defaultValue) {
-			Number value = getValue();
+			Number value = getRawValue();
 			return (value == null) ? defaultValue : value.shortValue();
 		}
 
@@ -576,7 +576,7 @@ public interface UnmodifiableConfig {
 		 * @return the entry's value as a char
 		 */
 		default char getChar() {
-			Object value = getValue();
+			Object value = getRawValue();
 			if (value instanceof Number) {
 				return (char)((Number)value).intValue();
 			} else if (value instanceof CharSequence) {
@@ -587,7 +587,7 @@ public interface UnmodifiableConfig {
 		}
 
 		default char getCharOrElse(char defaultValue) {
-			Object value = getValue();
+			Object value = getRawValue();
 			if (value == null) {
 				return defaultValue;
 			} else if (value instanceof Number) {

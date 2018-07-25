@@ -74,7 +74,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 			}
 			Map<String, CommentNode> children = node.getChildren();
 			if (children != null) {
-				CommentedConfig config = get(Collections.singletonList(key));
+				CommentedConfig config = getRaw(Collections.singletonList(key));
 				config.putAllComments(children);
 			}
 		}
@@ -95,7 +95,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 			}
 			Object value = entry.getValue();
 			if (value instanceof UnmodifiableCommentedConfig) {
-				CommentedConfig config = get(Collections.singletonList(key));
+				CommentedConfig config = getRaw(Collections.singletonList(key));
 				config.putAllComments((UnmodifiableCommentedConfig)value);
 			}
 
