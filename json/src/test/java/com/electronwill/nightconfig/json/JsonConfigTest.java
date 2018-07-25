@@ -77,7 +77,7 @@ public class JsonConfigTest {
 
 	@Test
 	public void testWrite() throws IOException {
-		new FancyJsonWriter().write(config, file, WritingMode.REPLACE);
+		new FancyJsonWriter().setIndent(IndentStyle.SPACES_4).write(config, file, WritingMode.REPLACE);
 	}
 
 	@Test
