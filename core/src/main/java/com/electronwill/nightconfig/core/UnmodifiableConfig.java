@@ -488,6 +488,116 @@ public interface UnmodifiableConfig {
 		default boolean isNull() {
 			return getRawValue() == NULL_OBJECT;
 		}
+
+		/**
+		 * @param <T> the value's type
+		 * @return the entry's value, wrapped in {@link Optional}
+		 */
+		default <T> Optional<T> getOptional() {
+			return Optional.ofNullable(getValue());
+		}
+
+		default <T> T getOrElse(T defaultValue) {
+			T value = getValue();
+			return (value == null) ? defaultValue : value;
+		}
+
+		// ---- Primitive getters: int ----
+
+		/**
+		 * @return the entry's value as an int
+		 */
+		default int getInt() {
+			return this.<Number>getValue().intValue();
+		}
+
+		default OptionalInt getOptionalInt() {
+			Number value = getValue();
+			return (value == null) ? OptionalInt.empty() : OptionalInt.of(value.intValue());
+		}
+
+		default int getIntOrElse(int defaultValue) {
+			Number value = getValue();
+			return (value == null) ? defaultValue : value.intValue();
+		}
+
+		// ---- Primitive getters: long ----
+
+		/**
+		 * @return the entry's value as a long
+		 */
+		default long getLong() {
+			return this.<Number>getValue().longValue();
+		}
+
+		default OptionalLong getOptionalLong() {
+			Number value = getValue();
+			return (value == null) ? OptionalLong.empty() : OptionalLong.of(value.longValue());
+		}
+
+		default long getLongOrElse(long defaultValue) {
+			Number value = getValue();
+			return (value == null) ? defaultValue : value.longValue();
+		}
+
+		// ---- Primitive getters: byte ----
+
+		/**
+		 * @return the entry's value as a byte
+		 */
+		default byte getByte() {
+			return this.<Number>getValue().byteValue();
+		}
+
+		default byte getByteOrElse(byte defaultValue) {
+			Number value = getValue();
+			return (value == null) ? defaultValue : value.byteValue();
+		}
+
+		/**
+		 * @return the entry's value as a short
+		 */
+		default short getShort() {
+			return this.<Number>getValue().shortValue();
+		}
+
+		default short getShortOrElse(short defaultValue) {
+			Number value = getValue();
+			return (value == null) ? defaultValue : value.shortValue();
+		}
+
+		// ---- Primitive getters: char ----
+
+		/**
+		 * If the value is a Number, returns {@link Number#intValue()}, cast to char.
+		 * If the value is a CharSequence, returns its first character.
+		 * Otherwise, attempts to cast the value to a char.
+		 *
+		 * @return the entry's value as a char
+		 */
+		default char getChar() {
+			Object value = getValue();
+			if (value instanceof Number) {
+				return (char)((Number)value).intValue();
+			} else if (value instanceof CharSequence) {
+				return ((CharSequence)value).charAt(0);
+			} else {
+				return (char)value;
+			}
+		}
+
+		default char getCharOrElse(char defaultValue) {
+			Object value = getValue();
+			if (value == null) {
+				return defaultValue;
+			} else if (value instanceof Number) {
+				return (char)((Number)value).intValue();
+			} else if (value instanceof CharSequence) {
+				return ((CharSequence)value).charAt(0);
+			} else {
+				return (char)value;
+			}
+		}
 	}
 
 	/**
