@@ -80,7 +80,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
 	static FileConfig of(Path file) {
-		ConfigFormat format = FormatDetector.detect(file);
+		ConfigFormat<?> format = FormatDetector.detect(file);
 		if (format == null) {
 			throw new NoFormatFoundException("No suitable format for " + file.getFileName());
 		}

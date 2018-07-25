@@ -42,11 +42,6 @@ public abstract class ConfigWrapper<C extends Config> extends UnmodifiableConfig
 	}
 
 	@Override
-	public ConfigFormat<?> configFormat() {
-		return config.configFormat();
-	}
-
-	@Override
 	public Config createSubConfig() {
 		return config.createSubConfig();
 	}
