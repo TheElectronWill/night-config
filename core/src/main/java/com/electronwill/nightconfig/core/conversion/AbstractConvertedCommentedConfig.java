@@ -67,6 +67,7 @@ abstract class AbstractConvertedCommentedConfig<C extends CommentedConfig>
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Set<? extends CommentedConfig.Entry> entrySet() {
 		Function<CommentedConfig.Entry, CommentedConfig.Entry> readTransfo = entry -> new CommentedConfig.Entry() {
 			@Override

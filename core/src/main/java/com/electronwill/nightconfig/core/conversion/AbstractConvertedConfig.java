@@ -13,6 +13,7 @@ import java.util.function.Predicate;
 /**
  * @author TheElectronWill
  */
+@SuppressWarnings("unchecked")
 abstract class AbstractConvertedConfig<C extends Config> extends ConfigWrapper<C>
 		implements Config {
 	final Function<Object, Object> readConversion, writeConversion;

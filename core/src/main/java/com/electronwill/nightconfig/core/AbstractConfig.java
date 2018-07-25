@@ -14,6 +14,7 @@ import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
  *
  * @author TheElectronWill
  */
+@SuppressWarnings("unchecked")
 public abstract class AbstractConfig implements Config, Cloneable {
 	final Map<String, Object> map;
 

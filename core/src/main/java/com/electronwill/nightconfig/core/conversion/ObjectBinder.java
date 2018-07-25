@@ -147,6 +147,7 @@ public final class ObjectBinder {
 	/**
 	 * A config that is bound to an object (or a class if the object is null).
 	 */
+	@SuppressWarnings("unchecked")
 	private static final class BoundConfig implements Config {
 		private Object object;// may be null
 		private final Map<String, Object> dataMap;// contains FieldInfos and subconfigs

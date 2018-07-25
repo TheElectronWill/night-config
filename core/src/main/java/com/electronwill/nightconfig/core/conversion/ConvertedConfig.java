@@ -43,6 +43,7 @@ public final class ConvertedConfig extends AbstractConvertedConfig<Config> {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Set<? extends Config.Entry> entrySet() {
 		Function<Config.Entry, Config.Entry> readTransfo = entry -> new Config.Entry() {
 			@Override
