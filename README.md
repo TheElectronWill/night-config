@@ -1,8 +1,7 @@
 ![Night Config](logo.png)
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.electronwill.night-config/core.svg)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.electronwill.night-config%22)
-[![](https://jitpack.io/v/TheElectronWill/Night-Config.svg)](https://jitpack.io/#TheElectronWill/Night-Config)
-[![](https://img.shields.io/badge/javadoc-core-blue.svg)](https://jitpack.io/com/github/TheElectronWill/Night-Config/core/3.3.0/javadoc/index.html)
+[![Javadocs](http://javadoc.io/badge/com.electronwill.night-config/core.svg)](http://javadoc.io/doc/com.electronwill.night-config/core)
 [![](https://img.shields.io/github/commits-since/TheElectronWill/Night-Config/v3.0.svg)](https://github.com/TheElectronWill/Night-Config/compare/v3.0...master)
 
 # Introduction
@@ -29,8 +28,9 @@ CommentedFileConfig config = CommentedFileConfig.builder("myConfig.toml").defaul
 config.load(); // This actually reads the config
 
 String name = config.get("username"); // Generic return type!
-int id = config.get("account.id"); // Compound path: key "id" in subconfig "account"
-int points = config.getOrElse("account.score", defaultScore); // Default value
+List<String> names = config.get("users_list"); // Generic return type!
+long id = config.getLong("account.id"); // Compound path: key "id" in subconfig "account"
+int points = config.getIntOrElse("account.score", defaultScore); // Default value
 
 config.set("account.score", points*2);
 
