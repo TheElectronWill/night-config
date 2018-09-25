@@ -1,5 +1,6 @@
 rootProject.name = 'night-config'
 include ':core'
+include ':core_android'
 include ':json'
 include ':toml'
 include ':hocon'
