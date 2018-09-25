@@ -5,12 +5,10 @@ import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.file.FormatDetector;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
+import com.electronwill.nightconfig.core.utils.WriterSupplier;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 /**
  * @author TheElectronWill
@@ -129,14 +127,9 @@ public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat
 		return false;
 	}
 
-	/**
-	 * Initializes an JSON nioPath with an empty JSON object.
-	 *
-	 * @param f the existing nioPath to initialize
-	 */
 	@Override
-	public void initEmptyFile(Path f) throws IOException {
-		try (Writer writer = Files.newBufferedWriter(f)) {
+	public void initEmptyFile(WriterSupplier ws) throws IOException {
+		try (Writer writer = ws.get()) {
 			writer.write("{}");
 		}
 	}

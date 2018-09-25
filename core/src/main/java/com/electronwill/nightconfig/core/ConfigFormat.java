@@ -2,8 +2,12 @@ package com.electronwill.nightconfig.core;
 
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
+import com.electronwill.nightconfig.core.utils.WriterSupplier;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -69,5 +73,25 @@ public interface ConfigFormat<C extends Config> {
 	 *
 	 * @param f the existing file to initialize
 	 */
-	default void initEmptyFile(Path f) throws IOException {}
+	default void initEmptyFile(Path f) throws IOException {
+		initEmptyFile(() -> Files.newBufferedWriter(f));
+	}
+
+	/**
+	 * Initializes an empty configuration file so that it can be parsed to an empty configuration.
+	 * Does nothing by default.
+	 *
+	 * @param f the existing file to initialize
+	 */
+	default void initEmptyFile(File f) throws IOException {
+		initEmptyFile(f.toPath());
+	}
+
+	/**
+	 * Initializes an empty configuration file so that it can be parsed to an empty configuration.
+	 * Does nothing by default.
+	 *
+	 * @param ws an objet that provides a Writer to the file.
+	 */
+	default void initEmptyFile(WriterSupplier ws) throws IOException {}
 }
