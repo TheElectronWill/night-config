@@ -216,7 +216,7 @@ public interface ConfigParser<C extends Config> {
 				return;
 			}
 			try (InputStream input = Files.newInputStream(file)) {
-				parse(input, destination, parsingMode);
+				parse(input, destination, parsingMode, charset);
 			}
 		} catch (IOException e) {
 			throw new WritingException("An I/O error occured", e);
