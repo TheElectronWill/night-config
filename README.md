@@ -47,6 +47,13 @@ NightConfig is built with Gradle. The project is divided in several modules, the
 
 The releases are available on [Maven Central](https://search.maven.org/beta/search?q=com.electronwill.night-config) and [JitPack](https://jitpack.io/#TheElectronWill/Night-Config).
 
+# Android
+Older versions of Android don't provide the packages `java.util.function` and `java.nio.file`, which
+NightConfig heavily uses. If you encounter issues on android you can use the special version that
+I've made for you by adding `_android` to the modules' names.
+
+Please [read the wiki](https://github.com/TheElectronWill/Night-Config/wiki/Modules-and-dependencies) for more information.
+
 # Repo branches
 The repository has several branches:
 - Branches of old unmaintened versions:
