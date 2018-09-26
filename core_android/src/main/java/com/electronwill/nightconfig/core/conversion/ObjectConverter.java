@@ -2,13 +2,13 @@ package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.utils.Supplier;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 /**
  * Converts Java objects to configs and vice-versa.

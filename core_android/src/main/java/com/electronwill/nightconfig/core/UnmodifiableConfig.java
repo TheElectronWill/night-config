@@ -1,9 +1,10 @@
 package com.electronwill.nightconfig.core;
 
+import com.electronwill.nightconfig.core.utils.Supplier;
+
 import java.util.*;
 import java.util.function.IntSupplier;
 import java.util.function.LongSupplier;
-import java.util.function.Supplier;
 
 import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;

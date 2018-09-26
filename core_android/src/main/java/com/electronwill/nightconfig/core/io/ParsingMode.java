@@ -1,11 +1,11 @@
 package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.utils.Consumer;
 import com.electronwill.nightconfig.core.utils.StringUtils;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * @author TheElectronWill

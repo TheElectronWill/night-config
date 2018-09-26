@@ -3,7 +3,6 @@ package com.electronwill.nightconfig.core.utils;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Spliterator;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;

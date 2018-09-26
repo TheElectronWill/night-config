@@ -2,12 +2,12 @@ package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.utils.StringUtils;
+import com.electronwill.nightconfig.core.utils.Supplier;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 /**
  * Utility class for detecting the format of configurations files.

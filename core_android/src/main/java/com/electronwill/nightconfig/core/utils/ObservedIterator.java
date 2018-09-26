@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.core.utils;
 
 import java.util.Iterator;
-import java.util.function.Consumer;
 
 /**
  * @author TheElectronWill
