@@ -14,7 +14,7 @@ repositories {
 
 dependencies {
 	compile project(':core_android')
-	compile 'org.yaml:snakeyaml:$snakeYamlVersion'
+	compile "org.yaml:snakeyaml:$snakeYamlVersion"
 	testCompile "org.junit.jupiter:junit-jupiter-api:$junitVersion"
 }
 

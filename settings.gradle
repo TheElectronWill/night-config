@@ -1,4 +1,6 @@
 rootProject.name = 'night-config'
+
+// --- Standard version, Java 8+ ---
 include ':core'
 include ':json'
 include ':toml'
@@ -6,8 +8,18 @@ include ':hocon'
 include ':yaml'
 include ':examples'
 
-include 'android/:core_android'
-include 'android/:json'
-include 'android/:toml'
-include 'android/:hocon'
-include 'android/:yaml'
+// --- Android version ---
+include ':core_android'
+project(":core_android").projectDir = new File(rootDir, "android/core_android")
+
+include ':json_android'
+project(":json_android").projectDir = new File(rootDir, "android/json_android")
+
+include ':toml_android'
+project(":toml_android").projectDir = new File(rootDir, "android/toml_android")
+
+include ':hocon_android'
+project(":hocon_android").projectDir = new File(rootDir, "android/hocon_android")
+
+include ':yaml_android'
+project(":yaml_android").projectDir = new File(rootDir, "android/yaml_android")
