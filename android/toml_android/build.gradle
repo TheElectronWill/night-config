@@ -13,8 +13,7 @@ repositories {
 }
 
 dependencies {
-	compile project(':core')
-	compile 'com.typesafe:config:$typesafeConfigVersion'
+	compile project(':core_android')
 	testCompile "org.junit.jupiter:junit-jupiter-api:$junitVersion"
 }
 
@@ -27,12 +26,6 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 task sourcesJar(type: Jar) {
 	classifier = 'sources'
 	from sourceSets.main.java.srcDirs
-}
-
-task fatJar(type: Jar) {
-	baseName = project.name + '-all'
-	from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-	with jar
 }
 
 artifacts {

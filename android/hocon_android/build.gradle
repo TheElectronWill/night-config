@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-	compile project(':core')
+	compile project(':core_android')
 	compile 'com.typesafe:config:$typesafeConfigVersion'
 	testCompile "org.junit.jupiter:junit-jupiter-api:$junitVersion"
 }

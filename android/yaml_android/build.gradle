@@ -9,12 +9,12 @@ apply plugin: 'java'
 sourceCompatibility = javaVersion
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	compile project(':core')
-	compile 'com.typesafe:config:$typesafeConfigVersion'
+	compile project(':core_android')
+	compile 'org.yaml:snakeyaml:$snakeYamlVersion'
 	testCompile "org.junit.jupiter:junit-jupiter-api:$junitVersion"
 }
 
