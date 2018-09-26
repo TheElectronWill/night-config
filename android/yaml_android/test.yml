@@ -1,4 +1,1 @@
-sub: {'null': null, nullObject: null}
-'null': null
-string: this is a string
-nullObject: null
+../../yaml/test.yml
