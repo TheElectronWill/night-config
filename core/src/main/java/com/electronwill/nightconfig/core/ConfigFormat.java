@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * A configuration format, that can parse, create and write some types of configurations.
@@ -54,8 +55,17 @@ public interface ConfigFormat<C extends Config> {
 	 *             supports null values
 	 * @return {@code true} iff this format supports the given type
 	 */
+	@Deprecated
 	default boolean supportsType(Class<?> type) {
 		return InMemoryFormat.DEFAULT_PREDICATE.test(type);
+	}
+
+	default boolean accepts(Object value) {
+		if (value instanceof List) {
+			List l = (List)value;
+			return l.isEmpty() ? true : supportsType(l.get(0).getClass());
+		}
+		return supportsType(value.getClass());
 	}
 
 	/**

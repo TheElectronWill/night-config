@@ -2,9 +2,10 @@ package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.InMemoryFormat;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+
+import java.util.*;
+
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -14,21 +15,35 @@ public class ObjectConverterTest {
 
 	static final List<String> list1 = Arrays.asList("a", "b", "c");
 	static final List<String> list2 = Collections.singletonList("element");
+	static final List<UnmodifiableConfig> list3;
+	static {
+		Config objRepr1 = Config.inMemory(); // object represented as a config
+		objRepr1.set("a", "a");
+		objRepr1.set("b", "b");
+
+		Config objRepr2 = Config.inMemory(); // object represented as a config
+		objRepr2.set("a", "A");
+		objRepr2.set("b", "B");
+
+		list3 = Arrays.asList(objRepr1, objRepr2);
+	}
+
 	static final Config config1 = InMemoryFormat.withUniversalSupport().createConfig();
 	static final Config config2 = Config.inMemory();
 
 	private final Config config = Config.inMemory();
-
 	{
 		config.set("integer", 1234568790);
 		config.set("decimal", Math.PI);
 		config.set("string", "value");
 		config.set("stringList", list1);
+		config.set("objList", list3);
 		config.set("config", config1);
 		config.set("subObject.integer", -1);
 		config.set("subObject.decimal", 0.5);
 		config.set("subObject.string", "Hey!");
 		config.set("subObject.stringList", list2);
+		config.set("subObject.objList", list3);
 		config.set("subObject.config", config2);
 		config.set("subObject.subObject", null);
 	}
@@ -42,6 +57,7 @@ public class ObjectConverterTest {
 
 		System.out.println("Original config: " + config);
 		System.out.println("New config: " + myConfig);
+		System.out.println("Object: " + object);
 
 		assert myConfig.equals(config) : "Invalid conversion!";
 	}
@@ -100,6 +116,7 @@ public class ObjectConverterTest {
 		double decimal;
 		String string;
 		List<String> stringList;
+		List<SomeObject> objList;
 		Config config;
 		MyObject subObject;
 
@@ -115,6 +132,8 @@ public class ObjectConverterTest {
 				   + '\''
 				   + ", stringList="
 				   + stringList
+				   + ", objList="
+				   + objList
 				   + ", config="
 				   + config
 				   + ", subObject="
@@ -123,16 +142,51 @@ public class ObjectConverterTest {
 		}
 	}
 
+	private static class SomeObject {
+		String a;
+		String b;
+
+		public SomeObject() {
+			this(null, null);
+		}
+
+		public SomeObject(String a, String b) {
+			this.a = a;
+			this.b = b;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("SO(%s, %s)", a, b);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+			SomeObject that = (SomeObject)o;
+			return Objects.equals(a, that.a) && Objects.equals(b, that.b);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(a, b);
+		}
+	}
+
 	static class MyObjectFinal {
 		final int integer;
 		final double decimal;
 		final String string;
 		final List<String> stringList;
+		final List<SomeObject> objList;
 		final Config config;
 		final MyObjectFinal subObject;
 
 		public MyObjectFinal() {
-			this(123, 1.23, "v", null, null, null);
+			this(123, 1.23, "v", null, null, null, null);
 		}
 
 		/*
@@ -140,11 +194,12 @@ public class ObjectConverterTest {
 		of the primitive fields. This allows us to print the changes correctly.
 		 */
 		public MyObjectFinal(int integer, double decimal, String string, List<String> stringList,
-							 Config config, MyObjectFinal subObject) {
+							 List<SomeObject> objList, Config config, MyObjectFinal subObject) {
 			this.integer = integer;
 			this.decimal = decimal;
 			this.string = string;
 			this.stringList = stringList;
+			this.objList = objList;
 			this.config = config;
 			this.subObject = subObject;
 		}
@@ -161,6 +216,8 @@ public class ObjectConverterTest {
 				   + '\''
 				   + ", stringList="
 				   + stringList
+				   + ", objList="
+				   + objList
 				   + ", config="
 				   + config
 				   + ", subObject="

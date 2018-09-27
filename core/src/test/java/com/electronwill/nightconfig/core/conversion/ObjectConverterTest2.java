@@ -5,6 +5,8 @@ import com.electronwill.nightconfig.core.InMemoryFormat;
 import com.electronwill.nightconfig.core.utils.StringUtils;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -26,6 +28,7 @@ public class ObjectConverterTest2 {
 		assert config.<Double>get("decimal") == object.decimal;
 		assert config.<String>get("string") == object.string;
 		assert config.<List<String>>get("stringList") == object.stringList;
+		assert config.<List<SomeObject>>get("objList") == object.objList;
 		assert config.<Config>get("config") == object.config;
 		assert config.get("subObject") instanceof Config;
 		Config sub = config.get("subObject");
@@ -33,6 +36,7 @@ public class ObjectConverterTest2 {
 		assert sub.<Double>get("decimal") == Math.PI;
 		assert sub.<String>get("string").equals("value");
 		assert sub.<List<?>>get("stringList").equals(Arrays.asList("a", "b", "c"));
+		assert config.<List<?>>get("objList").equals(object.subObject.objList);
 		assert sub.<Config>get("config").size() == 0;
 		assert sub.contains("subObject");
 		assert sub.get("subObject") == null;
@@ -52,6 +56,7 @@ public class ObjectConverterTest2 {
 		assert config.<Double>get("decimal") == object.decimal;
 		assert config.<String>get("string") == object.string;
 		assert config.<List<String>>get("stringList") == object.stringList;
+		assert config.<List<SomeObject>>get("objList") == object.objList;
 		assert config.<Config>get("config") == object.config;
 		assert config.get("subObject") == object.subObject;
 		assert config.get("infos.coordinates").equals(object.coords.toString());
@@ -62,6 +67,7 @@ public class ObjectConverterTest2 {
 		double decimal = Math.PI;
 		String string = "value";
 		List<String> stringList = Arrays.asList("a", "b", "c");
+		List<SomeObject> objList = Arrays.asList(new SomeObject("a", "b"), new SomeObject("A", "B"));
 		Config config = InMemoryFormat.withUniversalSupport().createConfig();
 		MyObject subObject;
 
@@ -92,11 +98,43 @@ public class ObjectConverterTest2 {
 				   + '\''
 				   + ", stringList="
 				   + stringList
+				   + ", objList="
+				   + objList
 				   + ", config="
 				   + config
 				   + ", subObject="
 				   + subObject
 				   + '}';
+		}
+	}
+
+	private static class SomeObject {
+		String a;
+		String b;
+
+		public SomeObject(String a, String b) {
+			this.a = a;
+			this.b = b;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("SO(%s, %s)", a, b);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+			SomeObject that = (SomeObject)o;
+			return Objects.equals(a, that.a) && Objects.equals(b, that.b);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(a, b);
 		}
 	}
 
