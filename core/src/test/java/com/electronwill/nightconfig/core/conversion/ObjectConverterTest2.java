@@ -3,11 +3,11 @@ package com.electronwill.nightconfig.core.conversion;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.InMemoryFormat;
 import com.electronwill.nightconfig.core.utils.StringUtils;
+import org.junit.jupiter.api.Test;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-
-import org.junit.jupiter.api.Test;
 
 /**
  * @author TheElectronWill
@@ -28,7 +28,7 @@ public class ObjectConverterTest2 {
 		assert config.<Double>get("decimal") == object.decimal;
 		assert config.<String>get("string") == object.string;
 		assert config.<List<String>>get("stringList") == object.stringList;
-		assert config.<List<SomeObject>>get("objList") == object.objList;
+		assert config.<List<Config>>get("objList").size() == object.objList.size();
 		assert config.<Config>get("config") == object.config;
 		assert config.get("subObject") instanceof Config;
 		Config sub = config.get("subObject");
@@ -36,7 +36,7 @@ public class ObjectConverterTest2 {
 		assert sub.<Double>get("decimal") == Math.PI;
 		assert sub.<String>get("string").equals("value");
 		assert sub.<List<?>>get("stringList").equals(Arrays.asList("a", "b", "c"));
-		assert config.<List<?>>get("objList").equals(object.subObject.objList);
+		assert config.<List<?>>get("objList").equals(convertedObjects);
 		assert sub.<Config>get("config").size() == 0;
 		assert sub.contains("subObject");
 		assert sub.get("subObject") == null;
@@ -56,10 +56,27 @@ public class ObjectConverterTest2 {
 		assert config.<Double>get("decimal") == object.decimal;
 		assert config.<String>get("string") == object.string;
 		assert config.<List<String>>get("stringList") == object.stringList;
-		assert config.<List<SomeObject>>get("objList") == object.objList;
+
+		assert config.<List<SomeObject>>get("objList").equals(objects);
+		// withUniversalSupport() causes the configuration to accept values of any type
+
 		assert config.<Config>get("config") == object.config;
 		assert config.get("subObject") == object.subObject;
 		assert config.get("infos.coordinates").equals(object.coords.toString());
+	}
+
+	private static List<SomeObject> objects = Arrays.asList(new SomeObject("a", "b"), new SomeObject("A", "B"));
+	private static final List<Config> convertedObjects;
+	static {
+		Config objRepr1 = Config.inMemory(); // object represented as a config
+		objRepr1.set("a", "a");
+		objRepr1.set("b", "b");
+
+		Config objRepr2 = Config.inMemory(); // object represented as a config
+		objRepr2.set("a", "A");
+		objRepr2.set("b", "B");
+
+		convertedObjects = Arrays.asList(objRepr1, objRepr2);
 	}
 
 	private static class MyObject {
@@ -67,7 +84,7 @@ public class ObjectConverterTest2 {
 		double decimal = Math.PI;
 		String string = "value";
 		List<String> stringList = Arrays.asList("a", "b", "c");
-		List<SomeObject> objList = Arrays.asList(new SomeObject("a", "b"), new SomeObject("A", "B"));
+		List<SomeObject> objList = objects;
 		Config config = InMemoryFormat.withUniversalSupport().createConfig();
 		MyObject subObject;
 
