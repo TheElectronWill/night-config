@@ -117,52 +117,55 @@ public final class ObjectConverter {
 	 * Converts an Object to a Config. The {@link #bypassTransient} setting applies.
 	 */
 	private void convertToConfig(Object object, Class<?> clazz, Config destination) {
-		for (Field field : clazz.getDeclaredFields()) {
-			final int fieldModifiers = field.getModifiers();
-			if (object == null && Modifier.isStatic(fieldModifiers)) {
-				continue;// Don't process static fields of object instances
-			}
-			if (!bypassTransient && Modifier.isTransient(fieldModifiers)) {
-				continue;// Don't process transient fields if configured so
-			}
-			if (!field.isAccessible()) {
-				field.setAccessible(true);// Enforces field access if needed
-			}
-			Object value;
-			try {
-				value = field.get(object);
-			} catch (IllegalAccessException e) {// Unexpected: setAccessible is called if needed
-				throw new ReflectionException("Unable to parse the field " + field, e);
-			}
-			AnnotationUtils.checkField(field, value);/* Checks that the value is conform to an
-															eventual @SpecSometing annotation */
-			Converter<Object, Object> converter = AnnotationUtils.getConverter(field);
-			if (converter != null) {
-				value = converter.convertFromField(value);
-			}
-			List<String> path = AnnotationUtils.getPath(field);
-			if (value != null && (!destination.configFormat().accepts(value)
-								  || field.isAnnotationPresent(ForceBreakdown.class))) {
-				if (value instanceof List) {
-					// Convert each element
-					final List<?> listValue = (List<?>)value;
-					final List<Config> configList = new ArrayList<>(listValue.size());
-
-					for (Object element : listValue) {
-						Config elementConf = destination.createSubConfig();
-						convertToConfig(element, element.getClass(), elementConf);
-						configList.add(elementConf);
-					}
-					destination.set(path, configList);
-				} else {
-					Config subConfig = destination.createSubConfig();
-					convertToConfig(value, field.getType(), subConfig);// Writes as a subconfig
-					destination.set(path, subConfig);
-				}
-			} else {
-				destination.set(path, value);// Writes as a plain value
-			}
-		}
+	    while (clazz != Object.class) {
+    		for (Field field : clazz.getDeclaredFields()) {
+    			final int fieldModifiers = field.getModifiers();
+    			if (object == null && Modifier.isStatic(fieldModifiers)) {
+    				continue;// Don't process static fields of object instances
+    			}
+    			if (!bypassTransient && Modifier.isTransient(fieldModifiers)) {
+    				continue;// Don't process transient fields if configured so
+    			}
+    			if (!field.isAccessible()) {
+    				field.setAccessible(true);// Enforces field access if needed
+    			}
+    			Object value;
+    			try {
+    				value = field.get(object);
+    			} catch (IllegalAccessException e) {// Unexpected: setAccessible is called if needed
+    				throw new ReflectionException("Unable to parse the field " + field, e);
+    			}
+    			AnnotationUtils.checkField(field, value);/* Checks that the value is conform to an
+    															eventual @SpecSometing annotation */
+    			Converter<Object, Object> converter = AnnotationUtils.getConverter(field);
+    			if (converter != null) {
+    				value = converter.convertFromField(value);
+    			}
+    			List<String> path = AnnotationUtils.getPath(field);
+    			if (value != null && (!destination.configFormat().accepts(value)
+    								  || field.isAnnotationPresent(ForceBreakdown.class))) {
+    				if (value instanceof List) {
+    					// Convert each element
+    					final List<?> listValue = (List<?>)value;
+    					final List<Config> configList = new ArrayList<>(listValue.size());
+    
+    					for (Object element : listValue) {
+    						Config elementConf = destination.createSubConfig();
+    						convertToConfig(element, element.getClass(), elementConf);
+    						configList.add(elementConf);
+    					}
+    					destination.set(path, configList);
+    				} else {
+    					Config subConfig = destination.createSubConfig();
+    					convertToConfig(value, field.getType(), subConfig);// Writes as a subconfig
+    					destination.set(path, subConfig);
+    				}
+    			} else {
+    				destination.set(path, value);// Writes as a plain value
+    			}
+    		}
+    		clazz = clazz.getSuperclass();
+	    }
 	}
 
 	/**
@@ -170,126 +173,129 @@ public final class ObjectConverter {
 	 * settings apply.
 	 */
 	private void convertToObject(UnmodifiableConfig config, Object object, Class<?> clazz) {
-		for (Field field : clazz.getDeclaredFields()) {
-			final int fieldModifiers = field.getModifiers();
-			if (object == null && Modifier.isStatic(fieldModifiers)) {
-				continue;// Don't process static fields of object instances
-			}
-			if (bypassFinal || !Modifier.isFinal(fieldModifiers)) {
-				field.setAccessible(true);// Enforces field access if needed
-			} else {
-				continue;// Don't process final fields if configured so
-			}
-			if (!bypassTransient && Modifier.isTransient(fieldModifiers)) {
-				continue;// Don't process transient fields if configured so
-			}
-			if (!field.isAccessible()) {
-				field.setAccessible(true);// Enforces field access if needed
-			}
-			List<String> path = AnnotationUtils.getPath(field);
-			Object value = config.get(path);
-			Converter<Object, Object> converter = AnnotationUtils.getConverter(field);
-			if (converter != null) {
-				value = converter.convertToField(value);
-			}
-
-			Class<?> fieldType = field.getType();
-
-			// --- Handle generic lists and arrays ---
-			boolean valueContainsConfig = (value instanceof List
-											&& !((List<?>)value).isEmpty()
-											&& ((List<?>)value).get(0) instanceof UnmodifiableConfig);
-			boolean isObjList = false;
-			boolean isObjArray = false;
-			Optional<Class<?>> genericParam = Optional.empty();
-			if (valueContainsConfig && fieldType.isAssignableFrom(List.class)) {
-				ParameterizedType parameterizedType = (ParameterizedType)field.getGenericType();
-				Optional<Class<?>> listParam = Optional.ofNullable(parameterizedType)
-													   .map(ParameterizedType::getActualTypeArguments)
-													   .map(types -> types[0])
-													   .filter(t -> (t instanceof Class))
-													   .map(t -> (Class<?>)t);
-				genericParam = listParam.filter(t -> !t.isAssignableFrom(UnmodifiableConfig.class));
-				isObjList = genericParam.isPresent();
-			} else if (valueContainsConfig && fieldType.isArray()) {
-				Optional<Class<?>> arrayParam = Optional.of(fieldType.getComponentType());
-				genericParam = arrayParam.filter(t -> !t.isAssignableFrom(UnmodifiableConfig.class));
-				isObjArray = genericParam.isPresent();
-			}
-			// ------
-			try {
-				if (value instanceof UnmodifiableConfig && !(fieldType.isAssignableFrom(value.getClass()))) {
-					// -- Read as a sub-object --
-					final UnmodifiableConfig uConfig = (UnmodifiableConfig)value;
-
-					// Get or create the field and convert it (if field is null OR not preserved):
-					Object fieldValue = field.get(object);
-					if (fieldValue == null) {
-						fieldValue = createInstance(fieldType);
-						field.set(object, fieldValue);
-						convertToObject(uConfig, fieldValue, field.getType());
-					} else if (!AnnotationUtils.mustPreserve(field, clazz)) {
-						convertToObject(uConfig, fieldValue, field.getType());
-					}
-				} else if (isObjList || isObjArray) {
-					final List<UnmodifiableConfig> configList = (List<UnmodifiableConfig>)value;
-					final Class<?> fieldElementType = genericParam.get();
-					if (isObjList) {
-						// -- Read as a list of objects --
-
-						// Get or create the field:
-						List fieldValue = (List)field.get(object);
-						if (fieldValue == null) {
-							if (fieldType == List.class || fieldType == ArrayList.class
-								|| fieldType == Collection.class) {
-								// create a list of the correct size when possible
-								fieldValue = new ArrayList<>(configList.size());
-							} else {
-								fieldValue = (List)createInstance(fieldType);
-							}
-							field.set(object, fieldValue);
-						} else if (AnnotationUtils.mustPreserve(field, clazz)) {
-							continue;
-						}
-
-						// Convert each value of the (config) list and add it to the (field) list:
-						for (UnmodifiableConfig element : configList) {
-							Object elementObj = createInstance(fieldElementType);
-							convertToObject(element, elementObj, fieldElementType);
-							fieldValue.add(elementObj);
-						}
-					} else { // isObjArray
-						// -- Read as an array of objects --
-
-						// Get or create the field:
-						Object fieldValue = field.get(object);
-						if (fieldValue == null) {
-							fieldValue = Array.newInstance(genericParam.get(), configList.size());
-						} else if (AnnotationUtils.mustPreserve(field, clazz)) {
-							continue;
-						}
-
-						// Convert each value of the list and add it to the array:
-						for (int i = 0; i < configList.size(); i++) {
-							Object elementObj = createInstance(fieldElementType);
-							convertToObject(configList.get(i), elementObj, fieldElementType);
-							Array.set(fieldValue, i, elementObj);
-						}
-					}
-					// ------
-				} else {
-					// Read as a plain value
-					if (value == null && AnnotationUtils.mustPreserve(field, clazz)) {
-						AnnotationUtils.checkField(field, field.get(object));
-					} else {
-						AnnotationUtils.checkField(field, value);
-						field.set(object, value);
-					}
-				}
-			} catch (ReflectiveOperationException ex) {
-				throw new ReflectionException("Unable to work with field " + field, ex);
-			}
-		}
+	    while (clazz != Object.class) {
+    		for (Field field : clazz.getDeclaredFields()) {
+    			final int fieldModifiers = field.getModifiers();
+    			if (object == null && Modifier.isStatic(fieldModifiers)) {
+    				continue;// Don't process static fields of object instances
+    			}
+    			if (bypassFinal || !Modifier.isFinal(fieldModifiers)) {
+    				field.setAccessible(true);// Enforces field access if needed
+    			} else {
+    				continue;// Don't process final fields if configured so
+    			}
+    			if (!bypassTransient && Modifier.isTransient(fieldModifiers)) {
+    				continue;// Don't process transient fields if configured so
+    			}
+    			if (!field.isAccessible()) {
+    				field.setAccessible(true);// Enforces field access if needed
+    			}
+    			List<String> path = AnnotationUtils.getPath(field);
+    			Object value = config.get(path);
+    			Converter<Object, Object> converter = AnnotationUtils.getConverter(field);
+    			if (converter != null) {
+    				value = converter.convertToField(value);
+    			}
+    
+    			Class<?> fieldType = field.getType();
+    
+    			// --- Handle generic lists and arrays ---
+    			boolean valueContainsConfig = (value instanceof List
+    											&& !((List<?>)value).isEmpty()
+    											&& ((List<?>)value).get(0) instanceof UnmodifiableConfig);
+    			boolean isObjList = false;
+    			boolean isObjArray = false;
+    			Optional<Class<?>> genericParam = Optional.empty();
+    			if (valueContainsConfig && fieldType.isAssignableFrom(List.class)) {
+    				ParameterizedType parameterizedType = (ParameterizedType)field.getGenericType();
+    				Optional<Class<?>> listParam = Optional.ofNullable(parameterizedType)
+    													   .map(ParameterizedType::getActualTypeArguments)
+    													   .map(types -> types[0])
+    													   .filter(t -> (t instanceof Class))
+    													   .map(t -> (Class<?>)t);
+    				genericParam = listParam.filter(t -> !t.isAssignableFrom(UnmodifiableConfig.class));
+    				isObjList = genericParam.isPresent();
+    			} else if (valueContainsConfig && fieldType.isArray()) {
+    				Optional<Class<?>> arrayParam = Optional.of(fieldType.getComponentType());
+    				genericParam = arrayParam.filter(t -> !t.isAssignableFrom(UnmodifiableConfig.class));
+    				isObjArray = genericParam.isPresent();
+    			}
+    			// ------
+    			try {
+    				if (value instanceof UnmodifiableConfig && !(fieldType.isAssignableFrom(value.getClass()))) {
+    					// -- Read as a sub-object --
+    					final UnmodifiableConfig uConfig = (UnmodifiableConfig)value;
+    
+    					// Get or create the field and convert it (if field is null OR not preserved):
+    					Object fieldValue = field.get(object);
+    					if (fieldValue == null) {
+    						fieldValue = createInstance(fieldType);
+    						field.set(object, fieldValue);
+    						convertToObject(uConfig, fieldValue, field.getType());
+    					} else if (!AnnotationUtils.mustPreserve(field, clazz)) {
+    						convertToObject(uConfig, fieldValue, field.getType());
+    					}
+    				} else if (isObjList || isObjArray) {
+    					final List<UnmodifiableConfig> configList = (List<UnmodifiableConfig>)value;
+    					final Class<?> fieldElementType = genericParam.get();
+    					if (isObjList) {
+    						// -- Read as a list of objects --
+    
+    						// Get or create the field:
+    						List fieldValue = (List)field.get(object);
+    						if (fieldValue == null) {
+    							if (fieldType == List.class || fieldType == ArrayList.class
+    								|| fieldType == Collection.class) {
+    								// create a list of the correct size when possible
+    								fieldValue = new ArrayList<>(configList.size());
+    							} else {
+    								fieldValue = (List)createInstance(fieldType);
+    							}
+    							field.set(object, fieldValue);
+    						} else if (AnnotationUtils.mustPreserve(field, clazz)) {
+    							continue;
+    						}
+    
+    						// Convert each value of the (config) list and add it to the (field) list:
+    						for (UnmodifiableConfig element : configList) {
+    							Object elementObj = createInstance(fieldElementType);
+    							convertToObject(element, elementObj, fieldElementType);
+    							fieldValue.add(elementObj);
+    						}
+    					} else { // isObjArray
+    						// -- Read as an array of objects --
+    
+    						// Get or create the field:
+    						Object fieldValue = field.get(object);
+    						if (fieldValue == null) {
+    							fieldValue = Array.newInstance(genericParam.get(), configList.size());
+    						} else if (AnnotationUtils.mustPreserve(field, clazz)) {
+    							continue;
+    						}
+    
+    						// Convert each value of the list and add it to the array:
+    						for (int i = 0; i < configList.size(); i++) {
+    							Object elementObj = createInstance(fieldElementType);
+    							convertToObject(configList.get(i), elementObj, fieldElementType);
+    							Array.set(fieldValue, i, elementObj);
+    						}
+    					}
+    					// ------
+    				} else {
+    					// Read as a plain value
+    					if (value == null && AnnotationUtils.mustPreserve(field, clazz)) {
+    						AnnotationUtils.checkField(field, field.get(object));
+    					} else {
+    						AnnotationUtils.checkField(field, value);
+    						field.set(object, value);
+    					}
+    				}
+    			} catch (ReflectiveOperationException ex) {
+    				throw new ReflectionException("Unable to work with field " + field, ex);
+    			}
+    		}
+    		clazz = clazz.getSuperclass();
+	    }
 	}
 
 	/**

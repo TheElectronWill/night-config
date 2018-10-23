@@ -33,12 +33,14 @@ public class ObjectConverterTest {
 
 	private final Config config = Config.inMemory();
 	{
+	    config.set("parentValue", "parent");
 		config.set("integer", 1234568790);
 		config.set("decimal", Math.PI);
 		config.set("string", "value");
 		config.set("stringList", list1);
 		config.set("objList", list3);
 		config.set("config", config1);
+		config.set("subObject.parentValue", "subParent");
 		config.set("subObject.integer", -1);
 		config.set("subObject.decimal", 0.5);
 		config.set("subObject.string", "Hey!");
@@ -68,6 +70,7 @@ public class ObjectConverterTest {
 		{
 			MyObject object = new MyObject();
 			testConfigToObject(config, object);// does the mapping
+			assert object.parentValue.equals(config.<String>get("parentValue"));
 			assert object.integer == config.<Integer>get("integer");
 			assert object.decimal == config.<Double>get("decimal");
 			assert object.string.equals(config.<String>get("string"));
@@ -110,8 +113,14 @@ public class ObjectConverterTest {
 
 		System.out.println("After: " + object);
 	}
+	
+	private static class MyParent {
+	    
+	    String parentValue;
+	    
+	}
 
-	private static class MyObject {
+	private static class MyObject extends MyParent {
 		int integer;
 		double decimal;
 		String string;
@@ -123,7 +132,9 @@ public class ObjectConverterTest {
 		@Override
 		public String toString() {
 			return "MyObject{"
-				   + "integer="
+			       + "parentValue="
+			       + parentValue
+				   + ", integer="
 				   + integer
 				   + ", decimal="
 				   + decimal
