@@ -33,7 +33,7 @@ public class ObjectConverterTest {
 
 	private final Config config = Config.inMemory();
 	{
-	    config.set("parentValue", "parent");
+		config.set("parentValue", "parent");
 		config.set("integer", 1234568790);
 		config.set("decimal", Math.PI);
 		config.set("string", "value");
@@ -115,9 +115,9 @@ public class ObjectConverterTest {
 	}
 	
 	private static class MyParent {
-	    
-	    String parentValue;
-	    
+		
+		String parentValue;
+		
 	}
 
 	private static class MyObject extends MyParent {
@@ -132,8 +132,8 @@ public class ObjectConverterTest {
 		@Override
 		public String toString() {
 			return "MyObject{"
-			       + "parentValue="
-			       + parentValue
+				   + "parentValue="
+				   + parentValue
 				   + ", integer="
 				   + integer
 				   + ", decimal="
