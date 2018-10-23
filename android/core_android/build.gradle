@@ -15,6 +15,7 @@ repositories {
 
 dependencies {
 	testCompile "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+	testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
 }
 
 // Jar files
