@@ -54,16 +54,28 @@ public interface ConfigFormat<C extends Config> {
 	 * @param type the type to check, may be null in which case this method checks if the format
 	 *             supports null values
 	 * @return {@code true} iff this format supports the given type
+	 * @deprecated use {@link #accepts(Object)} instead, it works better with lists:
+	 * {@code supportsType} only checks if the format supports at least one type of list, whereas
+	 * {@code accepts} checks if the format supports the given list, and can check its elements.
 	 */
 	@Deprecated
 	default boolean supportsType(Class<?> type) {
 		return InMemoryFormat.DEFAULT_PREDICATE.test(type);
 	}
 
+	/**
+	 * Checks if this format accepts the given value.
+	 *
+	 * @param value the value to check, may be null
+	 * @return {@code true} iff this format supports the given value
+	 */
 	default boolean accepts(Object value) {
+		if (value == null) {
+			return supportsType(null);
+		}
 		if (value instanceof List) {
-			List l = (List)value;
-			return l.isEmpty() ? true : supportsType(l.get(0).getClass());
+			List<?> l = (List<?>)value;
+			return l.isEmpty() || accepts(l.get(0));
 		}
 		return supportsType(value.getClass());
 	}
