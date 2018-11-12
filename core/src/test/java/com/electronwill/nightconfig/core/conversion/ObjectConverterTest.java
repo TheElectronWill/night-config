@@ -16,6 +16,8 @@ public class ObjectConverterTest {
 	static final List<String> list1 = Arrays.asList("a", "b", "c");
 	static final List<String> list2 = Collections.singletonList("element");
 	static final List<UnmodifiableConfig> list3;
+	static final List<List<UnmodifiableConfig>> nestedList2;
+	static final List<List<List<UnmodifiableConfig>>> nestedList3;
 	static {
 		Config objRepr1 = Config.inMemory(); // object represented as a config
 		objRepr1.set("a", "a");
@@ -26,6 +28,8 @@ public class ObjectConverterTest {
 		objRepr2.set("b", "B");
 
 		list3 = Arrays.asList(objRepr1, objRepr2);
+		nestedList2 = Arrays.asList(list3, list3);
+		nestedList3 = Collections.singletonList(nestedList2);
 	}
 
 	static final Config config1 = InMemoryFormat.withUniversalSupport().createConfig();
@@ -39,6 +43,8 @@ public class ObjectConverterTest {
 		config.set("string", "value");
 		config.set("stringList", list1);
 		config.set("objList", list3);
+		config.set("nestedObjList2", nestedList2);
+		config.set("nestedObjList3", nestedList3);
 		config.set("config", config1);
 		config.set("subObject.parentValue", "subParent");
 		config.set("subObject.integer", -1);
@@ -126,6 +132,8 @@ public class ObjectConverterTest {
 		String string;
 		List<String> stringList;
 		List<SomeObject> objList;
+		List<List<SomeObject>> nestedObjList2;
+		List<List<List<SomeObject>>> nestedObjList3;
 		Config config;
 		MyObject subObject;
 
@@ -145,6 +153,10 @@ public class ObjectConverterTest {
 				   + stringList
 				   + ", objList="
 				   + objList
+				   + ", nestedObjList2="
+				   + nestedObjList2
+				   + ", nestedObjList3="
+				   + nestedObjList3
 				   + ", config="
 				   + config
 				   + ", subObject="
@@ -193,11 +205,13 @@ public class ObjectConverterTest {
 		final String string;
 		final List<String> stringList;
 		final List<SomeObject> objList;
+		final List<List<SomeObject>> nestedObjList2;
+		final List<List<List<SomeObject>>> nestedObjList3;
 		final Config config;
 		final MyObjectFinal subObject;
 
 		public MyObjectFinal() {
-			this(123, 1.23, "v", null, null, null, null);
+			this(123, 1.23, "v", null, null, null, null, null, null);
 		}
 
 		/*
@@ -205,12 +219,18 @@ public class ObjectConverterTest {
 		of the primitive fields. This allows us to print the changes correctly.
 		 */
 		public MyObjectFinal(int integer, double decimal, String string, List<String> stringList,
-							 List<SomeObject> objList, Config config, MyObjectFinal subObject) {
+								List<SomeObject> objList,
+								List<List<SomeObject>> nestedObjList2,
+								List<List<List<SomeObject>>> nestedObjList3,
+								Config config,
+								MyObjectFinal subObject) {
 			this.integer = integer;
 			this.decimal = decimal;
 			this.string = string;
 			this.stringList = stringList;
 			this.objList = objList;
+			this.nestedObjList2 = nestedObjList2;
+			this.nestedObjList3 = nestedObjList3;
 			this.config = config;
 			this.subObject = subObject;
 		}
@@ -229,6 +249,10 @@ public class ObjectConverterTest {
 				   + stringList
 				   + ", objList="
 				   + objList
+				   + ", nestedObjList2="
+				   + nestedObjList2
+				   + ", nestedObjList3="
+				   + nestedObjList3
 				   + ", config="
 				   + config
 				   + ", subObject="
