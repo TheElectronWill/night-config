@@ -8,8 +8,6 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Supplier;
 
-import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
-
 /**
  * Converts Java objects to configs and vice-versa.
  *
