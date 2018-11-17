@@ -2,14 +2,15 @@ package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.InMemoryFormat;
-
-import java.util.*;
-
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author TheElectronWill
@@ -86,19 +87,19 @@ public class ObjectConverterTest {
 		{
 			MyObject object = new MyObject();
 			testConfigToObject(config, object);// does the mapping
-			assert object.parentValue.equals(config.<String>get("parentValue"));
-			assert object.integer == config.<Integer>get("integer");
-			assert object.decimal == config.<Double>get("decimal");
-			assert object.string.equals(config.<String>get("string"));
-			assert object.stringList == list1;
-			assert object.config == config1;
-			assert object.subObject != null;
-			assert object.subObject.integer == config.<Integer>get("subObject.integer");
-			assert object.subObject.decimal == config.<Double>get("subObject.decimal");
-			assert object.subObject.string.equals(config.<String>get("subObject.string"));
-			assert object.subObject.stringList == list2;
-			assert object.subObject.config == config2;
-			assert object.subObject.subObject == null;
+			assertSame(config.get("parentValue"), object.parentValue);
+			assertEquals((int)config.get("integer"), object.integer);
+			assertEquals((double)config.get("decimal"), object.decimal);
+			assertSame(config.get("string"), object.string);
+			assertSame(list1, object.stringList);
+			assertSame(config1, object.config);
+			assertNotNull(object.subObject);
+			assertEquals((int)config.get("subObject.integer"), object.subObject.integer);
+			assertEquals((double)config.get("subObject.decimal"), object.subObject.decimal);
+			assertSame(config.get("subObject.string"), object.subObject.string);
+			assertSame(list2, object.subObject.stringList);
+			assertSame(config2, object.subObject.config);
+			assertNull(object.subObject.subObject);
 		}
 
 		System.out.println();
@@ -106,18 +107,19 @@ public class ObjectConverterTest {
 		{
 			MyObjectFinal object = new MyObjectFinal();
 			testConfigToObject(config, object);//does the mapping
-			assert object.integer == config.<Integer>get("integer");
-			assert object.decimal == config.<Double>get("decimal");
-			assert object.string.equals(config.<String>get("string"));
-			assert object.stringList == list1;
-			assert object.config == config1;
-			assert object.subObject != null;
-			assert object.subObject.integer == config.<Integer>get("subObject.integer");
-			assert object.subObject.decimal == config.<Double>get("subObject.decimal");
-			assert object.subObject.string.equals(config.<String>get("subObject.string"));
-			assert object.subObject.stringList == list2;
-			assert object.subObject.config == config2;
-			assert object.subObject.subObject == null;
+			assertSame(config.get("parentValue"), object.parentValue);
+			assertEquals((int)config.get("integer"), object.integer);
+			assertEquals((double)config.get("decimal"), object.decimal);
+			assertSame(config.get("string"), object.string);
+			assertSame(list1, object.stringList);
+			assertSame(config1, object.config);
+			assertNotNull(object.subObject);
+			assertEquals((int)config.get("subObject.integer"), object.subObject.integer);
+			assertEquals((double)config.get("subObject.decimal"), object.subObject.decimal);
+			assertSame(config.get("subObject.string"), object.subObject.string);
+			assertSame(list2, object.subObject.stringList);
+			assertSame(config2, object.subObject.config);
+			assertNull(object.subObject.subObject);
 		}
 	}
 
@@ -231,7 +233,7 @@ public class ObjectConverterTest {
 		}
 	}
 
-	static class MyObjectFinal {
+	static class MyObjectFinal extends MyParent {
 		final int integer;
 		final double decimal;
 		final String string;

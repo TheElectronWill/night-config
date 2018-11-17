@@ -9,13 +9,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 /**
  * @author TheElectronWill
  */
 public class ObjectConverterTest2 {
 
 	@Test
-	public void testSupportBasic() throws Exception {
+	public void testSupportBasic() {
 		ObjectConverter converter = new ObjectConverter();
 		Config config = Config.inMemory();
 		MyObject object = new MyObject();
@@ -24,45 +26,50 @@ public class ObjectConverterTest2 {
 		System.out.println("MyObject mapped to a SimpleConfig with basic strategy:");
 		System.out.println(config);
 
-		assert config.<Integer>get("integer") == object.integer;
-		assert config.<Double>get("decimal") == object.decimal;
-		assert config.<String>get("string") == object.string;
-		assert config.<List<String>>get("stringList") == object.stringList;
-		assert config.<List<Config>>get("objList").size() == object.objList.size();
-		assert config.<Config>get("config") == object.config;
-		assert config.get("subObject") instanceof Config;
+		assertEquals(object.integer, (int)config.get("integer"));
+		assertEquals(object.decimal, (double)config.get("decimal"));
+		assertEquals(object.string, config.get("string"));
+		assertEquals(object.stringList, config.get("stringList"));
+		assertEquals(object.objList.size(), config.<List<?>>get("objList").size());
+		assertEquals(object.config, config.get("config"));
+		assertTrue(config.get("subObject") instanceof Config);
 		Config sub = config.get("subObject");
-		assert sub.<Integer>get("integer") == 1234567890;
-		assert sub.<Double>get("decimal") == Math.PI;
-		assert sub.<String>get("string").equals("value");
-		assert sub.<List<?>>get("stringList").equals(Arrays.asList("a", "b", "c"));
-		assert config.<List<?>>get("objList").equals(convertedObjects);
-		assert sub.<Config>get("config").size() == 0;
-		assert sub.contains("subObject");
-		assert sub.get("subObject") == null;
+		assertEquals(object.subObject.integer, (int)sub.get("integer"));
+		assertEquals(object.subObject.decimal, (double)sub.get("decimal"));
+		assertEquals(object.subObject.string, sub.get("string"));
+		assertEquals(object.subObject.stringList, sub.get("stringList"));
+		assertEquals(object.subObject.objList.size(), sub.<List<?>>get("objList").size());
+		assertNull(sub.get("subObject"));
 	}
 
 	@Test
-	public void testSupportAll() throws Exception {
+	public void testSupportAll() {
 		ObjectConverter converter = new ObjectConverter();
 		Config config = InMemoryFormat.withUniversalSupport().createConfig();
+		// withUniversalSupport() causes the configuration to accept any type of values without conversion
+
 		MyObject object = new MyObject();
 		converter.toConfig(object, config);
 
 		System.out.println("MyObject mapped to a SimpleConfig with support_all strategy:");
 		System.out.println(config);
 
-		assert config.<Integer>get("integer") == object.integer;
-		assert config.<Double>get("decimal") == object.decimal;
-		assert config.<String>get("string") == object.string;
-		assert config.<List<String>>get("stringList") == object.stringList;
+		assertEquals(object.integer, (int)config.get("integer"));
+		assertEquals(object.decimal, (double)config.get("decimal"));
+		assertSame(object.string, config.get("string"));
+		assertSame(object.stringList, config.get("stringList"));
+		assertSame(object.objList, config.get("objList"));
+		assertSame(object.config, config.get("config"));
+		assertSame(object.subObject, config.get("subObject"));
 
-		assert config.<List<SomeObject>>get("objList").equals(objects);
-		// withUniversalSupport() causes the configuration to accept values of any type
-
-		assert config.<Config>get("config") == object.config;
-		assert config.get("subObject") == object.subObject;
-		assert config.get("infos.coordinates").equals(object.coords.toString());
+		/*
+			@Conversion(CoordinatesConverter.class)
+			@Path("infos.coordinates")
+			@SpecNotNull
+			Coordinates coords = new Coordinates(...);
+		 */
+		assertNotNull(config.get("infos.coordinates"));
+		assertEquals(object.coords.toString(), config.get("infos.coordinates"));
 	}
 
 	private static List<SomeObject> objects = Arrays.asList(new SomeObject("a", "b"), new SomeObject("A", "B"));
