@@ -6,7 +6,10 @@ import com.electronwill.nightconfig.core.InMemoryFormat;
 import java.util.*;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author TheElectronWill
@@ -29,7 +32,7 @@ public class ObjectConverterTest {
 
 		list3 = Arrays.asList(objRepr1, objRepr2);
 		nestedList2 = Arrays.asList(list3, list3);
-		nestedList3 = Collections.singletonList(nestedList2);
+		nestedList3 = Arrays.asList(nestedList2, nestedList2);
 	}
 
 	static final Config config1 = InMemoryFormat.withUniversalSupport().createConfig();
@@ -54,24 +57,31 @@ public class ObjectConverterTest {
 		config.set("subObject.objList", list3);
 		config.set("subObject.config", config2);
 		config.set("subObject.subObject", null);
+		config.set("subObject.nestedObjList2", null);
+		config.set("subObject.nestedObjList3", null);
 	}
 
 	@Test
-	public void configToObjectToConfig() throws Exception {
+	public void configToObjectToConfigToObject() throws Exception {
 		ObjectConverter converter = new ObjectConverter();
 		MyObject object = converter.toObject(config, MyObject::new);
-		Config myConfig = Config.inMemory();
-		converter.toConfig(object, myConfig);
+		Config newConfig = Config.inMemory();
+		converter.toConfig(object, newConfig);
+
+		MyObject newObject = new MyObject();
+		converter.toObject(newConfig, newObject);
 
 		System.out.println("Original config: " + config);
-		System.out.println("New config: " + myConfig);
-		System.out.println("Object: " + object);
+		System.out.println("New config: " + newConfig);
+		System.out.println("\nOriginal object: " + object);
+		System.out.println("New object: " + object);
 
-		assert myConfig.equals(config) : "Invalid conversion!";
+		assertEquals(config, newConfig, "Invalid conversion");
+		assertEquals(object, newObject, "Invalid conversion");
 	}
 
 	@Test
-	public void test() throws Exception {
+	public void configToObject() throws Exception {
 		System.out.println("====== Test with non-final fields ======");
 		{
 			MyObject object = new MyObject();
@@ -162,6 +172,28 @@ public class ObjectConverterTest {
 				   + ", subObject="
 				   + subObject
 				   + '}';
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+			MyObject myObject = (MyObject)o;
+			return integer == myObject.integer && Double.compare(myObject.decimal, decimal) == 0
+				&& Objects.equals(string, myObject.string) && Objects
+				.equals(stringList, myObject.stringList) && Objects
+				.equals(objList, myObject.objList) && Objects
+				.equals(nestedObjList2, myObject.nestedObjList2) && Objects
+				.equals(nestedObjList3, myObject.nestedObjList3) && Objects
+				.equals(config, myObject.config) && Objects.equals(subObject, myObject.subObject);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(integer, decimal, string, stringList,
+				objList, nestedObjList2, nestedObjList3, config, subObject);
 		}
 	}
 

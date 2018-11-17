@@ -1,11 +1,14 @@
 package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Supplier;
+
+import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 
 /**
  * Converts Java objects to configs and vice-versa.
@@ -142,26 +145,35 @@ public final class ObjectConverter {
 					value = converter.convertFromField(value);
 				}
 				List<String> path = AnnotationUtils.getPath(field);
-				if (value != null && (!destination.configFormat().accepts(value)
-									  || field.isAnnotationPresent(ForceBreakdown.class))) {
-					if (value instanceof List) {
-						// Convert each element
-						final List<?> listValue = (List<?>)value;
-						final List<Config> configList = new ArrayList<>(listValue.size());
-	
-						for (Object element : listValue) {
-							Config elementConf = destination.createSubConfig();
-							convertToConfig(element, element.getClass(), elementConf);
-							configList.add(elementConf);
-						}
-						destination.set(path, configList);
-					} else {
-						Config subConfig = destination.createSubConfig();
-						convertToConfig(value, field.getType(), subConfig);// Writes as a subconfig
-						destination.set(path, subConfig);
-					}
+				ConfigFormat<?> format = destination.configFormat();
+
+				if (value == null) {
+					destination.set(path, null);
 				} else {
-					destination.set(path, value);// Writes as a plain value
+					Class<?> valueType = value.getClass();
+					if (field.isAnnotationPresent(ForceBreakdown.class) || !format.supportsType(valueType)) {
+						// We have to convert the value
+						destination.set(path, value);
+						Config converted = destination.createSubConfig();
+						convertToConfig(value, valueType, converted);
+						destination.set(path, converted);
+					} else if (value instanceof List) {
+						// Check that the ConfigFormat supports the type of the elements of the list
+						List<?> src = (List<?>)value;
+						Class<?> bottomType = bottomElementType(src);
+						if (format.supportsType(bottomType)) {
+							// Everything is supported, no conversion needed
+							destination.set(path, value);
+						} else {
+							// List of complex objects, the bottom elements need conversion
+							List<Object> dst = new ArrayList<>(src.size());
+							convertListToConfigs(src, bottomType, dst, destination);
+							destination.set(path, dst);
+						}
+					} else {
+						// Simple value writing
+						destination.set(path, value);
+					}
 				}
 			}
 			clazz = clazz.getSuperclass();
@@ -198,89 +210,57 @@ public final class ObjectConverter {
 				}
 	
 				Class<?> fieldType = field.getType();
-	
-				// --- Handle generic lists and arrays ---
-				boolean valueContainsConfig = (value instanceof List
-												&& !((List<?>)value).isEmpty()
-												&& ((List<?>)value).get(0) instanceof UnmodifiableConfig);
-				boolean isObjList = false;
-				boolean isObjArray = false;
-				Optional<Class<?>> genericParam = Optional.empty();
-				if (valueContainsConfig && fieldType.isAssignableFrom(List.class)) {
-					ParameterizedType parameterizedType = (ParameterizedType)field.getGenericType();
-					Optional<Class<?>> listParam = Optional.ofNullable(parameterizedType)
-														   .map(ParameterizedType::getActualTypeArguments)
-														   .map(types -> types[0])
-														   .filter(t -> (t instanceof Class))
-														   .map(t -> (Class<?>)t);
-					genericParam = listParam.filter(t -> !t.isAssignableFrom(UnmodifiableConfig.class));
-					isObjList = genericParam.isPresent();
-				} else if (valueContainsConfig && fieldType.isArray()) {
-					Optional<Class<?>> arrayParam = Optional.of(fieldType.getComponentType());
-					genericParam = arrayParam.filter(t -> !t.isAssignableFrom(UnmodifiableConfig.class));
-					isObjArray = genericParam.isPresent();
-				}
+
 				// ------
 				try {
 					if (value instanceof UnmodifiableConfig && !(fieldType.isAssignableFrom(value.getClass()))) {
 						// -- Read as a sub-object --
-						final UnmodifiableConfig uConfig = (UnmodifiableConfig)value;
+						final UnmodifiableConfig cfg = (UnmodifiableConfig)value;
 	
 						// Get or create the field and convert it (if field is null OR not preserved):
 						Object fieldValue = field.get(object);
 						if (fieldValue == null) {
 							fieldValue = createInstance(fieldType);
 							field.set(object, fieldValue);
-							convertToObject(uConfig, fieldValue, field.getType());
+							convertToObject(cfg, fieldValue, field.getType());
 						} else if (!AnnotationUtils.mustPreserve(field, clazz)) {
-							convertToObject(uConfig, fieldValue, field.getType());
+							convertToObject(cfg, fieldValue, field.getType());
 						}
-					} else if (isObjList || isObjArray) {
-						final List<UnmodifiableConfig> configList = (List<UnmodifiableConfig>)value;
-						final Class<?> fieldElementType = genericParam.get();
-						if (isObjList) {
-							// -- Read as a list of objects --
-	
-							// Get or create the field:
-							List fieldValue = (List)field.get(object);
-							if (fieldValue == null) {
-								if (fieldType == List.class || fieldType == ArrayList.class
+					} else if (value instanceof List && fieldType.isAssignableFrom(List.class)) {
+						// --- Reads as a list, maybe a list of objects with conversion ---
+						final List<?> src = (List<?>)value;
+						Class<?> srcBottomType = bottomElementType(src);
+						Class<?> dstBottomType = bottomElementType((ParameterizedType)field.getGenericType());
+
+						if (srcBottomType == null
+							|| dstBottomType == null
+							|| dstBottomType.isAssignableFrom(srcBottomType)) {
+
+							// Simple list, no conversion needed
+							AnnotationUtils.checkField(field, value);
+							field.set(object, value);
+						} else {
+							// List of objects, the bottom elements need conversion
+
+							// Use the current field value if there is one, or create a new list
+							List dst = (List)field.get(object);
+							if (dst == null) {
+								if (fieldType == List.class
+									|| fieldType == ArrayList.class
 									|| fieldType == Collection.class) {
-									// create a list of the correct size when possible
-									fieldValue = new ArrayList<>(configList.size());
+									dst = new ArrayList(src.size());// allocates the right size
 								} else {
-									fieldValue = (List)createInstance(fieldType);
+									dst = (List)createInstance(fieldType);
 								}
-								field.set(object, fieldValue);
-							} else if (AnnotationUtils.mustPreserve(field, clazz)) {
-								continue;
+								field.set(object, dst);
 							}
-	
-							// Convert each value of the (config) list and add it to the (field) list:
-							for (UnmodifiableConfig element : configList) {
-								Object elementObj = createInstance(fieldElementType);
-								convertToObject(element, elementObj, fieldElementType);
-								fieldValue.add(elementObj);
-							}
-						} else { // isObjArray
-							// -- Read as an array of objects --
-	
-							// Get or create the field:
-							Object fieldValue = field.get(object);
-							if (fieldValue == null) {
-								fieldValue = Array.newInstance(genericParam.get(), configList.size());
-							} else if (AnnotationUtils.mustPreserve(field, clazz)) {
-								continue;
-							}
-	
-							// Convert each value of the list and add it to the array:
-							for (int i = 0; i < configList.size(); i++) {
-								Object elementObj = createInstance(fieldElementType);
-								convertToObject(configList.get(i), elementObj, fieldElementType);
-								Array.set(fieldValue, i, elementObj);
-							}
+
+							// Convert the elements of the list
+							convertListToObjects(src, dst, dstBottomType);
+
+							// Apply the checks
+							AnnotationUtils.checkField(field, dst);
 						}
-						// ------
 					} else {
 						// Read as a plain value
 						if (value == null && AnnotationUtils.mustPreserve(field, clazz)) {
@@ -295,6 +275,109 @@ public final class ObjectConverter {
 				}
 			}
 			clazz = clazz.getSuperclass();
+		}
+	}
+
+	/**
+	 * Checks if the given generic type represents a list of configs, or a list of lists of configs,
+	 * or a list of lists of lists of ... of configs.
+	 */
+	private boolean isListOfConfig(ParameterizedType genericType) {
+		if (genericType != null && genericType.getActualTypeArguments().length > 0) {
+			Type parameter = genericType.getActualTypeArguments()[0];
+			if ((parameter instanceof Class)) {
+				return ((Class<?>)parameter).isAssignableFrom(UnmodifiableConfig.class);
+			}
+			if (parameter instanceof ParameterizedType) {
+				ParameterizedType genericParameter = (ParameterizedType)parameter;
+				Class<?> paramClass = (Class<?>)genericParameter.getRawType();
+				return paramClass.isAssignableFrom(List.class) && isListOfConfig(genericParameter);
+			}
+		}
+		return false;
+	}
+
+	/**
+	 *
+	 * @param genericType
+	 * @return
+	 */
+	private Class<?> bottomElementType(ParameterizedType genericType) {
+		if (genericType != null && genericType.getActualTypeArguments().length > 0) {
+			Type parameter = genericType.getActualTypeArguments()[0];
+			if (parameter instanceof ParameterizedType) {
+				ParameterizedType genericParameter = (ParameterizedType)parameter;
+				Class<?> paramClass = (Class<?>)genericParameter.getRawType();
+				if (paramClass.isAssignableFrom(List.class)) {
+					return bottomElementType(genericParameter);
+				} else {
+					return paramClass;
+				}
+			}
+			if ((parameter instanceof Class)) {
+				return (Class<?>)parameter;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 *
+	 * @param list
+	 * @return
+	 */
+	private Class<?> bottomElementType(List<?> list) {
+		for (Object elem : list) {
+			if (elem instanceof List) {
+				return bottomElementType((List<?>)elem);
+			} else if (elem != null) {
+				return elem.getClass();
+			}
+		}
+		return null;
+	}
+
+	private void convertListToObjects(List<?> src, List<Object> dst, Class<?> dstBottomType) {
+		for (Object elem : src) {
+			if (elem == null) {
+				dst.add(null);
+			}
+			if (elem instanceof List) {
+				ArrayList<Object> subList = new ArrayList<>();
+				convertListToObjects((List<?>)elem, subList, dstBottomType);
+				subList.trimToSize();
+				dst.add(subList);
+			} else if (elem instanceof UnmodifiableConfig) {
+				Object elementObj = createInstance(dstBottomType);
+				convertToObject((UnmodifiableConfig)elem, elementObj, dstBottomType);
+				dst.add(elementObj);
+			} else {
+				String elemType = elem.getClass().toString();
+				throw new InvalidValueException("Unexpected element of type " + elemType + " in list of objects");
+							}
+		}
+	}
+
+	private void convertListToConfigs(List<?> src,
+									  Class<?> srcBottomType,
+									  List<Object> dst,
+									  Config parentConfig) {
+		for (Object elem : src) {
+			if (elem == null) {
+				dst.add(null);
+			} else if (srcBottomType.isAssignableFrom(elem.getClass())) {
+				Config elementConfig = parentConfig.createSubConfig();
+				convertToConfig(elem, elem.getClass(), elementConfig);
+				dst.add(elementConfig);
+			} else if (elem instanceof List) {
+				ArrayList<Object> subList = new ArrayList<>();
+				convertListToConfigs((List<?>)elem, srcBottomType, subList, parentConfig);
+				subList.trimToSize();
+				dst.add(subList);
+			} else {
+				String elemType = elem.getClass().toString();
+				throw new InvalidValueException("Unexpected element of type " + elemType + " in (maybe nested) list of " + srcBottomType);
+			}
 		}
 	}
 
