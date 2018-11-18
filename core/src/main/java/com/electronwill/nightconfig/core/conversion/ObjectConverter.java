@@ -160,17 +160,17 @@ public final class ObjectConverter {
 						Config converted = destination.createSubConfig();
 						convertToConfig(value, valueType, converted);
 						destination.set(path, converted);
-					} else if (value instanceof List) {
-						// Checks that the ConfigFormat supports the type of the elements of the list
-						List<?> src = (List<?>)value;
+					} else if (value instanceof Collection) {
+						// Checks that the ConfigFormat supports the type of the collection's elements
+						Collection<?> src = (Collection<?>)value;
 						Class<?> bottomType = bottomElementType(src);
 						if (format.supportsType(bottomType)) {
 							// Everything is supported, no conversion needed
 							destination.set(path, value);
 						} else {
 							// List of complex objects => the bottom elements need conversion
-							List<Object> dst = new ArrayList<>(src.size());
-							convertListToConfigs(src, bottomType, dst, destination);
+							Collection<Object> dst = new ArrayList<>(src.size());
+							convertObjectsToConfigs(src, bottomType, dst, destination);
 							destination.set(path, dst);
 						}
 					} else {
@@ -230,9 +230,9 @@ public final class ObjectConverter {
 							convertToObject(cfg, fieldValue, field.getType());
 						}
 
-					} else if (value instanceof List && fieldType.isAssignableFrom(List.class)) {
-						// --- Reads as a list, maybe a list of objects with conversion ---
-						final List<?> src = (List<?>)value;
+					} else if (value instanceof Collection && fieldType.isAssignableFrom(Collection.class)) {
+						// --- Reads as a collection, maybe a list of objects with conversion ---
+						final Collection<?> src = (Collection<?>)value;
 						final ParameterizedType genericType = (ParameterizedType)field.getGenericType();
 						final Class<?> srcBottomType = bottomElementType(src);
 						final Class<?> dstBottomType = bottomElementType(genericType);
@@ -249,20 +249,20 @@ public final class ObjectConverter {
 							// List of objects => the bottom elements need conversion
 
 							// Uses the current field value if there is one, or create a new list
-							List<Object> dst = (List<Object>)field.get(object);
+							Collection<Object> dst = (Collection<Object>)field.get(object);
 							if (dst == null) {
-								if (fieldType == List.class
-									|| fieldType == ArrayList.class
-									|| fieldType == Collection.class) {
+								if (fieldType == ArrayList.class
+									|| fieldType.isInterface()
+									|| Modifier.isAbstract(fieldModifiers)) {
 									dst = new ArrayList<>(src.size());// allocates the right size
 								} else {
-									dst = (List<Object>)createInstance(fieldType);
+									dst = (Collection<Object>)createInstance(fieldType);
 								}
 								field.set(object, dst);
 							}
 
 							// Converts the elements of the list
-							convertListToObjects(src, dst, dstBottomType);
+							convertConfigsToObject(src, dst, dstBottomType);
 
 							// Applies the checks
 							AnnotationUtils.checkField(field, dst);
@@ -312,17 +312,17 @@ public final class ObjectConverter {
 	}
 
 	/**
-	 * Gets the type of the "bottom element" of a list.
+	 * Gets the type of the "bottom element" of a collection.
 	 * For instance, for a list {@code [["string"], ["another string"]]}
 	 * this method returns the class {@code String}.
 	 *
 	 * @param list the list object
 	 * @return the type of the elements of the most nested list
 	 */
-	private Class<?> bottomElementType(List<?> list) {
+	private Class<?> bottomElementType(Collection<?> list) {
 		for (Object elem : list) {
-			if (elem instanceof List) {
-				return bottomElementType((List<?>)elem);
+			if (elem instanceof Collection) {
+				return bottomElementType((Collection<?>)elem);
 			} else if (elem != null) {
 				return elem.getClass();
 			}
@@ -331,19 +331,21 @@ public final class ObjectConverter {
 	}
 
 	/**
-	 * Converts a list of configurations to a list of objects of the type dstBottomType.
+	 * Converts a collection of configurations to a collection of objects of the type dstBottomType.
 	 *
-	 * @param src           the list of configs, may be nested, source
-	 * @param dst           the list of objects, destination
+	 * @param src           the collection of configs, may be nested, source
+	 * @param dst           the collection of objects, destination
 	 * @param dstBottomType the type of objects
 	 */
-	private void convertListToObjects(List<?> src, List<Object> dst, Class<?> dstBottomType) {
+	private void convertConfigsToObject(Collection<?> src,
+										Collection<Object> dst,
+										Class<?> dstBottomType) {
 		for (Object elem : src) {
 			if (elem == null) {
 				dst.add(null);
-			} else if (elem instanceof List) {
+			} else if (elem instanceof Collection) {
 				ArrayList<Object> subList = new ArrayList<>();
-				convertListToObjects((List<?>)elem, subList, dstBottomType);
+				convertConfigsToObject((Collection<?>)elem, subList, dstBottomType);
 				subList.trimToSize();
 				dst.add(subList);
 			} else if (elem instanceof UnmodifiableConfig) {
@@ -352,23 +354,23 @@ public final class ObjectConverter {
 				dst.add(elementObj);
 			} else {
 				String elemType = elem.getClass().toString();
-				throw new InvalidValueException("Unexpected element of type " + elemType + " in list of objects");
+				throw new InvalidValueException("Unexpected element of type " + elemType + " in collection of objects");
 							}
 		}
 	}
 
 	/**
-	 * Converts a list of objects of the type srcBottomType to a list of configurations.
+	 * Converts a collection of objects of the type srcBottomType to a collection of configurations.
 	 *
-	 * @param src           the list of objects, may be nested, source
+	 * @param src           the collection of objects, may be nested, source
 	 * @param srcBottomType the type of objects
-	 * @param dst           the list of configs, destination
+	 * @param dst           the collection of configs, destination
 	 * @param parentConfig  the parent configuration, used to create the new configs to put in dst
 	 */
-	private void convertListToConfigs(List<?> src,
-									  Class<?> srcBottomType,
-									  List<Object> dst,
-									  Config parentConfig) {
+	private void convertObjectsToConfigs(Collection<?> src,
+									     Class<?> srcBottomType,
+									     Collection<Object> dst,
+									     Config parentConfig) {
 		for (Object elem : src) {
 			if (elem == null) {
 				dst.add(null);
@@ -376,14 +378,14 @@ public final class ObjectConverter {
 				Config elementConfig = parentConfig.createSubConfig();
 				convertToConfig(elem, elem.getClass(), elementConfig);
 				dst.add(elementConfig);
-			} else if (elem instanceof List) {
+			} else if (elem instanceof Collection) {
 				ArrayList<Object> subList = new ArrayList<>();
-				convertListToConfigs((List<?>)elem, srcBottomType, subList, parentConfig);
+				convertObjectsToConfigs((Collection<?>)elem, srcBottomType, subList, parentConfig);
 				subList.trimToSize();
 				dst.add(subList);
 			} else {
 				String elemType = elem.getClass().toString();
-				throw new InvalidValueException("Unexpected element of type " + elemType + " in (maybe nested) list of " + srcBottomType);
+				throw new InvalidValueException("Unexpected element of type " + elemType + " in (maybe nested) collection of " + srcBottomType);
 			}
 		}
 	}
