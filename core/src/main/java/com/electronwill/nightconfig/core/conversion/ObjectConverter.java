@@ -230,12 +230,14 @@ public final class ObjectConverter {
 							convertToObject(cfg, fieldValue, field.getType());
 						}
 
-					} else if (value instanceof Collection && fieldType.isAssignableFrom(Collection.class)) {
+					} else if (value instanceof Collection && Collection.class.isAssignableFrom(fieldType)) {
 						// --- Reads as a collection, maybe a list of objects with conversion ---
 						final Collection<?> src = (Collection<?>)value;
-						final ParameterizedType genericType = (ParameterizedType)field.getGenericType();
 						final Class<?> srcBottomType = bottomElementType(src);
-						final Class<?> dstBottomType = bottomElementType(genericType);
+
+						final ParameterizedType genericType = (ParameterizedType)field.getGenericType();
+						final List<Class<?>> dstTypes = elementTypes(genericType);
+						final Class<?> dstBottomType = dstTypes.get(dstTypes.size()-1);
 
 						if (srcBottomType == null
 							|| dstBottomType == null
@@ -253,7 +255,7 @@ public final class ObjectConverter {
 							if (dst == null) {
 								if (fieldType == ArrayList.class
 									|| fieldType.isInterface()
-									|| Modifier.isAbstract(fieldModifiers)) {
+									|| Modifier.isAbstract(fieldType.getModifiers())) {
 									dst = new ArrayList<>(src.size());// allocates the right size
 								} else {
 									dst = (Collection<Object>)createInstance(fieldType);
@@ -262,7 +264,7 @@ public final class ObjectConverter {
 							}
 
 							// Converts the elements of the list
-							convertConfigsToObject(src, dst, dstBottomType);
+							convertConfigsToObject(src, dst, dstTypes, 0);
 
 							// Applies the checks
 							AnnotationUtils.checkField(field, dst);
@@ -298,7 +300,7 @@ public final class ObjectConverter {
 			if (parameter instanceof ParameterizedType) {
 				ParameterizedType genericParameter = (ParameterizedType)parameter;
 				Class<?> paramClass = (Class<?>)genericParameter.getRawType();
-				if (paramClass.isAssignableFrom(List.class)) {
+				if (paramClass.isAssignableFrom(Collection.class)) {
 					return bottomElementType(genericParameter);
 				} else {
 					return paramClass;
@@ -309,6 +311,37 @@ public final class ObjectConverter {
 			}
 		}
 		return null;
+	}
+
+	private void detectElementTypes(ParameterizedType genericType, List<Class<?>> storage) {
+		if (genericType != null && genericType.getActualTypeArguments().length > 0) {
+			Type parameter = genericType.getActualTypeArguments()[0];
+			if (parameter instanceof ParameterizedType) {
+				ParameterizedType genericParameter = (ParameterizedType)parameter;
+				Class<?> paramClass = (Class<?>)genericParameter.getRawType();
+
+				storage.add(paramClass);
+				if (Collection.class.isAssignableFrom(paramClass)) {
+					detectElementTypes(genericParameter, storage);
+				}
+			} else if ((parameter instanceof Class)) {
+				storage.add((Class<?>)parameter);
+			}
+		}
+	}
+
+	/**
+	 * Returns a list of the generic parameters of a list.
+	 * For instance, for {@code LinkedList<List<Collection<Supplier<String>>>>}
+	 * this method returns a list containing {@code [Collection.class, Supplier.class]}.
+	 *
+	 * @param genericType the list generic type
+	 * @return a list of the types of the list's elements
+	 */
+	private List<Class<?>> elementTypes(ParameterizedType genericType) {
+		List<Class<?>> storage = new ArrayList<>();
+		detectElementTypes(genericType, storage);
+		return storage;
 	}
 
 	/**
@@ -333,29 +366,40 @@ public final class ObjectConverter {
 	/**
 	 * Converts a collection of configurations to a collection of objects of the type dstBottomType.
 	 *
-	 * @param src           the collection of configs, may be nested, source
-	 * @param dst           the collection of objects, destination
-	 * @param dstBottomType the type of objects
+	 * @param src             the collection of configs, may be nested, source
+	 * @param dst             the collection of objects, destination
+	 * @param dstElementTypes the type of lists and objects in dst
 	 */
 	private void convertConfigsToObject(Collection<?> src,
 										Collection<Object> dst,
-										Class<?> dstBottomType) {
+										List<Class<?>> dstElementTypes,
+										int currentLevel) {
+		final Class<?> currentType = dstElementTypes.get(currentLevel);
 		for (Object elem : src) {
 			if (elem == null) {
 				dst.add(null);
 			} else if (elem instanceof Collection) {
-				ArrayList<Object> subList = new ArrayList<>();
-				convertConfigsToObject((Collection<?>)elem, subList, dstBottomType);
-				subList.trimToSize();
-				dst.add(subList);
+				final Collection<?> subSrc = (Collection<?>)elem;
+				final Collection<Object> subDst;
+
+				if (currentType == ArrayList.class
+					|| currentType.isInterface()
+					|| Modifier.isAbstract(currentType.getModifiers())) {
+
+					subDst = new ArrayList<>();
+				} else {
+					subDst = (Collection<Object>)createInstance(currentType);
+				}
+				convertConfigsToObject(subSrc, subDst, dstElementTypes, currentLevel + 1);
+				dst.add(subDst);
 			} else if (elem instanceof UnmodifiableConfig) {
-				Object elementObj = createInstance(dstBottomType);
-				convertToObject((UnmodifiableConfig)elem, elementObj, dstBottomType);
+				Object elementObj = createInstance(currentType);
+				convertToObject((UnmodifiableConfig)elem, elementObj, currentType);
 				dst.add(elementObj);
 			} else {
 				String elemType = elem.getClass().toString();
 				throw new InvalidValueException("Unexpected element of type " + elemType + " in collection of objects");
-							}
+			}
 		}
 	}
 
@@ -385,7 +429,7 @@ public final class ObjectConverter {
 				dst.add(subList);
 			} else {
 				String elemType = elem.getClass().toString();
-				throw new InvalidValueException("Unexpected element of type " + elemType + " in (maybe nested) collection of " + srcBottomType);
+				throw new InvalidValueException("Unexpected element of type " + elemType + " in collection of " + srcBottomType);
 			}
 		}
 	}

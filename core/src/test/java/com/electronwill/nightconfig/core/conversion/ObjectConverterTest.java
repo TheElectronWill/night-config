@@ -5,10 +5,7 @@ import com.electronwill.nightconfig.core.InMemoryFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -100,6 +97,9 @@ public class ObjectConverterTest {
 			assertSame(list2, object.subObject.stringList);
 			assertSame(config2, object.subObject.config);
 			assertNull(object.subObject.subObject);
+
+			assertTrue(object.nestedObjList3 instanceof LinkedList);
+			assertTrue(object.nestedObjList3.get(0) instanceof LinkedList);
 		}
 
 		System.out.println();
@@ -145,7 +145,7 @@ public class ObjectConverterTest {
 		List<String> stringList;
 		List<SomeObject> objList;
 		List<List<SomeObject>> nestedObjList2;
-		List<List<List<SomeObject>>> nestedObjList3;
+		LinkedList<LinkedList<Collection<SomeObject>>> nestedObjList3;
 		Config config;
 		MyObject subObject;
 
