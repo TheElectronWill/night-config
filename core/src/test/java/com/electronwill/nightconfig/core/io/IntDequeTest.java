@@ -4,6 +4,10 @@ import com.electronwill.nightconfig.core.utils.IntDeque;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 /**
  * @author TheElectronWill
  */
@@ -11,7 +15,7 @@ public class IntDequeTest {
 	private static IntDeque deque;
 
 	@BeforeEach
-	public void setUp() throws Exception {
+	public void setUp() {
 		deque = new IntDeque();
 	}
 
@@ -22,10 +26,10 @@ public class IntDequeTest {
 		for (int i = 0; i <= n; i++) {
 			deque.addLast(i);
 		}
-		deque.clear();//Remove all the elements
-		assert deque.isEmpty() : "The deque should be empty!";
-		deque.compact();//Compacts the deque
-		assert deque.isEmpty() : "The deque should still be empty!";
+		deque.clear(); // Removes all the elements
+		assertTrue(deque.isEmpty());
+		deque.compact(); // Compacts the deque
+		assertTrue(deque.isEmpty());
 
 		//ADD, REMOVE AND COMPACT
 		for (int i = 0; i <= n; i++) {
@@ -33,16 +37,17 @@ public class IntDequeTest {
 			System.out.println(i + " => " + deque.size());
 		}
 
-		deque.removeFirst();//Remove 1 element
-		assert !deque.isEmpty() : "The deque should NOT be empty!";
-		assert deque.size() == n : "Wrong size: " + deque.size();
+		deque.removeFirst(); // Removes 1 element
+		assertFalse(deque.isEmpty(), "The dequeue should NOT be empty!");
+		assertEquals(n, deque.size());
 
-		deque.compact();//Compact the deque
-		assert !deque.isEmpty() : "The deque should still NOT be empty!";
-		assert deque.size() == n : "Wrong size: " + deque.size();
+		deque.compact(); // Compacts the deque
+		assertFalse(deque.isEmpty(), "The dequeue should NOT be empty!");
+		assertEquals(n, deque.size());
 
 		deque.addLast(1234567890);
-		assert deque.size() == n + 1 : "Wrong size: " + deque.size();
+		assertFalse(deque.isEmpty(), "The dequeue should NOT be empty!");
+		assertEquals(n + 1, deque.size());
 	}
 
 	@Test
@@ -53,30 +58,30 @@ public class IntDequeTest {
 			deque.addLast(i);
 		}
 		//SIZE
-		assert !deque.isEmpty() : "The deque should not be empty!";
-		assert deque.size() == n + 1 : "Invalid size " + deque.size();
+		assertFalse(deque.isEmpty(), "The dequeue should NOT be empty!");
+		assertEquals(n + 1, deque.size());
 
 		//GETFIRST
 		int first = deque.getFirst();
 		System.out.println("got first " + first);
-		assert first == 0;
+		assertEquals(0, first);
 
 		//GETLAST
 		int last = deque.getLast();
 		System.out.println("got last " + last);
-		assert last == n;
+		assertEquals(n, last);
 
 		//GET
 		for (int i = 0; i <= n; i++) {
 			int e = deque.get(i);
 			System.out.println("got " + e);
-			assert e == i;
+			assertEquals(i, e);
 		}
 		//REMOVE
 		for (int i = 0; i <= n; i++) {
 			int e = deque.removeFirst();
 			System.out.println("removed " + e);
-			assert e == i;
+			assertEquals(i, e);
 		}
 	}
 
@@ -88,30 +93,30 @@ public class IntDequeTest {
 			deque.addFirst(i);
 		}
 		//SIZE
-		assert !deque.isEmpty() : "The deque should not be empty!";
-		assert deque.size() == n + 1 : "Invalid size " + deque.size();
+		assertFalse(deque.isEmpty(), "The dequeue should NOT be empty!");
+		assertEquals(n + 1, deque.size());
 
 		//GETFIRST
 		int first = deque.getFirst();
 		System.out.println("got first " + first);
-		assert first == n;
+		assertEquals(n, first);
 
 		//GETLAST
 		int last = deque.getLast();
 		System.out.println("got last " + last);
-		assert last == 0;
+		assertEquals(0, last);
 
 		//GET
 		for (int i = 0; i < n; i++) {
 			int e = deque.get(i);
 			System.out.println("got " + e);
-			assert e == n - i;
+			assertEquals(n-i, e);
 		}
 		//REMOVE
 		for (int i = 0; i < n; i++) {
 			int e = deque.removeFirst();
 			System.out.println("removed " + e);
-			assert e == n - i;
+			assertEquals(n-i, e);
 		}
 	}
 }

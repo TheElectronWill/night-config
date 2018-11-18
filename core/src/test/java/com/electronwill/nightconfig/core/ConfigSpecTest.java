@@ -4,6 +4,9 @@ import java.util.Arrays;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 /**
  * @author TheElectronWill
  */
@@ -28,11 +31,11 @@ class ConfigSpecTest {
 			config.set("a.s", "value");
 			config.set("a.list", Arrays.asList("hey", null, false, 1));
 
-			assert !spec.isCorrect(config);
+			assertFalse(spec.isCorrect(config));
 			System.out.println("Before correction: " + configToString(config));
 			spec.correct(config);
 			System.out.println("After correction: " + configToString(config));
-			assert spec.isCorrect(config) : "Config was not corrected correctly!";
+			assertTrue(spec.isCorrect(config), "spec.correct hasn't corrected the config properly");
 		}
 
 		{
@@ -44,11 +47,11 @@ class ConfigSpecTest {
 			config.set("a.s", "a");
 			config.set("a.list", Arrays.asList("test", ""));
 
-			assert spec.isCorrect(config);
+			assertTrue(spec.isCorrect(config));
 			System.out.println("Before correction: " + configToString(config));
 			spec.correct(config);
 			System.out.println("After correction: " + configToString(config));
-			assert spec.isCorrect(config) : "Config was not corrected correctly!";
+			assertTrue(spec.isCorrect(config), "spec.correct introduced errors in the config");
 		}
 	}
 

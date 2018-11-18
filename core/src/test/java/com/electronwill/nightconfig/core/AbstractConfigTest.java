@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
+import static java.lang.Math.PI;
+import static org.junit.jupiter.api.Assertions.*;
+
 /**
  * @author TheElectronWill
  */
@@ -17,42 +20,42 @@ public class AbstractConfigTest {
 		Config config = Config.inMemory();
 		config.set("true", true);
 		config.set("false", false);
-		assert config.<Boolean>get("true");
-		assert !config.<Boolean>get("false");
+		assertTrue(config.<Boolean>get("true"));
+		assertFalse(config.<Boolean>get("false"));
 
 		config.set("int", 1234567890);
-		assert config.<Integer>get("int") == 1234567890;
+		assertEquals(1234567890, (int)config.get("int"));
 
 		config.set("long", 123456789876543210L);
-		assert config.<Long>get("long") == 123456789876543210L;
+		assertEquals(123456789876543210L, (long)config.get("long"));
 
 		config.set("float", 1.23456789F);
-		assert config.<Float>get("float") == 1.23456789F;
+		assertEquals(1.23456789F, (float)config.get("float"));
 
-		config.set("double", Math.PI);
-		assert config.<Double>get("double") == Math.PI;
+		config.set("double", PI);
+		assertEquals(PI, (double)config.get("double"));
 
 		String string = "!!!???";
 		config.set("string", string);
-		assert config.<String>get("string") == string;
+		assertSame(string, config.get("string"));
 
 		List<String> stringList = Arrays.asList("a", "b", "c", "d");
 		config.set("stringList", stringList);
-		assert config.<List<String>>get("stringList") == stringList;
+		assertSame(stringList, config.get("stringList"));
 
 		Config subConfig = InMemoryFormat.withUniversalSupport().createConfig();
 		subConfig.set("string", "test!");
 		subConfig.set("subSubConfig.string", "another test!");
 		config.set("subConfig", subConfig);
-		assert config.<Config>get("subConfig") == subConfig;
-		assert config.<String>get("subConfig.string").equals("test!");
-		assert config.<String>get("subConfig.subSubConfig.string").equals("another test!");
+		assertSame(subConfig, config.get("subConfig"));
+		assertEquals("test!", config.get("subConfig.string"));
+		assertEquals("another test!", config.get("subConfig.subSubConfig.string"));
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("key in the map", "isn't in a config path");
 		config.set("map", map);
-		assert config.get("map") == map;
-		assert !config.contains("map.key in the map");
+		assertSame(map, config.get("map"));
+		assertFalse(config.contains("map.key in the map"));
 	}
 
 	@Test
@@ -65,67 +68,71 @@ public class AbstractConfigTest {
 
 		Config config = InMemoryFormat.withUniversalSupport().createConfig();
 		config.set(".a...a.", "value");
-		assert config.contains(".a...a.");
-		assert config.<String>get(".a...a.").equals("value");
+		assertTrue(config.contains(".a...a."));
+		assertEquals("value", config.get(".a...a."));
 
 		Map<String, Object> map = config.valueMap();
-		assert map.get("") instanceof Config;
+		assertTrue(map.get("") instanceof Config);
 		Config c1 = (Config)map.get("");
 		Config c2 = c1.get("a");
 		Config c3 = c2.get("");
 		Config c4 = c3.get("");
 		Config c5 = c4.get("a");
 		String value = c5.get("");
-		assert value.equals("value");
+		assertEquals("value", value);
 	}
 
 	@Test
 	public void size() {
 		Config config = InMemoryFormat.withUniversalSupport().createConfig();
 		config.set("a.b.c", "value");
-		config.set("pi", Math.PI);
+		config.set("pi", PI);
 
 		Config subConfig = InMemoryFormat.withUniversalSupport().createConfig();
 		subConfig.set("string", "test!");
 		config.set("subConfig", subConfig);
 
-		assert subConfig.size() == 1 : "Invalid subConfig size: " + subConfig.size();
-		assert config.size() == 3 : "Invalid config size: " + config.size();
+		assertEquals(1, subConfig.size());
+		assertEquals(3, config.size());
 	}
 
 	@Test
 	public void asMap() {
 		Config config = InMemoryFormat.withUniversalSupport().createConfig();
 		config.set("a.b.c", "value");
-		config.set("pi", Math.PI);
+		config.set("pi", PI);
 
 		Map<String, Object> map = config.valueMap();
-		assert map.size() == config.size();
+		assertEquals(map.size(), config.size());
 
-		assert map.get("pi") instanceof Double;
-		assert ((double)map.get("pi")) == Math.PI;
+		assertTrue(map.get("pi") instanceof Double);
+		assertEquals(PI, (double)map.get("pi"));
 
-		assert !map.containsKey("a.b.c");
-		assert map.get("a") instanceof Config;
+		assertFalse(map.containsKey("a.b.c"));
+		assertTrue(map.get("a") instanceof Config);
 
 		Config a = (Config)map.get("a");
-		assert a.size() == 1;
-		assert a.<String>get("b.c").equals("value");
+		assertEquals(1, a.size());
+		assertEquals("value", a.get("b.c"));
 	}
 
 	@Test
 	public void containsValue() {
 		Config config = InMemoryFormat.withUniversalSupport().createConfig();
 		config.set("a.b.c", "value");
-		assert config.contains("a");
+		assertTrue(config.contains("a"));
+		assertFalse(config.contains("b"));
+		assertTrue(config.contains("a.b"));
+		assertTrue(config.<Config>get("a").contains("b"));
+		assertFalse(config.contains("c"));
+		assertTrue(config.contains("a.b.c"));
+		assertEquals("value", config.<Config>get("a").<Config>get("b").get("c"));
 
-		assert !config.contains("b");
-		assert config.contains("a.b");
-
-		assert !config.contains("c");
-		assert config.contains("a.b.c");
-
+		assertFalse(config.contains("int"));
 		config.set("int", 12);
-		assert config.contains("int");
+		assertTrue(config.contains("int"));
+		assertEquals(12, (int)config.get("int"));
+		config.remove("int");
+		assertFalse(config.contains("int"));
 	}
 }

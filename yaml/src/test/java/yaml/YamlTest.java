@@ -11,6 +11,9 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 
 import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
+import static com.electronwill.nightconfig.core.file.FileNotFoundAction.THROW_ERROR;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 public class YamlTest {
 
@@ -33,13 +36,13 @@ public class YamlTest {
 		yamlFormat.createWriter().write(config, file, WritingMode.REPLACE);
 
 		Config parsed = yamlFormat.createConcurrentConfig();
-		yamlFormat.createParser().parse(file, parsed, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
+		yamlFormat.createParser().parse(file, parsed, ParsingMode.REPLACE, THROW_ERROR);
 		System.out.println("\nParsed: " + parsed);
 		System.out.println("classOf[sub] = " + parsed.get("sub").getClass());
-		assert parsed.get("sub.null") == null;
-		assert parsed.get("sub.nullObject") == null;
-		assert parsed.valueMap().get("null") == NULL_OBJECT;
-		assert parsed.valueMap().get("nullObject") == NULL_OBJECT;
+		assertNull(parsed.get("sub.null"));
+		assertNull(parsed.get("sub.nullObject"));
+		assertSame(NULL_OBJECT, parsed.valueMap().get("null"));
+		assertSame(NULL_OBJECT,parsed.valueMap().get("nullObject"));
 
 		Assertions.assertEquals(config, parsed, "Error: written != parsed");
 	}

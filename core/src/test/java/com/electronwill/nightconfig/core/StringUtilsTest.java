@@ -2,9 +2,12 @@ package com.electronwill.nightconfig.core;
 
 import com.electronwill.nightconfig.core.utils.StringUtils;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author TheElectronWill
@@ -13,12 +16,11 @@ public class StringUtilsTest {
 	@Test
 	public void split() throws Exception {
 		List<String> split1 = StringUtils.split("a.b.c", '.');
-		assert split1.equals(Arrays.asList("a", "b", "c")) : "Invalid split1: " + split1;
+		assertEquals(Arrays.asList("a", "b", "c"), split1);
 
 		List<String> split2 = new LinkedList<>();
 		StringUtils.split("some spaces here but no separator!", '.', split2);
-		assert split2.equals(Arrays.asList("some spaces here but no separator!")) : "Invalid split2: " +
-			split2;
+		assertEquals(Collections.singletonList("some spaces here but no separator!"), split2);
 	}
 
 	@Test

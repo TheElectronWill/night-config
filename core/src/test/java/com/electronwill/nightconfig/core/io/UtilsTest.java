@@ -9,9 +9,9 @@ class UtilsTest {
 
 	@Test
 	void parseLong() {
-		Assertions.assertEquals(123456789L, Utils.parseLong(new CharsWrapper("123456789"), 10));
-		Assertions.assertEquals(0, Utils.parseLong(new CharsWrapper("0"), 10));
-		Assertions.assertEquals(-123456789L, Utils.parseLong(new CharsWrapper("-123456789"), 10));
-		Assertions.assertEquals(0xff, Utils.parseLong(new CharsWrapper("ff"), 16));
+		assertEquals(123456789L, Utils.parseLong(new CharsWrapper("123456789"), 10));
+		assertEquals(0, Utils.parseLong(new CharsWrapper("0"), 10));
+		assertEquals(-123456789L, Utils.parseLong(new CharsWrapper("-123456789"), 10));
+		assertEquals(0xff, Utils.parseLong(new CharsWrapper("ff"), 16));
 	}
 }

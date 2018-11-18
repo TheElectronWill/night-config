@@ -22,6 +22,8 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 /**
  * @author TheElectronWill
  */
@@ -56,7 +58,7 @@ public class JsonConfigTest {
 			config.set("double", d);
 			Thread.sleep(10);
 			System.out.println(i + ":" + d);
-			Assertions.assertEquals(d, config.<Double>get("double").doubleValue());
+			assertEquals(d, config.<Double>get("double").doubleValue());
 		}
 		for (int i = 0; i < 1000; i++) {
 			config.set("double", 0.123456);
@@ -90,8 +92,8 @@ public class JsonConfigTest {
 	public void testReadEmptyObject() throws IOException {
 		Config conf = new JsonParser().parse("{}");
 		System.out.println(conf);
-		Assertions.assertTrue(conf.isEmpty());
-		Assertions.assertThrows(ParsingException.class, () -> {
+		assertTrue(conf.isEmpty());
+		assertThrows(ParsingException.class, () -> {
 			new JsonParser().parse("{\"this\":12, }");
 		});
 	}
@@ -104,7 +106,7 @@ public class JsonConfigTest {
 		config.close();
 		Config conf = new JsonParser().parse(f, FileNotFoundAction.THROW_ERROR);
 		System.out.println(conf);
-		Assertions.assertTrue(conf.isEmpty());
+		assertTrue(conf.isEmpty());
 		System.out.println("tmp.json:\n" + Files.readAllLines(f.toPath()).get(0));
 		f.delete();
 	}
@@ -112,34 +114,34 @@ public class JsonConfigTest {
 	@Test
 	public void testEmptyDataTolerance() throws IOException {
 		File f = new File("empty.json");
-		Assertions.assertEquals(0, f.length());
+		assertEquals(0, f.length());
 
 		FileConfig cDefault = FileConfig.of(f);
-		Assertions.assertThrows(ParsingException.class, cDefault::load);
+		assertThrows(ParsingException.class, cDefault::load);
 
 		JsonFormat<?> f1 = JsonFormat.fancyInstance();
 		FileConfig c1 = FileConfig.of(f, f1);
-		Assertions.assertThrows(ParsingException.class, c1::load);
+		assertThrows(ParsingException.class, c1::load);
 
 		JsonFormat<?> f2 = JsonFormat.emptyTolerantInstance();
 		FileConfig c2 = FileConfig.of(f, f2);
 		c2.load();
-		Assertions.assertTrue(c2.isEmpty());
+		assertTrue(c2.isEmpty());
 
-		Assertions.assertEquals(0, f.length());
+		assertEquals(0, f.length());
 
-		Assertions.assertThrows(ParsingException.class, ()->new JsonParser().parse(""));
+		assertThrows(ParsingException.class, ()->new JsonParser().parse(""));
 		new JsonParser().setEmptyDataAccepted(true).parse("");
 	}
 
 	@Test
 	public void testEmptyArray() throws IOException {
 		List<?> list = new JsonParser().parseList("[]");
-		Assertions.assertEquals(0, list.size());
+		assertEquals(0, list.size());
 
 		Object obj = new JsonParser().parseDocument("[]");
-		Assertions.assertTrue(obj instanceof List);
-		Assertions.assertEquals(0, ((List<?>)obj).size());
+		assertTrue(obj instanceof List);
+		assertEquals(0, ((List<?>)obj).size());
 	}
 
 	@Test
@@ -148,31 +150,31 @@ public class JsonConfigTest {
 		for (Object o : l) {
 			System.out.println(o + ":" + o.getClass());
 		}
-		Assertions.assertSame(l.get(0).getClass(), Integer.class);
-		Assertions.assertSame(l.get(1).getClass(), Integer.class);
-		Assertions.assertSame(l.get(2).getClass(), Integer.class);
-		Assertions.assertSame(l.get(3).getClass(), Long.class);
+		assertSame(l.get(0).getClass(), Integer.class);
+		assertSame(l.get(1).getClass(), Integer.class);
+		assertSame(l.get(2).getClass(), Integer.class);
+		assertSame(l.get(3).getClass(), Long.class);
 	}
 
 	@Test
 	public void testNestedArrays() throws IOException {
 		List<?> a1 = new JsonParser().parseList("[[true, true], [false, false]]");
-		Assertions.assertEquals("[[true, true], [false, false]]", a1.toString());
+		assertEquals("[[true, true], [false, false]]", a1.toString());
 
 		List<?> a2 = new JsonParser().parseList("[[[ [[],[    ]] ]]]");
-		Assertions.assertEquals("[[[[[], []]]]]", a2.toString());
+		assertEquals("[[[[[], []]]]]", a2.toString());
 	}
 
 	@Test
 	public void testNestedObjects() throws IOException {
 		Config a1 = new JsonParser().parse("{\"1\":{\"a\":\"va\"}, \"2\":{\"b\":\"vb\", \"a\":17}}");
-		Assertions.assertEquals("va", a1.get("1.a"));
-		Assertions.assertEquals("vb", a1.get("2.b"));
-		Assertions.assertEquals(Integer.valueOf(17), a1.get("2.a"));
+		assertEquals("va", a1.get("1.a"));
+		assertEquals("vb", a1.get("2.b"));
+		assertEquals(Integer.valueOf(17), a1.get("2.a"));
 
 		Config a2 = new JsonParser().parse("{\"a\":{\"b\":{ \"c\": {\"d\":{},\"e\":{    }} }}}");
-		Assertions.assertTrue(a2.<Config>get("a.b.c.d").isEmpty());
-		Assertions.assertTrue(a2.<Config>get("a.b.c.e").isEmpty());
+		assertTrue(a2.<Config>get("a.b.c.d").isEmpty());
+		assertTrue(a2.<Config>get("a.b.c.e").isEmpty());
 	}
 
 	@Test
