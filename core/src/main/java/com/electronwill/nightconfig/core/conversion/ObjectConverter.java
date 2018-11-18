@@ -118,8 +118,10 @@ public final class ObjectConverter {
 	 * Converts an Object to a Config. The {@link #bypassTransient} setting applies.
 	 */
 	private void convertToConfig(Object object, Class<?> clazz, Config destination) {
+		// This loop walks through the class hierarchy, see clazz = clazz.getSuperclass(); at the end
 		while (clazz != Object.class) {
 			for (Field field : clazz.getDeclaredFields()) {
+				// --- Checks modifiers ---
 				final int fieldModifiers = field.getModifiers();
 				if (object == null && Modifier.isStatic(fieldModifiers)) {
 					continue;// Don't process static fields of object instances
@@ -130,6 +132,8 @@ public final class ObjectConverter {
 				if (!field.isAccessible()) {
 					field.setAccessible(true);// Enforces field access if needed
 				}
+
+				// --- Applies annotations ---
 				Object value;
 				try {
 					value = field.get(object);
@@ -145,6 +149,7 @@ public final class ObjectConverter {
 				List<String> path = AnnotationUtils.getPath(field);
 				ConfigFormat<?> format = destination.configFormat();
 
+				// --- Writes the value to the configuration ---
 				if (value == null) {
 					destination.set(path, null);
 				} else {
@@ -156,20 +161,20 @@ public final class ObjectConverter {
 						convertToConfig(value, valueType, converted);
 						destination.set(path, converted);
 					} else if (value instanceof List) {
-						// Check that the ConfigFormat supports the type of the elements of the list
+						// Checks that the ConfigFormat supports the type of the elements of the list
 						List<?> src = (List<?>)value;
 						Class<?> bottomType = bottomElementType(src);
 						if (format.supportsType(bottomType)) {
 							// Everything is supported, no conversion needed
 							destination.set(path, value);
 						} else {
-							// List of complex objects, the bottom elements need conversion
+							// List of complex objects => the bottom elements need conversion
 							List<Object> dst = new ArrayList<>(src.size());
 							convertListToConfigs(src, bottomType, dst, destination);
 							destination.set(path, dst);
 						}
 					} else {
-						// Simple value writing
+						// Simple value
 						destination.set(path, value);
 					}
 				}
@@ -183,39 +188,39 @@ public final class ObjectConverter {
 	 * settings apply.
 	 */
 	private void convertToObject(UnmodifiableConfig config, Object object, Class<?> clazz) {
+		// This loop walks through the class hierarchy, see clazz = clazz.getSuperclass(); at the end
 		while (clazz != Object.class) {
 			for (Field field : clazz.getDeclaredFields()) {
+				// --- Checks modifiers ---
 				final int fieldModifiers = field.getModifiers();
 				if (object == null && Modifier.isStatic(fieldModifiers)) {
 					continue;// Don't process static fields of object instances
 				}
 				if (bypassFinal || !Modifier.isFinal(fieldModifiers)) {
-					field.setAccessible(true);// Enforces field access if needed
+					field.setAccessible(true);// Enforces field access if needed AND configured so
 				} else {
 					continue;// Don't process final fields if configured so
 				}
 				if (!bypassTransient && Modifier.isTransient(fieldModifiers)) {
 					continue;// Don't process transient fields if configured so
 				}
-				if (!field.isAccessible()) {
-					field.setAccessible(true);// Enforces field access if needed
-				}
+
+				// --- Applies annotations ---
 				List<String> path = AnnotationUtils.getPath(field);
 				Object value = config.get(path);
 				Converter<Object, Object> converter = AnnotationUtils.getConverter(field);
 				if (converter != null) {
 					value = converter.convertToField(value);
 				}
-	
-				Class<?> fieldType = field.getType();
 
-				// ------
+				// --- Writes the value to the object's field, converting it if needed ---
+				Class<?> fieldType = field.getType();
 				try {
 					if (value instanceof UnmodifiableConfig && !(fieldType.isAssignableFrom(value.getClass()))) {
-						// -- Read as a sub-object --
+						// --- Read as a sub-object ---
 						final UnmodifiableConfig cfg = (UnmodifiableConfig)value;
 	
-						// Get or create the field and convert it (if field is null OR not preserved):
+						// Gets or creates the field and convert it (if null OR not preserved)
 						Object fieldValue = field.get(object);
 						if (fieldValue == null) {
 							fieldValue = createInstance(fieldType);
@@ -224,11 +229,13 @@ public final class ObjectConverter {
 						} else if (!AnnotationUtils.mustPreserve(field, clazz)) {
 							convertToObject(cfg, fieldValue, field.getType());
 						}
+
 					} else if (value instanceof List && fieldType.isAssignableFrom(List.class)) {
 						// --- Reads as a list, maybe a list of objects with conversion ---
 						final List<?> src = (List<?>)value;
-						Class<?> srcBottomType = bottomElementType(src);
-						Class<?> dstBottomType = bottomElementType((ParameterizedType)field.getGenericType());
+						final ParameterizedType genericType = (ParameterizedType)field.getGenericType();
+						final Class<?> srcBottomType = bottomElementType(src);
+						final Class<?> dstBottomType = bottomElementType(genericType);
 
 						if (srcBottomType == null
 							|| dstBottomType == null
@@ -237,30 +244,31 @@ public final class ObjectConverter {
 							// Simple list, no conversion needed
 							AnnotationUtils.checkField(field, value);
 							field.set(object, value);
-						} else {
-							// List of objects, the bottom elements need conversion
 
-							// Use the current field value if there is one, or create a new list
-							List dst = (List)field.get(object);
+						} else {
+							// List of objects => the bottom elements need conversion
+
+							// Uses the current field value if there is one, or create a new list
+							List<Object> dst = (List<Object>)field.get(object);
 							if (dst == null) {
 								if (fieldType == List.class
 									|| fieldType == ArrayList.class
 									|| fieldType == Collection.class) {
-									dst = new ArrayList(src.size());// allocates the right size
+									dst = new ArrayList<>(src.size());// allocates the right size
 								} else {
-									dst = (List)createInstance(fieldType);
+									dst = (List<Object>)createInstance(fieldType);
 								}
 								field.set(object, dst);
 							}
 
-							// Convert the elements of the list
+							// Converts the elements of the list
 							convertListToObjects(src, dst, dstBottomType);
 
-							// Apply the checks
+							// Applies the checks
 							AnnotationUtils.checkField(field, dst);
 						}
 					} else {
-						// Read as a plain value
+						// --- Read as a plain value ---
 						if (value == null && AnnotationUtils.mustPreserve(field, clazz)) {
 							AnnotationUtils.checkField(field, field.get(object));
 						} else {
@@ -277,28 +285,12 @@ public final class ObjectConverter {
 	}
 
 	/**
-	 * Checks if the given generic type represents a list of configs, or a list of lists of configs,
-	 * or a list of lists of lists of ... of configs.
-	 */
-	private boolean isListOfConfig(ParameterizedType genericType) {
-		if (genericType != null && genericType.getActualTypeArguments().length > 0) {
-			Type parameter = genericType.getActualTypeArguments()[0];
-			if ((parameter instanceof Class)) {
-				return ((Class<?>)parameter).isAssignableFrom(UnmodifiableConfig.class);
-			}
-			if (parameter instanceof ParameterizedType) {
-				ParameterizedType genericParameter = (ParameterizedType)parameter;
-				Class<?> paramClass = (Class<?>)genericParameter.getRawType();
-				return paramClass.isAssignableFrom(List.class) && isListOfConfig(genericParameter);
-			}
-		}
-		return false;
-	}
-
-	/**
+	 * Gets the type of the "bottom element" of a list.
+	 * For instance, for {@code LinkedList<List<List<Supplier<String>>>>}
+	 * this method returns the class {@code Supplier}.
 	 *
-	 * @param genericType
-	 * @return
+	 * @param genericType the generic list type
+	 * @return the type of the elements of the most nested list
 	 */
 	private Class<?> bottomElementType(ParameterizedType genericType) {
 		if (genericType != null && genericType.getActualTypeArguments().length > 0) {
@@ -320,9 +312,12 @@ public final class ObjectConverter {
 	}
 
 	/**
+	 * Gets the type of the "bottom element" of a list.
+	 * For instance, for a list {@code [["string"], ["another string"]]}
+	 * this method returns the class {@code String}.
 	 *
-	 * @param list
-	 * @return
+	 * @param list the list object
+	 * @return the type of the elements of the most nested list
 	 */
 	private Class<?> bottomElementType(List<?> list) {
 		for (Object elem : list) {
@@ -335,12 +330,18 @@ public final class ObjectConverter {
 		return null;
 	}
 
+	/**
+	 * Converts a list of configurations to a list of objects of the type dstBottomType.
+	 *
+	 * @param src           the list of configs, may be nested, source
+	 * @param dst           the list of objects, destination
+	 * @param dstBottomType the type of objects
+	 */
 	private void convertListToObjects(List<?> src, List<Object> dst, Class<?> dstBottomType) {
 		for (Object elem : src) {
 			if (elem == null) {
 				dst.add(null);
-			}
-			if (elem instanceof List) {
+			} else if (elem instanceof List) {
 				ArrayList<Object> subList = new ArrayList<>();
 				convertListToObjects((List<?>)elem, subList, dstBottomType);
 				subList.trimToSize();
@@ -356,6 +357,14 @@ public final class ObjectConverter {
 		}
 	}
 
+	/**
+	 * Converts a list of objects of the type srcBottomType to a list of configurations.
+	 *
+	 * @param src           the list of objects, may be nested, source
+	 * @param srcBottomType the type of objects
+	 * @param dst           the list of configs, destination
+	 * @param parentConfig  the parent configuration, used to create the new configs to put in dst
+	 */
 	private void convertListToConfigs(List<?> src,
 									  Class<?> srcBottomType,
 									  List<Object> dst,
@@ -386,17 +395,16 @@ public final class ObjectConverter {
 	 * @param tClass the class to create an instance of
 	 * @param <T>    the class's type
 	 * @return a new instance of the class
-	 *
 	 * @throws ReflectionException if the class doesn't have a constructor without arguments, or if
 	 *                             the constructor cannot be accessed, or for another reason.
 	 */
 	private <T> T createInstance(Class<T> tClass) {
 		try {
-			Constructor<T> constructor = tClass.getDeclaredConstructor();//constructor without parameters
-			if (!constructor.isAccessible()) {
-				constructor.setAccessible(true);//forces the constructor to be accessible
+			Constructor<T> ctor = tClass.getDeclaredConstructor(); // constructor without params
+			if (!ctor.isAccessible()) {
+				ctor.setAccessible(true); // forces the constructor to be accessible
 			}
-			return constructor.newInstance();//calls the constructor
+			return ctor.newInstance(); // calls the constructor
 		} catch (ReflectiveOperationException ex) {
 			throw new ReflectionException("Unable to create an instance of " + tClass, ex);
 		}
