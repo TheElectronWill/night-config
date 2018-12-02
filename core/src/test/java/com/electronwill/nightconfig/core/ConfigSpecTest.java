@@ -15,6 +15,8 @@ class ConfigSpecTest {
 	@Test
 	public void test() {
 		ConfigSpec spec = new ConfigSpec();
+		spec.define("a.b.string", "");
+		spec.define("a.b.int", 20);
 		spec.defineInRange("a.i", 0, -20, 20);
 		spec.defineInRange("a.l", 0, -20, 20);
 		spec.defineInRange("a.f", 0.1f, -0.2f, 0.2f);
@@ -40,12 +42,14 @@ class ConfigSpecTest {
 
 		{
 			Config config = Config.inMemory();
+			config.set("a.b.string", "some string");
+			config.set("a.b.int", 123456789);
 			config.set("a.i", 18);
 			config.set("a.l", 18);
 			config.set("a.f", 0.15f);
 			config.set("a.d", -0.09);
 			config.set("a.s", "a");
-			config.set("a.list", Arrays.asList("test", ""));
+			config.set("a.list", Arrays.asList("test", "", "."));
 
 			assertTrue(spec.isCorrect(config));
 			System.out.println("Before correction: " + configToString(config));

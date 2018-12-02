@@ -529,8 +529,7 @@ public class ConfigSpec {
 	 * @return the number of added, removed or replaced values.
 	 */
 	public int correct(Config config, CorrectionListener listener) {
-		return correct(config.valueMap(), storage.valueMap(), new ArrayList<>(), listener,
-					   config::createSubConfig);
+		return correct(config.valueMap(), storage.valueMap(), new ArrayList<>(), listener, config::createSubConfig);
 	}
 
 	/**
@@ -542,34 +541,38 @@ public class ConfigSpec {
 	 * @param listener   the listener to notify of each correction
 	 * @return the number of added, removed of replaced values.
 	 */
-	private int correct(Map<String, Object> configMap, Map<String, Object> specMap,
-						List<String> parentPath, CorrectionListener listener,
+	private int correct(Map<String, Object> configMap,
+						Map<String, Object> specMap,
+						List<String> parentPath,
+						CorrectionListener listener,
 						Supplier<Config> subConfigSupplier) {
 		int count = 0;
 		// First step: replaces the incorrect values and add the missing ones
 		for (Map.Entry<String, Object> specEntry : specMap.entrySet()) {
 			final String key = specEntry.getKey();
 			final Object specValue = specEntry.getValue();
-			final Object configValue = configMap.get(key);
+
+			Object configValue = configMap.get(key);
 			if (specValue instanceof Config) {// sublevel that contains ValueSpecs, or other sublevels
-				if (configValue instanceof Config) {//Existing sublevel
-					// Checks the sublevel recursively:
-					parentPath.add(key);
-					Map<String, Object> configValueMap = ((Config)configValue).valueMap();
-					Map<String, Object> specValueMap = ((Config)specValue).valueMap();
-					count += correct(configValueMap, specValueMap, parentPath, listener,
-									 subConfigSupplier);
-					parentPath.remove(parentPath.size() - 1);
-				} else {// Missing or invalid (ie not a Config) sublevel
+				if (!(configValue instanceof Config)) {// Missing or invalid (ie not a Config) sublevel
 					// Creates the sublevel in the config:
-					Object newValue = subConfigSupplier.get();
+					Config newValue = subConfigSupplier.get();
 					configMap.put(key, newValue);
 					// Notifies the listener:
 					CorrectionAction correctionAction = (configValue == null) ? ADD : REPLACE;
 					handleCorrection(parentPath, key, configValue, newValue, listener,
 									 correctionAction);
 					count++;
+					configValue = newValue;
 				}
+				// Existing or added sublevel
+				// Checks the sublevel recursively:
+				parentPath.add(key);
+				Map<String, Object> configValueMap = ((Config)configValue).valueMap();
+				Map<String, Object> specValueMap = ((Config)specValue).valueMap();
+				count += correct(configValueMap, specValueMap, parentPath, listener, subConfigSupplier);
+				parentPath.remove(parentPath.size() - 1);
+
 			} else {
 				ValueSpec valueSpec = (ValueSpec)specValue;
 				if (!valueSpec.validator.test(configValue)) {
