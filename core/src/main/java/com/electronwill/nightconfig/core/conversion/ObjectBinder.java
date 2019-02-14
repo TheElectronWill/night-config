@@ -119,8 +119,8 @@ public final class ObjectBinder {
 			if (!bypassTransient && Modifier.isTransient(fieldModifiers)) {
 				continue;// Don't process transient fields if configured so
 			}
-			if (!field.isAccessible()) {
-				field.setAccessible(true);// Enforces field access if needed
+			if (!field.trySetAccessible()) { // Enforces field access if needed
+				throw new ReflectionException("Unable to access field " + field);
 			}
 			List<String> path = AnnotationUtils.getPath(field);
 			FieldInfos fieldInfos;

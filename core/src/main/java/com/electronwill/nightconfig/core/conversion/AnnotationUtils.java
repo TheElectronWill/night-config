@@ -44,8 +44,8 @@ final class AnnotationUtils {
 			try {
 				Constructor<? extends Converter> constructor = conversion.value()
 																		 .getDeclaredConstructor();
-				if (!constructor.isAccessible()) {
-					constructor.setAccessible(true);
+				if (!constructor.trySetAccessible()) {
+					throw new ReflectionException("Unable to access constructor " + constructor);
 				}
 				return (Converter<Object, Object>)constructor.newInstance();
 			} catch (ReflectiveOperationException ex) {

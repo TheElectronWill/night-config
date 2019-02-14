@@ -129,8 +129,8 @@ public final class ObjectConverter {
 				if (!bypassTransient && Modifier.isTransient(fieldModifiers)) {
 					continue;// Don't process transient fields if configured so
 				}
-				if (!field.isAccessible()) {
-					field.setAccessible(true);// Enforces field access if needed
+				if (!field.trySetAccessible()) { // Enforces field access if needed
+					throw new ReflectionException("Unable to access field " + field);
 				}
 
 				// --- Applies annotations ---
@@ -447,8 +447,8 @@ public final class ObjectConverter {
 	private <T> T createInstance(Class<T> tClass) {
 		try {
 			Constructor<T> ctor = tClass.getDeclaredConstructor(); // constructor without params
-			if (!ctor.isAccessible()) {
-				ctor.setAccessible(true); // forces the constructor to be accessible
+			if (!ctor.trySetAccessible()) { // forces the constructor to be accessible
+				throw new ReflectionException("Unable to make access constructor " + ctor);
 			}
 			return ctor.newInstance(); // calls the constructor
 		} catch (ReflectiveOperationException ex) {
