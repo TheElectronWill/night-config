@@ -382,7 +382,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 
 	@Override
 	public Iterator<Character> iterator() {
-		return new Iterator<Character>() {
+		return new Iterator<>() {
 			private int index = offset;
 
 			@Override

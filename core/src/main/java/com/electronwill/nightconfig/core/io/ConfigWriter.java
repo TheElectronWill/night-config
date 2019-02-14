@@ -5,13 +5,11 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.EnumSet;
 
 import static java.nio.file.StandardOpenOption.*;
 

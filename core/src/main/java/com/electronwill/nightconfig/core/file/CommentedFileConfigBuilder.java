@@ -5,8 +5,6 @@ import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.io.ParsingMode;
 import com.electronwill.nightconfig.core.io.WritingMode;
 
-import java.io.File;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 

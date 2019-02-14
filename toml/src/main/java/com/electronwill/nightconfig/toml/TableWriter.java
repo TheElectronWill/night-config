@@ -5,7 +5,7 @@ import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.CharacterOutput;
 import com.electronwill.nightconfig.core.io.WritingException;
-import com.electronwill.nightconfig.core.utils.FakeUnmodifiableCommentedConfig;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

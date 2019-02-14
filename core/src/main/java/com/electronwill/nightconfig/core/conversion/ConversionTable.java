@@ -14,8 +14,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
-
 /**
  * Contains conversions functions organized by value's type. A ConversionTable grows as necessary.
  *
@@ -171,10 +169,10 @@ public final class ConversionTable implements Cloneable {
 	 * @return a wrapper that converts the config's values using this conversion table.
 	 */
 	public UnmodifiableConfig wrap(UnmodifiableConfig config) {
-		return new UnmodifiableConfigWrapper<UnmodifiableConfig>(config) {
+		return new UnmodifiableConfigWrapper<>(config) {
 			@Override
 			public <T> T getRaw(List<String> path) {
-				return (T)convert(config.getRaw(path));
+				return (T) convert(config.getRaw(path));
 			}
 
 			@Override
@@ -192,7 +190,7 @@ public final class ConversionTable implements Cloneable {
 
 					@Override
 					public <T> T getRawValue() {
-						return (T)convert(entry.getRawValue());
+						return (T) convert(entry.getRawValue());
 					}
 				};
 				return new TransformingSet<>(config.entrySet(), readTransfo, o -> null, e -> e);

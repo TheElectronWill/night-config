@@ -1,7 +1,6 @@
 package yaml;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.io.ParsingMode;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import com.electronwill.nightconfig.yaml.YamlFormat;

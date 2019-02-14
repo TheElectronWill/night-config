@@ -19,7 +19,6 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,7 +36,7 @@ public class JsonConfigTest {
 
 		config.set("string", "This is a string with a lot of characters to escape \n\r\t \\ \" ");
 		config.set("int", 123456);
-		config.set("long", 1234567890l);
+		config.set("long", 1234567890L);
 		config.set("float", 0.123456f);
 		config.set("double", 0.123456d);
 		config.set("config", config2);

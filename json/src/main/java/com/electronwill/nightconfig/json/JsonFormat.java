@@ -15,7 +15,7 @@ import java.io.Writer;
  */
 public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat<Config> {
 
-	private static final JsonFormat<FancyJsonWriter> FANCY = new JsonFormat<FancyJsonWriter>() {
+	private static final JsonFormat<FancyJsonWriter> FANCY = new JsonFormat<>() {
 		@Override
 		public FancyJsonWriter createWriter() {
 			return new FancyJsonWriter();
@@ -26,7 +26,7 @@ public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat
 			return new JsonParser(this);
 		}
 	};
-	private static final JsonFormat<MinimalJsonWriter> MINIMAL = new JsonFormat<MinimalJsonWriter>() {
+	private static final JsonFormat<MinimalJsonWriter> MINIMAL = new JsonFormat<>() {
 		@Override
 		public MinimalJsonWriter createWriter() {
 			return new MinimalJsonWriter();
@@ -56,7 +56,7 @@ public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat
 	 * @return an instance of JsonFormat with a parser that accepts empty inputs and a fancy writer
 	 */
 	public static JsonFormat<FancyJsonWriter> emptyTolerantInstance() {
-		return new JsonFormat<FancyJsonWriter>() {
+		return new JsonFormat<>() {
 			@Override
 			public FancyJsonWriter createWriter() {
 				return new FancyJsonWriter();
@@ -73,7 +73,7 @@ public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat
 	 * @return an instance of JsonFormat with a parser that accepts empty inputs and a minimal writer
 	 */
 	public static JsonFormat<MinimalJsonWriter> minimalEmptyTolerantInstance() {
-		return new JsonFormat<MinimalJsonWriter>() {
+		return new JsonFormat<>() {
 			@Override
 			public MinimalJsonWriter createWriter() {
 				return new MinimalJsonWriter();
