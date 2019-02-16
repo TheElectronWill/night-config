@@ -1,5 +1,5 @@
-module com.electronwill.night.config.toml {
-	requires transitive com.electronwill.night.config.core;
+module com.electronwill.nightconfig.toml {
+	requires transitive com.electronwill.nightconfig.core;
 
 	exports com.electronwill.nightconfig.toml;
 }

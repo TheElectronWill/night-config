@@ -1,5 +1,5 @@
-module com.electronwill.night.config.yaml {
-	requires transitive com.electronwill.night.config.core;
+module com.electronwill.nightconfig.yaml {
+	requires transitive com.electronwill.nightconfig.core;
 	requires java.sql;
 	requires snakeyaml;
 

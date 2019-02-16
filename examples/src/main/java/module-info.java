@@ -1,5 +1,5 @@
-module com.electronwill.night.config.examples {
-	requires com.electronwill.night.config.core;
-	requires com.electronwill.night.config.toml;
-	requires com.electronwill.night.config.json;
+module com.electronwill.nightconfig.examples {
+	requires com.electronwill.nightconfig.core;
+	requires com.electronwill.nightconfig.toml;
+	requires com.electronwill.nightconfig.json;
 }

@@ -1,5 +1,5 @@
-module com.electronwill.night.config.json {
-	requires transitive com.electronwill.night.config.core;
+module com.electronwill.nightconfig.json {
+	requires transitive com.electronwill.nightconfig.core;
 
 	exports com.electronwill.nightconfig.json;
 }

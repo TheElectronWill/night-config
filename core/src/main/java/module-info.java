@@ -1,4 +1,4 @@
-module com.electronwill.night.config.core {
+module com.electronwill.nightconfig.core {
 	exports com.electronwill.nightconfig.core;
 	exports com.electronwill.nightconfig.core.conversion;
 	exports com.electronwill.nightconfig.core.file;
