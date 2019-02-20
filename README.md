@@ -45,7 +45,7 @@ config.close(); // Close the FileConfig once you're done with it :)
 # Project building
 NightConfig is built with Gradle. The project is divided in several modules, the "core" module plus one module per supported configuration format.
 
-The releases are available on [Maven Central](https://search.maven.org/beta/search?q=com.electronwill.night-config) and [JitPack](https://jitpack.io/#TheElectronWill/Night-Config).
+The releases are available on [Maven Central](https://search.maven.org/search?q=com.electronwill.night-config) and [JitPack](https://jitpack.io/#TheElectronWill/Night-Config).
 
 # Android
 Older versions of Android don't provide the packages `java.util.function` and `java.nio.file`, which
