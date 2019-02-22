@@ -2,8 +2,12 @@ package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.CharacterOutput;
+import com.electronwill.nightconfig.core.io.WritingException;
+
 import java.time.temporal.Temporal;
 import java.util.List;
+
+import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 
 /**
  * @author TheElectronWill
@@ -24,16 +28,16 @@ final class ValueWriter {
 			} else {// Normal array
 				ArrayWriter.write((List<?>)value, output, writer);
 			}
-		} else if (value instanceof String) {
-			String string = (String)value;
+		} else if (value instanceof CharSequence) {// String
+			String string = ((CharSequence)value).toString();
 			if (writer.writesLiteral(string)) {
 				StringWriter.writeLiteral(string, output);
 			} else {
 				StringWriter.writeBasic(string, output);
 			}
-		} else if (value instanceof Temporal) {
+		} else if (value instanceof Temporal) {// Date or DateTime
 			TemporalWriter.write((Temporal)value, output);
-		} else if (value instanceof Float || value instanceof Double) {
+		} else if (value instanceof Float || value instanceof Double) {// Floating-point number
 			double d = (double)value;
 			if (Double.isNaN(d)) {
 				output.write("nan");
@@ -44,9 +48,12 @@ final class ValueWriter {
 			} else {
 				output.write(value.toString());
 			}
-		} else {
-			// Note: TOML doesn't support null values
+		} else if (value instanceof Integer || value instanceof Long || value instanceof Boolean) {
 			output.write(value.toString());
+		} else if (value == null || value == NULL_OBJECT) {
+			throw new WritingException("TOML doesn't support null values");
+		} else {
+			throw new WritingException("Unsupported value type: " + value.getClass());
 		}
 	}
 
