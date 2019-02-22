@@ -7,6 +7,10 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import com.electronwill.nightconfig.core.NullObject;
+import com.electronwill.nightconfig.core.io.WritingException;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -15,7 +19,7 @@ import org.junit.jupiter.api.Test;
 public class TomlWriterTest {
 
 	@Test
-	public void writeToString() throws IOException {
+	public void writeToString() {
 		Config subConfig = TomlFormat.instance().createConfig();
 		subConfig.set("string", "test");
 		subConfig.set("dateTime", ZonedDateTime.now());
@@ -43,5 +47,17 @@ public class TomlWriterTest {
 
 		System.out.println("Written:");
 		System.out.println(stringWriter);
+	}
+
+	@Test
+	public void noNulls() {
+		Config config = TomlFormat.newConfig();
+		config.set("null", null);
+		Assertions.assertThrows(WritingException.class,
+			() -> TomlFormat.instance().createWriter().writeToString(config));
+
+		config.set("null", NullObject.NULL_OBJECT);
+		Assertions.assertThrows(WritingException.class,
+			() -> TomlFormat.instance().createWriter().writeToString(config));
 	}
 }
