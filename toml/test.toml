@@ -40,7 +40,7 @@ with_comments = 'This value has two comments' # CommentB
 
 dotted.key = 12
 # INVALID: dotted.key.sublevel = 13
-dotted.sub.subsub.key = {a = "b", c = "d"}# more comments
+dotted.sub.subsub.key = { a = "b", c = "d", d = 12, e = 3.14, f = true }# more comments
 dotted.more_data = 'some string' # comments here!
 
 # Numbers in different bases
