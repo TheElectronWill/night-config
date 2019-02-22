@@ -338,7 +338,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		while (offset < limit && chars[offset] <= ' ') {
 			offset++;
 		}
-		while (limit >= offset && chars[limit] <= ' ') {
+		while (limit > offset && chars[limit-1] <= ' ') {
 			limit--;
 		}
 		return new CharsWrapper(chars, offset, limit);
