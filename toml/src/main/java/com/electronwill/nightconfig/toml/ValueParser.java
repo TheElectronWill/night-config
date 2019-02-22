@@ -56,7 +56,11 @@ final class ValueParser {
 				if (shouldBeTemporal(valueChars)) {
 					return TemporalParser.parse(valueChars);
 				}
-				return parseNumber(valueChars);
+				CharsWrapper trimmed = valueChars.trimmedView();
+				if (trimmed.isEmpty()) {
+					throw new ParsingException("Invalid value containing only whitespaces");
+				}
+				return parseNumber(valueChars.trimmedView());
 		}
 	}
 
