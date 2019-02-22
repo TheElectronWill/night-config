@@ -20,7 +20,7 @@ public final class WriterOutput implements CharacterOutput {
 		try {
 			writer.write(c);
 		} catch (IOException e) {
-			throw WritingException.writeFailed(e);
+			throw new WritingException(e);
 		}
 	}
 
@@ -29,7 +29,7 @@ public final class WriterOutput implements CharacterOutput {
 		try {
 			writer.write(chars, offset, length);
 		} catch (IOException e) {
-			throw WritingException.writeFailed(e);
+			throw new WritingException(e);
 		}
 	}
 
@@ -38,7 +38,7 @@ public final class WriterOutput implements CharacterOutput {
 		try {
 			writer.write(s, offset, length);
 		} catch (IOException e) {
-			throw WritingException.writeFailed(e);
+			throw new WritingException(e);
 		}
 	}
 }
