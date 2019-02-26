@@ -3,26 +3,18 @@ package com.electronwill.nightconfig.toml;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.io.ParsingException;
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author TheElectronWill
  */
 public class TomlParserTest {
-
-	private static void assertThrows(Class<? extends Exception> exceptionClass,
-									 Executable executable) {
-		Exception exception = Assertions.assertThrows(exceptionClass, executable);
-		System.out.println("Got expected exception: " + exception);
-	}
 
 	private static void parseAndPrint(String tomlString) {
 		TomlParser parser = new TomlParser();
@@ -37,8 +29,8 @@ public class TomlParserTest {
 
 		System.out.println("--- parsed --- \n" + parsed);
 		System.out.println("--------------------------------------------");
-		assertTrue(parsed.getComment("without_comment") == null);
-		assertTrue(parsed.getComment("with_comments") != null);
+		assertNull(parsed.getComment("without_comment"));
+		assertNotNull(parsed.getComment("with_comments"));
 		assertTrue(parsed.getComment("with_comments").contains("\n"));
 
 		java.io.StringWriter sw = new StringWriter();

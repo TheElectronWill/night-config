@@ -1,17 +1,17 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.Config;
-import java.io.IOException;
+import com.electronwill.nightconfig.core.NullObject;
+import com.electronwill.nightconfig.core.io.WritingException;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+
 import java.io.StringWriter;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import com.electronwill.nightconfig.core.NullObject;
-import com.electronwill.nightconfig.core.io.WritingException;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 /**
  * @author TheElectronWill
@@ -52,12 +52,12 @@ public class TomlWriterTest {
 	@Test
 	public void noNulls() {
 		Config config = TomlFormat.newConfig();
+		Executable tryToWrite = () -> TomlFormat.instance().createWriter().writeToString(config);
+
 		config.set("null", null);
-		Assertions.assertThrows(WritingException.class,
-			() -> TomlFormat.instance().createWriter().writeToString(config));
+		Assertions.assertThrows(WritingException.class, tryToWrite);
 
 		config.set("null", NullObject.NULL_OBJECT);
-		Assertions.assertThrows(WritingException.class,
-			() -> TomlFormat.instance().createWriter().writeToString(config));
+		Assertions.assertThrows(WritingException.class, tryToWrite);
 	}
 }
