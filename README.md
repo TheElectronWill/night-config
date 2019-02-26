@@ -2,7 +2,7 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.electronwill.night-config/core.svg)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.electronwill.night-config%22)
 [![Javadocs](http://javadoc.io/badge/com.electronwill.night-config/core.svg)](http://javadoc.io/doc/com.electronwill.night-config/core)
-[![](https://img.shields.io/github/commits-since/TheElectronWill/Night-Config/v3.0.svg)](https://github.com/TheElectronWill/Night-Config/compare/v3.0...master)
+[![Build Status](https://travis-ci.com/TheElectronWill/Night-Config.svg?branch=master)](https://travis-ci.com/TheElectronWill/Night-Config)
 
 # Introduction
 NightConfig is a powerful yet easy-to-use java configuration library, written in Java 8.
