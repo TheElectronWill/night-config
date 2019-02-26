@@ -8,6 +8,7 @@ apply plugin: 'maven'
 apply plugin: 'java'
 
 sourceCompatibility = javaVersion
+archivesBaseName = "nightconfig-$name"
 
 repositories {
 	mavenCentral()
