@@ -1,0 +1,98 @@
+configure(subprojects.findAll {it.name != "examples"}) {
+	group projectGroup
+	version projectVersion
+	description "$projectDescription - $name module"
+
+	apply plugin: 'maven-publish'
+	apply plugin: 'signing'
+	apply plugin: 'maven'
+	apply plugin: 'java'
+
+	sourceCompatibility = javaVersion
+	archivesBaseName = "nightconfig-$name"
+
+	repositories {
+		mavenCentral()
+	}
+
+	dependencies {
+		testCompile "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+		testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
+	}
+
+	task javadocJar(type: Jar, dependsOn: javadoc) {
+		archiveClassifier = 'javadoc'
+		from javadoc.destinationDir
+	}
+
+	task sourcesJar(type: Jar) {
+		archiveClassifier = 'sources'
+		from sourceSets.main.java.srcDirs
+	}
+
+	artifacts {
+		archives sourcesJar
+		archives javadocJar
+	}
+
+	publishing {
+		publications {
+			mavenJava(MavenPublication) {
+				from components.java
+				artifact sourcesJar
+				artifact javadocJar
+				pom {
+					name = "NightConfig ${project.name}".toString()
+					description = project.description
+					url = projectUrl
+					developers {
+						developer {
+							id = 'TheElectronWill'
+							url = 'https://github.com/TheElectronWill'
+						}
+					}
+					licenses {
+						license {
+							name = projectLicense
+							url = projectLicenseUrl
+						}
+					}
+					scm {
+						url = projectWebScm
+						connection = projectScm
+						developerConnection = projectScm
+					}
+				}
+			}
+		}
+		repositories {
+			maven {
+				credentials {
+					username ossrhUser
+					password ossrhPassword
+				}
+				url project.version.endsWith('SNAPSHOT') ? publishSnapshotUrl : publishReleaseUrl
+			}
+		}
+	}
+
+	signing {
+		sign publishing.publications.mavenJava
+	}
+}
+
+configure(subprojects.findAll {!it.name.contains("core") && it.name != "examples"}) {
+	task fatJar(type: Jar) {
+		archiveBaseName = archivesBaseName + '-fat'
+		from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+		with jar
+	}
+
+	dependencies {
+		if (project.name.contains("android")) {
+			compile project(':core_android')
+		} else {
+			compile project(':core')
+		}
+	}
+}
