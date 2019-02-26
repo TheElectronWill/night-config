@@ -20,6 +20,10 @@ configure(subprojects.findAll {it.name != "examples"}) {
 		testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
 	}
 
+	test {
+		useJUnitPlatform()
+	}
+
 	task javadocJar(type: Jar, dependsOn: javadoc) {
 		archiveClassifier = 'javadoc'
 		from javadoc.destinationDir
