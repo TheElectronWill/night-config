@@ -42,3 +42,4 @@ task applyPatches(dependsOn: 'removeSomeFiles') {
 }
 
 compileJava.dependsOn('applyPatches')
+compileTestJava.dependsOn('applyPatches')
