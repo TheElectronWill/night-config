@@ -1,0 +1,257 @@
+--- core/src/main/java/com/electronwill/nightconfig/core/file/FileWatcher.java	2018-06-26 15:10:21.942652000 +0200
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/FileWatcher.java	2019-02-26 19:16:03.797013065 +0100
+@@ -1,19 +1,17 @@
+ package com.electronwill.nightconfig.core.file;
+ 
++import com.electronwill.nightconfig.core.utils.Consumer;
++
+ import java.io.File;
++import java.io.FileNotFoundException;
+ import java.io.IOException;
+-import java.nio.file.*;
+-import java.util.Iterator;
++import java.util.HashMap;
+ import java.util.Map;
+-import java.util.concurrent.ConcurrentHashMap;
+-import java.util.concurrent.atomic.AtomicInteger;
+-import java.util.concurrent.locks.LockSupport;
+-import java.util.function.Consumer;
+ 
+ /**
+  * A FileWatcher can watch several files asynchronously.
+  * <p>
+- * New watches are added with the {@link #addWatch(Path, Runnable)} method, which specifies the
++ * New watches are added with the {@link #addWatch(File, Runnable)} method, which specifies the
+  * task to execute when the file is modified.
+  * <p>
+  * This class is thread-safe.
+@@ -21,7 +19,7 @@
+  * @author TheElectronWill
+  */
+ public final class FileWatcher {
+-	private static final long SLEEP_TIME_NANOS = 1000;
++	private static final long SLEEP_TIME_MILLIS = 5000;
+ 	private static volatile FileWatcher DEFAULT_INSTANCE;
+ 
+ 	/**
+@@ -36,8 +34,7 @@
+ 		return DEFAULT_INSTANCE;
+ 	}
+ 
+-	private final Map<Path, WatchedDir> watchedDirs = new ConcurrentHashMap<>();//dir -> watchService & infos
+-	private final Map<Path, WatchedFile> watchedFiles = new ConcurrentHashMap<>();//file -> watchKey & handler
++	private final Map<File, WatchedFile> watchedFiles = new HashMap<>();
+ 	private final Thread thread = new WatcherThread();
+ 	private final Consumer<Exception> exceptionHandler;
+ 	private volatile boolean run = true;
+@@ -66,23 +63,17 @@
+ 	 * @param changeHandler the handler to call when the file is modified
+ 	 */
+ 	public void addWatch(File file, Runnable changeHandler) throws IOException {
+-		addWatch(file.toPath(), changeHandler);
+-	}
+-
+-	/**
+-	 * Watches a file, if not already watched by this FileWatcher.
+-	 *
+-	 * @param file          the file to watch
+-	 * @param changeHandler the handler to call when the file is modified
+-	 */
+-	public void addWatch(Path file, Runnable changeHandler) throws IOException {
+-		file = file.toAbsolutePath();// Ensures that the Path is absolute
+-		Path dir = file.getParent();
+-		WatchedDir watchedDir = watchedDirs.computeIfAbsent(dir, k -> new WatchedDir(dir));
+-		WatchKey watchKey = dir.register(watchedDir.watchService,
+-										 StandardWatchEventKinds.ENTRY_MODIFY);
+-		watchedFiles.computeIfAbsent(file,
+-									 k -> new WatchedFile(watchedDir, watchKey, changeHandler));
++		file = file.getAbsoluteFile();// Ensures that the File is absolute
++		if (!file.exists()) {
++			throw new FileNotFoundException("The file cannot be watched because it doesn't exist: " + file);
++		}
++		synchronized (watchedFiles) {
++			if (!watchedFiles.containsKey(file)) {
++				long currentSize = file.length();
++				long lastModified = file.lastModified();
++				watchedFiles.put(file, new WatchedFile(currentSize, lastModified, changeHandler));
++			}
++		}
+ 	}
+ 
+ 	/**
+@@ -93,23 +84,14 @@
+ 	 * @param changeHandler the handler to call when the file is modified
+ 	 */
+ 	public void setWatch(File file, Runnable changeHandler) throws IOException {
+-		setWatch(file.toPath(), changeHandler);
+-	}
+-
+-	/**
+-	 * Watches a file. If the file is already watched by this FileWatcher, its changeHandler is
+-	 * replaced.
+-	 *
+-	 * @param file          the file to watch
+-	 * @param changeHandler the handler to call when the file is modified
+-	 */
+-	public void setWatch(Path file, Runnable changeHandler) throws IOException {
+-		file = file.toAbsolutePath();// Ensures that the Path is absolute
+-		WatchedFile watchedFile = watchedFiles.get(file);
+-		if (watchedFile == null) {
+-			addWatch(file, changeHandler);
+-		} else {
+-			watchedFile.changeHandler = changeHandler;
++		file = file.getAbsoluteFile();// Ensures that the File is absolute
++		if (!file.exists()) {
++			throw new FileNotFoundException("The file cannot be watched because it doesn't exist: " + file);
++		}
++		synchronized (watchedFiles) {
++			long currentSize = file.length();
++			long lastModified = file.lastModified();
++			watchedFiles.put(file, new WatchedFile(currentSize, lastModified, changeHandler));
+ 		}
+ 	}
+ 
+@@ -119,25 +101,12 @@
+ 	 * @param file the file to stop watching
+ 	 */
+ 	public void removeWatch(File file) {
+-		removeWatch(file.toPath());
+-	}
+-
+-	/**
+-	 * Stops watching a file.
+-	 *
+-	 * @param file the file to stop watching
+-	 */
+-	public void removeWatch(Path file) {
+-		file = file.toAbsolutePath();// Ensures that the Path is absolute
+-		Path dir = file.getParent();
+-		WatchedDir watchedDir = watchedDirs.get(dir);
+-		int remainingChildCount = watchedDir.watchedFileCount.decrementAndGet();
+-		if (remainingChildCount == 0) {
+-			watchedDirs.remove(dir);
+-		}
+-		WatchedFile watchedFile = watchedFiles.remove(file);
+-		if (watchedFile != null) {
+-			watchedFile.watchKey.cancel();
++		if (file == null) {
++			return; // null cannot be in the map -> don't try to check and return immediately
++		}
++		file = file.getAbsoluteFile();// Ensures that the File is absolute
++		synchronized (watchedFiles) {
++			watchedFiles.remove(file);
+ 		}
+ 	}
+ 
+@@ -157,67 +126,31 @@
+ 		@Override
+ 		public void run() {
+ 			while (run) {
+-				boolean allNull = true;
+-				dirsIter:
+-				for (Iterator<WatchedDir> it = watchedDirs.values().iterator(); it.hasNext() && run; ) {
+-					WatchedDir watchedDir = it.next();
+-					WatchKey key = watchedDir.watchService.poll();
+-					if (key == null) {
+-						continue;
+-					}
+-					allNull = false;
+-					for (WatchEvent<?> event : key.pollEvents()) {
+-						if (!run) {
+-							break dirsIter;
+-						}
+-						if (event.kind() != StandardWatchEventKinds.ENTRY_MODIFY || event.count() > 1) {
+-							continue;
+-						}
+-						Path childPath = ((WatchEvent<Path>)event).context();
+-						Path filePath = watchedDir.dir.resolve(childPath);
+-						WatchedFile watchedFile = watchedFiles.get(filePath);
+-						if (watchedFile != null) {
+-							try {
+-								watchedFile.changeHandler.run();
+-							} catch (Exception e) {
+-								exceptionHandler.accept(e);
+-							}
+-						}
+-					}
+-					key.reset();
+-				}
+-				if (allNull) {
+-					LockSupport.parkNanos(SLEEP_TIME_NANOS);
+-				}
+-			}
+-			// Closes the WatchServices
+-			for (WatchedDir watchedDir : watchedDirs.values()) {
+ 				try {
+-					watchedDir.watchService.close();
+-				} catch (IOException e) {
++					Thread.sleep(SLEEP_TIME_MILLIS);
++				} catch (InterruptedException e) {
+ 					exceptionHandler.accept(e);
+ 				}
+-			}
+-			// Clears the maps
+-			watchedDirs.clear();
+-			watchedFiles.clear();
+-		}
+-	}
+-
+-	/**
+-	 * Informations about a watched directory, ie a directory that contains watched files.
+-	 */
+-	private static final class WatchedDir {
+-		final Path dir;
+-		final WatchService watchService;
+-		final AtomicInteger watchedFileCount = new AtomicInteger();
+-
+-		private WatchedDir(Path dir) {
+-			this.dir = dir;
+-			try {
+-				this.watchService = dir.getFileSystem().newWatchService();
+-			} catch (IOException e) {
+-				throw new RuntimeException(e);
++				for (Map.Entry<File, WatchedFile> watchedFile : watchedFiles.entrySet()) {
++					File file = watchedFile.getKey();
++					WatchedFile infos = watchedFile.getValue();
++					if (!file.exists()) {
++						// File removed -> let the handler handle it :^)
++						// Don't try to call length() or lastModified() on a deleted file
++						infos.changeHandler.run();
++					} else {
++						long newSize = file.length();
++						long newLastModified = file.lastModified();
++						if (newSize != infos.lastSize || newLastModified != infos.lastModified) {
++							// Change detected -> call the handler
++							infos.changeHandler.run();
++
++							// Update the infos
++							infos.lastSize = newSize;
++							infos.lastModified = newLastModified;
++						}
++					}
++				}
+ 			}
+ 		}
+ 	}
+@@ -226,13 +159,14 @@
+ 	 * Informations about a watched file, with an associated handler.
+ 	 */
+ 	private static final class WatchedFile {
+-		final WatchKey watchKey;
+-		volatile Runnable changeHandler;
+-
+-		private WatchedFile(WatchedDir watchedDir, WatchKey watchKey, Runnable changeHandler) {
+-			this.watchKey = watchKey;
++		long lastSize;
++		long lastModified;
++		Runnable changeHandler;
++
++		private WatchedFile(long lastSize, long lastModified, Runnable changeHandler) {
++			this.lastSize = lastSize;
++			this.lastModified = lastModified;
+ 			this.changeHandler = changeHandler;
+-			watchedDir.watchedFileCount.getAndIncrement();
+ 		}
+ 	}
+ }
+\ Pas de fin de ligne à la fin du fichier

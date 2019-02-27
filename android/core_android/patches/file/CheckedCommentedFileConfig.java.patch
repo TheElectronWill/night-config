@@ -1,0 +1,22 @@
+--- core/src/main/java/com/electronwill/nightconfig/core/file/CheckedCommentedFileConfig.java	2018-06-26 15:23:51.590840000 +0200
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/CheckedCommentedFileConfig.java	2018-09-24 19:13:33.120467000 +0200
+@@ -8,7 +8,6 @@
+ import com.electronwill.nightconfig.core.utils.TransformingSet;
+ 
+ import java.io.File;
+-import java.nio.file.Path;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Set;
+@@ -30,11 +29,6 @@
+ 	}
+ 
+ 	@Override
+-	public Path getNioPath() {
+-		return config.getNioPath();
+-	}
+-
+-	@Override
+ 	public File getFile() {
+ 		return config.getFile();
+ 	}

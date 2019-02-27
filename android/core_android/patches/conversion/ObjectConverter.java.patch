@@ -1,0 +1,49 @@
+--- core/src/main/java/com/electronwill/nightconfig/core/conversion/ObjectConverter.java	2018-11-18 13:34:45.519016000 +0100
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/conversion/ObjectConverter.java	2018-11-18 13:38:24.022338000 +0100
+@@ -3,10 +3,10 @@
+ import com.electronwill.nightconfig.core.Config;
+ import com.electronwill.nightconfig.core.ConfigFormat;
+ import com.electronwill.nightconfig.core.UnmodifiableConfig;
++import com.electronwill.nightconfig.core.utils.Supplier;
+ 
+ import java.lang.reflect.*;
+ import java.util.*;
+-import java.util.function.Supplier;
+ 
+ /**
+  * Converts Java objects to configs and vice-versa.
+@@ -219,7 +219,7 @@
+ 					if (value instanceof UnmodifiableConfig && !(fieldType.isAssignableFrom(value.getClass()))) {
+ 						// --- Read as a sub-object ---
+ 						final UnmodifiableConfig cfg = (UnmodifiableConfig)value;
+-	
++
+ 						// Gets or creates the field and convert it (if null OR not preserved)
+ 						Object fieldValue = field.get(object);
+ 						if (fieldValue == null) {
+@@ -371,9 +371,9 @@
+ 	 * @param dstElementTypes the type of lists and objects in dst
+ 	 */
+ 	private void convertConfigsToObject(Collection<?> src,
+-										Collection<Object> dst,
+-										List<Class<?>> dstElementTypes,
+-										int currentLevel) {
++		Collection<Object> dst,
++		List<Class<?>> dstElementTypes,
++		int currentLevel) {
+ 		final Class<?> currentType = dstElementTypes.get(currentLevel);
+ 		for (Object elem : src) {
+ 			if (elem == null) {
+@@ -412,9 +412,9 @@
+ 	 * @param parentConfig  the parent configuration, used to create the new configs to put in dst
+ 	 */
+ 	private void convertObjectsToConfigs(Collection<?> src,
+-									     Class<?> srcBottomType,
+-									     Collection<Object> dst,
+-									     Config parentConfig) {
++		Class<?> srcBottomType,
++		Collection<Object> dst,
++		Config parentConfig) {
+ 		for (Object elem : src) {
+ 			if (elem == null) {
+ 				dst.add(null);

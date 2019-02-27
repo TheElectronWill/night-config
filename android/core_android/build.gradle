@@ -1,1 +1,44 @@
-// nothing special, everything is in the root build.gradle
+// see root build.gradle
+// core_android only contains patches that are applied on the regular core
+// and new files that are added as is
+
+import groovy.io.FileType
+import org.apache.tools.ant.taskdefs.Patch
+
+String struct = "src/main/java/com/electronwill/nightconfig/core"
+
+task copyCore(type: Copy) {
+	from "../../core/src/main"
+	into "src/main"
+}
+
+task copyNewFiles(type: Copy, dependsOn: 'copyCore') {
+	from "patches"
+	include "**/*.java"
+	into struct
+}
+
+task removeSomeFiles(type: Delete, dependsOn: 'copyNewFiles') {
+	delete "$struct/file/WriteAsyncFileConfig.java"
+}
+
+task applyPatches(dependsOn: 'removeSomeFiles') {
+	doLast {
+		File patchesDir = file("patches")
+		patchesDir.eachFileRecurse(FileType.FILES) {
+			if (it.name.endsWith(".patch")) {
+				String relative = patchesDir.relativePath(it).replace(".patch", "")
+				File coreFile = file("$struct/$relative") // the file to patch
+				Patch p = new Patch()
+				p.setPatchfile(it)
+				p.setOriginalfile(coreFile)
+				p.setDir(projectDir)
+				p.setFailOnError(true)
+				p.execute()
+			}
+			// else: Not a patch, just a file that has been added by copyNewFiles
+		}
+	}
+}
+
+compileJava.dependsOn('applyPatches')

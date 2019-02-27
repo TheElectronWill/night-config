@@ -1,0 +1,82 @@
+--- core/src/main/java/com/electronwill/nightconfig/core/file/GenericBuilder.java	2019-02-26 19:16:03.797013065 +0100
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/GenericBuilder.java	2019-02-26 19:16:03.797013065 +0100
+@@ -9,8 +9,6 @@
+ import java.net.URL;
+ import java.nio.charset.Charset;
+ import java.nio.charset.StandardCharsets;
+-import java.nio.file.Files;
+-import java.nio.file.Path;
+ 
+ /**
+  * A generic FileConfig/CommentedFileConfig/someOtherFileConfig builder. The default settings are:
+@@ -29,7 +27,7 @@
+  * @author TheElectronWill
+  */
+ public abstract class GenericBuilder<Base extends Config, Result extends FileConfig> {
+-	protected final Path file;
++	protected final File file;
+ 	private Base config;
+ 	protected final ConfigFormat<? extends Base> format;
+ 	protected final ConfigWriter writer;
+@@ -40,7 +38,7 @@
+ 	protected FileNotFoundAction nefAction = FileNotFoundAction.CREATE_EMPTY;
+ 	protected boolean sync = false, autosave = false, autoreload = false;
+ 
+-	GenericBuilder(Path file, ConfigFormat<? extends Base> format) {
++	GenericBuilder(File file, ConfigFormat<? extends Base> format) {
+ 		this.file = file;
+ 		this.format = format;
+ 		this.writer = format.createWriter();
+@@ -110,17 +108,6 @@
+ 	}
+ 
+ 	/**
+-	 * Sets the file to copy when the config's file is not found. This is a shortcut for {@code
+-	 * onFileNotFound(FileNotFoundAction.copyData(file))}
+-	 *
+-	 * @param file the data file
+-	 * @return this builder
+-	 */
+-	public GenericBuilder<Base, Result> defaultData(Path file) {
+-		return onFileNotFound(FileNotFoundAction.copyData(file));
+-	}
+-
+-	/**
+ 	 * Sets the URL of the data to copy when the config's file is not found. This is a shortcut for
+ 	 * {@code onFileNotFound(FileNotFoundAction.copyData(url))}
+ 	 *
+@@ -134,6 +121,8 @@
+ 	/**
+ 	 * Makes the configuration "write-synchronized", that is, its {@link FileConfig#save()}
+ 	 * method blocks until the write operation completes.
++	 * <b>In core_android, this method has no effect because the async FileConfig isn't available
++	 * in Android, due to the lack of java.nio.channels.AsynchronousFileChannel on Android &lt; 8</b>
+ 	 *
+ 	 * @return this builder
+ 	 */
+@@ -183,9 +172,15 @@
+ 	 */
+ 	public Result build() {
+ 		FileConfig fileConfig;
++		/*
++		 * java.nio.channels.AsynchronousFileChannel isn't available in Android < 8
++		 * Therefore, only WriteSyncFileConfig will be used here.
++		 */
++		fileConfig = new WriteSyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
++			parser, parsingMode, nefAction);
++		/*
+ 		if (sync) {
+-			fileConfig = new WriteSyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
+-				parser, parsingMode, nefAction);
++
+ 		} else {
+ 			if (autoreload) {
+ 				concurrent();
+@@ -195,6 +190,7 @@
+ 			fileConfig = new WriteAsyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
+ 				parser, parsingMode, nefAction);
+ 		}
++		*/
+ 		if (autoreload) {
+ 			if (Files.notExists(file)) {
+ 				try {

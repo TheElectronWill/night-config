@@ -1,0 +1,21 @@
+--- core/src/main/java/com/electronwill/nightconfig/core/file/CommentedFileConfigBuilder.java	2018-07-02 01:38:17.224514000 +0200
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/CommentedFileConfigBuilder.java	2018-09-24 19:13:33.080467000 +0200
+@@ -6,9 +6,7 @@
+ import com.electronwill.nightconfig.core.io.WritingMode;
+ 
+ import java.io.File;
+-import java.net.URL;
+ import java.nio.charset.Charset;
+-import java.nio.file.Path;
+ 
+ /**
+  * Builder for CommentedFileConfig. The default settings are:
+@@ -27,7 +25,7 @@
+  * @author TheElectronWill
+  */
+ public final class CommentedFileConfigBuilder extends GenericBuilder<CommentedConfig, CommentedFileConfig> {
+-	CommentedFileConfigBuilder(Path file, ConfigFormat<? extends CommentedConfig> format) {
++	CommentedFileConfigBuilder(File file, ConfigFormat<? extends CommentedConfig> format) {
+ 		super(file, format);
+ 	}
+ 

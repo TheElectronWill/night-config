@@ -1,0 +1,34 @@
+--- core/src/main/java/com/electronwill/nightconfig/core/file/FormatDetector.java	2018-07-02 01:49:36.016280000 +0200
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/FormatDetector.java	2018-09-26 12:34:30.736003000 +0200
+@@ -2,13 +2,12 @@
+ 
+ import com.electronwill.nightconfig.core.ConfigFormat;
+ import com.electronwill.nightconfig.core.utils.StringUtils;
++import com.electronwill.nightconfig.core.utils.Supplier;
+ 
+ import java.io.File;
+-import java.nio.file.Path;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.concurrent.ConcurrentHashMap;
+-import java.util.function.Supplier;
+ 
+ /**
+  * Utility class for detecting the format of configurations files.
+@@ -50,16 +49,6 @@
+ 	}
+ 
+ 	/**
+-	 * Detects the ConfigFormat of a file.
+-	 *
+-	 * @param file the file
+-	 * @return the associated ConfigFormat, or null if not found
+-	 */
+-	public static ConfigFormat<?> detect(Path file) {
+-		return detectByName(file.getFileName().toString());
+-	}
+-
+-	/**
+ 	 * Detects the ConfigFormat of a filename.
+ 	 *
+ 	 * @param fileName the file name

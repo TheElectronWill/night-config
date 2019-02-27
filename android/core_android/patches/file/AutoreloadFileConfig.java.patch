@@ -1,0 +1,22 @@
+--- core/src/main/java/com/electronwill/nightconfig/core/file/AutoreloadFileConfig.java	2018-06-26 15:23:51.554175000 +0200
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/AutoreloadFileConfig.java	2018-09-24 19:03:27.884438000 +0200
+@@ -4,7 +4,6 @@
+ 
+ import java.io.File;
+ import java.io.IOException;
+-import java.nio.file.Path;
+ 
+ /**
+  * @author TheElectronWill
+@@ -27,11 +26,6 @@
+ 	}
+ 
+ 	@Override
+-	public Path getNioPath() {
+-		return config.getNioPath();
+-	}
+-
+-	@Override
+ 	public void save() {
+ 		config.save();
+ 	}

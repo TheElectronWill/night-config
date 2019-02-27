@@ -1,0 +1,53 @@
+--- core/src/main/java/com/electronwill/nightconfig/core/ConfigSpec.java	2018-12-02 22:44:46.936672866 +0100
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/ConfigSpec.java	2018-12-02 23:03:18.140991547 +0100
+@@ -1,8 +1,9 @@
+ package com.electronwill.nightconfig.core;
+ 
++import com.electronwill.nightconfig.core.utils.Supplier;
++
+ import java.util.*;
+ import java.util.function.Predicate;
+-import java.util.function.Supplier;
+ 
+ import static com.electronwill.nightconfig.core.ConfigSpec.CorrectionAction.*;
+ import static com.electronwill.nightconfig.core.utils.StringUtils.split;
+@@ -529,7 +530,8 @@
+ 	 * @return the number of added, removed or replaced values.
+ 	 */
+ 	public int correct(Config config, CorrectionListener listener) {
+-		return correct(config.valueMap(), storage.valueMap(), new ArrayList<>(), listener, config::createSubConfig);
++		return correct(config.valueMap(), storage.valueMap(), new ArrayList<>(), listener,
++					   config::createSubConfig);
+ 	}
+ 
+ 	/**
+@@ -541,10 +543,8 @@
+ 	 * @param listener   the listener to notify of each correction
+ 	 * @return the number of added, removed of replaced values.
+ 	 */
+-	private int correct(Map<String, Object> configMap,
+-						Map<String, Object> specMap,
+-						List<String> parentPath,
+-						CorrectionListener listener,
++	private int correct(Map<String, Object> configMap, Map<String, Object> specMap,
++						List<String> parentPath, CorrectionListener listener,
+ 						Supplier<Config> subConfigSupplier) {
+ 		int count = 0;
+ 		// First step: replaces the incorrect values and add the missing ones
+@@ -561,7 +561,7 @@
+ 					// Notifies the listener:
+ 					CorrectionAction correctionAction = (configValue == null) ? ADD : REPLACE;
+ 					handleCorrection(parentPath, key, configValue, newValue, listener,
+-									 correctionAction);
++						correctionAction);
+ 					count++;
+ 					configValue = newValue;
+ 				}
+@@ -572,7 +572,6 @@
+ 				Map<String, Object> specValueMap = ((Config)specValue).valueMap();
+ 				count += correct(configValueMap, specValueMap, parentPath, listener, subConfigSupplier);
+ 				parentPath.remove(parentPath.size() - 1);
+-
+ 			} else {
+ 				ValueSpec valueSpec = (ValueSpec)specValue;
+ 				if (!valueSpec.validator.test(configValue)) {
