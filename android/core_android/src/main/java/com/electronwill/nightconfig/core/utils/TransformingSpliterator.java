@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core.utils;
 
 import java.util.Comparator;
 import java.util.Spliterator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -28,13 +29,13 @@ public final class TransformingSpliterator<InternalV, ExternalV> implements Spli
 	}
 
 	@Override
-	public boolean tryAdvance(java.util.function.Consumer<? super ExternalV> action) {
+	public boolean tryAdvance(Consumer<? super ExternalV> action) {
 		return internalSpliterator.tryAdvance(
 				internalV -> action.accept(readTransformation.apply(internalV)));
 	}
 
 	@Override
-	public void forEachRemaining(java.util.function.Consumer<? super ExternalV> action) {
+	public void forEachRemaining(Consumer<? super ExternalV> action) {
 		internalSpliterator.forEachRemaining(
 				internalV -> action.accept(readTransformation.apply(internalV)));
 	}

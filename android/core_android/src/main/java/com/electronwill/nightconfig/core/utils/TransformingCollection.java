@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core.utils;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Spliterator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -135,7 +136,7 @@ public class TransformingCollection<InternalV, ExternalV> implements Collection<
 	}
 
 	@Override
-	public void forEach(java.util.function.Consumer<? super ExternalV> action) {
+	public void forEach(Consumer<? super ExternalV> action) {
 		internalCollection.forEach(internalV -> action.accept(readTransformation.apply(internalV)));
 	}
 }

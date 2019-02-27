@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.utils;
 
 import java.util.Iterator;
+import java.util.function.Consumer;
 
 /**
  * @author TheElectronWill
@@ -30,7 +31,7 @@ public final class ObservedIterator<E> extends AbstractObserved implements Itera
 	}
 
 	@Override
-	public void forEachRemaining(java.util.function.Consumer<? super E> action) {
+	public void forEachRemaining(Consumer<? super E> action) {
 		iterator.forEachRemaining(action);
 	}
 

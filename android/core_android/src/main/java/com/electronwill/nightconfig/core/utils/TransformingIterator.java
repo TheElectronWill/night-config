@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.utils;
 
 import java.util.Iterator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -39,7 +40,7 @@ public final class TransformingIterator<InternalV, ExternalV> implements Iterato
 	}
 
 	@Override
-	public void forEachRemaining(java.util.function.Consumer<? super ExternalV> action) {
+	public void forEachRemaining(Consumer<? super ExternalV> action) {
 		internalIterator.forEachRemaining(
 				internalV -> action.accept(readTransformation.apply(internalV)));
 	}
