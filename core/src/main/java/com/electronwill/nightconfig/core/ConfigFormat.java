@@ -6,10 +6,8 @@ import com.electronwill.nightconfig.core.utils.WriterSupplier;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 /**
  * A configuration format, that can parse, create and write some types of configurations.

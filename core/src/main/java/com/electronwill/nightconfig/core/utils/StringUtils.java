@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * String utilities.
+ * Fast string utilities.
  *
  * @author TheElectronWill
  */
@@ -34,7 +34,7 @@ public final class StringUtils {
 	 * @return a non-empty list of strings
 	 */
 	public static List<String> split(String str, char sep) {
-		List<String> list = new ArrayList<>(4);// usually the paths are small
+		List<String> list = new ArrayList<>(8);// usually the paths are small
 		split(str, sep, list);
 		return list;
 	}
@@ -67,7 +67,7 @@ public final class StringUtils {
 				pos0 = i + 1;
 			}
 		}
-		list.add(str.substring(pos0, str.length()));// adds the last part
+		list.add(str.substring(pos0));// adds the last part
 	}
 
 	/**
@@ -81,7 +81,7 @@ public final class StringUtils {
 		if (str == null || str.isEmpty()) {
 			return Collections.emptyList();
 		}
-		List<String> list = new ArrayList<>(4);
+		List<String> list = new ArrayList<>(8);
 		splitLines(str, list);
 		return list;
 	}
@@ -104,6 +104,6 @@ public final class StringUtils {
 				pos0 = i + 1;
 			}
 		}
-		list.add(str.substring(pos0, str.length()));// adds the last part
+		list.add(str.substring(pos0));// adds the last part
 	}
 }
