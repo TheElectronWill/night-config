@@ -4,10 +4,12 @@
  package com.electronwill.nightconfig.core;
  
 +import com.electronwill.nightconfig.core.utils.Supplier;
++import com.electronwill.nightconfig.core.utils.IntSupplier;
++import com.electronwill.nightconfig.core.utils.LongSupplier;
 +
  import java.util.*;
- import java.util.function.IntSupplier;
- import java.util.function.LongSupplier;
+-import java.util.function.IntSupplier;
+-import java.util.function.LongSupplier;
 -import java.util.function.Supplier;
  
  import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
