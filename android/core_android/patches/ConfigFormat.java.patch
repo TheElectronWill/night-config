@@ -1,5 +1,5 @@
---- core/src/main/java/com/electronwill/nightconfig/core/ConfigFormat.java	2019-02-28 22:04:48.166812572 +0100
-+++ android/core_android/src/main/java/com/electronwill/nightconfig/core/ConfigFormat.java	2019-02-27 20:10:02.512175066 +0100
+--- core/src/main/java/com/electronwill/nightconfig/core/ConfigFormat.java
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/ConfigFormat.java
 @@ -5,9 +5,8 @@
  import com.electronwill.nightconfig.core.utils.WriterSupplier;
  

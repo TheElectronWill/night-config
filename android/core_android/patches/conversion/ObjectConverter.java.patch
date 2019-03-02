@@ -1,5 +1,5 @@
---- core/src/main/java/com/electronwill/nightconfig/core/conversion/ObjectConverter.java	2018-11-18 13:34:45.519016000 +0100
-+++ android/core_android/src/main/java/com/electronwill/nightconfig/core/conversion/ObjectConverter.java	2018-11-18 13:38:24.022338000 +0100
+--- core/src/main/java/com/electronwill/nightconfig/core/conversion/ObjectConverter.java
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/conversion/ObjectConverter.java
 @@ -3,10 +3,10 @@
  import com.electronwill.nightconfig.core.Config;
  import com.electronwill.nightconfig.core.ConfigFormat;
@@ -9,3 +9,6 @@
  import java.lang.reflect.*;
  import java.util.*;
 -import java.util.function.Supplier;
+ 
+ /**
+  * Converts Java objects to configs and vice-versa.

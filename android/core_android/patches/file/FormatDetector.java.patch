@@ -1,5 +1,5 @@
---- core/src/main/java/com/electronwill/nightconfig/core/file/FormatDetector.java	2018-07-02 01:49:36.016280000 +0200
-+++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/FormatDetector.java	2018-09-26 12:34:30.736003000 +0200
+--- core/src/main/java/com/electronwill/nightconfig/core/file/FormatDetector.java
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/FormatDetector.java
 @@ -2,13 +2,12 @@
  
  import com.electronwill.nightconfig.core.ConfigFormat;

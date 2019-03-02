@@ -1,5 +1,5 @@
---- core/src/main/java/com/electronwill/nightconfig/core/file/GenericBuilder.java	2019-02-26 19:16:03.797013065 +0100
-+++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/GenericBuilder.java	2019-02-26 19:16:03.797013065 +0100
+--- core/src/main/java/com/electronwill/nightconfig/core/file/GenericBuilder.java
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/GenericBuilder.java
 @@ -9,8 +9,6 @@
  import java.net.URL;
  import java.nio.charset.Charset;

@@ -1,5 +1,5 @@
---- core/src/main/java/com/electronwill/nightconfig/core/file/CheckedFileConfig.java	2018-06-26 15:23:51.534175000 +0200
-+++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/CheckedFileConfig.java	2018-09-24 19:13:33.093800000 +0200
+--- core/src/main/java/com/electronwill/nightconfig/core/file/CheckedFileConfig.java
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/CheckedFileConfig.java
 @@ -7,7 +7,6 @@
  import com.electronwill.nightconfig.core.utils.TransformingSet;
  

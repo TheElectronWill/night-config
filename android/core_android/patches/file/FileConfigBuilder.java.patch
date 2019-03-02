@@ -1,5 +1,5 @@
---- core/src/main/java/com/electronwill/nightconfig/core/file/FileConfigBuilder.java	2018-07-25 14:23:45.380551000 +0200
-+++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/FileConfigBuilder.java	2018-09-24 19:06:09.218992000 +0200
+--- core/src/main/java/com/electronwill/nightconfig/core/file/FileConfigBuilder.java
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/FileConfigBuilder.java
 @@ -5,8 +5,8 @@
  import com.electronwill.nightconfig.core.io.ParsingMode;
  import com.electronwill.nightconfig.core.io.WritingMode;

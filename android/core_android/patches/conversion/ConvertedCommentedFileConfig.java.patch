@@ -1,5 +1,5 @@
---- core/src/main/java/com/electronwill/nightconfig/core/conversion/ConvertedCommentedFileConfig.java	2018-06-26 16:07:58.411477000 +0200
-+++ android/core_android/src/main/java/com/electronwill/nightconfig/core/conversion/ConvertedCommentedFileConfig.java	2018-09-24 18:20:21.497820000 +0200
+--- core/src/main/java/com/electronwill/nightconfig/core/conversion/ConvertedCommentedFileConfig.java
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/conversion/ConvertedCommentedFileConfig.java
 @@ -3,7 +3,6 @@
  import com.electronwill.nightconfig.core.file.CommentedFileConfig;
  

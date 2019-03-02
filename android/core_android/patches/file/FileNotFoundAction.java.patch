@@ -1,5 +1,5 @@
---- core/src/main/java/com/electronwill/nightconfig/core/file/FileNotFoundAction.java	2018-06-26 15:12:42.067547000 +0200
-+++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/FileNotFoundAction.java	2019-02-26 19:16:03.793679841 +0100
+--- core/src/main/java/com/electronwill/nightconfig/core/file/FileNotFoundAction.java
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/FileNotFoundAction.java
 @@ -1,15 +1,10 @@
  package com.electronwill.nightconfig.core.file;
  

@@ -1,5 +1,5 @@
---- core/src/main/java/com/electronwill/nightconfig/core/UnmodifiableConfig.java	2018-07-25 12:39:19.831308000 +0200
-+++ android/core_android/src/main/java/com/electronwill/nightconfig/core/UnmodifiableConfig.java	2018-09-26 12:23:01.778955000 +0200
+--- core/src/main/java/com/electronwill/nightconfig/core/UnmodifiableConfig.java
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/UnmodifiableConfig.java
 @@ -1,9 +1,10 @@
  package com.electronwill.nightconfig.core;
  

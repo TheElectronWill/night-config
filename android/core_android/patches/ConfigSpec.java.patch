@@ -1,5 +1,5 @@
---- core/src/main/java/com/electronwill/nightconfig/core/ConfigSpec.java	2018-12-02 22:44:46.936672866 +0100
-+++ android/core_android/src/main/java/com/electronwill/nightconfig/core/ConfigSpec.java	2018-12-02 23:03:18.140991547 +0100
+--- core/src/main/java/com/electronwill/nightconfig/core/ConfigSpec.java
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/ConfigSpec.java
 @@ -1,8 +1,9 @@
  package com.electronwill.nightconfig.core;
  

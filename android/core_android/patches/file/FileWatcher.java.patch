@@ -1,5 +1,5 @@
---- core/src/main/java/com/electronwill/nightconfig/core/file/FileWatcher.java	2018-06-26 15:10:21.942652000 +0200
-+++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/FileWatcher.java	2019-02-26 19:16:03.797013065 +0100
+--- core/src/main/java/com/electronwill/nightconfig/core/file/FileWatcher.java
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/FileWatcher.java
 @@ -1,19 +1,17 @@
  package com.electronwill.nightconfig.core.file;
  
