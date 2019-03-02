@@ -5,41 +5,104 @@
 import groovy.io.FileType
 import org.apache.tools.ant.taskdefs.Patch
 
-String struct = "src/main/java/com/electronwill/nightconfig/core"
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.util.regex.Pattern
+
+String pak = "com/electronwill/nightconfig/core"
+String struct = "src/main/java/$pak"
 
 task copyCore(type: Copy) {
 	from "../../core/src/main"
 	into "src/main"
 }
 
-task copyNewFiles(type: Copy, dependsOn: 'copyCore') {
+task copyNewFiles(type: Copy, dependsOn: copyCore) {
 	from "patches"
 	include "**/*.java"
 	into struct
 }
 
-task removeSomeFiles(type: Delete, dependsOn: 'copyNewFiles') {
-	delete "$struct/file/WriteAsyncFileConfig.java"
-}
-
-task applyPatches(dependsOn: 'removeSomeFiles') {
+task applyPatches(dependsOn: copyNewFiles) {
 	doLast {
 		File patchesDir = file("patches")
 		patchesDir.eachFileRecurse(FileType.FILES) {
+			String relative = patchesDir.relativePath(it) - ".patch" - ".delete"
+			File coreFile = file("$struct/$relative") // the file to patch
 			if (it.name.endsWith(".patch")) {
-				String relative = patchesDir.relativePath(it).replace(".patch", "")
-				File coreFile = file("$struct/$relative") // the file to patch
 				Patch p = new Patch()
 				p.setPatchfile(it)
 				p.setOriginalfile(coreFile)
 				p.setDir(projectDir)
 				p.setFailOnError(true)
 				p.execute()
+			} else if (it.name.endsWith(".delete")) {
+				coreFile.delete()
 			}
 			// else: Not a patch, just a file that has been added by copyNewFiles
 		}
 	}
 }
 
+task updatePatches() {
+	doLast {
+		File androidSrc = file("src/main/java")
+		if (!androidSrc.isDirectory()) {
+			throw new IllegalStateException("Please apply the patches and modify the files before updating")
+		}
+		File coreSrc = new File(project(':core').projectDir, "src/main/java")
+		File patchesDir = file("patches")
+		List<String> inCore = listFilesRecurse(coreSrc)
+		List<String> inCoreAndroid = listFilesRecurse(androidSrc)
+		List<String> added = inCoreAndroid - inCore
+		List<String> removed = inCore - inCoreAndroid
+		List<String> common = inCore.intersect(inCoreAndroid)
+		added.each {
+			File f = new File(androidSrc, it)
+			File dst = new File(patchesDir, it - pak)
+			println("(+) ADDED $f --> $dst")
+			Files.copy(f.toPath(), dst.toPath(), StandardCopyOption.REPLACE_EXISTING)
+		}
+		removed.each {
+			File delPatch = new File(patchesDir, "${it - pak}.delete")
+			delPatch.createNewFile()
+			println("(-) DELETED $it --> $delPatch")
+		}
+		String andro = "android/core_android"
+		common.each {
+			def out = new ByteArrayOutputStream()
+			def f = it
+			def execResult = exec {
+				workingDir rootDir
+				commandLine "diff", "-u", "core/src/main/java/$f", "$andro/src/main/java/$f"
+				standardOutput = out
+				ignoreExitValue = true // diff returns 1 if the files are different
+			}
+			def code = execResult.exitValue
+			if (code == 1) {
+				println("(*) MODIFIED \"core/src/main/java/$f\" <<>> \"$andro/src/main/java/$f\"")
+				def diff = out.toString()
+				def timestampPattern = Pattern.compile("\\t.[\\d- :.+]+")
+				diff = diff.replaceFirst(timestampPattern, "").replaceFirst(timestampPattern, "")
+				File dst = file("patches/${it - pak}.patch")
+				dst.write(diff, "utf-8")
+			} else if (code >= 2) {
+				throw new RuntimeException("Command failed with exit code ${code}, details:\n" +
+					"diff -u \"core/src/main/java/$f\" \"$andro/src/main/java/$f\"")
+			}
+
+		}
+	}
+	//commandLine 'while read -r in; do diff -ru core/$bla/$in android/core_android/$bla/$in > android/core_android/patches/$in.patch; done < changed.txt'
+}
+
 compileJava.dependsOn('applyPatches')
 compileTestJava.dependsOn('applyPatches')
+
+def listFilesRecurse(File dir) {
+	def res = []
+	dir.eachFileRecurse(FileType.FILES) {
+		res << dir.relativePath(it)
+	}
+	return res
+}
