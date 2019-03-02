@@ -368,7 +368,7 @@ public class ConfigSpec {
 	 */
 	public void defineList(List<String> path, Supplier<List<?>> defaultValueSupplier,
 						   Predicate<Object> elementValidator) {
-		define(path, defaultValueSupplier, (Object o) -> {
+		define(path, defaultValueSupplier, o -> {
 			if (!(o instanceof List)) { return false; }
 			List<?> list = (List<?>)o;
 			for (Object element : list) {
@@ -376,6 +376,68 @@ public class ConfigSpec {
 			}
 			return true;
 		});
+	}
+
+	//
+	// --- defineEnum ---
+
+	public <T extends Enum<T>> void defineEnum(String path, T defaultValue, EnumGetMethod method) {
+		defineEnum(split(path, '.'), defaultValue, method);
+	}
+
+	public <T extends Enum<T>> void defineEnum(List<String> path,
+											  T defaultValue,
+											  EnumGetMethod method) {
+		defineEnum(path, defaultValue.getDeclaringClass(), method, new DumbSupplier<>(defaultValue));
+	}
+
+	public <T extends Enum<T>> void defineEnum(String path,
+											   Class<T> enumType,
+											   EnumGetMethod method,
+											   Supplier<T> defaultValueSupplier) {
+		defineEnum(split(path, '.'), enumType, method, defaultValueSupplier);
+	}
+
+	public <T extends Enum<T>> void defineEnum(List<String> path,
+											   Class<T> enumType,
+											   EnumGetMethod method,
+											   Supplier<T> defaultValueSupplier) {
+		define(path, defaultValueSupplier, o -> method.validate(o, enumType));
+	}
+
+	//
+	// --- defineRestrictedEnum ---
+
+	public <T extends Enum<T>> void defineRestrictedEnum(String path,
+														 T defaultValue,
+														 Collection<T> acceptableValues,
+														 EnumGetMethod method) {
+		defineRestrictedEnum(split(path, '.'), defaultValue, acceptableValues, method);
+	}
+
+	public <T extends Enum<T>> void defineRestrictedEnum(List<String> path,
+														 T defaultValue,
+														 Collection<T> acceptableValues,
+														 EnumGetMethod method) {
+		defineRestrictedEnum(path, defaultValue.getDeclaringClass(), acceptableValues, method, new DumbSupplier<>(defaultValue));
+	}
+
+	public <T extends Enum<T>> void defineRestrictedEnum(String path,
+													     Class<T> enumType,
+													     Collection<T> acceptableValues,
+													     EnumGetMethod method,
+													     Supplier<T> defaultValueSupplier) {
+		defineRestrictedEnum(split(path, '.'), enumType, acceptableValues, method, defaultValueSupplier);
+	}
+
+	public <T extends Enum<T>> void defineRestrictedEnum(List<String> path,
+													     Class<T> enumType,
+													     Collection<T> acceptableValues,
+													     EnumGetMethod method,
+													     Supplier<T> defaultValueSupplier) {
+		define(path, defaultValueSupplier, o ->
+			method.validate(o, enumType) && acceptableValues.contains(method.get(o, enumType))
+		);
 	}
 
 	/**
@@ -481,8 +543,9 @@ public class ConfigSpec {
 		for (Map.Entry<String, Object> configEntry : configMap.entrySet()) {
 			final String key = configEntry.getKey();
 			final Object specValue = specMap.get(key);
-			if (specValue == null)// Unspecified value that shouldn't exist
-			{ return false; }
+			if (specValue == null) {// Unspecified value that shouldn't exist
+				return false;
+			}
 		}
 		return true;
 	}

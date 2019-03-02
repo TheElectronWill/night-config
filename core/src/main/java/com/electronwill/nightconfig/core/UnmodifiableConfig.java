@@ -131,6 +131,221 @@ public interface UnmodifiableConfig {
 		return getOrElse(split(path, '.'), defaultValueSupplier);
 	}
 
+	// ---- Enum getters ----
+	/**
+	 * Gets an Enum value from the config. If the value doesn't exist, returns null.
+	 *
+	 * @param path     the value's path, each part separated by a dot. Example "a.b.c"
+	 * @param enumType the class of the Enum
+	 * @param method   the method to use when converting a non-enum value like a String or an int
+	 * @param <T>      the value's type
+	 * @return the value at the given path as an enum, or null value if not found.
+	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant, like a List
+	 */
+	default <T extends Enum<T>> T getEnum(String path, Class<T> enumType, EnumGetMethod method) {
+		return getEnum(split(path, '.'), enumType, method);
+	}
+
+	/**
+	 * Calls {@link #getEnum(String, Class, EnumGetMethod)} with method
+	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 */
+	default <T extends Enum<T>> T getEnum(String path, Class<T> enumType) {
+		return getEnum(split(path, '.'), enumType, EnumGetMethod.NAME_IGNORECASE);
+	}
+
+	/**
+	 * Gets an Enum value from the config. If the value doesn't exist, returns null.
+	 *
+	 * @param path     the value's path, each element of the list is a different part of the path.
+	 * @param enumType the class of the Enum
+	 * @param method   the method to use when converting a non-enum value like a String or an int
+	 * @param <T>      the value's type
+	 * @return the value at the given path as an enum, or null value if not found.
+	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant, like a List
+	 */
+	default <T extends Enum<T>> T getEnum(List<String> path, Class<T> enumType, EnumGetMethod method) {
+		final Object value = getRaw(path);
+		return method.get(value, enumType);
+	}
+
+	/**
+	 * Calls {@link #getEnum(List, Class, EnumGetMethod)} with method
+	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 */
+	default <T extends Enum<T>> T getEnum(List<String> path, Class<T> enumType) {
+		return getEnum(path, enumType, EnumGetMethod.NAME_IGNORECASE);
+	}
+
+	/**
+	 * Gets an optional Enum value from the config.
+	 *
+	 * @param path     the value's path, each part separated by a dot. Example "a.b.c"
+	 * @param enumType the class of the Enum
+	 * @param method   the method to use when converting a non-enum value like a String or an int
+	 * @param <T>      the value's type
+	 * @return the value at the given path as an enum, or null value if not found.
+	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant, like a List
+	 */
+	default <T extends Enum<T>> Optional<T> getOptionalEnum(String path, Class<T> enumType, EnumGetMethod method) {
+		return getOptionalEnum(split(path, '.'), enumType, method);
+	}
+
+	/**
+	 * Calls {@link #getOptionalEnum(String, Class, EnumGetMethod)} with method
+	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 */
+	default <T extends Enum<T>> Optional<T> getOptionalEnum(String path, Class<T> enumType) {
+		return getOptionalEnum(path, enumType, EnumGetMethod.NAME_IGNORECASE);
+	}
+
+	/**
+	 * Gets an optional Enum value from the config.
+	 *
+	 * @param path     the value's path, each element of the list is a different part of the path.
+	 * @param enumType the class of the Enum
+	 * @param method   the method to use when converting a non-enum value like a String or an int
+	 * @param <T>      the value's type
+	 * @return the value at the given path as an enum, or null value if not found.
+	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant, like a List
+	 */
+	default <T extends Enum<T>> Optional<T> getOptionalEnum(List<String> path, Class<T> enumType, EnumGetMethod method) {
+		return Optional.ofNullable(getEnum(path, enumType, method));
+	}
+
+	/**
+	 * Calls {@link #getOptionalEnum(List, Class, EnumGetMethod)} with method
+	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 */
+	default <T extends Enum<T>> Optional<T> getOptionalEnum(List<String> path, Class<T> enumType) {
+		return getOptionalEnum(path, enumType, EnumGetMethod.NAME_IGNORECASE);
+	}
+
+	/**
+	 * Gets an Enum value from the config. If the value doesn't exist, returns the default value.
+	 *
+	 * @param path         the value's path, each part separated by a dot. Example "a.b.c"
+	 * @param defaultValue the default value
+	 * @param method       the method to use when converting a non-enum value like a String or an int
+	 * @param <T>          the value's type
+	 * @return the value at the given path as an enum, or null value if not found.
+	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant, like a List
+	 */
+	default <T extends Enum<T>> T getEnumOrElse(String path, T defaultValue, EnumGetMethod method) {
+		return getEnumOrElse(split(path, '.'), defaultValue, method);
+	}
+
+	/**
+	 * Calls {@link #getEnumOrElse(String, Enum, EnumGetMethod)} with method
+	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 */
+	default <T extends Enum<T>> T getEnumOrElse(String path, T defaultValue) {
+		return getEnumOrElse(path, defaultValue, EnumGetMethod.NAME_IGNORECASE);
+	}
+
+	/**
+	 * Gets an Enum value from the config. If the value doesn't exist, returns the default value.
+	 *
+	 * @param path         the value's path, each element of the list is a different part of the path.
+	 * @param defaultValue the default value
+	 * @param method       the method to use when converting a non-enum value like a String or an int
+	 * @param <T>          the value's type
+	 * @return the value at the given path as an enum, or null value if not found.
+	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant, like a List
+	 */
+	default <T extends Enum<T>> T getEnumOrElse(List<String> path, T defaultValue, EnumGetMethod method) {
+		T value = getEnum(path, defaultValue.getDeclaringClass(), method);
+		return (value == null) ? defaultValue : value;
+	}
+
+	/**
+	 * Calls {@link #getEnumOrElse(List, Enum, EnumGetMethod)} with method
+	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 */
+	default <T extends Enum<T>> T getEnumOrElse(List<String> path, T defaultValue) {
+		return getEnumOrElse(path, defaultValue, EnumGetMethod.NAME_IGNORECASE);
+	}
+
+	/**
+	 * Gets an Enum value from the config. If the value doesn't exist, returns the default value.
+	 *
+	 * @param path                 the value's path, each element of the list is a different part of the path.
+	 * @param defaultValueSupplier Supplier of the default value, only used if needed
+	 * @param method               the method to use when converting a non-enum value like a String or an int
+	 * @param <T>                  the value's type
+	 * @return the value at the given path as an enum, or null value if not found.
+	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant, like a List
+	 */
+	default <T extends Enum<T>> T getEnumOrElse(String path,
+												Class<T> enumType,
+												EnumGetMethod method,
+												Supplier<T> defaultValueSupplier) {
+		return getEnumOrElse(split(path, '.'), enumType, method, defaultValueSupplier);
+	}
+
+	/**
+	 * Calls {@link #getEnumOrElse(String, Class, EnumGetMethod, Supplier)} with method
+	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 */
+	default <T extends Enum<T>> T getEnumOrElse(String path,
+												Class<T> enumType,
+												Supplier<T> defaultValueSupplier) {
+		return getEnumOrElse(path, enumType, EnumGetMethod.NAME_IGNORECASE, defaultValueSupplier);
+	}
+
+	/**
+	 * Gets an Enum value from the config. If the value doesn't exist, returns the default value.
+	 *
+	 * @param path                 the value's path, each element of the list is a different part of the path.
+	 * @param defaultValueSupplier Supplier of the default value, only used if needed
+	 * @param method               the method to use when converting a non-enum value like a String or an int
+	 * @param <T>                  the value's type
+	 * @return the value at the given path as an enum, or null value if not found.
+	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant, like a List
+	 */
+	default <T extends Enum<T>> T getEnumOrElse(List<String> path,
+												Class<T> enumType,
+												EnumGetMethod method,
+												Supplier<T> defaultValueSupplier) {
+		// The enumType is needed to avoid using the Supplier when the raw value is an enum constant
+		T value = getEnum(path, enumType, method);
+		return (value == null) ? defaultValueSupplier.get() : value;
+	}
+
+	/**
+	 * Calls {@link #getEnumOrElse(List, Class, EnumGetMethod, Supplier)} with method
+	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 */
+	default <T extends Enum<T>> T getEnumOrElse(List<String> path,
+												Class<T> enumType,
+												Supplier<T> defaultValueSupplier) {
+		return getEnumOrElse(path, enumType, EnumGetMethod.NAME_IGNORECASE, defaultValueSupplier);
+	}
+
 	// ---- Primitive getters: int ----
 	/**
 	 * Like {@link #get(String)} but returns a primitive int. The config's value must be a
