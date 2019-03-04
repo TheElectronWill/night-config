@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core.conversion;
 
+import com.electronwill.nightconfig.core.EnumGetMethod;
 import com.electronwill.nightconfig.core.utils.StringUtils;
 
 import java.lang.reflect.AnnotatedElement;
@@ -140,6 +141,12 @@ final class AnnotationUtils {
 			checkFieldSpec(field, value, specIntInRange);
 		}
 
+		// --- Enum check ---
+		SpecEnum specEnum = field.getDeclaredAnnotation(SpecEnum.class);
+		if (specEnum != null) {
+			checkFieldSpec(field, value, specEnum);
+		}
+
 		// --- Custom check with a validator --
 		SpecValidator specValidator = field.getDeclaredAnnotation(SpecValidator.class);
 		if (specValidator != null) {
@@ -188,6 +195,16 @@ final class AnnotationUtils {
 			throw new InvalidValueException(
 					"Invalid value \"%s\" for field %s: it doesn't conform to %s", value, field,
 					spec);
+		}
+	}
+
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private static void checkFieldSpec(Field field, Object value, SpecEnum spec) {
+		EnumGetMethod m = spec.method();
+		Class<? extends Enum> t = spec.enumType();
+		if (!m.validate(value, t)) {
+			throw new InvalidValueException(
+				"Invalid value \"%s\" for field %s: it doesn't conform to %s", value, field, spec);
 		}
 	}
 
