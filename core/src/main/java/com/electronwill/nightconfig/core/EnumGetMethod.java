@@ -84,25 +84,26 @@ public enum EnumGetMethod {
 	}
 
 	public <T extends Enum<T>> boolean validate(Object value, Class<T> enumType) {
-		if (value != null && value != NULL_OBJECT) {
-			final Class<?> cls = value.getClass();
-			if (enumType.isAssignableFrom(cls)) {
-				return true;
-			} else if (cls == String.class) {
-				final String name = (String)value;
-				if (isCaseSensitive()) {
-					for (T item : enumType.getEnumConstants()) {
-						if (item.name().equals(name)) return true;
-					}
-				} else {
-					for (T item : enumType.getEnumConstants()) {
-						if (item.name().equalsIgnoreCase(name)) return true;
-					}
+		if (value == null || value == NULL_OBJECT) {
+			return true;
+		}
+		final Class<?> cls = value.getClass();
+		if (enumType.isAssignableFrom(cls)) {
+			return true;
+		} else if (cls == String.class) {
+			final String name = (String)value;
+			if (isCaseSensitive()) {
+				for (T item : enumType.getEnumConstants()) {
+					if (item.name().equals(name)) return true;
 				}
-			} else if (cls == Integer.class && isOrdinalOk()) {
-				int idx = (int)value;
-				return idx >= 0 && idx < enumType.getEnumConstants().length;
+			} else {
+				for (T item : enumType.getEnumConstants()) {
+					if (item.name().equalsIgnoreCase(name)) return true;
+				}
 			}
+		} else if (cls == Integer.class && isOrdinalOk()) {
+			int idx = (int)value;
+			return idx >= 0 && idx < enumType.getEnumConstants().length;
 		}
 		return false;
 	}
