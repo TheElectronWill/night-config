@@ -23,6 +23,12 @@ class ConfigSpecTest {
 		spec.defineInRange("a.d", 0.1, -0.1, 0.2);
 		spec.defineInList("a.s", "default", Arrays.asList("a", "b", "c", "d", "e", "f", "default"));
 		spec.defineList("a.list", Arrays.asList("1", "2"), element -> element instanceof String);
+		spec.defineRestrictedEnum("a.enum1", TestEnum.A, Arrays.asList(TestEnum.A, TestEnum.B),
+			EnumGetMethod.ORDINAL_OR_NAME_IGNORECASE);
+		spec.defineRestrictedEnum("a.enum2", TestEnum.A, Arrays.asList(TestEnum.A, TestEnum.B),
+			EnumGetMethod.ORDINAL_OR_NAME_IGNORECASE);
+		spec.defineRestrictedEnum("a.enum3", TestEnum.A, Arrays.asList(TestEnum.A, TestEnum.B),
+			EnumGetMethod.ORDINAL_OR_NAME_IGNORECASE);
 
 		{
 			Config config = Config.inMemory();
@@ -32,6 +38,10 @@ class ConfigSpecTest {
 			config.set("a.d", 123d);
 			config.set("a.s", "value");
 			config.set("a.list", Arrays.asList("hey", null, false, 1));
+			config.set("a.enum1", null);
+			config.set("a.enum2", -1);
+			config.set("a.enum3", 3);
+			config.set("a.enum4", "C");
 
 			assertFalse(spec.isCorrect(config));
 			System.out.println("Before correction: " + configToString(config));
@@ -50,6 +60,10 @@ class ConfigSpecTest {
 			config.set("a.d", -0.09);
 			config.set("a.s", "a");
 			config.set("a.list", Arrays.asList("test", "", "."));
+			config.set("a.enum1", TestEnum.B);
+			config.set("a.enum2", "b");
+			config.set("a.enum2", "B");
+			config.set("a.enum3", 1);
 
 			assertTrue(spec.isCorrect(config));
 			System.out.println("Before correction: " + configToString(config));

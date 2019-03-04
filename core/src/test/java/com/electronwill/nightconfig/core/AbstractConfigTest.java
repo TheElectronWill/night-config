@@ -56,6 +56,18 @@ public class AbstractConfigTest {
 		config.set("map", map);
 		assertSame(map, config.get("map"));
 		assertFalse(config.contains("map.key in the map"));
+
+		config.set("enum1", TestEnum.A);
+		config.set("enum2", "a");
+		config.set("enum3", "A");
+		config.set("enum4", 0);
+		assertEquals(TestEnum.A, config.getEnum("enum1", TestEnum.class));
+		assertEquals(TestEnum.A, config.getEnum("enum2", TestEnum.class));
+		assertEquals(TestEnum.A, config.getEnum("enum3", TestEnum.class));
+		assertEquals(TestEnum.A, config.getEnum("enum4", TestEnum.class, EnumGetMethod.ORDINAL_OR_NAME));
+		assertThrows(ClassCastException.class, ()->config.getEnum("enum4", TestEnum.class));
+		assertThrows(ClassCastException.class, ()->config.getEnum("enum4", TestEnum.class, EnumGetMethod.NAME));
+		assertThrows(IllegalArgumentException.class, ()->config.getEnum("enum2", TestEnum.class, EnumGetMethod.NAME));
 	}
 
 	@Test
