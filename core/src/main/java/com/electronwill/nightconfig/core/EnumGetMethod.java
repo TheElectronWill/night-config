@@ -22,6 +22,9 @@ public enum EnumGetMethod {
 	 * If it's a String, returns the enum constant whose name matches the string, ignoring the case.
 	 * If it's a value of another type, throws an error. In particular, throws an error if it's an
 	 * Integer.
+     *
+     * This is the default method used by {@link UnmodifiableConfig} (and other classes) when
+     * not explicitely specified.
 	 */
 	NAME_IGNORECASE,
 

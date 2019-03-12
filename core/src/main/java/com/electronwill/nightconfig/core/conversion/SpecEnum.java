@@ -8,16 +8,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Specifies that the value of a field must correspond to an enum.
+ * Specifies that the value of a field must correspond to an enum and
+ * that the value must be read using the given {@link EnumGetMethod}.
  *
  * @author TheElectronWill
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface SpecEnum {
-	/** The enum declaring class */
-	Class<? extends Enum<?>> enumType();
-
 	/**
 	 * How to interpret the config value. For instance, should we match the name and the ordinal()
 	 * or just the name? Should we ignore the case of the string value or not?

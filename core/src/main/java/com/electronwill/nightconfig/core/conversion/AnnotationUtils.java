@@ -19,6 +19,13 @@ import java.util.function.Predicate;
 final class AnnotationUtils {
 	private AnnotationUtils() {}
 
+    /**
+	 * Checks if an annotated element is annotated with {@link PreserveNotNull}.
+	 */
+	static boolean isEnum(Field annotatedElement) {
+		return annotatedElement.getType().isEnum() || annotatedElement.isAnnotationPresent(PreserveNotNull.class);
+	}
+
 	/**
 	 * Checks if an annotated element is annotated with {@link PreserveNotNull}.
 	 */
@@ -201,7 +208,12 @@ final class AnnotationUtils {
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	private static void checkFieldSpec(Field field, Object value, SpecEnum spec) {
 		EnumGetMethod m = spec.method();
-		Class<? extends Enum> t = spec.enumType();
+        Class<?> fieldType = field.getType();
+        if (!fieldType.isEnum()) {
+            throw new InvalidValueException("Field %s is annotated with @SpecEnum but isn't of type enum",
+                    field);
+        }
+        Class<? extends Enum> t = (Class<? extends Enum>)fieldType;
 		if (!m.validate(value, t)) {
 			throw new InvalidValueException(
 				"Invalid value \"%s\" for field %s: it doesn't conform to %s", value, field, spec);

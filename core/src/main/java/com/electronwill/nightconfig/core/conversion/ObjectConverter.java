@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.EnumGetMethod;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
 import java.lang.reflect.*;
@@ -219,7 +220,7 @@ public final class ObjectConverter {
 					if (value instanceof UnmodifiableConfig && !(fieldType.isAssignableFrom(value.getClass()))) {
 						// --- Read as a sub-object ---
 						final UnmodifiableConfig cfg = (UnmodifiableConfig)value;
-	
+
 						// Gets or creates the field and convert it (if null OR not preserved)
 						Object fieldValue = field.get(object);
 						if (fieldValue == null) {
@@ -275,7 +276,14 @@ public final class ObjectConverter {
 							AnnotationUtils.checkField(field, field.get(object));
 						} else {
 							AnnotationUtils.checkField(field, value);
-							field.set(object, value);
+                            if (field.getType().isEnum()) {
+                                Class<? extends Enum> enumType = (Class<? extends Enum>) field.getType();
+                                SpecEnum specEnum = field.getAnnotation(SpecEnum.class);
+                                EnumGetMethod method = (specEnum == null) ? EnumGetMethod.NAME_IGNORECASE : specEnum.method();
+                                field.set(object, method.get(value, enumType));
+                            } else {
+							    field.set(object, value);
+                            }
 						}
 					}
 				} catch (ReflectiveOperationException ex) {
