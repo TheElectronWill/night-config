@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.EnumGetMethod;
 import com.electronwill.nightconfig.core.InMemoryFormat;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
@@ -126,13 +127,21 @@ public final class ObjectBinder {
 			FieldInfos fieldInfos;
 			Converter<Object, Object> converter = AnnotationUtils.getConverter(field);
 			if (converter == null) {
-				converter = NoOpConverter.INSTANCE;
+                if (field.getType().isEnum()) {
+                    SpecEnum spec = field.getAnnotation(SpecEnum.class);
+                    EnumGetMethod method = (spec == null) ? EnumGetMethod.NAME_IGNORECASE : spec.method();
+                    converter = new EnumValueConverter(field.getType(), method);
+                } else {
+				    converter = NoOpConverter.INSTANCE;
+                }
 			}
 			try {
 				Object value = converter.convertFromField(field.get(object));
 				if (value == null || configFormat.supportsType(value.getClass())) {
+                    // Create a FieldInfos for this simple field
 					fieldInfos = new FieldInfos(field, null, converter);
 				} else {
+                    // Bind recursively
 					BoundConfig subConfig = createBoundConfig(value, field.getType(), configFormat);
 					fieldInfos = new FieldInfos(field, subConfig, converter);
 				}
@@ -446,4 +455,24 @@ public final class ObjectBinder {
 			return value;
 		}
 	}
+
+    private static final class EnumValueConverter<T extends Enum<T>> implements Converter<T, Object> {
+        private final Class<T> enumType;
+        private final EnumGetMethod method;
+
+        EnumValueConverter(Class<T> enumType, EnumGetMethod method) {
+            this.enumType = enumType;
+            this.method = method;
+        }
+
+        @Override
+		public T convertToField(Object value) {
+			return method.get(value, enumType);
+		}
+
+		@Override
+		public String convertFromField(T value) {
+			return (value == null) ? null : value.toString();
+		}
+    }
 }
