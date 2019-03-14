@@ -87,6 +87,7 @@ public final class YamlFormat implements ConfigFormat<Config> {
 	@Override
 	public boolean supportsType(Class<?> type) {
 		return type == null
+			|| type.isEnum()
             || type == Boolean.class
             || type == String.class
             || type == java.util.Date.class
