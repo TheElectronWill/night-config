@@ -14,16 +14,17 @@ import java.util.function.Predicate;
 public final class InMemoryFormat implements ConfigFormat<Config> {
 	static final Predicate<Class<?>> DEFAULT_PREDICATE =
 		type -> type == null
-				|| type.isPrimitive()
-				|| type == Integer.class
-				|| type == Long.class
-				|| type == Float.class
-				|| type == Double.class
-				|| type == Boolean.class
-				|| type == String.class
-				|| type == NullObject.class
-				|| Collection.class.isAssignableFrom(type)
-				|| Config.class.isAssignableFrom(type);
+             || type.isPrimitive()
+             || type == Integer.class
+             || type == Long.class
+             || type == Float.class
+             || type == Double.class
+             || type == Boolean.class
+             || type == String.class
+             || type == NullObject.class
+             || Collection.class.isAssignableFrom(type)
+             || Config.class.isAssignableFrom(type)
+             || Enum.class.isAssignableFrom(type);
 
 	private static final InMemoryFormat DEFAULT_INSTANCE = new InMemoryFormat(DEFAULT_PREDICATE);
 	private static final InMemoryFormat UNIVERSAL_INSTANCE = new InMemoryFormat(t -> true);

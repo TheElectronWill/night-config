@@ -155,7 +155,15 @@ public final class ObjectConverter {
 					destination.set(path, null);
 				} else {
 					Class<?> valueType = value.getClass();
-					if (field.isAnnotationPresent(ForceBreakdown.class) || !format.supportsType(valueType)) {
+                    if (Enum.class.isAssignableFrom(valueType)) {
+                        // Enums must not be treated as objects to break down
+                        // Note: isEnum() doesn't work with enum items that have a body
+                        if (destination.configFormat().supportsType(Enum.class)) {
+                            destination.set(path, value); // keep the enum value if supported
+                        } else {
+                            destination.set(path, value.toString()); // if not supported, serialize it
+                        }
+                    } else if (field.isAnnotationPresent(ForceBreakdown.class) || !format.supportsType(valueType)) {
 						// We have to convert the value
 						destination.set(path, value);
 						Config converted = destination.createSubConfig();

@@ -126,8 +126,9 @@ public final class ObjectBinder {
 			List<String> path = AnnotationUtils.getPath(field);
 			FieldInfos fieldInfos;
 			Converter<Object, Object> converter = AnnotationUtils.getConverter(field);
+            boolean isEnum = Enum.class.isAssignableFrom(field.getType());
 			if (converter == null) {
-                if (field.getType().isEnum()) {
+                if (isEnum) {
                     SpecEnum spec = field.getAnnotation(SpecEnum.class);
                     EnumGetMethod method = (spec == null) ? EnumGetMethod.NAME_IGNORECASE : spec.method();
                     converter = new EnumValueConverter(field.getType(), method);
@@ -137,7 +138,7 @@ public final class ObjectBinder {
 			}
 			try {
 				Object value = converter.convertFromField(field.get(object));
-				if (value == null || configFormat.supportsType(value.getClass())) {
+				if (value == null || isEnum || configFormat.supportsType(value.getClass())) {
                     // Create a FieldInfos for this simple field
 					fieldInfos = new FieldInfos(field, null, converter);
 				} else {

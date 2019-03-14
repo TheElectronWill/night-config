@@ -1,8 +1,11 @@
 package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.EnumGetMethod;
 import com.electronwill.nightconfig.core.InMemoryFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.TestEnum;
+import com.electronwill.nightconfig.core.conversion.SpecEnum;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -47,6 +50,7 @@ public class ObjectConverterTest {
 		config.set("nestedObjList2", nestedList2);
 		config.set("nestedObjList3", nestedList3);
 		config.set("config", config1);
+        config.set("enumValue", "A");
 		config.set("subObject.parentValue", "subParent");
 		config.set("subObject.integer", -1);
 		config.set("subObject.decimal", 0.5);
@@ -57,6 +61,7 @@ public class ObjectConverterTest {
 		config.set("subObject.subObject", null);
 		config.set("subObject.nestedObjList2", null);
 		config.set("subObject.nestedObjList3", null);
+        config.set("subObject.enumValue", 2);
 	}
 
 	@Test
@@ -74,7 +79,17 @@ public class ObjectConverterTest {
 		System.out.println("\nOriginal object: " + object);
 		System.out.println("New object: " + object);
 
-		assertEquals(config, newConfig, "Invalid conversion");
+        // test the enum values
+        assertEquals(TestEnum.A, config.getEnum("enumValue", TestEnum.class));
+        assertEquals(TestEnum.C, config.getEnum("subObject.enumValue", TestEnum.class, EnumGetMethod.ORDINAL_OR_NAME));
+
+        // Replace string and integer by enum values in order to compare the configs properly
+        // (the object converter should have put enum values in the new config)
+        config.set("enumValue", TestEnum.A);
+        config.set("subObject.enumValue", TestEnum.C);
+
+        // ensure that the conversion was well done
+        assertEquals(config, newConfig, "Invalid conversion");
 		assertEquals(object, newObject, "Invalid conversion");
 	}
 
@@ -87,6 +102,7 @@ public class ObjectConverterTest {
 			assertSame(config.get("parentValue"), object.parentValue);
 			assertEquals((int)config.get("integer"), object.integer);
 			assertEquals((double)config.get("decimal"), object.decimal);
+            assertEquals(config.getEnum("enumValue", TestEnum.class), object.enumValue);
 			assertSame(config.get("string"), object.string);
 			assertSame(list1, object.stringList);
 			assertSame(config1, object.config);
@@ -97,6 +113,7 @@ public class ObjectConverterTest {
 			assertSame(list2, object.subObject.stringList);
 			assertSame(config2, object.subObject.config);
 			assertNull(object.subObject.subObject);
+            assertEquals(config.getEnum("subObject.enumValue", TestEnum.class, EnumGetMethod.ORDINAL_OR_NAME), object.subObject.enumValue);
 
 			assertTrue(object.nestedObjList3 instanceof LinkedList);
 			assertTrue(object.nestedObjList3.get(0) instanceof LinkedList);
@@ -131,11 +148,9 @@ public class ObjectConverterTest {
 
 		System.out.println("After: " + object);
 	}
-	
+
 	private static class MyParent {
-		
 		String parentValue;
-		
 	}
 
 	private static class MyObject extends MyParent {
@@ -148,6 +163,8 @@ public class ObjectConverterTest {
 		LinkedList<LinkedList<Collection<SomeObject>>> nestedObjList3;
 		Config config;
 		MyObject subObject;
+        @SpecEnum(method=EnumGetMethod.ORDINAL_OR_NAME)
+        TestEnum enumValue;
 
 		@Override
 		public String toString() {
@@ -173,6 +190,8 @@ public class ObjectConverterTest {
 				   + config
 				   + ", subObject="
 				   + subObject
+                   + ", enumValue="
+                   + enumValue
 				   + '}';
 		}
 
@@ -183,13 +202,16 @@ public class ObjectConverterTest {
 			if (o == null || getClass() != o.getClass())
 				return false;
 			MyObject myObject = (MyObject)o;
-			return integer == myObject.integer && Double.compare(myObject.decimal, decimal) == 0
-				&& Objects.equals(string, myObject.string) && Objects
-				.equals(stringList, myObject.stringList) && Objects
-				.equals(objList, myObject.objList) && Objects
-				.equals(nestedObjList2, myObject.nestedObjList2) && Objects
-				.equals(nestedObjList3, myObject.nestedObjList3) && Objects
-				.equals(config, myObject.config) && Objects.equals(subObject, myObject.subObject);
+			return integer == myObject.integer
+                && Double.compare(myObject.decimal, decimal) == 0
+				&& Objects.equals(string, myObject.string)
+                && Objects.equals(stringList, myObject.stringList)
+                && Objects.equals(objList, myObject.objList)
+                && Objects.equals(nestedObjList2, myObject.nestedObjList2)
+                && Objects.equals(nestedObjList3, myObject.nestedObjList3)
+                && Objects.equals(config, myObject.config)
+                && Objects.equals(subObject, myObject.subObject)
+                && Objects.equals(enumValue, myObject.enumValue);
 		}
 
 		@Override
