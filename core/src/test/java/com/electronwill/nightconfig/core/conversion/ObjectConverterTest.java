@@ -5,7 +5,6 @@ import com.electronwill.nightconfig.core.EnumGetMethod;
 import com.electronwill.nightconfig.core.InMemoryFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.TestEnum;
-import com.electronwill.nightconfig.core.conversion.SpecEnum;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -127,6 +126,7 @@ public class ObjectConverterTest {
 			assertSame(config.get("parentValue"), object.parentValue);
 			assertEquals((int)config.get("integer"), object.integer);
 			assertEquals((double)config.get("decimal"), object.decimal);
+			assertEquals(config.getEnum("enumValue", TestEnum.class), object.enumValue);
 			assertSame(config.get("string"), object.string);
 			assertSame(list1, object.stringList);
 			assertSame(config1, object.config);
@@ -137,6 +137,7 @@ public class ObjectConverterTest {
 			assertSame(list2, object.subObject.stringList);
 			assertSame(config2, object.subObject.config);
 			assertNull(object.subObject.subObject);
+			assertEquals(config.getEnum("subObject.enumValue", TestEnum.class, EnumGetMethod.ORDINAL_OR_NAME),object.subObject.enumValue);
 		}
 	}
 
@@ -169,30 +170,30 @@ public class ObjectConverterTest {
 		@Override
 		public String toString() {
 			return "MyObject{"
-				   + "parentValue="
-				   + parentValue
-				   + ", integer="
-				   + integer
-				   + ", decimal="
-				   + decimal
-				   + ", string='"
-				   + string
-				   + '\''
-				   + ", stringList="
-				   + stringList
-				   + ", objList="
-				   + objList
-				   + ", nestedObjList2="
-				   + nestedObjList2
-				   + ", nestedObjList3="
-				   + nestedObjList3
-				   + ", config="
-				   + config
-				   + ", subObject="
-				   + subObject
-                   + ", enumValue="
-                   + enumValue
-				   + '}';
+					+ "parentValue="
+					+ parentValue
+					+ ", integer="
+					+ integer
+					+ ", decimal="
+					+ decimal
+					+ ", string='"
+					+ string
+					+ '\''
+					+ ", stringList="
+					+ stringList
+					+ ", objList="
+					+ objList
+					+ ", nestedObjList2="
+					+ nestedObjList2
+					+ ", nestedObjList3="
+					+ nestedObjList3
+					+ ", config="
+					+ config
+					+ ", subObject="
+					+ subObject
+					+ ", enumValue="
+					+ enumValue
+					+ '}';
 		}
 
 		@Override
@@ -265,9 +266,11 @@ public class ObjectConverterTest {
 		final List<List<List<SomeObject>>> nestedObjList3;
 		final Config config;
 		final MyObjectFinal subObject;
+		@SpecEnum(method=EnumGetMethod.ORDINAL_OR_NAME)
+		final TestEnum enumValue;
 
 		public MyObjectFinal() {
-			this(123, 1.23, "v", null, null, null, null, null, null);
+			this(123, 1.23, "v", null, null, null, null, null, null, null);
 		}
 
 		/*
@@ -279,7 +282,8 @@ public class ObjectConverterTest {
 								List<List<SomeObject>> nestedObjList2,
 								List<List<List<SomeObject>>> nestedObjList3,
 								Config config,
-								MyObjectFinal subObject) {
+								MyObjectFinal subObject,
+								TestEnum enumValue) {
 			this.integer = integer;
 			this.decimal = decimal;
 			this.string = string;
@@ -289,31 +293,34 @@ public class ObjectConverterTest {
 			this.nestedObjList3 = nestedObjList3;
 			this.config = config;
 			this.subObject = subObject;
+			this.enumValue = enumValue;
 		}
 
 		@Override
 		public String toString() {
 			return "MyObjectFinal{"
-				   + "integer="
-				   + integer
-				   + ", decimal="
-				   + decimal
-				   + ", string='"
-				   + string
-				   + '\''
-				   + ", stringList="
-				   + stringList
-				   + ", objList="
-				   + objList
-				   + ", nestedObjList2="
-				   + nestedObjList2
-				   + ", nestedObjList3="
-				   + nestedObjList3
-				   + ", config="
-				   + config
-				   + ", subObject="
-				   + subObject
-				   + '}';
+					+ "integer="
+					+ integer
+					+ ", decimal="
+					+ decimal
+					+ ", string='"
+					+ string
+					+ '\''
+					+ ", stringList="
+					+ stringList
+					+ ", objList="
+					+ objList
+					+ ", nestedObjList2="
+					+ nestedObjList2
+					+ ", nestedObjList3="
+					+ nestedObjList3
+					+ ", config="
+					+ config
+					+ ", subObject="
+					+ subObject
+					+ ", enumValue="
+					+ enumValue
+					+ '}';
 		}
 	}
 }
