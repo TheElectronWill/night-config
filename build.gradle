@@ -95,8 +95,28 @@ configure(subprojects.findAll {!it.name.contains("core") && it.name != "examples
 	dependencies {
 		if (project.name.contains("android")) {
 			compile project(':core_android')
+			testCompile project(path: ':core_android', configuration: 'tests')
 		} else {
 			compile project(':core')
+			testCompile project(path: ':core', configuration: 'tests')
 		}
+	}
+}
+
+configure(subprojects.findAll {it.name.contains("core")}) {
+	/* The purpose of this code is allow the other modules
+	   to use the core test classes for their tests. */
+
+	task testJar(type: Jar, dependsOn: testClasses) {
+		baseName = "test-${project.archivesBaseName}"
+		from sourceSets.test.output
+	}
+
+	configurations {
+		tests
+	}
+
+	artifacts {
+		tests testJar
 	}
 }
