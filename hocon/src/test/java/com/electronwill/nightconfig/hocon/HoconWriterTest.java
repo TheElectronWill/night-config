@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.hocon;
 
+import com.electronwill.nightconfig.core.BasicTestEnum;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import java.io.IOException;
@@ -7,6 +8,8 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import com.electronwill.nightconfig.core.TestEnum;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -17,6 +20,7 @@ public class HoconWriterTest {
 	public void testWrite() throws IOException {
 		Config subConfig = CommentedConfig.inMemory();
 		subConfig.set("string", "test");
+		subConfig.set("enum", BasicTestEnum.C);
 		subConfig.set("sub", CommentedConfig.inMemory());
 
 		List<Config> configList = new ArrayList<>();
@@ -33,6 +37,7 @@ public class HoconWriterTest {
 		config.set("config", subConfig);
 		config.set("config_list", configList);
 		config.setComment("string", " Comment 1\n Comment 2\n Comment 3");
+		config.set("enum", TestEnum.A);
 
 		StringWriter sw = new StringWriter();
 		HoconWriter writer = new HoconWriter();

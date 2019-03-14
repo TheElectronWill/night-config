@@ -114,8 +114,8 @@ public final class HoconWriter implements ConfigWriter {
 	private void writeValue(Object v, CharacterOutput output) {
 		if (v == null || v == NULL_OBJECT) {
 			output.write(NULL_CHARS);
-		} else if (v instanceof String) {
-			writeString((String)v, output);
+		} else if (v instanceof String || v instanceof Enum) {
+			writeString(v.toString(), output);
 		} else if (v instanceof Number) {
 			output.write(v.toString());
 		} else if (v instanceof UnmodifiableCommentedConfig) {
