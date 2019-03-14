@@ -53,11 +53,11 @@ public class JsonConfigTest {
 		config.load();
 		System.out.println(config);
 		double d;
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 20; i++) {
 			d = Math.random();
 			config.set("double", d);
-			Thread.sleep(10);
-			System.out.println(i + ":" + d);
+			Thread.sleep(20);
+			//System.out.println(i + ":" + d);
 			assertEquals(d, config.<Double>get("double").doubleValue());
 		}
 		for (int i = 0; i < 1000; i++) {
