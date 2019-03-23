@@ -90,6 +90,8 @@ public final class FancyJsonWriter implements ConfigWriter {
 			output.write(NULL_CHARS);
 		} else if (v instanceof CharSequence) {
 			writeString((CharSequence)v, output);
+		} else if (v instanceof Enum) {
+			writeString(((Enum<?>)v).name(), output);
 		} else if (v instanceof Number) {
 			output.write(v.toString());
 		} else if (v instanceof UnmodifiableConfig) {

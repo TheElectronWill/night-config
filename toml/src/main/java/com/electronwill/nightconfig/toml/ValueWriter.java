@@ -13,6 +13,13 @@ import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
  * @author TheElectronWill
  */
 final class ValueWriter {
+	private static void writeString(String string, CharacterOutput output, TomlWriter writer) {
+		if (writer.writesLiteral(string)) {
+			StringWriter.writeLiteral(string, output);
+		} else {
+			StringWriter.writeBasic(string, output);
+		}
+	}
 	/**
 	 * Writes a value. This method calls the correct writing method based on the value's type.
 	 */
@@ -29,12 +36,9 @@ final class ValueWriter {
 				ArrayWriter.write((List<?>)value, output, writer);
 			}
 		} else if (value instanceof CharSequence) {// String
-			String string = ((CharSequence)value).toString();
-			if (writer.writesLiteral(string)) {
-				StringWriter.writeLiteral(string, output);
-			} else {
-				StringWriter.writeBasic(string, output);
-			}
+			writeString(value.toString(), output, writer);
+		} else if (value instanceof Enum) {// Enum value
+			writeString(((Enum<?>)value).name(), output, writer);
 		} else if (value instanceof Temporal) {// Date or DateTime
 			TemporalWriter.write((Temporal)value, output);
 		} else if (value instanceof Float || value instanceof Double) {// Floating-point number
