@@ -2,4 +2,4 @@ sub: {'null': null, nullObject: null}
 'null': null
 string: this is a string
 nullObject: null
-enum: 'A'
+enum: !!com.electronwill.nightconfig.core.BasicTestEnum 'A'
