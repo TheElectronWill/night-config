@@ -1,26 +1,20 @@
 package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.TestEnum;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.io.IndentStyle;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.WritingMode;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,6 +37,7 @@ public class JsonConfigTest {
 		config.set("config", config2);
 		config.set("list", Arrays.asList("a", "b", 3, null, true, false, 17.5));
 		config.set("null", null);
+		config.set("enum", TestEnum.A);
 	}
 
 	private final File file = new File("test.json");
@@ -72,9 +67,12 @@ public class JsonConfigTest {
 		writer.write(config, file, WritingMode.REPLACE);
 
 		Config read = new JsonParser().parse(file, FileNotFoundAction.THROW_ERROR);
+		assertEquals(TestEnum.A, read.getEnum("enum", TestEnum.class));
 
 		System.out.println("config: " + config);
 		System.out.println("read: " + read);
+
+		assertEquals(read.toString(), config.toString());
 	}
 
 	@Test
