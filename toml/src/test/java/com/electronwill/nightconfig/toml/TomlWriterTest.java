@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.NullObject;
+import com.electronwill.nightconfig.core.TestEnum;
 import com.electronwill.nightconfig.core.io.WritingException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,7 @@ public class TomlWriterTest {
 		config.set("bool_array", Arrays.asList(true, false, true, false));
 		config.set("config", subConfig);
 		config.set("table_array", tableArray);
+		config.set("enum", TestEnum.A);
 
 		StringWriter stringWriter = new StringWriter();
 		TomlWriter writer = new TomlWriter();

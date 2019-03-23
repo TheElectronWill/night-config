@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.TestEnum;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ public class TomlParserTest {
 		assertNull(parsed.getComment("without_comment"));
 		assertNotNull(parsed.getComment("with_comments"));
 		assertTrue(parsed.getComment("with_comments").contains("\n"));
+		assertEquals(TestEnum.A, parsed.getEnum("enum", TestEnum.class));
 
 		java.io.StringWriter sw = new StringWriter();
 		TomlWriter writer = new TomlWriter();

@@ -8,6 +8,7 @@ p_inf = +inf
 nan = nan
 m_nan = -nan
 p_nan = +nan
+enum = "A"
 spaces = 10_000_999.01_02_03 # this is valid!
 bool_array = [true, false, true, false,] # comment
 array_with_spaces = [ 8001, 8001, 8002 ]
