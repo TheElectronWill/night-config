@@ -42,7 +42,7 @@ final class ValueWriter {
 		} else if (value instanceof Temporal) {// Date or DateTime
 			TemporalWriter.write((Temporal)value, output);
 		} else if (value instanceof Float || value instanceof Double) {// Floating-point number
-			double d = (double)value;
+			double d = ((Number)value).doubleValue();
 			if (Double.isNaN(d)) {
 				output.write("nan");
 			} else if (d == Double.POSITIVE_INFINITY) {
@@ -52,7 +52,7 @@ final class ValueWriter {
 			} else {
 				output.write(value.toString());
 			}
-		} else if (value instanceof Integer || value instanceof Long || value instanceof Boolean) {
+		} else if (value instanceof Number || value instanceof Boolean) {
 			output.write(value.toString());
 		} else if (value == null || value == NULL_OBJECT) {
 			throw new WritingException("TOML doesn't support null values");
