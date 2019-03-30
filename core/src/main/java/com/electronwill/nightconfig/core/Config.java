@@ -1,9 +1,6 @@
 package com.electronwill.nightconfig.core;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
 
@@ -60,10 +57,26 @@ public interface Config extends UnmodifiableConfig {
 	}
 
 	/**
+	 * Adds all the values of a config to this config, without replacing existing entries.
+	 *
+	 * @param config the source config
+	 */
+	default void addAll(UnmodifiableConfig config) {
+		for (UnmodifiableConfig.Entry ue : config.entrySet()) {
+			List<String> key = Collections.singletonList(ue.getKey());
+			Object value = ue.getRawValue();
+			boolean existed = !add(key, value);
+			if (existed && value instanceof UnmodifiableConfig) {
+
+			}
+		}
+	}
+
+	/**
 	 * Copies all the values of a config into this config. Existing entries are replaced, missing
 	 * entries are created.
 	 *
-	 * @param config the config to put into this config
+	 * @param config the source config
 	 */
 	default void putAll(UnmodifiableConfig config) {
 		valueMap().putAll(config.valueMap());

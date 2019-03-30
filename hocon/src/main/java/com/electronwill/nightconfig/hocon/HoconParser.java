@@ -9,10 +9,7 @@ import com.electronwill.nightconfig.core.io.ParsingMode;
 import com.typesafe.config.*;
 
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 
@@ -66,9 +63,15 @@ public final class HoconParser implements ConfigParser<CommentedConfig> {
 	private static void put(ConfigObject typesafeConfig, CommentedConfig destination,
 							ParsingMode parsingMode) {
 		for (Map.Entry<String, ConfigValue> entry : typesafeConfig.entrySet()) {
-			List<String> path = ConfigUtil.splitPath(entry.getKey());
+			List<String> path = Collections.singletonList(entry.getKey());
 			ConfigValue value = entry.getValue();
-			parsingMode.put(destination, path, unwrap(value.unwrapped()));
+			if (value instanceof ConfigObject) {
+				CommentedConfig subConfig = destination.createSubConfig();
+				put((ConfigObject)value, subConfig, parsingMode);
+				parsingMode.put(destination, path, subConfig);
+			} else {
+				parsingMode.put(destination, path, unwrap(value.unwrapped()));
+			}
 			List<String> comments = value.origin().comments();
 			if (!comments.isEmpty()) {
 				destination.setComment(path, String.join("\n", value.origin().comments()));
