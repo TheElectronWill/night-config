@@ -74,12 +74,13 @@ public final class HoconWriter implements ConfigWriter {
 			output.write(newline);
 			increaseIndentLevel();
 		}
-		while (true) {
+		do {
 			final UnmodifiableCommentedConfig.Entry entry = it.next();
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
 			final List<String> comments = StringUtils.splitLines(entry.getComment());
-			for(String comment : comments) {
+			for (String comment : comments) {
+				writeIndent(output);
 				output.write(commentPrefix);
 				output.write(comment);
 				output.write(newline);
@@ -100,8 +101,7 @@ public final class HoconWriter implements ConfigWriter {
 			} else {
 				output.write(',');
 			}
-			if (!it.hasNext()) break;
-		}
+		} while (it.hasNext());
 		if (indentElements) {
 			decreaseIndentLevel();
 			writeIndent(output);
