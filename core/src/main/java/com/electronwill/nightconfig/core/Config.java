@@ -90,6 +90,15 @@ public interface Config extends UnmodifiableConfig {
 	<T> T remove(List<String> path);
 
 	/**
+	 * Removes all the values of the given config from this config.
+	 *
+	 * @param config the values to remove
+	 */
+	default void removeAll(UnmodifiableConfig config) {
+		valueMap().keySet().removeAll(config.valueMap().keySet());
+	}
+
+	/**
 	 * Removes all values from the config.
 	 */
 	void clear();
