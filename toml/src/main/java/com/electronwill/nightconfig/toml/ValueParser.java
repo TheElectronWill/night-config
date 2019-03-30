@@ -60,7 +60,7 @@ final class ValueParser {
 				if (trimmed.isEmpty()) {
 					throw new ParsingException("Invalid value containing only whitespaces");
 				}
-				return parseNumber(valueChars.trimmedView());
+				return parseNumber(trimmed);
 		}
 	}
 
