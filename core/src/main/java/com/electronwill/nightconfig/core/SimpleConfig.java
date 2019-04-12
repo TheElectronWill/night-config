@@ -1,9 +1,7 @@
 package com.electronwill.nightconfig.core;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.function.Supplier;
 
 /**
  * Default concrete implementation of Config. The values are stored in a map, generally a HashMap,
@@ -18,16 +16,43 @@ final class SimpleConfig extends AbstractConfig {
 	 * @param configFormat the config's format
 	 */
 	SimpleConfig(ConfigFormat<?> configFormat, boolean concurrent) {
-		super(concurrent ? new ConcurrentHashMap<>() : new HashMap<>());
+		super(concurrent);
+		this.configFormat = configFormat;
+	}
+	
+	/**
+	 * Creates a SimpleConfig with the specified data and format. The map is used as it is and
+	 * isn't copied.
+	 * 
+	 * @param map the data to use in the config
+	 * @param configFormat the config's format
+	 */
+	SimpleConfig(Map<String, Object> map, ConfigFormat<?> configFormat) {
+		super(map);
 		this.configFormat = configFormat;
 	}
 
 	/**
-	 * Creates a SimpleConfig with the specified data and format. The map is used as it is and
-	 * isn't copied.
+	 * Creates a SimpleConfig with the specified backing map supplier and format.
+	 * 
+	 * @param mapCreator the supplier for backing maps
+	 * @param configFormat the config's format
 	 */
-	SimpleConfig(Map<String, Object> valueMap, ConfigFormat<?> configFormat) {
-		super(valueMap);
+	SimpleConfig(Supplier<Map<String, Object>> mapCreator, ConfigFormat<?> configFormat) {
+		super(mapCreator);
+		this.configFormat = configFormat;
+	}
+	
+	/**
+	 * Creates a SimpleConfig by copying a config.
+	 *
+	 * @param toCopy       the config to copy
+	 * @param configFormat the config's format
+	 * @param concurrent
+	 */
+	SimpleConfig(UnmodifiableConfig toCopy, ConfigFormat<?> configFormat,
+			boolean concurrent) {
+		super(toCopy, concurrent);
 		this.configFormat = configFormat;
 	}
 
@@ -35,11 +60,11 @@ final class SimpleConfig extends AbstractConfig {
 	 * Creates a SimpleConfig by copying a config.
 	 *
 	 * @param toCopy       the config to copy
+	 * @param mapCreator   the supplier for backing maps
 	 * @param configFormat the config's format
 	 */
-	SimpleConfig(UnmodifiableConfig toCopy, ConfigFormat<?> configFormat,
-				 boolean concurrent) {
-		super(toCopy, concurrent);
+	SimpleConfig(UnmodifiableConfig toCopy, Supplier<Map<String, Object>> mapCreator, ConfigFormat<?> configFormat) {
+		super(toCopy, mapCreator);
 		this.configFormat = configFormat;
 	}
 
@@ -50,11 +75,11 @@ final class SimpleConfig extends AbstractConfig {
 
 	@Override
 	public SimpleConfig createSubConfig() {
-		return new SimpleConfig(configFormat, map instanceof ConcurrentMap);
+		return new SimpleConfig(mapCreator, configFormat);
 	}
 
 	@Override
 	public SimpleConfig clone() {
-		return new SimpleConfig(this, configFormat, map instanceof ConcurrentMap);
+		return new SimpleConfig(this, mapCreator, configFormat);
 	}
 }

@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
 
@@ -240,6 +241,17 @@ public interface Config extends UnmodifiableConfig {
 	static Config of(ConfigFormat<? extends Config> format) {
 		return new SimpleConfig(format, false);
 	}
+	
+	/**
+	 * Creates a Config backed by a certain kind of map, given by a supplier.
+	 *
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
+	 * @param format the config's format
+	 * @return a new config backed by the map
+	 */
+	static Config of(Supplier<Map<String, Object>> mapCreator, ConfigFormat<?> format) {
+		return new SimpleConfig(mapCreator, format);
+	}
 
 	/**
 	 * Creates a thread-safe Config of the given format.
@@ -291,6 +303,20 @@ public interface Config extends UnmodifiableConfig {
 	static Config copy(UnmodifiableConfig config) {
 		return new SimpleConfig(config, config.configFormat(), false);
 	}
+	
+	/**
+	 * Creates a new Config with the content of the given config. The returned config will have
+	 * the same format as the copied config, and be backed by the given supplier.
+	 * 
+	 * @see #of(Supplier, ConfigFormat)
+	 *
+	 * @param config the config to copy
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
+	 * @return a copy of the config
+	 */
+	static Config copy(UnmodifiableConfig config, Supplier<Map<String, Object>> mapCreator) {
+		return new SimpleConfig(config, mapCreator, config.configFormat());
+	}
 
 	/**
 	 * Creates a new Config with the content of the given config.
@@ -301,6 +327,20 @@ public interface Config extends UnmodifiableConfig {
 	 */
 	static Config copy(UnmodifiableConfig config, ConfigFormat<?> format) {
 		return new SimpleConfig(config, format, false);
+	}
+	
+	/**
+	 * Creates a new Config with the content of the given config. The returned config will be backed by the given map supplier.
+	 * 
+	 * @see #of(Supplier, ConfigFormat)
+	 *
+	 * @param config the config to copy
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
+	 * @param format the config's format
+	 * @return a copy of the config
+	 */
+	static Config copy(UnmodifiableConfig config, Supplier<Map<String, Object>> mapCreator, ConfigFormat<?> format) {
+		return new SimpleConfig(config, mapCreator, format);
 	}
 
 	/**

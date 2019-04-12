@@ -4,6 +4,8 @@ import com.electronwill.nightconfig.core.utils.TransformingSet;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Supplier;
 
 import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 
@@ -16,13 +18,26 @@ import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
  */
 @SuppressWarnings("unchecked")
 public abstract class AbstractConfig implements Config, Cloneable {
+	
+	protected final Supplier<Map<String, Object>> mapCreator;
+	
 	final Map<String, Object> map;
 
 	/**
 	 * Creates a new AbstractConfig backed by a new {@link Map}.
 	 */
 	public AbstractConfig(boolean concurrent) {
-		this.map = concurrent ? new ConcurrentHashMap<>() : new HashMap<>();
+		this(getDefaultCreator(concurrent));
+	}
+
+	/**
+	 * Creates a new AbstractConfig with all backing maps supplied by the given {@link Supplier}.
+	 * 
+	 * @param mapCreator A supplier that will be called to create all config maps
+	 */
+	public AbstractConfig(Supplier<Map<String, Object>> mapCreator) {
+		this.mapCreator = mapCreator;
+		this.map = mapCreator.get();
 	}
 
 	/**
@@ -32,6 +47,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	 */
 	public AbstractConfig(Map<String, Object> map) {
 		this.map = map;
+		this.mapCreator = getDefaultCreator(map instanceof ConcurrentMap);
 	}
 
 	/**
@@ -40,8 +56,33 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	 * @param toCopy the config to copy
 	 */
 	public AbstractConfig(UnmodifiableConfig toCopy, boolean concurrent) {
-		Map<String, Object> valueMap = toCopy.valueMap();
-		this.map = concurrent ? new ConcurrentHashMap<>(valueMap) : new HashMap<>(valueMap);
+		this(toCopy, getDefaultCreator(concurrent));
+	}
+
+	/**
+	 * Creates a new AbstractConfig that is a copy of the specified config, and with
+	 * all backing maps supplied by the given {@link Supplier}.
+	 *
+	 * @param toCopy     the config to copy
+	 * @param mapCreator A supplier that will be called to create all config maps
+	 */
+	public AbstractConfig(UnmodifiableConfig toCopy, Supplier<Map<String, Object>> mapCreator) {
+		this.map = mapCreator.get();
+		this.map.putAll(toCopy.valueMap());
+		this.mapCreator = mapCreator;
+	}
+	
+	protected static <T> Supplier<Map<String, T>> getDefaultCreator(boolean concurrent) {
+		return concurrent ? ConcurrentHashMap::new : HashMap::new;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	protected static <T> Supplier<Map<String, T>> getWildcardMapCreator(Supplier<Map<String, Object>> mapCreator) {
+		return () -> {
+			Map<String, Object> map = mapCreator.get();
+			map.clear(); // Make sure there's no naughty people putting starting entries in the map, so we can unsafely cast
+			return (Map<String, T>) (Map) map;
+		};
 	}
 
 	@Override

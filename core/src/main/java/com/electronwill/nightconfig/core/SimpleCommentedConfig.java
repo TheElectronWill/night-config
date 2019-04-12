@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Supplier;
 
 /**
  * Default concrete implementation of CommentedConfig. The values are stored in a map, generally a
@@ -25,11 +26,22 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 	}
 
 	/**
-	 * Creates a SimpleConfig with the specified data and format. The map is used as it is and
+	 * Creates a SimpleCommentedConfig with the specified data and format. The map is used as it is and
 	 * isn't copied.
 	 */
 	SimpleCommentedConfig(Map<String, Object> valueMap, ConfigFormat<?> configFormat) {
 		super(valueMap);
+		this.configFormat = configFormat;
+	}
+	
+	/**
+	 * Creates a SimpleCommentedConfig with the specified backing map supplier and format.
+	 * 
+	 * @param mapCreator the supplier for backing maps
+	 * @param configFormat the config's format
+	 */
+	SimpleCommentedConfig(Supplier<Map<String, Object>> mapCreator, ConfigFormat<?> configFormat) {
+		super(mapCreator);
 		this.configFormat = configFormat;
 	}
 
@@ -44,6 +56,19 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 		super(toCopy, concurrent);
 		this.configFormat = configFormat;
 	}
+	
+	/**
+	 * Creates a SimpleCommentedConfig by copying a config, with the specified backing map creator and format.
+	 *
+	 * @param toCopy       the config to copy
+	 * @param mapCreator   the supplier for backing maps
+	 * @param configFormat the config's format
+	 */
+	public SimpleCommentedConfig(UnmodifiableConfig toCopy, Supplier<Map<String, Object>> mapCreator,
+			ConfigFormat<?> configFormat) {
+		super(toCopy, mapCreator);
+		this.configFormat = configFormat;
+	}
 
 	/**
 	 * Creates a SimpleCommentedConfig by copying a config and with the specified format.
@@ -54,6 +79,19 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 	SimpleCommentedConfig(UnmodifiableCommentedConfig toCopy, ConfigFormat<?> configFormat,
 						  boolean concurrent) {
 		super(toCopy, concurrent);
+		this.configFormat = configFormat;
+	}
+	
+	/**
+	 * Creates a SimpleCommentedConfig by copying a config, with the specified backing map creator and format.
+	 *
+	 * @param toCopy       the config to copy
+	 * @param mapCreator   the supplier for backing maps
+	 * @param configFormat the config's format
+	 */
+	public SimpleCommentedConfig(UnmodifiableCommentedConfig toCopy, Supplier<Map<String, Object>> mapCreator,
+			ConfigFormat<?> configFormat) {
+		super(toCopy, mapCreator);
 		this.configFormat = configFormat;
 	}
 
