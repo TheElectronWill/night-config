@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
 
@@ -206,6 +207,17 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	static CommentedConfig of(ConfigFormat<? extends CommentedConfig> format) {
 		return new SimpleCommentedConfig(format, false);
 	}
+	
+	/**
+	 * Creates a Config backed by a certain kind of map, given by a supplier.
+	 *
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
+	 * @param format the config's format
+	 * @return a new empty config
+	 */
+	static CommentedConfig of(Supplier<Map<String, Object>> mapCreator, ConfigFormat<? extends CommentedConfig> format) {
+		return new SimpleCommentedConfig(mapCreator, format);
+	}
 
 	/**
 	 * Creates a thread-safe CommentedConfig of the given format.
@@ -257,6 +269,20 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	static CommentedConfig copy(UnmodifiableConfig config) {
 		return new SimpleCommentedConfig(config, config.configFormat(), false);
 	}
+	
+	/**
+	 * Creates a new CommentedConfig with the content of the given config. The returned config will
+	 * have the same format as the copied config, and be backed by the given supplier.
+	 * 
+	 * @see #of(Supplier, ConfigFormat)
+	 *
+	 * @param config the config to copy
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
+	 * @return a copy of the config
+	 */
+	static CommentedConfig copy(UnmodifiableConfig config, Supplier<Map<String, Object>> mapCreator) {
+		return new SimpleCommentedConfig(config, mapCreator, config.configFormat());
+	}
 
 	/**
 	 * Creates a new CommentedConfig with the content of the given config.
@@ -267,6 +293,21 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 */
 	static CommentedConfig copy(UnmodifiableConfig config, ConfigFormat<?> format) {
 		return new SimpleCommentedConfig(config, format, false);
+	}
+	
+	/**
+	 * Creates a new CommentedConfig with the content of the given config. The returned config will
+	 * be backed by the given map supplier.
+	 * 
+	 * @see #of(Supplier, ConfigFormat)
+	 *
+	 * @param config the config to copy
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
+	 * @param format the config's format
+	 * @return a copy of the config
+	 */
+	static CommentedConfig copy(UnmodifiableConfig config, Supplier<Map<String, Object>> mapCreator, ConfigFormat<?> format) {
+		return new SimpleCommentedConfig(config, mapCreator, format);
 	}
 
 	/**
@@ -281,6 +322,18 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	}
 
 	/**
+	 * Creates a new CommentedConfig with the content of the given config. The returned config will
+	 * have the same format as the copied config.
+	 *
+	 * @param config the config to copy
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
+	 * @return a copy of the config
+	 */
+	static CommentedConfig copy(UnmodifiableCommentedConfig config, Supplier<Map<String, Object>> mapCreator) {
+		return new SimpleCommentedConfig(config, mapCreator, config.configFormat());
+	}
+	
+	/**
 	 * Creates a new CommentedConfig with the content of the given config.
 	 *
 	 * @param config the config to copy
@@ -289,6 +342,21 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 */
 	static CommentedConfig copy(UnmodifiableCommentedConfig config, ConfigFormat<?> format) {
 		return new SimpleCommentedConfig(config, format, false);
+	}
+	
+	/**
+	 * Creates a new CommentedConfig with the content of the given config. The returned config will
+	 * be backed by the given map supplier.
+	 * 
+	 * @see #of(Supplier, ConfigFormat)
+	 *
+	 * @param config the config to copy
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
+	 * @param format the config's format
+	 * @return a copy of the config
+	 */
+	static CommentedConfig copy(UnmodifiableCommentedConfig config, Supplier<Map<String, Object>> mapCreator, ConfigFormat<? extends CommentedConfig> format) {
+		return new SimpleCommentedConfig(config, mapCreator, format);
 	}
 
 	/**

@@ -1,10 +1,15 @@
 package com.electronwill.nightconfig.core;
 
 import com.electronwill.nightconfig.core.utils.StringUtils;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
 import org.junit.jupiter.api.Test;
 
 import static java.lang.Math.PI;
@@ -146,5 +151,51 @@ public class AbstractConfigTest {
 		assertEquals(12, (int)config.get("int"));
 		config.remove("int");
 		assertFalse(config.contains("int"));
+	}
+	
+	@Test
+	public void backingMap() {
+		Config config = Config.of(LinkedHashMap::new, InMemoryFormat.withUniversalSupport());
+		
+		LinkedHashMap<String, String> mappings = new LinkedHashMap<>();
+		for (int i = 0; i < 26; i++) {
+			mappings.put(Character.toString((char) ('a' + i)), Character.toString((char) ('z' - i)));
+		}
+		
+		for (Entry<String, String> e : mappings.entrySet()) {
+			config.set(e.getKey(), e.getValue());
+		}
+		
+		List<Entry<String, String>> input = new ArrayList<>(mappings.entrySet());
+		List<Entry<String, Object>> output = new ArrayList<>(config.valueMap().entrySet());
+		
+		assertEquals(input.size(), output.size());
+		
+		for (int i = 0; i < input.size(); i++) {
+			assertEquals(input.get(i), output.get(i), "Map values mismatched at index: " + i);
+		}
+	}
+	
+	@Test
+	public void nestedBackingMap() {
+		Config config = Config.of(LinkedHashMap::new, InMemoryFormat.withUniversalSupport());
+		
+		LinkedHashMap<String, String> mappings = new LinkedHashMap<>();
+		for (int i = 0; i < 26; i++) {
+			mappings.put(Character.toString((char) ('a' + i)), Character.toString((char) ('z' - i)));
+		}
+		
+		for (Entry<String, String> e : mappings.entrySet()) {
+			config.set("foo." + e.getKey(), e.getValue());
+		}
+		
+		List<Entry<String, String>> input = new ArrayList<>(mappings.entrySet());
+		List<Entry<String, Object>> output = new ArrayList<>(config.<Config>get("foo").valueMap().entrySet());
+		
+		assertEquals(input.size(), output.size());
+		
+		for (int i = 0; i < input.size(); i++) {
+			assertEquals(input.get(i), output.get(i), "Map values mismatched at index: " + i);
+		}
 	}
 }

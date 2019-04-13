@@ -4,6 +4,8 @@ import com.electronwill.nightconfig.core.utils.TransformingSet;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Supplier;
 
 /**
  * An abstract CommentedConfig backed by two maps: one for the values and one for the comments.
@@ -16,7 +18,12 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 
 	public AbstractCommentedConfig(boolean concurrent) {
 		super(concurrent);
-		this.commentMap = concurrent ? new ConcurrentHashMap<>() : new HashMap<>();
+		this.commentMap = getDefaultMap(concurrent);
+	}
+	
+	public AbstractCommentedConfig(Supplier<Map<String, Object>> mapCreator) {
+		super(mapCreator);
+		this.commentMap = AbstractConfig.<String>getWildcardMapCreator(mapCreator).get();
 	}
 
 	/**
@@ -26,7 +33,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	 */
 	public AbstractCommentedConfig(Map<String, Object> valuesMap) {
 		super(valuesMap);
-		this.commentMap = new HashMap<>();
+		this.commentMap = getDefaultMap(valuesMap instanceof ConcurrentMap);
 	}
 
 	/**
@@ -38,6 +45,11 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		super(toCopy, concurrent);
 		this.commentMap = concurrent ? new ConcurrentHashMap<>() : new HashMap<>();
 	}
+	
+	public AbstractCommentedConfig(UnmodifiableConfig toCopy, Supplier<Map<String, Object>> mapCreator) {
+		super(toCopy, mapCreator);
+		this.commentMap = AbstractConfig.<String>getWildcardMapCreator(mapCreator).get();
+	}
 
 	/**
 	 * Creates an AbstractCommentedConfig that is a copy of the specified config.
@@ -45,8 +57,18 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	 * @param toCopy the config to copy
 	 */
 	public AbstractCommentedConfig(UnmodifiableCommentedConfig toCopy, boolean concurrent) {
-		super(toCopy.valueMap());
-		this.commentMap = new HashMap<>(toCopy.commentMap());
+		super(toCopy, concurrent);
+		this.commentMap = getDefaultMap(concurrent);
+		this.commentMap.putAll(toCopy.commentMap());
+	}
+	
+	public AbstractCommentedConfig(UnmodifiableCommentedConfig toCopy, Supplier<Map<String, Object>> mapCreator) {
+		super(toCopy, mapCreator);
+		this.commentMap = AbstractConfig.<String>getWildcardMapCreator(mapCreator).get();
+	}
+	
+	protected static <T> Map<String, T> getDefaultMap(boolean concurrent) {
+		return AbstractConfig.<T>getDefaultCreator(concurrent).get();
 	}
 
 	@Override
