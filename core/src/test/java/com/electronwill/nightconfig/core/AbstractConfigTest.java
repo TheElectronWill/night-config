@@ -49,7 +49,7 @@ public class AbstractConfigTest {
 		config.set("stringList", stringList);
 		assertSame(stringList, config.get("stringList"));
 
-		Config subConfig = InMemoryFormat.withUniversalSupport().createConfig();
+		Config subConfig = Config.inMemoryUniversal();
 		subConfig.set("string", "test!");
 		subConfig.set("subSubConfig.string", "another test!");
 		config.set("subConfig", subConfig);
@@ -84,7 +84,7 @@ public class AbstractConfigTest {
 		String[] jsplit = ".a...a.".split("\\.");
 		System.out.println("String#split: " + Arrays.toString(jsplit));
 
-		Config config = InMemoryFormat.withUniversalSupport().createConfig();
+		Config config = Config.inMemoryUniversal();
 		config.set(".a...a.", "value");
 		assertTrue(config.contains(".a...a."));
 		assertEquals("value", config.get(".a...a."));
@@ -102,11 +102,11 @@ public class AbstractConfigTest {
 
 	@Test
 	public void size() {
-		Config config = InMemoryFormat.withUniversalSupport().createConfig();
+		Config config = Config.inMemoryUniversal();
 		config.set("a.b.c", "value");
 		config.set("pi", PI);
 
-		Config subConfig = InMemoryFormat.withUniversalSupport().createConfig();
+		Config subConfig = Config.inMemoryUniversal();
 		subConfig.set("string", "test!");
 		config.set("subConfig", subConfig);
 
@@ -116,7 +116,7 @@ public class AbstractConfigTest {
 
 	@Test
 	public void asMap() {
-		Config config = InMemoryFormat.withUniversalSupport().createConfig();
+		Config config = Config.inMemoryUniversal();
 		config.set("a.b.c", "value");
 		config.set("pi", PI);
 
@@ -136,7 +136,7 @@ public class AbstractConfigTest {
 
 	@Test
 	public void containsValue() {
-		Config config = InMemoryFormat.withUniversalSupport().createConfig();
+		Config config = Config.inMemoryUniversal();
 		config.set("a.b.c", "value");
 		assertTrue(config.contains("a"));
 		assertFalse(config.contains("b"));

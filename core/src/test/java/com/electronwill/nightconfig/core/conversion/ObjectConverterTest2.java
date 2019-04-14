@@ -45,7 +45,7 @@ public class ObjectConverterTest2 {
 	@Test
 	public void testSupportAll() {
 		ObjectConverter converter = new ObjectConverter();
-		Config config = InMemoryFormat.withUniversalSupport().createConfig();
+		Config config = Config.inMemoryUniversal();
 		// withUniversalSupport() causes the configuration to accept any type of values without conversion
 
 		MyObject object = new MyObject();
@@ -92,7 +92,7 @@ public class ObjectConverterTest2 {
 		String string = "value";
 		List<String> stringList = Arrays.asList("a", "b", "c");
 		List<SomeObject> objList = objects;
-		Config config = InMemoryFormat.withUniversalSupport().createConfig();
+		Config config = Config.inMemoryUniversal();
 		MyObject subObject;
 
 		@Conversion(CoordinatesConverter.class)

@@ -35,7 +35,7 @@ public class ObjectConverterTest {
 		nestedList3 = Arrays.asList(nestedList2, nestedList2);
 	}
 
-	static final Config config1 = InMemoryFormat.withUniversalSupport().createConfig();
+	static final Config config1 = Config.inMemoryUniversal();
 	static final Config config2 = Config.inMemory();
 
 	private final Config config = Config.inMemory();

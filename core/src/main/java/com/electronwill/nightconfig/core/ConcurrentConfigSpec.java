@@ -5,6 +5,6 @@ package com.electronwill.nightconfig.core;
  */
 public class ConcurrentConfigSpec extends ConfigSpec {
 	public ConcurrentConfigSpec() {
-		super(InMemoryFormat.withUniversalSupport().createConcurrentConfig());
+		super(Config.inMemoryUniversalConcurrent());
 	}
 }

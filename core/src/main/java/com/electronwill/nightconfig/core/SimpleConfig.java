@@ -50,8 +50,7 @@ final class SimpleConfig extends AbstractConfig {
 	 * @param configFormat the config's format
 	 * @param concurrent
 	 */
-	SimpleConfig(UnmodifiableConfig toCopy, ConfigFormat<?> configFormat,
-			boolean concurrent) {
+	SimpleConfig(UnmodifiableConfig toCopy, ConfigFormat<?> configFormat, boolean concurrent) {
 		super(toCopy, concurrent);
 		this.configFormat = configFormat;
 	}

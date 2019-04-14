@@ -61,7 +61,7 @@ public class ConfigSpec {
 	protected final Config storage;
 
 	public ConfigSpec() {
-		this(InMemoryFormat.withUniversalSupport().createConfig());
+		this(Config.inMemoryUniversal());
 	}
 
 	ConfigSpec(Config storage) {
