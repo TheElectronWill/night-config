@@ -194,7 +194,8 @@ public class AbstractConfigTest {
 
 	private void testValuesOrder(Config config) {
 		LinkedHashMap<String, String> mappings = new LinkedHashMap<>();
-		for (int i = 25; i >= 0; i--) { //reverse "normal" order so that HashMap won't use insertion order
+		for (int i = 25; i >= 0; i--) {
+			//reverse order so that it's different from the HashMap's default one
 			mappings.put(Character.toString((char) ('a' + i)), Character.toString((char) ('z' - i)));
 		}
 
