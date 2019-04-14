@@ -58,7 +58,7 @@ import static com.electronwill.nightconfig.core.utils.StringUtils.split;
  * @author TheElectronWill
  */
 public class ConfigSpec {
-	private final Config storage;
+	protected final Config storage;
 
 	public ConfigSpec() {
 		this(InMemoryFormat.withUniversalSupport().createConfig());
