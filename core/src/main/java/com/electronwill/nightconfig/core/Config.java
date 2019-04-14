@@ -276,12 +276,30 @@ public interface Config extends UnmodifiableConfig {
 	}
 
 	/**
-	 * Creates a Config with format {@link InMemoryFormat#defaultInstance()}.
+	 * Creates a Config with format {@link InMemoryFormat#withUniversalSupport()}.
+	 *
+	 * @return a new empty config
+	 */
+	static Config inMemoryUniversal() {
+		return InMemoryFormat.withUniversalSupport().createConfig();
+	}
+
+	/**
+	 * Creates a thread-safe Config with format {@link InMemoryFormat#defaultInstance()}.
 	 *
 	 * @return a new empty config
 	 */
 	static Config inMemoryConcurrent() {
 		return InMemoryFormat.defaultInstance().createConcurrentConfig();
+	}
+
+	/**
+	 * Creates a thread-safe Config with format {@link InMemoryFormat#withUniversalSupport()}.
+	 *
+	 * @return a new empty config
+	 */
+	static Config inMemoryUniversalConcurrent() {
+		return InMemoryFormat.withUniversalSupport().createConcurrentConfig();
 	}
 
 	/**
