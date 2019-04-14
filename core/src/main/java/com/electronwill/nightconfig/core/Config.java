@@ -245,6 +245,9 @@ public interface Config extends UnmodifiableConfig {
 	/**
 	 * Creates a Config backed by a certain kind of map, given by a supplier.
 	 *
+	 * If you wish all your configs to preserve insertion order, please have a look at the more
+	 * practical setting {@link #setOrderedDefault(boolean)}.
+	 *
 	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
 	 * @param format the config's format
 	 * @return a new config backed by the map
@@ -285,6 +288,9 @@ public interface Config extends UnmodifiableConfig {
 	 * Creates a Config backed by a Map. Any change to the map is reflected in the config and
 	 * vice-versa.
 	 *
+	 * If you wish all your configs to preserve insertion order, please have a look at the more
+	 * practical setting {@link #setOrderedDefault(boolean)}.
+	 *
 	 * @param map    the Map to use
 	 * @param format the config's format
 	 * @return a new config backed by the map
@@ -307,7 +313,10 @@ public interface Config extends UnmodifiableConfig {
 	/**
 	 * Creates a new Config with the content of the given config. The returned config will have
 	 * the same format as the copied config, and be backed by the given supplier.
-	 * 
+	 *
+	 * If you wish all your configs to preserve insertion order, please have a look at the more
+	 * practical setting {@link #setOrderedDefault(boolean)}.
+	 *
 	 * @see #of(Supplier, ConfigFormat)
 	 *
 	 * @param config the config to copy
@@ -330,7 +339,11 @@ public interface Config extends UnmodifiableConfig {
 	}
 	
 	/**
-	 * Creates a new Config with the content of the given config. The returned config will be backed by the given map supplier.
+	 * Creates a new Config with the content of the given config.
+	 * The returned config will be backed by the given map supplier.
+	 *
+	 * If you wish all your configs to preserve insertion order, please have a look at the more
+	 * practical setting {@link #setOrderedDefault(boolean)}.
 	 * 
 	 * @see #of(Supplier, ConfigFormat)
 	 *
