@@ -73,7 +73,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	}
 
 	protected static <T> Supplier<Map<String, T>> getDefaultMapCreator(boolean concurrent) {
-		if (Config.isOrdreredDefault()) {
+		if (Config.isInsertionOrderPreserved()) {
 			return concurrent ? ()->Collections.synchronizedMap(new LinkedHashMap<>()) : LinkedHashMap::new;
 			// TODO find or make a ConcurrentMap that preserves the insertion order
 		}

@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 
@@ -169,27 +168,27 @@ public class AbstractConfigTest {
 
 	@Test
 	public void orderedSetting() {
-		Config.setOrderedDefault(true);
-		assertTrue(Config.isOrdreredDefault());
+		Config.setInsertionOrderPreserved(true);
+		assertTrue(Config.isInsertionOrderPreserved());
 		testValuesOrder(Config.inMemory());
-		Config.setOrderedDefault(false);
-		assertFalse(Config.isOrdreredDefault());
+		Config.setInsertionOrderPreserved(false);
+		assertFalse(Config.isInsertionOrderPreserved());
 		assertThrows(AssertionFailedError.class, ()->testValuesOrder(Config.inMemory()));
 	}
 
 	@Test
 	public void concurrentOrderedSetting() {
-		Config.setOrderedDefault(true);
+		Config.setInsertionOrderPreserved(true);
 		testValuesOrder(Config.inMemoryConcurrent());
-		Config.setOrderedDefault(false);
+		Config.setInsertionOrderPreserved(false);
 		assertThrows(AssertionFailedError.class, ()->testValuesOrder(Config.inMemoryConcurrent()));
 	}
 
 	@Test
 	public void nestedOrderedSetting() {
-		Config.setOrderedDefault(true);
+		Config.setInsertionOrderPreserved(true);
 		testNestedValuesOrder(Config.inMemory());
-		Config.setOrderedDefault(false);
+		Config.setInsertionOrderPreserved(false);
 		assertThrows(AssertionFailedError.class, ()->testNestedValuesOrder(Config.inMemory()));
 	}
 

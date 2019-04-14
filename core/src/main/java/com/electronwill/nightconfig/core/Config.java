@@ -246,7 +246,7 @@ public interface Config extends UnmodifiableConfig {
 	 * Creates a Config backed by a certain kind of map, given by a supplier.
 	 *
 	 * If you wish all your configs to preserve insertion order, please have a look at the more
-	 * practical setting {@link #setOrderedDefault(boolean)}.
+	 * practical setting {@link #setInsertionOrderPreserved(boolean)}.
 	 *
 	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
 	 * @param format the config's format
@@ -307,7 +307,7 @@ public interface Config extends UnmodifiableConfig {
 	 * vice-versa.
 	 *
 	 * If you wish all your configs to preserve insertion order, please have a look at the more
-	 * practical setting {@link #setOrderedDefault(boolean)}.
+	 * practical setting {@link #setInsertionOrderPreserved(boolean)}.
 	 *
 	 * @param map    the Map to use
 	 * @param format the config's format
@@ -333,7 +333,7 @@ public interface Config extends UnmodifiableConfig {
 	 * the same format as the copied config, and be backed by the given supplier.
 	 *
 	 * If you wish all your configs to preserve insertion order, please have a look at the more
-	 * practical setting {@link #setOrderedDefault(boolean)}.
+	 * practical setting {@link #setInsertionOrderPreserved(boolean)}.
 	 *
 	 * @see #of(Supplier, ConfigFormat)
 	 *
@@ -361,7 +361,7 @@ public interface Config extends UnmodifiableConfig {
 	 * The returned config will be backed by the given map supplier.
 	 *
 	 * If you wish all your configs to preserve insertion order, please have a look at the more
-	 * practical setting {@link #setOrderedDefault(boolean)}.
+	 * practical setting {@link #setInsertionOrderPreserved(boolean)}.
 	 * 
 	 * @see #of(Supplier, ConfigFormat)
 	 *
@@ -399,24 +399,31 @@ public interface Config extends UnmodifiableConfig {
 	/**
 	 * Checks if the newly created configs keep the insertion order of their content.
 	 * By default this is not the case. This can be controlled with the `nightconfig.ordered`
-	 * system property or by calling {@link #setOrderedDefault(boolean)}.
+	 * system property or by calling {@link #setInsertionOrderPreserved(boolean)}.
+	 * <p>
+	 * This setting does not apply to configurations created from a Map, from another Config,
+	 * or with a specific map supplier.
 	 *
-	 * @return true if the configs are ordrered by default, false if they are not.
+	 * @return true if the new configs preserve the insertion order of their values, false to
+	 *         give no guarantee about the values ordering.
 	 */
-	static boolean isOrdreredDefault() {
-		String prop =  System.getProperty("nightconfig.ordered");
+	static boolean isInsertionOrderPreserved() {
+		String prop =  System.getProperty("nightconfig.preserveInsertionOrder");
 		return (prop != null) && (prop.equals("true") || prop.equals("1"));
 	}
 
 	/**
 	 * Modifies the behavior of the new configurations with regards to the preservation of the
 	 * order of config values.
+	 * <p>
+	 * This setting does not apply to configurations created from a Map, from another Config,
+	 * or with a specific map supplier.
 	 *
-	 * @see #isOrdreredDefault()
-	 * @param orderedDefault true to make the new configs preserve the insertion order of their
-	 *                       values, false to give no guarantee about it.
+	 * @param orderPreserved true to make the new configs preserve the insertion order of their
+	 *                       values, false to give no guarantee about the values ordering.
+	 * @see #isInsertionOrderPreserved()
 	 */
-	static void setOrderedDefault(boolean orderedDefault) {
-		System.setProperty("nightconfig.ordered", orderedDefault ? "true" : "false");
+	static void setInsertionOrderPreserved(boolean orderPreserved) {
+		System.setProperty("nightconfig.preserveInsertionOrder", orderPreserved ? "true" : "false");
 	}
 }
