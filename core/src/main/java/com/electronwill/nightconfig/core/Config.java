@@ -364,4 +364,28 @@ public interface Config extends UnmodifiableConfig {
 	static Config concurrentCopy(UnmodifiableConfig config, ConfigFormat<?> format) {
 		return new SimpleConfig(config, format, true);
 	}
+
+	/**
+	 * Checks if the newly created configs keep the insertion order of their content.
+	 * By default this is not the case. This can be controlled with the `nightconfig.ordered`
+	 * system property or by calling {@link #setOrderedDefault(boolean)}.
+	 *
+	 * @return true if the configs are ordrered by default, false if they are not.
+	 */
+	static boolean isOrdreredDefault() {
+		String prop =  System.getProperty("nightconfig.ordered");
+		return (prop != null) && (prop.equals("true") || prop.equals("1"));
+	}
+
+	/**
+	 * Modifies the behavior of the new configurations with regards to the preservation of the
+	 * order of config values.
+	 *
+	 * @see #isOrdreredDefault()
+	 * @param orderedDefault true to make the new configs preserve the insertion order of their
+	 *                       values, false to give no guarantee about it.
+	 */
+	static void setOrderedDefault(boolean orderedDefault) {
+		System.setProperty("nightconfig.ordered", orderedDefault ? "true" : "false");
+	}
 }

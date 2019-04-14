@@ -18,21 +18,21 @@ import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
  */
 @SuppressWarnings("unchecked")
 public abstract class AbstractConfig implements Config, Cloneable {
-	
+
 	protected final Supplier<Map<String, Object>> mapCreator;
-	
+
 	final Map<String, Object> map;
 
 	/**
 	 * Creates a new AbstractConfig backed by a new {@link Map}.
 	 */
 	public AbstractConfig(boolean concurrent) {
-		this(getDefaultCreator(concurrent));
+		this(getDefaultMapCreator(concurrent));
 	}
 
 	/**
 	 * Creates a new AbstractConfig with all backing maps supplied by the given {@link Supplier}.
-	 * 
+	 *
 	 * @param mapCreator A supplier that will be called to create all config maps
 	 */
 	public AbstractConfig(Supplier<Map<String, Object>> mapCreator) {
@@ -47,7 +47,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	 */
 	public AbstractConfig(Map<String, Object> map) {
 		this.map = map;
-		this.mapCreator = getDefaultCreator(map instanceof ConcurrentMap);
+		this.mapCreator = getDefaultMapCreator(map instanceof ConcurrentMap);
 	}
 
 	/**
@@ -56,7 +56,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	 * @param toCopy the config to copy
 	 */
 	public AbstractConfig(UnmodifiableConfig toCopy, boolean concurrent) {
-		this(toCopy, getDefaultCreator(concurrent));
+		this(toCopy, getDefaultMapCreator(concurrent));
 	}
 
 	/**
@@ -71,17 +71,20 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		this.map.putAll(toCopy.valueMap());
 		this.mapCreator = mapCreator;
 	}
-	
-	protected static <T> Supplier<Map<String, T>> getDefaultCreator(boolean concurrent) {
+
+	protected static <T> Supplier<Map<String, T>> getDefaultMapCreator(boolean concurrent) {
+		if (Config.isOrdreredDefault()) {
+			return concurrent ? ()->Collections.synchronizedMap(new LinkedHashMap<>()) : LinkedHashMap::new;
+			// TODO find or make a ConcurrentMap that preserves the insertion order
+		}
 		return concurrent ? ConcurrentHashMap::new : HashMap::new;
 	}
-	
-	@SuppressWarnings("rawtypes")
+
 	protected static <T> Supplier<Map<String, T>> getWildcardMapCreator(Supplier<Map<String, Object>> mapCreator) {
 		return () -> {
 			Map<String, Object> map = mapCreator.get();
 			map.clear(); // Make sure there's no naughty people putting starting entries in the map, so we can unsafely cast
-			return (Map<String, T>) (Map) map;
+			return (Map<String, T>)map;
 		};
 	}
 

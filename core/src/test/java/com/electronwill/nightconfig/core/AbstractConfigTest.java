@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
 
 import static java.lang.Math.PI;
 import static org.junit.jupiter.api.Assertions.*;
@@ -156,44 +158,76 @@ public class AbstractConfigTest {
 	@Test
 	public void backingMap() {
 		Config config = Config.of(LinkedHashMap::new, InMemoryFormat.withUniversalSupport());
-		
-		LinkedHashMap<String, String> mappings = new LinkedHashMap<>();
-		for (int i = 0; i < 26; i++) {
-			mappings.put(Character.toString((char) ('a' + i)), Character.toString((char) ('z' - i)));
-		}
-		
-		for (Entry<String, String> e : mappings.entrySet()) {
-			config.set(e.getKey(), e.getValue());
-		}
-		
-		List<Entry<String, String>> input = new ArrayList<>(mappings.entrySet());
-		List<Entry<String, Object>> output = new ArrayList<>(config.valueMap().entrySet());
-		
-		assertEquals(input.size(), output.size());
-		
-		for (int i = 0; i < input.size(); i++) {
-			assertEquals(input.get(i), output.get(i), "Map values mismatched at index: " + i);
-		}
+		testValuesOrder(config);
 	}
 	
 	@Test
 	public void nestedBackingMap() {
 		Config config = Config.of(LinkedHashMap::new, InMemoryFormat.withUniversalSupport());
-		
+		testNestedValuesOrder(config);
+	}
+
+	@Test
+	public void orderedSetting() {
+		Config.setOrderedDefault(true);
+		assertTrue(Config.isOrdreredDefault());
+		testValuesOrder(Config.inMemory());
+		Config.setOrderedDefault(false);
+		assertFalse(Config.isOrdreredDefault());
+		assertThrows(AssertionFailedError.class, ()->testValuesOrder(Config.inMemory()));
+	}
+
+	@Test
+	public void concurrentOrderedSetting() {
+		Config.setOrderedDefault(true);
+		testValuesOrder(Config.inMemoryConcurrent());
+		Config.setOrderedDefault(false);
+		assertThrows(AssertionFailedError.class, ()->testValuesOrder(Config.inMemoryConcurrent()));
+	}
+
+	@Test
+	public void nestedOrderedSetting() {
+		Config.setOrderedDefault(true);
+		testNestedValuesOrder(Config.inMemory());
+		Config.setOrderedDefault(false);
+		assertThrows(AssertionFailedError.class, ()->testNestedValuesOrder(Config.inMemory()));
+	}
+
+	private void testValuesOrder(Config config) {
 		LinkedHashMap<String, String> mappings = new LinkedHashMap<>();
-		for (int i = 0; i < 26; i++) {
+		for (int i = 25; i >= 0; i--) { //reverse "normal" order so that HashMap won't use insertion order
 			mappings.put(Character.toString((char) ('a' + i)), Character.toString((char) ('z' - i)));
 		}
-		
+
+		for (Entry<String, String> e : mappings.entrySet()) {
+			config.set(e.getKey(), e.getValue());
+		}
+
+		List<Entry<String, String>> input = new ArrayList<>(mappings.entrySet());
+		List<Entry<String, Object>> output = new ArrayList<>(config.valueMap().entrySet());
+
+		assertEquals(input.size(), output.size());
+
+		for (int i = 0; i < input.size(); i++) {
+			assertEquals(input.get(i), output.get(i), "Map values mismatched at index: " + i);
+		}
+	}
+
+	private void testNestedValuesOrder(Config config) {
+		LinkedHashMap<String, String> mappings = new LinkedHashMap<>();
+		for (int i = 25; i >= 0; i--) {
+			mappings.put(Character.toString((char) ('a' + i)), Character.toString((char) ('z' - i)));
+		}
+
 		for (Entry<String, String> e : mappings.entrySet()) {
 			config.set("foo." + e.getKey(), e.getValue());
 		}
-		
+
 		List<Entry<String, String>> input = new ArrayList<>(mappings.entrySet());
 		List<Entry<String, Object>> output = new ArrayList<>(config.<Config>get("foo").valueMap().entrySet());
-		
+
 		assertEquals(input.size(), output.size());
-		
+
 		for (int i = 0; i < input.size(); i++) {
 			assertEquals(input.get(i), output.get(i), "Map values mismatched at index: " + i);
 		}

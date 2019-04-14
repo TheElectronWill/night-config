@@ -18,7 +18,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 
 	public AbstractCommentedConfig(boolean concurrent) {
 		super(concurrent);
-		this.commentMap = getDefaultMap(concurrent);
+		this.commentMap = getDefaultCommentMap(concurrent);
 	}
 	
 	public AbstractCommentedConfig(Supplier<Map<String, Object>> mapCreator) {
@@ -33,7 +33,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	 */
 	public AbstractCommentedConfig(Map<String, Object> valuesMap) {
 		super(valuesMap);
-		this.commentMap = getDefaultMap(valuesMap instanceof ConcurrentMap);
+		this.commentMap = getDefaultCommentMap(valuesMap instanceof ConcurrentMap);
 	}
 
 	/**
@@ -43,7 +43,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	 */
 	public AbstractCommentedConfig(UnmodifiableConfig toCopy, boolean concurrent) {
 		super(toCopy, concurrent);
-		this.commentMap = concurrent ? new ConcurrentHashMap<>() : new HashMap<>();
+		this.commentMap = getDefaultCommentMap(concurrent);
 	}
 	
 	public AbstractCommentedConfig(UnmodifiableConfig toCopy, Supplier<Map<String, Object>> mapCreator) {
@@ -58,7 +58,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	 */
 	public AbstractCommentedConfig(UnmodifiableCommentedConfig toCopy, boolean concurrent) {
 		super(toCopy, concurrent);
-		this.commentMap = getDefaultMap(concurrent);
+		this.commentMap = getDefaultCommentMap(concurrent);
 		this.commentMap.putAll(toCopy.commentMap());
 	}
 	
@@ -67,8 +67,8 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		this.commentMap = AbstractConfig.<String>getWildcardMapCreator(mapCreator).get();
 	}
 	
-	protected static <T> Map<String, T> getDefaultMap(boolean concurrent) {
-		return AbstractConfig.<T>getDefaultCreator(concurrent).get();
+	protected static Map<String, String> getDefaultCommentMap(boolean concurrent) {
+		return AbstractConfig.<String>getDefaultMapCreator(concurrent).get();
 	}
 
 	@Override
