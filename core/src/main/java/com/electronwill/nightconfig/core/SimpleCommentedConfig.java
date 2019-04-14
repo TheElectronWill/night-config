@@ -102,11 +102,11 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 
 	@Override
 	public SimpleCommentedConfig createSubConfig() {
-		return new SimpleCommentedConfig(configFormat, map instanceof ConcurrentMap);
+		return new SimpleCommentedConfig(mapCreator, configFormat);
 	}
 
 	@Override
 	public AbstractCommentedConfig clone() {
-		return new SimpleCommentedConfig(this, configFormat, map instanceof ConcurrentMap);
+		return new SimpleCommentedConfig(this, mapCreator, configFormat);
 	}
 }
