@@ -95,15 +95,20 @@ public final class StringUtils {
 	public static void splitLines(String str, List<String> list) {
 		int pos0 = 0;
 		for (int i = 0; i < str.length(); i++) {
-			if (str.charAt(i) == ('\r')) {// CRLF
+			char ch = str.charAt(i);
+			if (ch == '\n') { // LF
 				list.add(str.substring(pos0, i));
-				pos0 = i + 2;// Skips LF
-			}
-			if (str.charAt(i) == '\n') {// LF
+				pos0 = i + 1;
+			} else if (ch == '\r') { // CR or CRLF
 				list.add(str.substring(pos0, i));
+				int next = i + 1;
+				if (next < str.length() && str.charAt(next) == '\n') { // CRLF
+					i += 1; // Skips the LF that follows the CR
+				} // condition here instead of boolean flag to make the LF way simpler and (marginally) faster
 				pos0 = i + 1;
 			}
 		}
-		list.add(str.substring(pos0));// adds the last part
+		String lastPart = str.substring(pos0);
+		list.add(lastPart);
 	}
 }
