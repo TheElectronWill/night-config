@@ -11,6 +11,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * A generic FileConfig/CommentedFileConfig/someOtherFileConfig builder. The default settings are:
@@ -24,6 +26,8 @@ import java.nio.file.Path;
  * <li>Not autosaved - change it with {@link #autosave()}</li>
  * <li>Not autoreloaded - change it with {@link #autoreload()}</li>
  * <li>Not thread-safe - change it with {@link #concurrent()}</li>
+ * <li>Values' insertion order preserved if {@link Config#isInsertionOrderPreserved()}
+ * returns true when the builder is constructed.</li>
  * </ul>
  *
  * @author TheElectronWill
@@ -38,7 +42,9 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	protected WritingMode writingMode = WritingMode.REPLACE;
 	protected ParsingMode parsingMode = ParsingMode.REPLACE;
 	protected FileNotFoundAction nefAction = FileNotFoundAction.CREATE_EMPTY;
-	protected boolean sync = false, autosave = false, autoreload = false;
+	protected boolean sync = false, autosave = false, autoreload = false, concurrent = false;
+	protected boolean insertionOrder = Config.isInsertionOrderPreserved();
+	protected Supplier<Map<String, Object>> mapCreator = null;
 
 	GenericBuilder(Path file, ConfigFormat<? extends Base> format) {
 		this.file = file;
@@ -173,6 +179,33 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 		if (config == null) {
 			config = format.createConcurrentConfig();
 		}
+		concurrent = true;
+		return this;
+	}
+
+	/**
+	 * Makes the configuration preserve the insertion order of its values.
+	 *
+	 * @return this builder
+	 */
+	public GenericBuilder<Base, Result> preserveInsertionOrder() {
+		insertionOrder = true;
+		return this;
+	}
+
+	/**
+	 * Uses a specific Supplier to create the backing maps (one for the top level
+	 * and one for each sub-configuration) of the configuration.
+	 * <p><br>
+	 * <b>Warning :</b> if {@link #autoreload()} is called, the map creator
+	 * must return thread-safe maps, because the autoreloading system will modify
+	 * the configuration from another thread.
+	 *
+	 * @param s the map supplier to use
+	 * @return this builder
+	 */
+	public GenericBuilder<Base, Result> backingMapCreator(Supplier<Map<String,Object>> s) {
+		mapCreator = s;
 		return this;
 	}
 
@@ -219,8 +252,11 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	protected abstract Result buildNormal(FileConfig chain);
 
 	protected final Base getConfig() {
-		if (config == null) {// concurrent() has not been called
-			config = format.createConfig();
+		if (config == null) {
+			if (mapCreator == null) {
+				mapCreator = Config.getDefaultMapCreator(concurrent, insertionOrder);
+			}
+			config = format.createConfig(mapCreator);
 		}
 		return config;
 	}

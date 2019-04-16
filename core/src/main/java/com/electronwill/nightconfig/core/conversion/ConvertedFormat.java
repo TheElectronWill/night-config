@@ -5,7 +5,9 @@ import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 
+import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * @author TheElectronWill
@@ -37,6 +39,11 @@ public final class ConvertedFormat<C extends Config, F extends ConfigFormat<C>> 
 	@Override
 	public C createConcurrentConfig() {
 		return initialFormat.createConcurrentConfig();
+	}
+
+	@Override
+	public C createConfig(Supplier<Map<String, Object>> mapCreator) {
+		return initialFormat.createConfig(mapCreator);
 	}
 
 	@Override

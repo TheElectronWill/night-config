@@ -5,6 +5,8 @@ import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.file.FormatDetector;
 
 import java.time.temporal.Temporal;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * @author TheElectronWill
@@ -24,6 +26,13 @@ public final class TomlFormat implements ConfigFormat<CommentedConfig> {
 	 */
 	public static CommentedConfig newConfig() {
 		return INSTANCE.createConfig();
+	}
+
+	/**
+	 * @return a new config with the given map creator
+	 */
+	public static CommentedConfig newConfig(Supplier<Map<String, Object>> s) {
+		return INSTANCE.createConfig(s);
 	}
 
 	/**
@@ -50,13 +59,8 @@ public final class TomlFormat implements ConfigFormat<CommentedConfig> {
 	}
 
 	@Override
-	public CommentedConfig createConfig() {
-		return CommentedConfig.of(this);
-	}
-
-	@Override
-	public CommentedConfig createConcurrentConfig() {
-		return CommentedConfig.ofConcurrent(this);
+	public CommentedConfig createConfig(Supplier<Map<String, Object>> mapCreator) {
+		return CommentedConfig.of(mapCreator, this);
 	}
 
 	@Override

@@ -9,6 +9,8 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * @author TheElectronWill
@@ -42,6 +44,13 @@ public final class YamlFormat implements ConfigFormat<Config> {
 	}
 
 	/**
+	 * @return a new config with the given map creator
+	 */
+	public static Config newConfig(Supplier<Map<String, Object>> mapCreator) {
+		return defaultInstance().createConfig(mapCreator);
+	}
+
+	/**
 	 * @return a new concurrent config with the format {@link YamlFormat#defaultInstance()}.
 	 */
 	public static Config newConcurrentConfig() {
@@ -70,13 +79,8 @@ public final class YamlFormat implements ConfigFormat<Config> {
 	}
 
 	@Override
-	public Config createConfig() {
-		return Config.of(this);
-	}
-
-	@Override
-	public Config createConcurrentConfig() {
-		return Config.ofConcurrent(this);
+	public Config createConfig(Supplier<Map<String, Object>> mapCreator) {
+		return Config.of(mapCreator, this);
 	}
 
 	@Override
@@ -87,7 +91,7 @@ public final class YamlFormat implements ConfigFormat<Config> {
 	@Override
 	public boolean supportsType(Class<?> type) {
 		return type == null
-			|| type.isEnum()
+            || type.isEnum()
             || type == Boolean.class
             || type == String.class
             || type == java.util.Date.class

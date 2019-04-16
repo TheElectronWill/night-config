@@ -3,7 +3,9 @@ package com.electronwill.nightconfig.core;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 
+import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * The commented version of {@link InMemoryFormat}
@@ -45,13 +47,8 @@ public class InMemoryCommentedFormat implements ConfigFormat<CommentedConfig> {
 	}
 
 	@Override
-	public CommentedConfig createConfig() {
-		return CommentedConfig.of(this);
-	}
-
-	@Override
-	public CommentedConfig createConcurrentConfig() {
-		return CommentedConfig.ofConcurrent(this);
+	public CommentedConfig createConfig(Supplier<Map<String, Object>> mapCreator) {
+		return CommentedConfig.of(mapCreator, this);
 	}
 
 	@Override

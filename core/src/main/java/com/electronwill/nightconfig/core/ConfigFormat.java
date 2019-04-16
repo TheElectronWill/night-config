@@ -8,11 +8,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * A configuration format, that can parse, create and write some types of configurations.
  *
- * @param <C>the type of configurations createdby this format
+ * @param <C>the type of configurations created by this format
  * @author TheElectronWill
  */
 public interface ConfigFormat<C extends Config> {
@@ -29,14 +31,27 @@ public interface ConfigFormat<C extends Config> {
 	/**
 	 * @return a config of this format
 	 */
-	C createConfig();
+	default C createConfig() {
+		return createConfig(Config.getDefaultMapCreator(false));
+	}
 
 	/**
 	 * Creates a config of this format. The returned config is guaranteed to be thread-safe.
 	 *
 	 * @return a concurrent config of this format
 	 */
-	C createConcurrentConfig();
+	default C createConcurrentConfig() {
+		return createConfig(Config.getDefaultMapCreator(true));
+	}
+
+	/**
+	 * Creates a config that uses the given map supplier for all its levels (top
+	 * level and subconfigs).
+	 *
+	 * @param mapCreator the map supplier for the config
+	 * @return a config of this format with the given map creator
+	 */
+	C createConfig(Supplier<Map<String, Object>> mapCreator);
 
 	/**
 	 * Checks if this format supports CommentedConfigs. Note that supporting CommentedConfigs

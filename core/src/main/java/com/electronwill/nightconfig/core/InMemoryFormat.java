@@ -4,7 +4,9 @@ import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * A ConfigFormat that is only in memory. Its method {@link #isInMemory()} returns always true.
@@ -60,13 +62,8 @@ public final class InMemoryFormat implements ConfigFormat<Config> {
 	}
 
 	@Override
-	public Config createConfig() {
-		return Config.of(this);
-	}
-
-	@Override
-	public Config createConcurrentConfig() {
-		return Config.ofConcurrent(this);
+	public Config createConfig(Supplier<Map<String, Object>> mapCreator) {
+		return Config.of(mapCreator, this);
 	}
 
 	@Override

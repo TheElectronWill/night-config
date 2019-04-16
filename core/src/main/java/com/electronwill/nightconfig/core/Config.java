@@ -1,6 +1,8 @@
 package com.electronwill.nightconfig.core;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Supplier;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
@@ -241,7 +243,7 @@ public interface Config extends UnmodifiableConfig {
 	static Config of(ConfigFormat<? extends Config> format) {
 		return new SimpleConfig(format, false);
 	}
-	
+
 	/**
 	 * Creates a Config backed by a certain kind of map, given by a supplier.
 	 *
@@ -327,7 +329,7 @@ public interface Config extends UnmodifiableConfig {
 	static Config copy(UnmodifiableConfig config) {
 		return new SimpleConfig(config, config.configFormat(), false);
 	}
-	
+
 	/**
 	 * Creates a new Config with the content of the given config. The returned config will have
 	 * the same format as the copied config, and be backed by the given supplier.
@@ -355,14 +357,14 @@ public interface Config extends UnmodifiableConfig {
 	static Config copy(UnmodifiableConfig config, ConfigFormat<?> format) {
 		return new SimpleConfig(config, format, false);
 	}
-	
+
 	/**
 	 * Creates a new Config with the content of the given config.
 	 * The returned config will be backed by the given map supplier.
 	 *
 	 * If you wish all your configs to preserve insertion order, please have a look at the more
 	 * practical setting {@link #setInsertionOrderPreserved(boolean)}.
-	 * 
+	 *
 	 * @see #of(Supplier, ConfigFormat)
 	 *
 	 * @param config the config to copy
@@ -425,5 +427,32 @@ public interface Config extends UnmodifiableConfig {
 	 */
 	static void setInsertionOrderPreserved(boolean orderPreserved) {
 		System.setProperty("nightconfig.preserveInsertionOrder", orderPreserved ? "true" : "false");
+	}
+
+	/**
+	 * Returns a map supplier that fulfills the given requirements.
+	 *
+	 * @param concurrent true to make the maps thread-safe
+	 * @param insertionOrderPreserved true to make the maps preserve the insertion order of values
+	 * @return a map supplier corresponding to the given settings
+	 */
+	static <T> Supplier<Map<String, T>> getDefaultMapCreator(boolean concurrent, boolean insertionOrderPreserved) {
+		if (insertionOrderPreserved) {
+			return concurrent ? ()->Collections.synchronizedMap(new LinkedHashMap<>()) : LinkedHashMap::new;
+			// TODO find or make a ConcurrentMap that preserves the insertion order
+		}
+		return concurrent ? ConcurrentHashMap::new : HashMap::new;
+	}
+
+	/**
+	 * Returns a map supplier that fullfills the given requirements. It preserves
+	 * (or not) the insertion order of its values according to
+	 * {@link Config#isInsertionOrderPreserved()}.
+	 *
+	 * @param concurrent true to make the maps thread-safe
+	 * @return a map supplier corresponding to the given settings
+	 */
+	static <T> Supplier<Map<String, T>> getDefaultMapCreator(boolean concurrent) {
+		return getDefaultMapCreator(concurrent, Config.isInsertionOrderPreserved());
 	}
 }

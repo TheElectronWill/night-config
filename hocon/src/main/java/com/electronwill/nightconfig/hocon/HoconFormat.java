@@ -6,6 +6,9 @@ import com.electronwill.nightconfig.core.file.FormatDetector;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 
+import java.util.Map;
+import java.util.function.Supplier;
+
 /**
  * Represents the Hocon config format.
  *
@@ -26,6 +29,13 @@ public final class HoconFormat implements ConfigFormat<CommentedConfig> {
 	 */
 	public static CommentedConfig newConfig() {
 		return INSTANCE.createConfig();
+	}
+
+	/**
+	 * @return a new config with the given map creator
+	 */
+	public static CommentedConfig newConfig(Supplier<Map<String, Object>> s) {
+		return INSTANCE.createConfig(s);
 	}
 
 	/**
@@ -53,13 +63,8 @@ public final class HoconFormat implements ConfigFormat<CommentedConfig> {
 	}
 
 	@Override
-	public CommentedConfig createConfig() {
-		return CommentedConfig.of(this);
-	}
-
-	@Override
-	public CommentedConfig createConcurrentConfig() {
-		return CommentedConfig.ofConcurrent(this);
+	public CommentedConfig createConfig(Supplier<Map<String, Object>> mapCreator) {
+		return CommentedConfig.of(mapCreator, this);
 	}
 
 	@Override

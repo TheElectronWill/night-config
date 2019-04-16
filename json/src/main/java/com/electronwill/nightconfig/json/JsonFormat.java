@@ -9,6 +9,8 @@ import com.electronwill.nightconfig.core.utils.WriterSupplier;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * @author TheElectronWill
@@ -94,6 +96,13 @@ public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat
 	}
 
 	/**
+	 * @return a new config with the given map creator
+	 */
+	public static Config newConfig(Supplier<Map<String, Object>> s) {
+		return FANCY.createConfig(s);
+	}
+
+	/**
 	 * @return a new thread-safe config with the format {@link JsonFormat#fancyInstance()}.
 	 */
 	public static Config newConcurrentConfig() {
@@ -113,13 +122,8 @@ public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat
 	public abstract ConfigParser<Config> createParser();
 
 	@Override
-	public Config createConfig() {
-		return Config.of(this);
-	}
-
-	@Override
-	public Config createConcurrentConfig() {
-		return Config.ofConcurrent(this);
+	public Config createConfig(Supplier<Map<String, Object>> mapCreator) {
+		return Config.of(mapCreator, this);
 	}
 
 	@Override
