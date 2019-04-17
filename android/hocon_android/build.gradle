@@ -1,5 +1,110 @@
 // see root build.gradle
+// hocon_android only contains patches that are applied on the regular hocon module
+// and new files that are added as is
+import groovy.io.FileType
+import org.apache.tools.ant.taskdefs.Patch
+
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.util.regex.Pattern
 
 dependencies {
 	compile "com.typesafe:config:$typesafeConfigVersion"
+}
+
+String pak = "com/electronwill/nightconfig/hocon"
+String struct = "src/main/java/$pak"
+
+task copyHocon(type: Copy) {
+	from "../../hocon/src/main"
+	into "src/main"
+}
+
+task copyNewFiles(type: Copy, dependsOn: copyHocon) {
+	from "patches"
+	include "**/*.java"
+	into struct
+}
+
+task applyPatches(dependsOn: copyNewFiles) {
+	doLast {
+		File patchesDir = file("patches")
+		patchesDir.eachFileRecurse(FileType.FILES) {
+			String relative = patchesDir.relativePath(it) - ".patch" - ".delete"
+			File hoconFile = file("$struct/$relative") // the file to patch
+			if (it.name.endsWith(".patch")) {
+				Patch p = new Patch()
+				p.setPatchfile(it)
+				p.setOriginalfile(hoconFile)
+				p.setDir(projectDir)
+				p.setFailOnError(true)
+				p.execute()
+			} else if (it.name.endsWith(".delete")) {
+				hoconFile.delete()
+			}
+			// else: Not a patch, just a file that has been added by copyNewFiles
+		}
+	}
+}
+
+task updatePatches() {
+	doLast {
+		File androidSrc = file("src/main/java")
+		if (!androidSrc.isDirectory()) {
+			throw new IllegalStateException("Please apply the patches and modify the files before updating")
+		}
+		File hoconSrc = new File(project(':hocon').projectDir, "src/main/java")
+		File patchesDir = file("patches")
+		List<String> inHocon = listFilesRecurse(hoconSrc)
+		List<String> inHoconAndroid = listFilesRecurse(androidSrc)
+		List<String> added = inHoconAndroid - inHocon
+		List<String> removed = inHocon - inHoconAndroid
+		List<String> common = inHocon.intersect(inHoconAndroid)
+		added.each {
+			File f = new File(androidSrc, it)
+			File dst = new File(patchesDir, it - pak)
+			println("(+) ADDED $f --> $dst")
+			Files.copy(f.toPath(), dst.toPath(), StandardCopyOption.REPLACE_EXISTING)
+		}
+		removed.each {
+			File delPatch = new File(patchesDir, "${it - pak}.delete")
+			delPatch.createNewFile()
+			println("(-) DELETED $it --> $delPatch")
+		}
+		String andro = "android/hocon_android"
+		common.each {
+			def out = new ByteArrayOutputStream()
+			def f = it
+			def execResult = exec {
+				workingDir rootDir
+				commandLine "diff", "-u", "hocon/src/main/java/$f", "$andro/src/main/java/$f"
+				standardOutput = out
+				ignoreExitValue = true // diff returns 1 if the files are different
+			}
+			def code = execResult.exitValue
+			if (code == 1) {
+				println("(*) MODIFIED \"hocon/src/main/java/$f\" <<>> \"$andro/src/main/java/$f\"")
+				def diff = out.toString()
+				def timestampPattern = Pattern.compile("\\t.[\\d- :.+]+")
+				diff = diff.replaceFirst(timestampPattern, "").replaceFirst(timestampPattern, "")
+				File dst = file("patches/${it - pak}.patch")
+				dst.write(diff, "utf-8")
+			} else if (code >= 2) {
+				throw new RuntimeException("Command failed with exit code ${code}, details:\n" +
+					"diff -u \"hocon/src/main/java/$f\" \"$andro/src/main/java/$f\"")
+			}
+
+		}
+	}
+}
+
+compileJava.dependsOn('applyPatches')
+compileTestJava.dependsOn('applyPatches')
+
+def listFilesRecurse(File dir) {
+	def res = []
+	dir.eachFileRecurse(FileType.FILES) {
+		res << dir.relativePath(it)
+	}
+	return res
 }

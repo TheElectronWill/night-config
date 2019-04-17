@@ -1,5 +1,5 @@
 // see root build.gradle
-// core_android only contains patches that are applied on the regular core
+// core_android only contains patches that are applied on the regular core module
 // and new files that are added as is
 
 import groovy.io.FileType

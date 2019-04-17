@@ -1,5 +1,112 @@
 // see root build.gradle
+// yaml_android only contains patches that are applied on the regular yaml
+// and new files that are added as is
+
+import groovy.io.FileType
+import org.apache.tools.ant.taskdefs.Patch
+
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.util.regex.Pattern
 
 dependencies {
 	compile "org.yaml:snakeyaml:$snakeYamlVersion"
+}
+
+String pak = "com/electronwill/nightconfig/yaml"
+String struct = "src/main/java/$pak"
+
+task copyYaml(type: Copy) {
+	from "../../yaml/src/main"
+	into "src/main"
+}
+
+task copyNewFiles(type: Copy, dependsOn: copyYaml) {
+	from "patches"
+	include "**/*.java"
+	into struct
+}
+
+task applyPatches(dependsOn: copyNewFiles) {
+	doLast {
+		File patchesDir = file("patches")
+		patchesDir.eachFileRecurse(FileType.FILES) {
+			String relative = patchesDir.relativePath(it) - ".patch" - ".delete"
+			File yamlFile = file("$struct/$relative") // the file to patch
+			if (it.name.endsWith(".patch")) {
+				Patch p = new Patch()
+				p.setPatchfile(it)
+				p.setOriginalfile(yamlFile)
+				p.setDir(projectDir)
+				p.setFailOnError(true)
+				p.execute()
+			} else if (it.name.endsWith(".delete")) {
+				yamlFile.delete()
+			}
+			// else: Not a patch, just a file that has been added by copyNewFiles
+		}
+	}
+}
+
+task updatePatches() {
+	doLast {
+		File androidSrc = file("src/main/java")
+		if (!androidSrc.isDirectory()) {
+			throw new IllegalStateException("Please apply the patches and modify the files before updating")
+		}
+		File yamlSrc = new File(project(':yaml').projectDir, "src/main/java")
+		File patchesDir = file("patches")
+		List<String> inYaml = listFilesRecurse(yamlSrc)
+		List<String> inYamlAndroid = listFilesRecurse(androidSrc)
+		List<String> added = inYamlAndroid - inYaml
+		List<String> removed = inYaml - inYamlAndroid
+		List<String> common = inYaml.intersect(inYamlAndroid)
+		added.each {
+			File f = new File(androidSrc, it)
+			File dst = new File(patchesDir, it - pak)
+			println("(+) ADDED $f --> $dst")
+			Files.copy(f.toPath(), dst.toPath(), StandardCopyOption.REPLACE_EXISTING)
+		}
+		removed.each {
+			File delPatch = new File(patchesDir, "${it - pak}.delete")
+			delPatch.createNewFile()
+			println("(-) DELETED $it --> $delPatch")
+		}
+		String andro = "android/yaml_android"
+		common.each {
+			def out = new ByteArrayOutputStream()
+			def f = it
+			def execResult = exec {
+				workingDir rootDir
+				commandLine "diff", "-u", "yaml/src/main/java/$f", "$andro/src/main/java/$f"
+				standardOutput = out
+				ignoreExitValue = true // diff returns 1 if the files are different
+			}
+			def code = execResult.exitValue
+			if (code == 1) {
+				println("(*) MODIFIED \"yaml/src/main/java/$f\" <<>> \"$andro/src/main/java/$f\"")
+				def diff = out.toString()
+				def timestampPattern = Pattern.compile("\\t.[\\d- :.+]+")
+				diff = diff.replaceFirst(timestampPattern, "").replaceFirst(timestampPattern, "")
+				File dst = file("patches/${it - pak}.patch")
+				dst.write(diff, "utf-8")
+			} else if (code >= 2) {
+				throw new RuntimeException("Command failed with exit code ${code}, details:\n" +
+					"diff -u \"yaml/src/main/java/$f\" \"$andro/src/main/java/$f\"")
+			}
+
+		}
+	}
+	//commandLine 'while read -r in; do diff -ru yaml/$bla/$in android/yaml_android/$bla/$in > android/yaml_android/patches/$in.patch; done < changed.txt'
+}
+
+compileJava.dependsOn('applyPatches')
+compileTestJava.dependsOn('applyPatches')
+
+def listFilesRecurse(File dir) {
+	def res = []
+	dir.eachFileRecurse(FileType.FILES) {
+		res << dir.relativePath(it)
+	}
+	return res
 }

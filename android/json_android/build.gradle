@@ -1,1 +1,108 @@
 // see root build.gradle
+// json_android only contains patches that are applied on the regular json module
+// and new files that are added as is
+
+import groovy.io.FileType
+import org.apache.tools.ant.taskdefs.Patch
+
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.util.regex.Pattern
+
+String pak = "com/electronwill/nightconfig/json"
+String struct = "src/main/java/$pak"
+
+task copyJson(type: Copy) {
+	from "../../json/src/main"
+	into "src/main"
+}
+
+task copyNewFiles(type: Copy, dependsOn: copyJson) {
+	from "patches"
+	include "**/*.java"
+	into struct
+}
+
+task applyPatches(dependsOn: copyNewFiles) {
+	doLast {
+		File patchesDir = file("patches")
+		patchesDir.eachFileRecurse(FileType.FILES) {
+			String relative = patchesDir.relativePath(it) - ".patch" - ".delete"
+			File jsonFile = file("$struct/$relative") // the file to patch
+			if (it.name.endsWith(".patch")) {
+				Patch p = new Patch()
+				p.setPatchfile(it)
+				p.setOriginalfile(jsonFile)
+				p.setDir(projectDir)
+				p.setFailOnError(true)
+				p.execute()
+			} else if (it.name.endsWith(".delete")) {
+				jsonFile.delete()
+			}
+			// else: Not a patch, just a file that has been added by copyNewFiles
+		}
+	}
+}
+
+task updatePatches() {
+	doLast {
+		File androidSrc = file("src/main/java")
+		if (!androidSrc.isDirectory()) {
+			throw new IllegalStateException("Please apply the patches and modify the files before updating")
+		}
+		File jsonSrc = new File(project(':json').projectDir, "src/main/java")
+		File patchesDir = file("patches")
+		List<String> inJson = listFilesRecurse(jsonSrc)
+		List<String> inJsonAndroid = listFilesRecurse(androidSrc)
+		List<String> added = inJsonAndroid - inJson
+		List<String> removed = inJson - inJsonAndroid
+		List<String> common = inJson.intersect(inJsonAndroid)
+		added.each {
+			File f = new File(androidSrc, it)
+			File dst = new File(patchesDir, it - pak)
+			println("(+) ADDED $f --> $dst")
+			Files.copy(f.toPath(), dst.toPath(), StandardCopyOption.REPLACE_EXISTING)
+		}
+		removed.each {
+			File delPatch = new File(patchesDir, "${it - pak}.delete")
+			delPatch.createNewFile()
+			println("(-) DELETED $it --> $delPatch")
+		}
+		String andro = "android/json_android"
+		common.each {
+			def out = new ByteArrayOutputStream()
+			def f = it
+			def execResult = exec {
+				workingDir rootDir
+				commandLine "diff", "-u", "json/src/main/java/$f", "$andro/src/main/java/$f"
+				standardOutput = out
+				ignoreExitValue = true // diff returns 1 if the files are different
+			}
+			def code = execResult.exitValue
+			if (code == 1) {
+				println("(*) MODIFIED \"json/src/main/java/$f\" <<>> \"$andro/src/main/java/$f\"")
+				def diff = out.toString()
+				def timestampPattern = Pattern.compile("\\t.[\\d- :.+]+")
+				diff = diff.replaceFirst(timestampPattern, "").replaceFirst(timestampPattern, "")
+				File dst = file("patches/${it - pak}.patch")
+				dst.write(diff, "utf-8")
+			} else if (code >= 2) {
+				throw new RuntimeException("Command failed with exit code ${code}, details:\n" +
+					"diff -u \"json/src/main/java/$f\" \"$andro/src/main/java/$f\"")
+			}
+
+		}
+	}
+	//commandLine 'while read -r in; do diff -ru json/$bla/$in android/json_android/$bla/$in > android/json_android/patches/$in.patch; done < changed.txt'
+}
+
+compileJava.dependsOn('applyPatches')
+compileTestJava.dependsOn('applyPatches')
+
+def listFilesRecurse(File dir) {
+	def res = []
+	dir.eachFileRecurse(FileType.FILES) {
+		res << dir.relativePath(it)
+	}
+	return res
+}
