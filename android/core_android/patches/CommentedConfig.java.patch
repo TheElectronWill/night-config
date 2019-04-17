@@ -1,0 +1,16 @@
+--- core/src/main/java/com/electronwill/nightconfig/core/CommentedConfig.java	2019-04-14 22:53:34.162260375 +0200
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/CommentedConfig.java	2019-04-18 00:06:44.986464917 +0200
+@@ -1,12 +1,12 @@
+ package com.electronwill.nightconfig.core;
+ 
+ import com.electronwill.nightconfig.core.utils.FakeCommentedConfig;
++import com.electronwill.nightconfig.core.utils.Supplier;
+ 
+ import java.util.Collections;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Set;
+-import java.util.function.Supplier;
+ 
+ import static com.electronwill.nightconfig.core.utils.StringUtils.split;
+ 

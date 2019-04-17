@@ -1,0 +1,15 @@
+--- core/src/main/java/com/electronwill/nightconfig/core/AbstractCommentedConfig.java	2019-04-15 00:14:40.574027450 +0200
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/AbstractCommentedConfig.java	2019-04-18 00:16:29.642042455 +0200
+@@ -1,11 +1,10 @@
+ package com.electronwill.nightconfig.core;
+ 
+ import com.electronwill.nightconfig.core.utils.TransformingSet;
++import com.electronwill.nightconfig.core.utils.Supplier;
+ 
+ import java.util.*;
+-import java.util.concurrent.ConcurrentHashMap;
+ import java.util.concurrent.ConcurrentMap;
+-import java.util.function.Supplier;
+ 
+ /**
+  * An abstract CommentedConfig backed by two maps: one for the values and one for the comments.

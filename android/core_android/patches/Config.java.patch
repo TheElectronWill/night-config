@@ -1,0 +1,14 @@
+--- core/src/main/java/com/electronwill/nightconfig/core/Config.java	2019-04-17 23:33:19.122643757 +0200
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/Config.java	2019-04-17 23:36:46.650563231 +0200
+@@ -1,9 +1,9 @@
+ package com.electronwill.nightconfig.core;
+ 
++import com.electronwill.nightconfig.core.utils.Supplier;
++
+ import java.util.*;
+ import java.util.concurrent.ConcurrentHashMap;
+-import java.util.concurrent.ConcurrentMap;
+-import java.util.function.Supplier;
+ 
+ import static com.electronwill.nightconfig.core.utils.StringUtils.split;
+ 

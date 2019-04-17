@@ -1,0 +1,16 @@
+--- yaml/src/main/java/com/electronwill/nightconfig/yaml/YamlFormat.java	2019-04-17 23:33:19.125977227 +0200
++++ android/yaml_android/patches/YamlFormat.java	2019-04-18 00:23:33.450984391 +0200
+@@ -5,12 +5,12 @@
+ import com.electronwill.nightconfig.core.file.FormatDetector;
+ import com.electronwill.nightconfig.core.io.ConfigParser;
+ import com.electronwill.nightconfig.core.io.ConfigWriter;
++import com.electronwill.nightconfig.core.utils.Supplier;
+ import org.yaml.snakeyaml.Yaml;
+ 
+ import java.util.List;
+ import java.util.Set;
+ import java.util.Map;
+-import java.util.function.Supplier;
+ 
+ /**
+  * @author TheElectronWill

@@ -1,0 +1,13 @@
+--- hocon/src/main/java/com/electronwill/nightconfig/hocon/HoconFormat.java	2019-04-17 23:33:19.122643757 +0200
++++ android/hocon_android/patches/HoconFormat.java	2019-04-18 00:19:22.160769561 +0200
+@@ -5,9 +5,9 @@
+ import com.electronwill.nightconfig.core.file.FormatDetector;
+ import com.electronwill.nightconfig.core.io.ConfigParser;
+ import com.electronwill.nightconfig.core.io.ConfigWriter;
++import com.electronwill.nightconfig.core.utils.Supplier;
+ 
+ import java.util.Map;
+-import java.util.function.Supplier;
+ 
+ /**
+  * Represents the Hocon config format.

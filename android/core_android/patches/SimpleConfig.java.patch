@@ -1,0 +1,12 @@
+--- core/src/main/java/com/electronwill/nightconfig/core/SimpleConfig.java	2019-04-15 00:54:55.618597107 +0200
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/SimpleConfig.java	2019-04-18 00:07:50.137567494 +0200
+@@ -1,7 +1,8 @@
+ package com.electronwill.nightconfig.core;
+ 
++import com.electronwill.nightconfig.core.utils.Supplier;
++
+ import java.util.Map;
+-import java.util.function.Supplier;
+ 
+ /**
+  * Default concrete implementation of Config. The values are stored in a map, generally a HashMap,

@@ -1,0 +1,16 @@
+--- core/src/main/java/com/electronwill/nightconfig/core/InMemoryFormat.java	2019-04-17 23:33:19.122643757 +0200
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/InMemoryFormat.java	2019-04-17 23:41:08.698023988 +0200
+@@ -2,11 +2,11 @@
+ 
+ import com.electronwill.nightconfig.core.io.ConfigParser;
+ import com.electronwill.nightconfig.core.io.ConfigWriter;
++import com.electronwill.nightconfig.core.utils.Supplier;
++import com.electronwill.nightconfig.core.utils.Predicate;
+ 
+ import java.util.Collection;
+ import java.util.Map;
+-import java.util.function.Predicate;
+-import java.util.function.Supplier;
+ 
+ /**
+  * A ConfigFormat that is only in memory. Its method {@link #isInMemory()} returns always true.

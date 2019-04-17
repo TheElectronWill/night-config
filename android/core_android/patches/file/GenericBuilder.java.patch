@@ -1,15 +1,24 @@
---- core/src/main/java/com/electronwill/nightconfig/core/file/GenericBuilder.java
-+++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/GenericBuilder.java
-@@ -9,8 +9,6 @@
+--- core/src/main/java/com/electronwill/nightconfig/core/file/GenericBuilder.java	2019-04-17 23:33:19.122643757 +0200
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/file/GenericBuilder.java	2019-04-18 00:17:44.936676810 +0200
+@@ -3,16 +3,14 @@
+ import com.electronwill.nightconfig.core.Config;
+ import com.electronwill.nightconfig.core.ConfigFormat;
+ import com.electronwill.nightconfig.core.io.*;
++import com.electronwill.nightconfig.core.utils.Supplier;
+ 
+ import java.io.File;
+ import java.io.IOException;
  import java.net.URL;
  import java.nio.charset.Charset;
  import java.nio.charset.StandardCharsets;
 -import java.nio.file.Files;
 -import java.nio.file.Path;
+ import java.util.Map;
+-import java.util.function.Supplier;
  
  /**
   * A generic FileConfig/CommentedFileConfig/someOtherFileConfig builder. The default settings are:
-@@ -29,7 +27,7 @@
+@@ -33,7 +31,7 @@
   * @author TheElectronWill
   */
  public abstract class GenericBuilder<Base extends Config, Result extends FileConfig> {
@@ -18,16 +27,16 @@
  	private Base config;
  	protected final ConfigFormat<? extends Base> format;
  	protected final ConfigWriter writer;
-@@ -40,7 +38,7 @@
- 	protected FileNotFoundAction nefAction = FileNotFoundAction.CREATE_EMPTY;
- 	protected boolean sync = false, autosave = false, autoreload = false;
+@@ -46,7 +44,7 @@
+ 	protected boolean insertionOrder = Config.isInsertionOrderPreserved();
+ 	protected Supplier<Map<String, Object>> mapCreator = null;
  
 -	GenericBuilder(Path file, ConfigFormat<? extends Base> format) {
 +	GenericBuilder(File file, ConfigFormat<? extends Base> format) {
  		this.file = file;
  		this.format = format;
  		this.writer = format.createWriter();
-@@ -110,17 +108,6 @@
+@@ -116,17 +114,6 @@
  	}
  
  	/**
@@ -45,38 +54,45 @@
  	 * Sets the URL of the data to copy when the config's file is not found. This is a shortcut for
  	 * {@code onFileNotFound(FileNotFoundAction.copyData(url))}
  	 *
-@@ -134,6 +121,8 @@
+@@ -140,6 +127,8 @@
  	/**
  	 * Makes the configuration "write-synchronized", that is, its {@link FileConfig#save()}
  	 * method blocks until the write operation completes.
 +	 * <b>In core_android, this method has no effect because the async FileConfig isn't available
-+	 * in Android, due to the lack of java.nio.channels.AsynchronousFileChannel on Android &lt; 8</b>
++     * in Android, due to the lack of java.nio.channels.AsynchronousFileChannel on Android &lt; 8</b>
  	 *
  	 * @return this builder
  	 */
-@@ -183,9 +172,15 @@
+@@ -216,10 +205,17 @@
  	 */
  	public Result build() {
  		FileConfig fileConfig;
-+		/*
-+		 * java.nio.channels.AsynchronousFileChannel isn't available in Android < 8
-+		 * Therefore, only WriteSyncFileConfig will be used here.
-+		 */
-+		fileConfig = new WriteSyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
-+			parser, parsingMode, nefAction);
-+		/*
- 		if (sync) {
+-		if (sync) {
 -			fileConfig = new WriteSyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
 -				parser, parsingMode, nefAction);
-+
- 		} else {
+-		} else {
++		/*
++         * java.nio.channels.AsynchronousFileChannel isn't available in Android < 8
++         * Therefore, only WriteSyncFileConfig will be used here.
++         */
++        fileConfig = new WriteSyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
++        									   parser, parsingMode, nefAction);
++        /*
++        if (sync) {
++        	fileConfig = new WriteSyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
++        	parser, parsingMode, nefAction);
++         } else {
  			if (autoreload) {
  				concurrent();
-@@ -195,6 +190,7 @@
+ 				// Autoreloading is done from a background thread, therefore we need thread-safety
+@@ -228,8 +224,9 @@
  			fileConfig = new WriteAsyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
  				parser, parsingMode, nefAction);
  		}
 +		*/
  		if (autoreload) {
- 			if (Files.notExists(file)) {
+-			if (Files.notExists(file)) {
++			if (!file.exists()) {
  				try {
+ 					nefAction.run(file, format);
+ 				} catch (IOException e) {

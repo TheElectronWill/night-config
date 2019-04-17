@@ -1,0 +1,15 @@
+--- core/src/main/java/com/electronwill/nightconfig/core/InMemoryCommentedFormat.java	2019-04-17 23:33:19.122643757 +0200
++++ android/core_android/src/main/java/com/electronwill/nightconfig/core/InMemoryCommentedFormat.java	2019-04-17 23:42:47.774391986 +0200
+@@ -2,10 +2,10 @@
+ 
+ import com.electronwill.nightconfig.core.io.ConfigParser;
+ import com.electronwill.nightconfig.core.io.ConfigWriter;
++import com.electronwill.nightconfig.core.utils.Supplier;
++import com.electronwill.nightconfig.core.utils.Predicate;
+ 
+ import java.util.Map;
+-import java.util.function.Predicate;
+-import java.util.function.Supplier;
+ 
+ /**
+  * The commented version of {@link InMemoryFormat}

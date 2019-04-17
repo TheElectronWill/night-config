@@ -1,0 +1,15 @@
+--- json/src/main/java/com/electronwill/nightconfig/json/JsonFormat.java	2019-04-17 23:33:19.122643757 +0200
++++ android/json_android/patches/JsonFormat.java	2019-04-18 00:19:59.736454685 +0200
+@@ -6,11 +6,11 @@
+ import com.electronwill.nightconfig.core.io.ConfigParser;
+ import com.electronwill.nightconfig.core.io.ConfigWriter;
+ import com.electronwill.nightconfig.core.utils.WriterSupplier;
++import com.electronwill.nightconfig.core.utils.Supplier;
+ 
+ import java.io.IOException;
+ import java.io.Writer;
+ import java.util.Map;
+-import java.util.function.Supplier;
+ 
+ /**
+  * @author TheElectronWill

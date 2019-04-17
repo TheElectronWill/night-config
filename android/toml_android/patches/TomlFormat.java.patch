@@ -1,0 +1,14 @@
+--- toml/src/main/java/com/electronwill/nightconfig/toml/TomlFormat.java	2019-04-17 23:33:19.125977227 +0200
++++ android/toml_android/patches/TomlFormat.java	2019-04-18 00:20:50.111815711 +0200
+@@ -3,10 +3,10 @@
+ import com.electronwill.nightconfig.core.CommentedConfig;
+ import com.electronwill.nightconfig.core.ConfigFormat;
+ import com.electronwill.nightconfig.core.file.FormatDetector;
++import com.electronwill.nightconfig.core.utils.Supplier;
+ 
+ import java.time.temporal.Temporal;
+ import java.util.Map;
+-import java.util.function.Supplier;
+ 
+ /**
+  * @author TheElectronWill
