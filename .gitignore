@@ -22,5 +22,5 @@ nbproject
 # Working directory of code examples
 examples/working_dir/
 
-# Results of core_android:applyPatches
-android/core_android/src/main/
+# Results of *_android:applyPatches
+android/*/src/main/
