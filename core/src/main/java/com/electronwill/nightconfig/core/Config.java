@@ -2,7 +2,6 @@ package com.electronwill.nightconfig.core;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.function.Supplier;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
@@ -42,20 +41,18 @@ public interface Config extends UnmodifiableConfig {
 	 *
 	 * @param path  the value's path, each element of the list is a different part of the path.
 	 * @param value the value to set
-	 * @return true if the value has been added, false if a value is already associated with the
-	 * given path
+	 * @return the existing value if any, or {@code null}
 	 */
-	boolean add(List<String> path, Object value);
+	Object add(List<String> path, Object value);
 
 	/**
 	 * Adds a config value. The value is set iff there is no value associated with the given path.
 	 *
 	 * @param path  the value's path, each part separated by a dot. Example "a.b.c"
 	 * @param value the value to set
-	 * @return true if the value has been added, false if a value is already associated with the
-	 * given path
+	 * @return the existing value if any, or {@code null}
 	 */
-	default boolean add(String path, Object value) {
+	default Object add(String path, Object value) {
 		return add(split(path, '.'), value);
 	}
 
@@ -68,9 +65,9 @@ public interface Config extends UnmodifiableConfig {
 		for (UnmodifiableConfig.Entry ue : config.entrySet()) {
 			List<String> key = Collections.singletonList(ue.getKey());
 			Object value = ue.getRawValue();
-			boolean existed = !add(key, value);
-			if (existed && value instanceof UnmodifiableConfig) {
-
+			Object existingValue = add(key, value);
+			if (existingValue instanceof Config && value instanceof UnmodifiableConfig) {
+				((Config)existingValue).addAll((UnmodifiableConfig)value);
 			}
 		}
 	}
@@ -233,7 +230,6 @@ public interface Config extends UnmodifiableConfig {
 	}
 
 	//--- Static methods ---
-
 	/**
 	 * Creates a Config of the given format.
 	 *
