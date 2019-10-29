@@ -19,12 +19,9 @@ public final class ConvertedConfig extends AbstractConvertedConfig<Config> {
 	 * @param config           the config to wrap
 	 * @param readTable        the ConversionTable used for parse operations (like getValue)
 	 * @param writeTable       the ConversionTable used for write operations (like setValue)
-	 * @param supportPredicate a Predicate that checks if a given class is supported by the
-	 *                         ConvertedConfig
 	 */
-	public ConvertedConfig(Config config, ConversionTable readTable, ConversionTable writeTable,
-						   Predicate<Class<?>> supportPredicate) {
-		this(config, readTable::convert, writeTable::convert, supportPredicate);
+	public ConvertedConfig(Config config, ConversionTable readTable, ConversionTable writeTable) {
+		this(config, readTable::convert, writeTable::convert);
 	}
 
 	/**
@@ -33,19 +30,16 @@ public final class ConvertedConfig extends AbstractConvertedConfig<Config> {
 	 * @param config           the config to wrap
 	 * @param readConversion   the Function used for parse operations (like getValue)
 	 * @param writeConversion  the Function used for write operations (like setValue)
-	 * @param supportPredicate a Predicate that checks if a given class is supported by the
-	 *                         ConvertedConfig
 	 */
 	public ConvertedConfig(Config config, Function<Object, Object> readConversion,
-						   Function<Object, Object> writeConversion,
-						   Predicate<Class<?>> supportPredicate) {
-		super(config, readConversion, writeConversion, supportPredicate);
+						   Function<Object, Object> writeConversion) {
+		super(config, readConversion, writeConversion);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Set<? extends Config.Entry> entrySet() {
-		Function<Config.Entry, Config.Entry> readTransfo = entry -> new Config.Entry() {
+	public Set<Config.Entry> entries() {
+		Function<Config.Entry, Config.Entry> readTransfo = entry -> null;/*TODOnew Config.Entry() {
 			@Override
 			public Object setValue(Object value) {
 				return readConversion.apply(entry.setValue(writeConversion.apply(value)));
@@ -57,10 +51,10 @@ public final class ConvertedConfig extends AbstractConvertedConfig<Config> {
 			}
 
 			@Override
-			public <T> T getRawValue() {
-				return (T)readConversion.apply(entry.getRawValue());
+			public <T> T getValue() {
+				return (T)readConversion.apply(entry.getValue());
 			}
-		};
-		return new TransformingSet<>(config.entrySet(), readTransfo, o -> null, e -> e);
+		};*/
+		return new TransformingSet<>(config.entries(), readTransfo, o -> null, e -> e);
 	}
 }

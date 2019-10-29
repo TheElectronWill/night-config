@@ -69,12 +69,12 @@ public final class YamlFormat implements ConfigFormat<Config> {
 	}
 
 	@Override
-	public ConfigWriter createWriter() {
+	public ConfigWriter writer() {
 		return new YamlWriter(yaml);
 	}
 
 	@Override
-	public ConfigParser<Config> createParser() {
+	public ConfigParser<Config> parser() {
 		return new YamlParser(this);
 	}
 

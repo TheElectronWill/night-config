@@ -13,6 +13,16 @@ public final class StringUtils {
 
 	private StringUtils() {}// Utility class that can't be constructed
 
+	/** @return an array containing the last element of the given array. */
+	public static String[] last(String[] path) {
+		return new String[]{path[path.length - 1]};
+	}
+
+	/** @return an array containing only one string */
+	public static String[] single(String path) {
+		return new String[]{path};
+	}
+
 	/**
 	 * Splits a String at each dot. Shortcut for {@code split(path, '.')}
 	 * @param path the string to split
@@ -100,21 +110,40 @@ public final class StringUtils {
 	}
 
 	/**
+	 * Joins the first elements of an array of strings, with the delimiter '.' (dot).
+	 * This is the opposite of {@link #splitPath(String)}.
+	 *
+	 * @param strings the strings to join
+	 * @param len the number of strings to join, starting at strings[0]
+	 * @return the result of the concatenation of each element with a '.' between 2 elements
+	 */
+	public static String joinPath(String[] strings, int len) {
+		return join(strings, len, '.');
+	}
+
+	/**
 	 * Like {@link java.lang.String#join(java.lang.CharSequence, java.lang.CharSequence...)} but
 	 * optimized for single-char delimiters.
 	 */
 	public static String join(String[] strings, char delimiter) {
+		return join(strings, strings.length, delimiter);
+	}
+
+	/**
+	 * Join the first elements of an array of strings with the given delimiter.
+	 */
+	public static String join(String[] strings, int len, char delimiter) {
 		CharsWrapper.Builder builder = new CharsWrapper.Builder(32);
-		join(strings, delimiter, builder);
+		join(strings, len, delimiter, builder);
 		return builder.toString();
 	}
 
-	public static void join(String[] strings, char delimiter, CharsWrapper.Builder dst) {
-		int lastIndex = strings.length - 1;
-		for (int i = 0; i < lastIndex; i++) {
+	public static void join(String[] strings, int len, char delimiter, CharsWrapper.Builder dst) {
+		if (len <= 0) return;
+		for (int i = 0; i < len; i++) {
 			dst.append(strings[i]).append(delimiter);
 		}
-		dst.append(strings[lastIndex]);
+		dst.append(strings[len-1]);
 	}
 
 	/**

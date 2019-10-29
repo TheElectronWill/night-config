@@ -53,12 +53,12 @@ public final class HoconFormat implements ConfigFormat<CommentedConfig> {
 	private HoconFormat() {}
 
 	@Override
-	public ConfigWriter createWriter() {
+	public ConfigWriter writer() {
 		return new HoconWriter();
 	}
 
 	@Override
-	public ConfigParser<CommentedConfig> createParser() {
+	public ConfigParser<CommentedConfig> parser() {
 		return new HoconParser();
 	}
 

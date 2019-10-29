@@ -19,23 +19,23 @@ public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat
 
 	private static final JsonFormat<FancyJsonWriter> FANCY = new JsonFormat<FancyJsonWriter>() {
 		@Override
-		public FancyJsonWriter createWriter() {
+		public FancyJsonWriter writer() {
 			return new FancyJsonWriter();
 		}
 
 		@Override
-		public ConfigParser<Config> createParser() {
+		public ConfigParser<Config> parser() {
 			return new JsonParser(this);
 		}
 	};
 	private static final JsonFormat<MinimalJsonWriter> MINIMAL = new JsonFormat<MinimalJsonWriter>() {
 		@Override
-		public MinimalJsonWriter createWriter() {
+		public MinimalJsonWriter writer() {
 			return new MinimalJsonWriter();
 		}
 
 		@Override
-		public ConfigParser<Config> createParser() {
+		public ConfigParser<Config> parser() {
 			return new JsonParser(this);
 		}
 	};
@@ -60,12 +60,12 @@ public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat
 	public static JsonFormat<FancyJsonWriter> emptyTolerantInstance() {
 		return new JsonFormat<FancyJsonWriter>() {
 			@Override
-			public FancyJsonWriter createWriter() {
+			public FancyJsonWriter writer() {
 				return new FancyJsonWriter();
 			}
 
 			@Override
-			public ConfigParser<Config> createParser() {
+			public ConfigParser<Config> parser() {
 				return new JsonParser(this).setEmptyDataAccepted(true);
 			}
 		};
@@ -77,12 +77,12 @@ public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat
 	public static JsonFormat<MinimalJsonWriter> minimalEmptyTolerantInstance() {
 		return new JsonFormat<MinimalJsonWriter>() {
 			@Override
-			public MinimalJsonWriter createWriter() {
+			public MinimalJsonWriter writer() {
 				return new MinimalJsonWriter();
 			}
 
 			@Override
-			public ConfigParser<Config> createParser() {
+			public ConfigParser<Config> parser() {
 				return new JsonParser(this).setEmptyDataAccepted(true);
 			}
 		};
@@ -116,10 +116,10 @@ public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat
 	private JsonFormat() {}
 
 	@Override
-	public abstract W createWriter();
+	public abstract W writer();
 
 	@Override
-	public abstract ConfigParser<Config> createParser();
+	public abstract ConfigParser<Config> parser();
 
 	@Override
 	public Config createConfig(Supplier<Map<String, Object>> mapCreator) {

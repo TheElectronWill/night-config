@@ -1,290 +1,200 @@
 package com.electronwill.nightconfig.core;
 
+import com.electronwill.nightconfig.core.utils.MapSupplier;
+import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.function.Supplier;
-
-import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 
 /**
- * An abstract Config that uses a {@link java.util.Map} to store its values. In practice it's
- * often a HashMap, or a ConcurrentHashMap if the config is concurrent, but it accepts any type
- * of Map.
+ * Base class for configurations. It uses a {@link java.util.Map} to store the config entries.
  *
  * @author TheElectronWill
  */
 @SuppressWarnings("unchecked")
 public abstract class AbstractConfig implements Config, Cloneable {
+	protected static final int REQUIRE = 0, CREATE = 1, OPTIONAL = 2;
 
-	protected final Supplier<Map<String, Object>> mapCreator;
+	protected final EntryData root; // stores the "global" attributes
+	protected final Map<String, EntryData> storage;
+	protected final MapSupplier mapSupplier;
 
-	final Map<String, Object> map;
-
-	/**
-	 * Creates a new AbstractConfig backed by a new {@link Map}.
-	 */
-	public AbstractConfig(boolean concurrent) {
-		this(getDefaultMapCreator(concurrent));
+	public AbstractConfig(MapSupplier mapSupplier) {
+		this.mapSupplier = mapSupplier;
+		this.storage = mapSupplier.get();
+		this.root = new EntryDataImpl(this);
 	}
 
-	/**
-	 * Creates a new AbstractConfig with all backing maps supplied by the given {@link Supplier}.
-	 *
-	 * @param mapCreator A supplier that will be called to create all config maps
-	 */
-	public AbstractConfig(Supplier<Map<String, Object>> mapCreator) {
-		this.mapCreator = mapCreator;
-		this.map = mapCreator.get();
+	protected EntryData findEntry(String[] path, int mode) {
+		return findEntry(path, path.length, mode);
 	}
 
-	/**
-	 * Creates a new AbstractConfig backed by the specified {@link Map}.
-	 *
-	 * @param map the map to use to store the config values.
-	 */
-	public AbstractConfig(Map<String, Object> map) {
-		this.map = map;
-		this.mapCreator = getDefaultMapCreator(map instanceof ConcurrentMap);
-	}
+	protected EntryData findEntry(String[] path, int len, int mode) {
+		if (path == null || len <= 0) return root;
 
-	/**
-	 * Creates a new AbstractConfig that is a copy of the specified config.
-	 *
-	 * @param toCopy the config to copy
-	 */
-	public AbstractConfig(UnmodifiableConfig toCopy, boolean concurrent) {
-		this(toCopy, getDefaultMapCreator(concurrent));
-	}
-
-	/**
-	 * Creates a new AbstractConfig that is a copy of the specified config, and with
-	 * all backing maps supplied by the given {@link Supplier}.
-	 *
-	 * @param toCopy     the config to copy
-	 * @param mapCreator A supplier that will be called to create all config maps
-	 */
-	public AbstractConfig(UnmodifiableConfig toCopy, Supplier<Map<String, Object>> mapCreator) {
-		this.map = mapCreator.get();
-		this.map.putAll(toCopy.valueMap());
-		this.mapCreator = mapCreator;
-	}
-
-	protected static <T> Supplier<Map<String, T>> getDefaultMapCreator(boolean concurrent) {
-		return Config.getDefaultMapCreator(concurrent);
-	}
-
-	protected static <T> Supplier<Map<String, T>> getWildcardMapCreator(Supplier<Map<String, Object>> mapCreator) {
-		return () -> {
-			Map<String, Object> map = mapCreator.get();
-			map.clear(); // Make sure there's no naughty people putting starting entries in the map, so we can unsafely cast
-			return (Map<String, T>)map;
-		};
-	}
-
-	@Override
-	public <T> T getRaw(List<String> path) {
-		final int lastIndex = path.size() - 1;
-		Map<String, Object> parentMap = getMap(path.subList(0, lastIndex));
-		if (parentMap == null) {
-			return null;
-		}
-		String lastKey = path.get(lastIndex);
-		return (T)parentMap.get(lastKey);
-	}
-
-	@Override
-	public <T> T set(List<String> path, Object value) {
-		final int lastIndex = path.size() - 1;
-		Map<String, Object> parentMap = getOrCreateMap(path.subList(0, lastIndex));
-		String lastKey = path.get(lastIndex);
-		Object nonNull = (value == null) ? NULL_OBJECT : value;
-		return (T)parentMap.put(lastKey, nonNull);
-	}
-
-	@Override
-	public boolean add(List<String> path, Object value) {
-		final int lastIndex = path.size() - 1;
-		Map<String, Object> parentMap = getOrCreateMap(path.subList(0, lastIndex));
-		String lastKey = path.get(lastIndex);
-		Object nonNull = (value == null) ? NULL_OBJECT : value;
-		return parentMap.putIfAbsent(lastKey, nonNull) == null;
-	}
-
-	@Override
-	public <T> T remove(List<String> path) {
-		final int lastIndex = path.size() - 1;
-		Map<String, Object> parentMap = getMap(path.subList(0, lastIndex));
-		if (parentMap == null) {
-			return null;
-		}
-		String lastKey = path.get(lastIndex);
-		return (T)parentMap.remove(lastKey);
-	}
-
-	@Override
-	public boolean contains(List<String> path) {
-		final int lastIndex = path.size() - 1;
-		Map<String, Object> parentMap = getMap(path.subList(0, lastIndex));
-		if (parentMap == null) {
-			return false;
-		}
-		String lastKey = path.get(lastIndex);
-		return parentMap.containsKey(lastKey);
-	}
-
-	@Override
-	public boolean isNull(List<String> path) {
-		final int lastIndex = path.size() - 1;
-		Map<String, Object> parentMap = getMap(path.subList(0, lastIndex));
-		if (parentMap == null) {
-			return false;
-		}
-		String lastKey = path.get(lastIndex);
-		Object value = parentMap.get(lastKey);
-		return value == NULL_OBJECT;
-	}
-
-	/**
-	 * Returns the Map associated to the given path. Any missing level is created.
-	 *
-	 * @param path the map's path
-	 * @return the Map, not null
-	 */
-	private Map<String, Object> getOrCreateMap(List<String> path) {
-		Map<String, Object> currentMap = map;
-		for (String currentKey : path) {
-			final Object currentValue = currentMap.get(currentKey);
-			final Config config;
-			if (currentValue == null) {// missing intermediary level
-				config = createSubConfig();
-				currentMap.put(currentKey, config);
-			} else if (!(currentValue instanceof Config)) {// incompatible intermediary level
-				throw new IllegalArgumentException(
-						"Cannot add an element to an intermediary value of type: "
-						+ currentValue.getClass());
-			} else {//existing intermediary level
-				config = (Config)currentValue;
+		// Finds the map that contains the last entry of the path (the leaf)
+		Map<String, EntryData> current = storage;
+		for (int i = 0; i < len-1; i++) {
+			final String part = path[i];
+			EntryData entry = current.get(part);
+			if (entry == null) {
+				if (mode == CREATE) {
+					// The entry doesn't exist, we can create it
+					AbstractConfig sub = createSubConfig();
+					entry = new EntryDataImpl(sub);
+					current.put(part, entry);
+					current = sub.storage;
+				} else if (mode == OPTIONAL) {
+					return null;
+				} else {
+					throw new WrongPathException(path, len, i, null);
+				}
+			} else {
+				final Object v = entry.getValue();
+				if (v instanceof Config) {
+					current = ((Config)v).dataMap();
+				} else if (mode == OPTIONAL) {
+					return null;
+				} else {
+					// If the entry has a null or incompatible value, throw an error
+					throw new WrongPathException(path, len, i, NullObject.or(v));
+				}
 			}
-			currentMap = config.valueMap();
 		}
-		return currentMap;
-	}
+		// Checks that the leaf is valid
+		final int leafIdx = len-1;
+		final String leafPart = path[leafIdx];
 
-	/**
-	 * Returns the Map associated to the given path, or null if there is none.
-	 *
-	 * @param path the map's path
-	 * @return the Map if any, or null if none
-	 */
-	private Map<String, Object> getMap(List<String> path) {
-		Map<String, Object> currentMap = map;
-		for (String key : path) {
-			Object value = currentMap.get(key);
-			if (!(value instanceof Config)) {// missing or incompatible intermediary level
-				return null;// the specified path doesn't exist -> stop here
+		EntryData leaf = current.get(leafPart);
+		if (leaf == null) {
+			if (mode == CREATE) {
+				leaf = new EntryDataImpl();
+				current.put(leafPart, leaf);
+			} else if (mode == REQUIRE) {
+				throw new WrongPathException(path, len, leafIdx, NullObject.instance());
 			}
-			currentMap = ((Config)value).valueMap();
 		}
-		return currentMap;
-	}
-
-	@Override
-	public void clear() {
-		map.clear();
+		return leaf;
 	}
 
 	@Override
 	public int size() {
-		return map.size();
+		return storage.size();
+	}
+
+	@Override
+	public void clear() {
+		storage.clear();
+	}
+
+	@Override
+	public void clearAttributes() {
+		storage.forEach((key, data) -> data.clearExtraAttributes());
+	}
+
+	@Override
+	public void clearComments() {
+		storage.forEach((key, data) -> data.remove(StandardAttributes.COMMENT));
+	}
+
+	@Override
+	public <T> T set(AttributeType<T> attribute, String[] path, T value) {
+		return findEntry(path, CREATE).set(attribute, value);
+	}
+
+	@Override
+	public <T> T add(AttributeType<T> attribute, String[] path, T value) {
+		return findEntry(path, CREATE).add(attribute, value);
+	}
+
+	@Override
+	public <T> T remove(AttributeType<T> attribute, String[] path) {
+		EntryData data = findEntry(path, OPTIONAL);
+		return data == null ? null : data.remove(attribute);
+	}
+
+	@Override
+	public <T> T get(AttributeType<T> attribute, String[] path) {
+		EntryData data = findEntry(path, OPTIONAL);
+		return data == null ? null : data.get(attribute);
+	}
+
+	@Override
+	public EntryData getData(String[] path) {
+		return findEntry(path, OPTIONAL);
+	}
+
+	@Override
+	public boolean contains(String[] path) {
+		return findEntry(path, OPTIONAL) != null;
+	}
+
+	@Override
+	public boolean has(AttributeType<?> attribute, String[] path) {
+		EntryData entry = findEntry(path, OPTIONAL);
+		return entry != null && entry.has(attribute);
 	}
 
 	@Override
 	public Map<String, Object> valueMap() {
-		return map;
+		return new TransformingMap<>(storage, EntryData::getValue, EntryDataImpl::new, EntryDataImpl::new);
 	}
 
 	@Override
-	public Set<? extends Entry> entrySet() {
-		return new TransformingSet<>(map.entrySet(), EntryWrapper::new, o -> null, o -> o);
-		/* the writeTransformation is not important because we can't write to the set anyway,
-		   since it's a generic Set<? extends Entry> */
+	public Map<String, EntryData> dataMap() {
+		return storage;
 	}
 
-	/**
-	 * Creates and return a copy of this config.
-	 *
-	 * @return a new Config that contains the same entries as this config.
-	 */
 	@Override
+	public Set<Entry> entries() {
+		Function<Map.Entry<String, EntryData>, Config.Entry> read =
+			e -> e.getValue().toConfigEntry(e.getKey());
+
+		Function<Config.Entry, Map.Entry<String, EntryData>> write =
+			e -> new EntryDataImpl(e.getValue()).toMapEntry(e.getKey());
+
+		Function<Object, Map.Entry<String, EntryData>> search = o -> {
+			if (o instanceof Map.Entry) {
+				Map.Entry<?,?> entry = (Map.Entry<?,?>)o;
+				Object key = entry.getKey();
+				Object val = entry.getValue();
+				if (val instanceof EntryData) {
+					return (Map.Entry<String, EntryData>)entry;
+				} else {
+					return new EntryDataImpl(val).toMapEntry((String)key);
+				}
+			} else if (o instanceof Config.Entry) {
+				return write.apply((Config.Entry)o);
+			} else {
+				return null;
+			}
+		};
+		return new TransformingSet<>(storage.entrySet(), read, write, search);
+	}
+
+	public abstract AbstractConfig createSubConfig();
+
 	public abstract AbstractConfig clone();
 
 	@Override
-	public int hashCode() {
-		return map.hashCode();
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof AbstractConfig))
+			return false;
+		AbstractConfig that = (AbstractConfig)o;
+		return storage.equals(that.storage);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (obj == this) { return true; }
-		if (!(obj instanceof AbstractConfig)) { return false; }
-		AbstractConfig other = (AbstractConfig)obj;
-		return map.equals(other.map);
+	public int hashCode() {
+		return storage.hashCode();
 	}
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + ':' + valueMap();
-	}
-
-	/**
-	 * A wrapper around a {@code Map.Entry<String, Object>}.
-	 *
-	 * @see Map.Entry
-	 */
-	protected static class EntryWrapper implements Entry {
-		protected final Map.Entry<String, Object> mapEntry;
-
-		public EntryWrapper(Map.Entry<String, Object> mapEntry) {
-			this.mapEntry = mapEntry;
-		}
-
-		@Override
-		public String getKey() {
-			return mapEntry.getKey();
-		}
-
-		@Override
-		public <T> T getRawValue() {
-			return (T)mapEntry.getValue();
-		}
-
-		@Override
-		public <T> T setValue(Object value) {
-			return (T)mapEntry.setValue(value);
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (obj == this) {
-				return true;
-			}
-			if (obj instanceof EntryWrapper) {
-				EntryWrapper other = (EntryWrapper)obj;
-				return Objects.equals(getKey(), other.getKey())
-					&& Objects.equals(getValue(), other.getValue());
-			}
-			return false;
-		}
-
-		@Override
-		public int hashCode() {
-			int result = 1;
-			result = 31 * result + Objects.hashCode(getKey());
-			result = 31 * result + Objects.hashCode(getValue());
-			return result;
-		}
+		return getClass().getSimpleName() + ": " + storage;
 	}
 }

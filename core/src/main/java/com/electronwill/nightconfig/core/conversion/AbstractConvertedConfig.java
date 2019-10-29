@@ -17,21 +17,16 @@ import java.util.function.Predicate;
 abstract class AbstractConvertedConfig<C extends Config> extends ConfigWrapper<C>
 		implements Config {
 	final Function<Object, Object> readConversion, writeConversion;
-	final Predicate<Class<?>> supportPredicate;
-	final ConfigFormat<?> format;
 
 	AbstractConvertedConfig(C config, Function<Object, Object> readConversion,
-							Function<Object, Object> writeConversion,
-							Predicate<Class<?>> supportPredicate) {
+							Function<Object, Object> writeConversion) {
 		super(config);
 		this.readConversion = readConversion;
 		this.writeConversion = writeConversion;
-		this.supportPredicate = supportPredicate;
-		this.format = new ConvertedFormat<>(config.configFormat(), supportPredicate);
 	}
 
 	@Override
-	public <T> T set(List<String> path, Object value) {
+	public <T> T set(String[] path, Object value) {
 		return (T)readConversion.apply(config.set(path, writeConversion.apply(value)));
 	}
 
@@ -42,13 +37,8 @@ abstract class AbstractConvertedConfig<C extends Config> extends ConfigWrapper<C
 	}
 
 	@Override
-	public <T> T getRaw(List<String> path) {
-		return (T)readConversion.apply(config.getRaw(path));
-	}
-
-	@Override
-	public ConfigFormat<?> configFormat() {
-		return format;
+	public <T> T get(String[] path) {
+		return (T)readConversion.apply(config.get(path));
 	}
 
 	@Override

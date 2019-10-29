@@ -49,12 +49,12 @@ public final class TomlFormat implements ConfigFormat<CommentedConfig> {
 	private TomlFormat() {}
 
 	@Override
-	public TomlWriter createWriter() {
+	public TomlWriter writer() {
 		return new TomlWriter();
 	}
 
 	@Override
-	public TomlParser createParser() {
+	public TomlParser parser() {
 		return new TomlParser();
 	}
 

@@ -22,14 +22,14 @@ final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> imple
 	private final ConfigWriter writer;
 	private final WritingMode writingMode;
 
-	private final ConfigParser<?> parser;
+	private final ConfigParser parser;
 	private final FileNotFoundAction nefAction;
 	private final ParsingMode parsingMode;
 
 	private volatile boolean currentlyWriting = false;
 
 	WriteSyncFileConfig(C config, Path nioPath, Charset charset, ConfigWriter writer,
-						 WritingMode writingMode, ConfigParser<?> parser,
+						 WritingMode writingMode, ConfigParser parser,
 						 ParsingMode parsingMode, FileNotFoundAction nefAction) {
 		super(config);
 		this.nioPath = nioPath;

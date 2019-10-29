@@ -43,11 +43,6 @@ public interface FileConfig extends Config, AutoCloseable {
 	@Override
 	void close();
 
-	@Override
-	default FileConfig checked() {
-		return new CheckedFileConfig(this);
-	}
-
 	/**
 	 * Creates a new FileConfig based on the specified file. The format is detected automatically.
 	 *
@@ -67,7 +62,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format the config's format
 	 * @return a new FileConfig associated to the specified file
 	 */
-	static FileConfig of(File file, ConfigFormat<? extends Config> format) {
+	static FileConfig of(File file, ConfigFormat format) {
 		return of(file.toPath(), format);
 	}
 
@@ -80,7 +75,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
 	static FileConfig of(Path file) {
-		ConfigFormat<?> format = FormatDetector.detect(file);
+		ConfigFormat format = FormatDetector.detect(file);
 		if (format == null) {
 			throw new NoFormatFoundException("No suitable format for " + file.getFileName());
 		}
@@ -94,7 +89,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format the config's format
 	 * @return a new FileConfig associated to the specified file
 	 */
-	static FileConfig of(Path file, ConfigFormat<? extends Config> format) {
+	static FileConfig of(Path file, ConfigFormat format) {
 		return builder(file, format).build();
 	}
 
@@ -117,7 +112,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format   the config's format
 	 * @return a new FileConfig associated to the specified file
 	 */
-	static FileConfig of(String filePath, ConfigFormat<?> format) {
+	static FileConfig of(String filePath, ConfigFormat format) {
 		return of(Paths.get(filePath), format);
 	}
 
@@ -141,7 +136,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format the config's format
 	 * @return a new thread-safe FileConfig associated to the specified file
 	 */
-	static FileConfig ofConcurrent(File file, ConfigFormat<?> format) {
+	static FileConfig ofConcurrent(File file, ConfigFormat format) {
 		return ofConcurrent(file.toPath(), format);
 	}
 
@@ -165,7 +160,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format the config's format
 	 * @return a new thread-safe FileConfig associated to the specified file
 	 */
-	static FileConfig ofConcurrent(Path file, ConfigFormat<?> format) {
+	static FileConfig ofConcurrent(Path file, ConfigFormat format) {
 		return builder(file, format).concurrent().build();
 	}
 
@@ -189,7 +184,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format   the config's format
 	 * @return a new thread-safe FileConfig associated to the specified file
 	 */
-	static FileConfig ofConcurrent(String filePath, ConfigFormat<?> format) {
+	static FileConfig ofConcurrent(String filePath, ConfigFormat format) {
 		return ofConcurrent(Paths.get(filePath), format);
 	}
 
@@ -213,7 +208,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format the config's format
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
 	 */
-	static FileConfigBuilder builder(File file, ConfigFormat<?> format) {
+	static FileConfigBuilder builder(File file, ConfigFormat format) {
 		return builder(file.toPath(), format);
 	}
 
@@ -227,7 +222,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
 	static FileConfigBuilder builder(Path file) {
-		ConfigFormat<?> format = FormatDetector.detect(file);
+		ConfigFormat format = FormatDetector.detect(file);
 		if (format == null) {
 			throw new NoFormatFoundException("No suitable format for " + file.getFileName());
 		}
@@ -241,7 +236,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format the config's format
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
 	 */
-	static FileConfigBuilder builder(Path file, ConfigFormat<?> format) {
+	static FileConfigBuilder builder(Path file, ConfigFormat format) {
 		return new FileConfigBuilder(file, format);
 	}
 
@@ -265,7 +260,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param format   the config's format
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
 	 */
-	static FileConfigBuilder builder(String filePath, ConfigFormat<?> format) {
+	static FileConfigBuilder builder(String filePath, ConfigFormat format) {
 		return builder(Paths.get(filePath), format);
 	}
 }

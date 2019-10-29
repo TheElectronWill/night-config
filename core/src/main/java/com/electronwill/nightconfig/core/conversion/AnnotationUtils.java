@@ -69,9 +69,9 @@ final class AnnotationUtils {
 	 *
 	 * @return the annotated path, if any, or the field name
 	 */
-	static List<String> getPath(Field field) {
-		List<String> annotatedPath = getPath((AnnotatedElement)field);
-		return (annotatedPath == null) ? Collections.singletonList(field.getName()) : annotatedPath;
+	static String[] getPath(Field field) {
+		String[] annotatedPath = getPath((AnnotatedElement)field);
+		return (annotatedPath == null) ? StringUtils.single(field.getName()) : annotatedPath;
 	}
 
 	/**
@@ -79,14 +79,14 @@ final class AnnotationUtils {
 	 *
 	 * @return the annotated path, or {@code null} if there is none.
 	 */
-	static List<String> getPath(AnnotatedElement annotatedElement) {
+	static String[] getPath(AnnotatedElement annotatedElement) {
 		Path path = annotatedElement.getDeclaredAnnotation(Path.class);
 		if (path != null) {
 			return StringUtils.split(path.value(), '.');
 		}
 		AdvancedPath advancedPath = annotatedElement.getDeclaredAnnotation(AdvancedPath.class);
 		if (advancedPath != null) {
-			return Arrays.asList(advancedPath.value());
+			return advancedPath.value();
 		}
 		return null;
 	}

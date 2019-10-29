@@ -1,12 +1,11 @@
 package com.electronwill.nightconfig.core.utils;
 
-import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.AttributeType;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.UnmodifiableEntryData;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * @author TheElectronWill
@@ -20,8 +19,18 @@ public abstract class UnmodifiableConfigWrapper<C extends UnmodifiableConfig>
 	}
 
 	@Override
-	public <T> T getRaw(List<String> path) {
-		return config.getRaw(path);
+	public UnmodifiableEntryData getData(String[] path) {
+		return config.getData(path);
+	}
+
+	@Override
+	public boolean has(AttributeType<?> attribute, String[] path) {
+		return config.has(attribute, path);
+	}
+
+	@Override
+	public boolean contains(String[] path) {
+		return config.contains(path);
 	}
 
 	@Override
@@ -30,13 +39,13 @@ public abstract class UnmodifiableConfigWrapper<C extends UnmodifiableConfig>
 	}
 
 	@Override
-	public Set<? extends Entry> entrySet() {
-		return config.entrySet();
+	public Map<String, ? extends UnmodifiableEntryData> dataMap() {
+		return config.dataMap();
 	}
 
 	@Override
-	public boolean contains(List<String> path) {
-		return config.contains(path);
+	public Iterable<? extends Entry> entries() {
+		return config.entries();
 	}
 
 	@Override
@@ -60,7 +69,7 @@ public abstract class UnmodifiableConfigWrapper<C extends UnmodifiableConfig>
 	}
 
 	@Override
-	public ConfigFormat<?> configFormat() {
-		return config.configFormat();
+	public String toString() {
+		return getClass().getSimpleName() + '(' + config + ')';
 	}
 }

@@ -16,14 +16,10 @@ import java.nio.file.Path;
 /**
  * Interface for reading configurations.
  *
- * @param <C> the type of config created by the parser
  * @author TheElectronWill
  */
-public interface ConfigParser<C extends Config> {
-	/**
-	 * @return the format supported by this parser
-	 */
-	ConfigFormat<C> getFormat();
+public interface ConfigParser {
+	ConfigFormat getFormat();
 
 	/**
 	 * Parses a configuration.
@@ -33,7 +29,7 @@ public interface ConfigParser<C extends Config> {
 	 *
 	 * @throws ParsingException if an error occurs
 	 */
-	C parse(Reader reader);
+	Config parse(Reader reader);
 
 	/**
 	 * Parses a configuration.
@@ -51,7 +47,7 @@ public interface ConfigParser<C extends Config> {
 	 *
 	 * @throws ParsingException if an error occurs
 	 */
-	default C parse(String input) {
+	default Config parse(String input) {
 		return parse(new FastStringReader(input));
 	}
 
@@ -74,7 +70,7 @@ public interface ConfigParser<C extends Config> {
 	 *
 	 * @throws ParsingException if an error occurs
 	 */
-	default C parse(InputStream input) {
+	default Config parse(InputStream input) {
 		return parse(input, StandardCharsets.UTF_8);
 	}
 
@@ -86,7 +82,7 @@ public interface ConfigParser<C extends Config> {
 	 *
 	 * @throws ParsingException if an error occurs
 	 */
-	default C parse(InputStream input, Charset charset) {
+	default Config parse(InputStream input, Charset charset) {
 		return parse(new BufferedReader(new InputStreamReader(input, charset)));
 	}
 
@@ -121,7 +117,7 @@ public interface ConfigParser<C extends Config> {
 	 *
 	 * @throws ParsingException if an error occurs
 	 */
-	default C parse(File file, FileNotFoundAction nefAction) {
+	default Config parse(File file, FileNotFoundAction nefAction) {
 		return parse(file, nefAction, StandardCharsets.UTF_8);
 	}
 
@@ -133,7 +129,7 @@ public interface ConfigParser<C extends Config> {
 	 *
 	 * @throws ParsingException if an error occurs
 	 */
-	default C parse(File file, FileNotFoundAction nefAction, Charset charset) {
+	default Config parse(File file, FileNotFoundAction nefAction, Charset charset) {
 		return parse(file.toPath(), nefAction, charset);
 	}
 
@@ -167,7 +163,7 @@ public interface ConfigParser<C extends Config> {
 	 * @return a Config
 	 * @throws ParsingException if an error occurs
 	 */
-	default C parse(Path file, FileNotFoundAction nefAction) {
+	default Config parse(Path file, FileNotFoundAction nefAction) {
 		return parse(file, nefAction, StandardCharsets.UTF_8);
 	}
 
@@ -178,7 +174,7 @@ public interface ConfigParser<C extends Config> {
 	 * @return a Config
 	 * @throws ParsingException if an error occurs
 	 */
-	default C parse(Path file, FileNotFoundAction nefAction, Charset charset) {
+	default Config parse(Path file, FileNotFoundAction nefAction, Charset charset) {
 		try {
 			if(Files.notExists(file) && !nefAction.run(file, getFormat())) {
 				return getFormat().createConfig();
@@ -231,7 +227,7 @@ public interface ConfigParser<C extends Config> {
 	 *
 	 * @throws ParsingException if an error occurs
 	 */
-	default C parse(URL url) {
+	default Config parse(URL url) {
 		URLConnection connection;
 		try {
 			connection = url.openConnection();

@@ -25,4 +25,12 @@ public final class NullObject {
 	public int hashCode() {
 		return 0;
 	}
+
+	public static Object or(Object o) {
+		return o == null ? NULL_OBJECT : o;
+	}
+
+	public static NullObject instance() {
+		return NULL_OBJECT;
+	}
 }

@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 /**
  * A TransformingCollection applies "just in time" transformations to a {@code
- * Collection<InternalV>} in order to make it like a {@code Collection<ExternalV>}.
+ * Collection<I>} in order to make it like a {@code Collection<E>}.
  * <p>
  * The transformations are applied "just in time", that is, the values are converted only when
  * they are used, not during the construction of the TransformingCollection.
@@ -19,124 +19,119 @@ import java.util.stream.Stream;
  * @see TransformingMap
  */
 @SuppressWarnings("unchecked")
-public class TransformingCollection<InternalV, ExternalV> implements Collection<ExternalV> {
-	private final Function<? super InternalV, ? extends ExternalV> readTransformation;
-	private final Function<? super ExternalV, ? extends InternalV> writeTransformation;
-	private final Function<Object, Object> searchTransformation;
-	private final Collection<InternalV> internalCollection;
+public class TransformingCollection<I, E> extends TransformingBase<I, E> implements Collection<E> {
+	private final Collection<I> internal;
 
-	public TransformingCollection(Collection<InternalV> internalCollection,
-								  Function<? super InternalV, ? extends ExternalV> readTransformation,
-								  Function<? super ExternalV, ? extends InternalV> writeTransformation,
-								  Function<Object, Object> searchTransformation) {
-		this.internalCollection = internalCollection;
-		this.readTransformation = readTransformation;
-		this.writeTransformation = writeTransformation;
-		this.searchTransformation = searchTransformation;
+	public TransformingCollection(Collection<I> collection,
+								  Function<? super I, ? extends E> readTransform,
+								  Function<? super E, ? extends I> writeTransform,
+								  Function<Object, ? extends I> searchTransform) {
+		super(readTransform, writeTransform, searchTransform);
+		this.internal = collection;
+	}
+
+	private Collection<I> searchIn(Collection<?> elements) {
+		Collection<Object> c = (Collection<Object>)elements;
+		return new TransformingCollection<Object, I>(c, searchTransform, null, null);
 	}
 
 	@Override
 	public int size() {
-		return internalCollection.size();
+		return internal.size();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return internalCollection.isEmpty();
+		return internal.isEmpty();
 	}
 
 	@Override
 	public boolean contains(Object o) {
-		return internalCollection.contains(searchTransformation.apply(o));
+		return internal.contains(search(o));
 	}
 
 	@Override
-	public Iterator<ExternalV> iterator() {
-		return new TransformingIterator<>(internalCollection.iterator(), readTransformation);
+	public Iterator<E> iterator() {
+		return new TransformingIterator<>(internal.iterator(), readTransform);
 	}
 
 	@Override
 	public Object[] toArray() {
-		Object[] array = internalCollection.toArray();
+		Object[] array = internal.toArray();
 		for (int i = 0; i < array.length; i++) {
-			array[i] = readTransformation.apply((InternalV)array[i]);
+			array[i] = read((I)array[i]);
 		}
 		return array;
 	}
 
 	@Override
 	public <T> T[] toArray(T[] a) {
-		T[] array = internalCollection.toArray(a);
+		T[] array = internal.toArray(a);
 		for (int i = 0; i < array.length; i++) {
-			array[i] = (T)readTransformation.apply((InternalV)array[i]);
+			array[i] = (T)read((I)array[i]);
 		}
 		return array;
 	}
 
 	@Override
-	public boolean add(ExternalV value) {
-		return internalCollection.add(writeTransformation.apply(value));
+	public boolean add(E value) {
+		return internal.add(write(value));
 	}
 
 	@Override
 	public boolean remove(Object o) {
-		return internalCollection.remove(searchTransformation.apply(o));
+		return internal.remove(search(o));
 	}
 
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		return internalCollection.containsAll(
-				new TransformingCollection(c, searchTransformation, o -> o, searchTransformation));
+		return internal.containsAll(searchIn(c));
 	}
 
 	@Override
-	public boolean addAll(Collection<? extends ExternalV> c) {
-		return internalCollection.addAll(
-				new TransformingCollection(c, writeTransformation, readTransformation,
-										   searchTransformation));
+	public boolean addAll(Collection<? extends E> c) {
+		return internal.addAll(
+				new TransformingCollection(c, writeTransform, readTransform, searchTransform));
 	}
 
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		return internalCollection.removeAll(
-				new TransformingCollection(c, searchTransformation, o -> o, searchTransformation));
+		return internal.removeAll(searchIn(c));
 	}
 
+
 	@Override
-	public boolean removeIf(Predicate<? super ExternalV> filter) {
-		return internalCollection.removeIf(
-				internalV -> filter.test(readTransformation.apply(internalV)));
+	public boolean removeIf(Predicate<? super E> filter) {
+		return internal.removeIf(v -> filter.test(read(v)));
 	}
 
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		return internalCollection.retainAll(
-				new TransformingCollection(c, searchTransformation, o -> o, searchTransformation));
+		return internal.retainAll(searchIn(c));
 	}
 
 	@Override
 	public void clear() {
-		internalCollection.clear();
+		internal.clear();
 	}
 
 	@Override
-	public Spliterator<ExternalV> spliterator() {
-		return new TransformingSpliterator<>(internalCollection.spliterator(), readTransformation,
-											 writeTransformation);
+	public Spliterator<E> spliterator() {
+		return new TransformingSpliterator<>(internal.spliterator(), readTransform, searchTransform);
 	}
 
 	@Override
-	public Stream<ExternalV> stream() {
-		return internalCollection.stream().map(readTransformation);
+	public Stream<E> stream() {
+		return internal.stream().map(readTransform);
 	}
 
 	@Override
-	public Stream<ExternalV> parallelStream() {
-		return internalCollection.parallelStream().map(readTransformation);
+	public Stream<E> parallelStream() {
+		return internal.parallelStream().map(readTransform);
 	}
 
 	@Override
-	public void forEach(Consumer<? super ExternalV> action) {
-		internalCollection.forEach(internalV -> action.accept(readTransformation.apply(internalV)));
+	public void forEach(Consumer<? super E> action) {
+		internal.forEach(i -> action.accept(read(i)));
 	}
 }

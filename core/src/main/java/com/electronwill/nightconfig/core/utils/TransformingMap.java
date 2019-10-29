@@ -9,6 +9,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
+ *
  * A TransformingMap contains an internal {@code Map<K, InternalV>} values, and exposes the
  * features of a {@code Map<K, ExternalV>} applying transformations to the values.
  * <p>
@@ -32,28 +33,58 @@ import java.util.function.Function;
  * @author TheElectronWill
  */
 @SuppressWarnings("unchecked")
-public final class TransformingMap<K, InternalV, ExternalV> extends AbstractMap<K, ExternalV> {
-	private final Function<? super InternalV, ? extends ExternalV> readTransformation;
-	private final Function<? super ExternalV, ? extends InternalV> writeTransformation;
-	private final Function<Object, Object> searchTransformation;
-	private final Map<K, InternalV> internalMap;
+public final class TransformingMap<K, I, E> extends AbstractMap<K, E> {
+	private final BiFunction<K, ? super I, ? extends E> readTransform;
+	private final BiFunction<K, ? super E, ? extends I> writeTransform;
+	private final Function<Object, ? extends I> searchTransform;
+	private final Map<K, I> internalMap;
 
 	/**
 	 * Create a new TransformingMap.
 	 *
 	 * @param map                  the internal map to use
-	 * @param readTransformation   the parse transformation (see javadoc of the class)
-	 * @param writeTransformation  the write transformation (see javadoc of the class)
-	 * @param searchTransformation the search transformation (see javadoc of the class)
+	 * @param readTransform   the parse transformation (see javadoc of the class)
+	 * @param writeTransform  the write transformation (see javadoc of the class)
+	 * @param searchTransform the search transformation (see javadoc of the class)
 	 */
-	public TransformingMap(Map<K, InternalV> map,
-						   Function<? super InternalV, ? extends ExternalV> readTransformation,
-						   Function<? super ExternalV, ? extends InternalV> writeTransformation,
-						   Function<Object, Object> searchTransformation) {
+	public TransformingMap(Map<K, I> map,
+						   Function<? super I, ? extends E> readTransform,
+						   Function<? super E, ? extends I> writeTransform,
+						   Function<Object, ? extends I> searchTransform) {
 		this.internalMap = map;
-		this.readTransformation = readTransformation;
-		this.writeTransformation = writeTransformation;
-		this.searchTransformation = searchTransformation;
+		this.readTransform = (k, v) -> readTransform.apply(v);
+		this.writeTransform = (k, v) -> writeTransform.apply(v);
+		this.searchTransform = searchTransform;
+	}
+
+	/**
+	 * Create a new TransformingMap.
+	 *
+	 * @param map                  the internal map to use
+	 * @param readTransform   the parse transformation (see javadoc of the class)
+	 * @param writeTransform  the write transformation (see javadoc of the class)
+	 * @param searchTransform the search transformation (see javadoc of the class)
+	 */
+	public TransformingMap(Map<K, I> map,
+						   BiFunction<K, ? super I, ? extends E> readTransform,
+						   BiFunction<K, ? super E, ? extends I> writeTransform,
+						   Function<Object, ? extends I> searchTransform) {
+		this.internalMap = map;
+		this.readTransform = readTransform;
+		this.writeTransform = writeTransform;
+		this.searchTransform = searchTransform;
+	}
+
+	private E read(Object key, I value) {
+		return readTransform.apply((K)key, value);
+	}
+
+	private I write(Object key, E value) {
+		return writeTransform.apply((K)key, value);
+	}
+
+	private I search(Object arg) {
+		return searchTransform.apply(arg);
 	}
 
 	@Override
@@ -73,27 +104,27 @@ public final class TransformingMap<K, InternalV, ExternalV> extends AbstractMap<
 
 	@Override
 	public boolean containsValue(Object value) {
-		return internalMap.containsValue(searchTransformation.apply(value));
+		return internalMap.containsValue(searchTransform.apply(value));
 	}
 
 	@Override
-	public ExternalV get(Object key) {
-		return readTransformation.apply(internalMap.get(key));
+	public E get(Object key) {
+		return read(key, internalMap.get(key));
 	}
 
 	@Override
-	public ExternalV put(K key, ExternalV value) {
-		return readTransformation.apply(internalMap.put(key, writeTransformation.apply(value)));
+	public E put(K key, E value) {
+		return read(key, internalMap.put(key, write(key, value)));
 	}
 
 	@Override
-	public ExternalV remove(Object key) {
-		return readTransformation.apply(internalMap.remove(key));
+	public E remove(Object key) {
+		return read(key, internalMap.remove(key));
 	}
 
 	@Override
-	public void putAll(Map<? extends K, ? extends ExternalV> m) {
-		internalMap.putAll(new TransformingMap(m, writeTransformation, o -> o, o -> o));
+	public void putAll(Map<? extends K, ? extends E> m) {
+		internalMap.putAll(new TransformingMap(m, writeTransform, (k, o) -> o, o -> o));
 	}
 
 	@Override
@@ -107,105 +138,104 @@ public final class TransformingMap<K, InternalV, ExternalV> extends AbstractMap<
 	}
 
 	@Override
-	public Collection<ExternalV> values() {
-		return new TransformingCollection<>(internalMap.values(), readTransformation,
-											writeTransformation, searchTransformation);
+	public Collection<E> values() {
+		return new TransformingCollection<>(internalMap.values(), o->read(null,o),
+											o->write(null,o), searchTransform);
 	}
 
 	@Override
-	public Set<Map.Entry<K, ExternalV>> entrySet() {
-		Function<Entry<K, InternalV>, Entry<K, ExternalV>> internalToExternal = internalEntry -> new TransformingMapEntry<>(
-				internalEntry, readTransformation, writeTransformation);
+	public Set<Map.Entry<K, E>> entrySet() {
+		Function<Entry<K, I>, Entry<K, E>> read =
+			i -> TransformingMapEntry.from(i, readTransform, writeTransform);
 
-		Function<Entry<K, ExternalV>, Entry<K, InternalV>> externalToInternal = externalEntry -> new TransformingMapEntry<>(
-				externalEntry, writeTransformation, readTransformation);
+		Function<Entry<K, E>, Entry<K, I>> write =
+			e -> TransformingMapEntry.from(e, writeTransform, readTransform);
 
-		Function<Object, Object> searchTranformation = o -> {
+		Function<Object, Map.Entry<K, I>> search = o -> {
 			if (o instanceof Map.Entry) {
-				Map.Entry<K, InternalV> entry = (Map.Entry)o;
-				return new TransformingMapEntry<>(entry, readTransformation, writeTransformation);
+				Map.Entry<K, E> entry = (Map.Entry)o;
+				return TransformingMapEntry.from(entry, writeTransform, readTransform);
 			}
-			return o;
+			return null;
 		};
-		return new TransformingSet<>(internalMap.entrySet(), internalToExternal, externalToInternal,
-									 searchTranformation);
+		return new TransformingSet<>(internalMap.entrySet(), read, write, search);
 	}
 
 	@Override
-	public ExternalV getOrDefault(Object key, ExternalV defaultValue) {
-		InternalV result = internalMap.get(key);
-		return (result == defaultValue) ? defaultValue : readTransformation.apply(result);
+	public E getOrDefault(Object key, E defaultValue) {
+		I result = internalMap.get(key);
+		return (result == null || result == defaultValue) ? defaultValue : read(key, result);
 	}
 
 	@Override
-	public void forEach(BiConsumer<? super K, ? super ExternalV> action) {
-		internalMap.forEach((k, o) -> action.accept(k, readTransformation.apply(o)));
+	public void forEach(BiConsumer<? super K, ? super E> action) {
+		internalMap.forEach((k, o) -> action.accept(k, read(k, o)));
 	}
 
 	@Override
-	public void replaceAll(BiFunction<? super K, ? super ExternalV, ? extends ExternalV> function) {
+	public void replaceAll(BiFunction<? super K, ? super E, ? extends E> function) {
 		internalMap.replaceAll(transform(function));
 	}
 
 	@Override
-	public ExternalV putIfAbsent(K key, ExternalV value) {
-		return readTransformation.apply(
-				internalMap.putIfAbsent(key, writeTransformation.apply(value)));
+	public E putIfAbsent(K key, E value) {
+		return read(key, internalMap.putIfAbsent(key, write(key, value)));
 	}
 
 	@Override
 	public boolean remove(Object key, Object value) {
-		return internalMap.remove(key, searchTransformation.apply(value));
+		return internalMap.remove(key, search(value));
 	}
 
 	@Override
-	public boolean replace(K key, ExternalV oldValue, ExternalV newValue) {
-		return internalMap.replace(key, writeTransformation.apply(oldValue),
-								   writeTransformation.apply(newValue));
+	public boolean replace(K key, E oldValue, E newValue) {
+		return internalMap.replace(key, search(oldValue), write(key, newValue));
 	}
 
 	@Override
-	public ExternalV replace(K key, ExternalV value) {
-		return readTransformation.apply(internalMap.replace(key, writeTransformation.apply(value)));
+	public E replace(K key, E value) {
+		return read(key, internalMap.replace(key, write(key, value)));
 	}
 
 	@Override
-	public ExternalV computeIfAbsent(K key,
-									 Function<? super K, ? extends ExternalV> mappingFunction) {
-		Function<K, InternalV> function = k -> writeTransformation.apply(mappingFunction.apply(k));
-		return readTransformation.apply(internalMap.computeIfAbsent(key, function));
+	public E computeIfAbsent(K key, Function<? super K, ? extends E> mappingFunction) {
+		Function<K, I> function = k -> write(k, mappingFunction.apply(k));
+		return read(key, internalMap.computeIfAbsent(key, function));
 	}
 
 	@Override
-	public ExternalV computeIfPresent(K key,
-									  BiFunction<? super K, ? super ExternalV, ? extends ExternalV> remappingFunction) {
-		return readTransformation.apply(
-				internalMap.computeIfPresent(key, transform(remappingFunction)));
+	public E computeIfPresent(K key,
+							  BiFunction<? super K, ? super E, ? extends E> remappingFunction) {
+		I computed = internalMap.computeIfPresent(key, transform(remappingFunction));
+		return read(key, computed);
 	}
 
 	@Override
-	public ExternalV compute(K key,
-							 BiFunction<? super K, ? super ExternalV, ? extends ExternalV> remappingFunction) {
-		return readTransformation.apply(internalMap.compute(key, transform(remappingFunction)));
+	public E compute(K key,
+					 BiFunction<? super K, ? super E, ? extends E> remappingFunction) {
+		I computed = internalMap.compute(key, transform(remappingFunction));
+		return read(key, computed);
 	}
 
 	@Override
-	public ExternalV merge(K key, ExternalV value,
-						   BiFunction<? super ExternalV, ? super ExternalV, ? extends ExternalV> remappingFunction) {
-		return readTransformation.apply(internalMap.merge(key, writeTransformation.apply(value),
-														  transform2(remappingFunction)));
+	public E merge(K key,
+				   E value,
+				   BiFunction<? super E, ? super E, ? extends E> remappingFunction) {
+		I merged = internalMap.merge(key, write(key, value), transform2(key, remappingFunction));
+		return read(key, merged);
 	}
 
-	private BiFunction<K, InternalV, InternalV> transform(
-			BiFunction<? super K, ? super ExternalV, ? extends ExternalV> remappingFunction) {
-		return (k, internalV) -> writeTransformation.apply(
-				remappingFunction.apply(k, readTransformation.apply(internalV)));
+	private BiFunction<K, I, I> transform(
+			BiFunction<? super K, ? super E, ? extends E> remappingFunction) {
+		return (k, i) -> write(k, remappingFunction.apply(k, read(k, i)));
 	}
 
-	private BiFunction<InternalV, InternalV, InternalV> transform2(
-			BiFunction<? super ExternalV, ? super ExternalV, ? extends ExternalV> remappingFunction) {
-		return (internalV1, internalV2) -> writeTransformation.apply(
-				remappingFunction.apply(readTransformation.apply(internalV1),
-										readTransformation.apply(internalV2)));
+	private BiFunction<I, I, I> transform2(K key,
+										   BiFunction<? super E, ? super E, ? extends E> remappingFunction) {
+
+		return (i1, i2) -> {
+			E remapped = remappingFunction.apply(read(key, i1), read(key, i2));
+			return write(key, remapped);
+		};
 	}
 }

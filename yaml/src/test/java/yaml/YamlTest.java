@@ -2,15 +2,11 @@ package yaml;
 
 import com.electronwill.nightconfig.core.BasicTestEnum;
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.TestEnum;
-import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.io.ParsingMode;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import com.electronwill.nightconfig.yaml.YamlFormat;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.yaml.snakeyaml.TypeDescription;
-import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.File;
 
@@ -37,10 +33,10 @@ public class YamlTest {
 		System.out.println("sub.null = " + config.get("sub.null"));
 		System.out.println("sub.nullObject = " + config.get("sub.nullObject"));
 		YamlFormat yamlFormat = YamlFormat.defaultInstance();
-		yamlFormat.createWriter().write(config, file, WritingMode.REPLACE);
+		yamlFormat.writer().write(config, file, WritingMode.REPLACE);
 
 		Config parsed = yamlFormat.createConcurrentConfig();
-		yamlFormat.createParser().parse(file, parsed, ParsingMode.REPLACE, THROW_ERROR);
+		yamlFormat.parser().parse(file, parsed, ParsingMode.REPLACE, THROW_ERROR);
 		System.out.println("\nParsed: " + parsed);
 		System.out.println("classOf[sub] = " + parsed.get("sub").getClass());
 		assertNull(parsed.get("sub.null"));

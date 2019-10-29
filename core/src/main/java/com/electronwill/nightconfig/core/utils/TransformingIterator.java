@@ -5,8 +5,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * A TransformingIterator applies "just in time" transformations to an {@code Interator<InternalV>}
- * in order to make it like an {@code Interator<ExternalV>}.
+ * A TransformingIterator applies "just in time" transformations to an {@code Interator<I>}
+ * in order to make it like an {@code Interator<E>}.
  * <p>
  * The transformations are applied "just in time", that is, the values are converted only when
  * they are used, not during the construction of the TransformingIterator.
@@ -14,34 +14,32 @@ import java.util.function.Function;
  * @author TheElectronWill
  * @see TransformingMap
  */
-public final class TransformingIterator<InternalV, ExternalV> implements Iterator<ExternalV> {
-	private final Function<? super InternalV, ? extends ExternalV> readTransformation;
-	private final Iterator<InternalV> internalIterator;
+public final class TransformingIterator<I, E> extends TransformingBase<I, E> implements Iterator<E> {
+	private final Iterator<I> internal;
 
-	public TransformingIterator(Iterator<InternalV> internalIterator,
-								Function<? super InternalV, ? extends ExternalV> readTransformation) {
-		this.readTransformation = readTransformation;
-		this.internalIterator = internalIterator;
+	public TransformingIterator(Iterator<I> iterator,
+								Function<? super I, ? extends E> readTransform) {
+		super(readTransform, null, null);
+		this.internal = iterator;
 	}
 
 	@Override
 	public boolean hasNext() {
-		return internalIterator.hasNext();
+		return internal.hasNext();
 	}
 
 	@Override
-	public ExternalV next() {
-		return readTransformation.apply(internalIterator.next());
+	public E next() {
+		return read(internal.next());
 	}
 
 	@Override
 	public void remove() {
-		internalIterator.remove();
+		internal.remove();
 	}
 
 	@Override
-	public void forEachRemaining(Consumer<? super ExternalV> action) {
-		internalIterator.forEachRemaining(
-				internalV -> action.accept(readTransformation.apply(internalV)));
+	public void forEachRemaining(Consumer<? super E> action) {
+		internal.forEachRemaining(v -> action.accept(read(v)));
 	}
 }

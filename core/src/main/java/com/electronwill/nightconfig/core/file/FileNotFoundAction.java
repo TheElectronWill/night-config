@@ -26,7 +26,7 @@ public interface FileNotFoundAction {
 	 *
 	 * @throws IOException if an IO error occurs
 	 */
-	boolean run(Path file, ConfigFormat<?> configFormat) throws IOException;
+	boolean run(Path file, ConfigFormat configFormat) throws IOException;
 
 	// --- Static members ---
 

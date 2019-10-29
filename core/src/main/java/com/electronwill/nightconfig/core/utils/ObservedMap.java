@@ -104,8 +104,7 @@ public final class ObservedMap<K, V> extends AbstractObserved implements Map<K, 
 	}
 
 	@Override
-	public V computeIfPresent(K key,
-							  BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+	public V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
 		V result = map.computeIfPresent(key, remappingFunction);
 		callback.run();
 		return result;
@@ -119,8 +118,7 @@ public final class ObservedMap<K, V> extends AbstractObserved implements Map<K, 
 	}
 
 	@Override
-	public V merge(K key, V value,
-				   BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
+	public V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
 		V result = map.merge(key, value, remappingFunction);
 		callback.run();
 		return result;
@@ -146,12 +144,12 @@ public final class ObservedMap<K, V> extends AbstractObserved implements Map<K, 
 	public Set<Entry<K, V>> entrySet() {
 		Function<Entry<K, V>, ObservedEntry<K, V>> readT = e -> new ObservedEntry<>(e, callback);
 		Function<ObservedEntry<K, V>, Entry<K, V>> writeT = oe -> oe.entry;
-		Function<Object, Object> searchT = o -> {
+		Function<Object, Entry<K, V>> searchT = o -> {
 			if (o instanceof ObservedEntry) {
-				ObservedEntry<?, ?> observedEntry = (ObservedEntry)o;
+				ObservedEntry<K, V> observedEntry = (ObservedEntry)o;
 				return observedEntry.entry;
 			}
-			return o;
+			return (Entry<K, V>)o;
 		};
 		TransformingSet<Entry<K, V>, ObservedEntry<K, V>> tset = new TransformingSet<>(
 				map.entrySet(), readT, writeT, searchT);

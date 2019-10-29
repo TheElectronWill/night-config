@@ -48,12 +48,12 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 	private final WriteCompletedHandler writeCompletedHandler;
 	private final OpenOption[] openOptions;
 
-	private final ConfigParser<?> parser;
+	private final ConfigParser parser;
 	private final FileNotFoundAction nefAction;
 	private final ParsingMode parsingMode;
 
 	WriteAsyncFileConfig(C config, Path nioPath, Charset charset, ConfigWriter writer,
-						 WritingMode writingMode, ConfigParser<?> parser,
+						 WritingMode writingMode, ConfigParser parser,
 						 ParsingMode parsingMode, FileNotFoundAction nefAction) {
 		super(config);
 		this.nioPath = nioPath;

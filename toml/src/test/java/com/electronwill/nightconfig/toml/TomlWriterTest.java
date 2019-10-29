@@ -54,7 +54,7 @@ public class TomlWriterTest {
 	@Test
 	public void noNulls() {
 		Config config = TomlFormat.newConfig();
-		Executable tryToWrite = () -> TomlFormat.instance().createWriter().writeToString(config);
+		Executable tryToWrite = () -> TomlFormat.instance().writer().writeToString(config);
 
 		config.set("null", null);
 		Assertions.assertThrows(WritingException.class, tryToWrite);

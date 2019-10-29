@@ -2,11 +2,12 @@ package com.electronwill.nightconfig.core.utils;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
- * A TransformingMapEntry applies "just in time" transformations to a {@code Map.Entry<K,
- * InternalV>} in order to make it like a {@code Map.Entry<K, ExternalV>}.
+ * A TransformingMapEntry applies "just in time" transformations to a {@code Map.Entry<K, I>}
+ * in order to make it look like a {@code Map.Entry<K, E>}.
  * <p>
  * The transformations are applied "just in time", that is, the values are converted only when
  * they are used, not during the construction of the TransformingMapEntry.
@@ -14,32 +15,40 @@ import java.util.function.Function;
  * @author TheElectronWill
  * @see TransformingMap
  */
-final class TransformingMapEntry<K, InternalV, ExternalV> implements Map.Entry<K, ExternalV> {
-	private final Function<? super InternalV, ? extends ExternalV> readTransformation;
-	private final Function<? super ExternalV, ? extends InternalV> writeTransformation;
-	private final Map.Entry<K, InternalV> internalEntry;
+final class TransformingMapEntry<K, I, E> extends TransformingBase<I, E> implements Map.Entry<K, E> {
+	static <K, I, E> TransformingMapEntry<K, I, E> from(
+			Map.Entry<K, I> entry,
+			BiFunction<K, ? super I, ? extends E> readTransform,
+			BiFunction<K, ? super E, ? extends I> writeTransform) {
+		return new TransformingMapEntry<>(
+			entry,
+			v -> readTransform.apply(entry.getKey(), v),
+			v -> writeTransform.apply(entry.getKey(), v)
+		);
+	}
 
-	TransformingMapEntry(Map.Entry<K, InternalV> internalEntry,
-						 Function<? super InternalV, ? extends ExternalV> readTransformation,
-						 Function<? super ExternalV, ? extends InternalV> writeTransformation) {
-		this.readTransformation = readTransformation;
-		this.writeTransformation = writeTransformation;
-		this.internalEntry = internalEntry;
+	private final Map.Entry<K, I> internal;
+
+	TransformingMapEntry(Map.Entry<K, I> entry,
+						 Function<? super I, ? extends E> readTransform,
+						 Function<? super E, ? extends I> writeTransform) {
+		super(readTransform, writeTransform, null);
+		this.internal = entry;
 	}
 
 	@Override
 	public K getKey() {
-		return internalEntry.getKey();
+		return internal.getKey();
 	}
 
 	@Override
-	public ExternalV getValue() {
-		return readTransformation.apply(internalEntry.getValue());
+	public E getValue() {
+		return read(internal.getValue());
 	}
 
 	@Override
-	public ExternalV setValue(ExternalV value) {
-		return readTransformation.apply(internalEntry.setValue(writeTransformation.apply(value)));
+	public E setValue(E value) {
+		return read(internal.setValue(write(value)));
 	}
 
 	@Override
@@ -50,8 +59,8 @@ final class TransformingMapEntry<K, InternalV, ExternalV> implements Map.Entry<K
 			return false;
 		}
 		Map.Entry<?, ?> entry = (Map.Entry<?, ?>)obj;
-		return Objects.equals(getKey(), entry.getKey()) && Objects.equals(getValue(),
-																		  entry.getValue());
+		return Objects.equals(getKey(), entry.getKey())
+			&& Objects.equals(getValue(), entry.getValue());
 	}
 
 	@Override

@@ -7,7 +7,7 @@ import java.util.function.Function;
 
 /**
  * A TransformingSpliterator applies "just in time" transformations to an {@code
- * Spliterator<InternalV>} in order to make it like an {@code Spliterator<ExternalV>}.
+ * Spliterator<I>} in order to make it like an {@code Spliterator<E>}.
  * <p>
  * The transformations are applied "just in time", that is, the values are converted only when
  * they are used, not during the construction of the TransformingSpliterator.
@@ -15,61 +15,55 @@ import java.util.function.Function;
  * @author TheElectronWill
  * @see TransformingMap
  */
-public final class TransformingSpliterator<InternalV, ExternalV> implements Spliterator<ExternalV> {
-	private final Function<? super InternalV, ? extends ExternalV> readTransformation;
-	private final Function<? super ExternalV, ? extends InternalV> writeTransformation;
-	private final Spliterator<InternalV> internalSpliterator;
+public final class TransformingSpliterator<I, E> extends TransformingBase<I, E>
+	implements Spliterator<E> {
 
-	public TransformingSpliterator(Spliterator<InternalV> internalSpliterator,
-								   Function<? super InternalV, ? extends ExternalV> readTransformation,
-								   Function<? super ExternalV, ? extends InternalV> writeTransformation) {
-		this.readTransformation = readTransformation;
-		this.writeTransformation = writeTransformation;
-		this.internalSpliterator = internalSpliterator;
+	private final Spliterator<I> internal;
+
+	public TransformingSpliterator(Spliterator<I> spliterator,
+								   Function<? super I, ? extends E> readTransform,
+								   Function<Object, ? extends I> searchTransform) {
+		super(readTransform, null, searchTransform);
+		this.internal = spliterator;
 	}
 
 	@Override
-	public boolean tryAdvance(Consumer<? super ExternalV> action) {
-		return internalSpliterator.tryAdvance(
-				internalV -> action.accept(readTransformation.apply(internalV)));
+	public boolean tryAdvance(Consumer<? super E> action) {
+		return internal.tryAdvance(v -> action.accept(read(v)));
 	}
 
 	@Override
-	public void forEachRemaining(Consumer<? super ExternalV> action) {
-		internalSpliterator.forEachRemaining(
-				internalV -> action.accept(readTransformation.apply(internalV)));
+	public void forEachRemaining(Consumer<? super E> action) {
+		internal.forEachRemaining(v -> action.accept(read(v)));
 	}
 
 	@Override
-	public Spliterator<ExternalV> trySplit() {
-		return new TransformingSpliterator<>(internalSpliterator.trySplit(), readTransformation,
-											 writeTransformation);
+	public Spliterator<E> trySplit() {
+		return new TransformingSpliterator<>(internal.trySplit(), readTransform, searchTransform);
 	}
 
 	@Override
 	public long estimateSize() {
-		return internalSpliterator.estimateSize();
+		return internal.estimateSize();
 	}
 
 	@Override
 	public long getExactSizeIfKnown() {
-		return internalSpliterator.getExactSizeIfKnown();
+		return internal.getExactSizeIfKnown();
 	}
 
 	@Override
 	public int characteristics() {
-		return internalSpliterator.characteristics();
+		return internal.characteristics();
 	}
 
 	@Override
 	public boolean hasCharacteristics(int characteristics) {
-		return internalSpliterator.hasCharacteristics(characteristics);
+		return internal.hasCharacteristics(characteristics);
 	}
 
 	@Override
-	public Comparator<? super ExternalV> getComparator() {
-		return (o1, o2) -> internalSpliterator.getComparator()
-											  .compare(writeTransformation.apply(o1),
-													   writeTransformation.apply(o2));
+	public Comparator<? super E> getComparator() {
+		return (o1, o2) -> internal.getComparator().compare(search(o1), search(o2));
 	}
 }

@@ -57,7 +57,7 @@ public enum ParsingMode {
 	 *
 	 * @return the previous value if any, or null if none
 	 */
-	public Object put(Config config, List<String> key, Object value) {
+	public Object put(Config config, String[] key, Object value) {
 		return putAction.put(config, key, value);
 	}
 
@@ -81,7 +81,7 @@ public enum ParsingMode {
 
 	@FunctionalInterface
 	private interface PutAction {
-		Object put(Config config, List<String> key, Object value);
+		Object put(Config config, String[] key, Object value);
 
 		default Object put(Config config, String key, Object value) {
 			return put(config, StringUtils.split(key, '.'), value);
