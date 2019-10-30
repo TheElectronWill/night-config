@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.core.io;
 
-import com.electronwill.nightconfig.core.utils.IntDeque;
+import com.electronwill.nightconfig.core.utils.CharDeque;
 
 /**
  * Abstract base class for CharacterInputs.
@@ -11,7 +11,8 @@ public abstract class AbstractInput implements CharacterInput {
 	/**
 	 * Contains the peeked characters that haven't been read (by the read methods) yet.
 	 */
-	protected final IntDeque deque = new IntDeque();
+	protected final CharDeque deque = new CharDeque();
+	protected int currentLine = 1, currentColumn = 1;
 
 	/**
 	 * Tries to parse the next character without taking care of the peek deque.
@@ -30,30 +31,56 @@ public abstract class AbstractInput implements CharacterInput {
 	protected abstract char directReadChar();
 
 	@Override
+	public int line() {
+		return currentLine;
+	}
+
+	@Override
+	public int column() {
+		return currentColumn;
+	}
+
+	private void updatePosition(char read) {
+		if (read == '\n') {
+			currentLine += 1;
+			currentColumn = 1;
+		} else {
+			currentColumn += 1;
+		}
+	}
+
+	private void rollbackPosition(char pushedBack) {
+		if (pushedBack == '\n') {
+			currentLine -= 1;
+			currentColumn = 1; // ???
+		} else {
+			currentColumn -= 1;
+		}
+	}
+
+	@Override
 	public int read() {
 		if (!deque.isEmpty()) {
-			return deque.removeFirst();
+			char next = deque.removeFirst();
+			updatePosition(next);
+			return next;
 		}
 		return directRead();
 	}
 
 	@Override
 	public char readChar() {
-		if (!deque.isEmpty()) {
-			int next = deque.removeFirst();
-			if (next == -1) {
-				throw ParsingException.notEnoughData();
-			}
-			return (char)next;
-		}
-		return directReadChar();
+		char next = deque.isEmpty() ? directReadChar() : deque.removeFirst();
+		updatePosition(next);
+		return next;
 	}
 
 	@Override
 	public int peek() {
 		if (deque.isEmpty()) {
 			int read = directRead();
-			deque.addLast(read);
+			if (read != -1)
+				deque.addLast((char)read);
 			return read;
 		}
 		return deque.getFirst();
@@ -61,13 +88,14 @@ public abstract class AbstractInput implements CharacterInput {
 
 	@Override
 	public int peek(int n) {
-		final int diff = n - deque.size();
-		if (diff >= 0) {
-			for (int i = 0; i <= diff; i++) {
+		final int toRead = n - deque.size();
+		if (toRead >= 0) {
+			for (int i = 0; i <= toRead; i++) {
 				int read = directRead();
-				deque.addLast(read);
 				if (read == -1) {
-					return -1;//it's useless to continue reading of the EOS has been reached
+					return -1; // it's useless to continue reading if the EOS has been reached
+				} else {
+					deque.addLast((char)read);
 				}
 			}
 		}
@@ -94,12 +122,16 @@ public abstract class AbstractInput implements CharacterInput {
 
 	@Override
 	public void skipPeeks() {
-		deque.clear();
+		while (!deque.isEmpty()) {
+			updatePosition(deque.removeLast());
+			// TODO optimize by using the internal structure of the queue
+		}
 	}
 
 	@Override
 	public void pushBack(char c) {
 		deque.addFirst(c);
+		rollbackPosition(c);
 	}
 
 	@Override
@@ -110,7 +142,8 @@ public abstract class AbstractInput implements CharacterInput {
 			builder.append((char)c);
 			c = read();
 		}
-		deque.addFirst(c);//remember this char for later
+		if (c != -1)
+			deque.addFirst((char)c); // remember this char for later
 		return builder.build();
 	}
 
@@ -122,7 +155,7 @@ public abstract class AbstractInput implements CharacterInput {
 			builder.append(c);
 			c = readChar();
 		}
-		deque.addFirst(c);//remember this char for later
+		deque.addFirst(c); // remember this char for later
 		return builder.build();
 	}
 
@@ -137,14 +170,14 @@ public abstract class AbstractInput implements CharacterInput {
 	 */
 	protected CharsWrapper consumeDeque(char[] array, int offset, boolean mustReadAll) {
 		for (int i = 0; i < offset; i++) {
-			int next = deque.removeFirst();
-			if (next == -1) {
-				if (mustReadAll) {
+			if (deque.isEmpty()) {
+				if (mustReadAll)
 					throw ParsingException.notEnoughData();
-				}
 				return new CharsWrapper(array, 0, i);
+			} else {
+				char next = deque.removeFirst();
+				array[i] = next;
 			}
-			array[i] = (char)next;
 		}
 		return null;
 	}

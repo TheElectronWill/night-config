@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.core.io;
 
-import com.electronwill.nightconfig.core.utils.IntDeque;
+import com.electronwill.nightconfig.core.utils.CharDeque;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -11,20 +11,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * @author TheElectronWill
  */
-public class IntDequeTest {
-	private static IntDeque deque;
+public class CharDequeTest {
+	private static CharDeque deque;
 
 	@BeforeEach
 	public void setUp() {
-		deque = new IntDeque();
+		deque = new CharDeque();
 	}
 
 	@Test
 	public void testCompact() {
-		final int n = 10;
+		final char first = 'a', last = 'z';
+		final int n = last - first;
 		//ADD, CLEAR AND COMPACT
-		for (int i = 0; i <= n; i++) {
-			deque.addLast(i);
+		for (char c = first; c <= last; c++) {
+			deque.addLast(c);
 		}
 		deque.clear(); // Removes all the elements
 		assertTrue(deque.isEmpty());
@@ -32,9 +33,9 @@ public class IntDequeTest {
 		assertTrue(deque.isEmpty());
 
 		//ADD, REMOVE AND COMPACT
-		for (int i = 0; i <= n; i++) {
-			deque.addLast(i);
-			System.out.println(i + " => " + deque.size());
+		for (char c = first; c <= last; c++) {
+			deque.addLast(c);
+			System.out.println(c + " => " + deque.size());
 		}
 
 		deque.removeFirst(); // Removes 1 element
@@ -45,7 +46,7 @@ public class IntDequeTest {
 		assertFalse(deque.isEmpty(), "The dequeue should NOT be empty!");
 		assertEquals(n, deque.size());
 
-		deque.addLast(1234567890);
+		deque.addLast('€');
 		assertFalse(deque.isEmpty(), "The dequeue should NOT be empty!");
 		assertEquals(n + 1, deque.size());
 	}
@@ -55,7 +56,7 @@ public class IntDequeTest {
 		final int n = 4;
 		//ADD
 		for (int i = 0; i <= n; i++) {
-			deque.addLast(i);
+			deque.addLast((char)('a'+i));
 		}
 		//SIZE
 		assertFalse(deque.isEmpty(), "The dequeue should NOT be empty!");
@@ -90,7 +91,7 @@ public class IntDequeTest {
 		final int n = 4;
 		//ADD
 		for (int i = 0; i <= n; i++) {
-			deque.addFirst(i);
+			deque.addFirst((char)('a'+i));
 		}
 		//SIZE
 		assertFalse(deque.isEmpty(), "The dequeue should NOT be empty!");

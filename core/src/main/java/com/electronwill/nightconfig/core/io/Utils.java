@@ -8,6 +8,13 @@ package com.electronwill.nightconfig.core.io;
 public final class Utils {
 	private Utils() {}// Utility class that can't be constructed
 
+	public static String positionToString(int line, int column) {
+		if (column == -1) {
+			return "the end of line " + line;
+		}
+		return "line " + line + " column " + column;
+	}
+
 	/**
 	 * Checks if an array contains the specified element.
 	 *

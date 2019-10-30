@@ -3,17 +3,17 @@ package com.electronwill.nightconfig.core.utils;
 import java.util.NoSuchElementException;
 
 /**
- * A deque of integers that increases its capacity as necessary. Since it's a deque, it can be used
- * as a FIFO (First-In-First-Out) queue and as a LIFO (Last-In-First-Out) stack.
+ * A double-ended queue of chars that increases its capacity as necessary.
+ * A deque can be used as a FIFO (First-In-First-Out) queue and as a LIFO (Last-In-First-Out) stack.
  *
  * @author TheElectronWill
  * @see java.util.Deque
  */
-public final class IntDeque {
+public final class CharDeque {
 	/**
 	 * The array that contains the data. It is used as a circular buffer.
 	 */
-	private int[] data;
+	private char[] data;
 
 	/**
 	 * The position of the first element.
@@ -34,24 +34,24 @@ public final class IntDeque {
 	/**
 	 * Creates a new IntDeque with an initial capacity of 4.
 	 */
-	public IntDeque() {
+	public CharDeque() {
 		this(4);
 	}
 
 	/**
-	 * Creates a new IntDeque with the specified initial capacity. The capacity must be positive and
+	 * Creates a new deque with the specified initial capacity. The capacity must be positive and
 	 * non-zero.
 	 *
 	 * @param initialCapacity the initial capacity, strictly positive
 	 */
-	public IntDeque(int initialCapacity) {
+	public CharDeque(int initialCapacity) {
 		if (initialCapacity <= 0) {
 			throw new IllegalArgumentException("The capacity must be positive and non-zero.");
 		}
 		if (!isPowerOfTwo(initialCapacity)) {
 			initialCapacity = nextPowerOfTwo(initialCapacity);
 		}
-		data = new int[initialCapacity];
+		data = new char[initialCapacity];
 		mask = initialCapacity - 1;
 	}
 
@@ -95,8 +95,8 @@ public final class IntDeque {
 	 * Compacts this deque, minimizing its size in memory.
 	 */
 	public void compact() {
-		if (tail == head) {//deque empty
-			data = new int[1];//the capacity must be non-zero
+		if (tail == head) {// the deque is empty
+			data = new char[1];// the capacity must be non-zero
 			head = 0;
 			tail = 0;
 			mask = 0;
@@ -107,7 +107,7 @@ public final class IntDeque {
 		if (!isPowerOfTwo(newCapacity)) {
 			newCapacity = nextPowerOfTwo(newCapacity);
 		}
-		final int[] newData = new int[newCapacity];
+		final char[] newData = new char[newCapacity];
 		if (tail > head) {
 			System.arraycopy(data, head, newData, 0, tail - head);
 		} else {
@@ -126,11 +126,11 @@ public final class IntDeque {
 	 * Increases the deque's capacity.
 	 */
 	private void grow() {
-		final int newSize = data.length << 1;//double the size
+		final int newSize = data.length << 1;// double the size
 		if (newSize < 0) {// overflow!
-			throw new IllegalStateException("IntDeque too big");
+			throw new IllegalStateException("CharDeque too big");
 		}
-		final int[] newData = new int[newSize];// double the size
+		final char[] newData = new char[newSize];// double the size
 		final int lenght1 = data.length - head;// length of the part from the head to the end of the array
 		System.arraycopy(data, head, newData, 0, lenght1);// head to end
 		System.arraycopy(data, 0, newData, lenght1, tail);// start to tail
@@ -146,7 +146,7 @@ public final class IntDeque {
 	 *
 	 * @param element the element to add
 	 */
-	public void addFirst(int element) {
+	public void addFirst(char element) {
 		head = (head - 1) & mask;
 		data[head] = element;
 		if (head == tail) {//deque full
@@ -159,7 +159,7 @@ public final class IntDeque {
 	 *
 	 * @param element the element to add
 	 */
-	public void addLast(int element) {
+	public void addLast(char element) {
 		data[tail] = element;
 		tail = (tail + 1) & mask;
 		if (tail == head) {// deque full
@@ -178,7 +178,7 @@ public final class IntDeque {
 	 *
 	 * @throws NoSuchElementException if the deque contains less than {@code index+1} elements
 	 */
-	public int get(int index) {
+	public char get(int index) {
 		if (index >= size()) {
 			throw new NoSuchElementException("No element at index " + index);
 		}
@@ -192,7 +192,7 @@ public final class IntDeque {
 	 *
 	 * @throws NoSuchElementException if the deque is empty
 	 */
-	public int getFirst() {
+	public char getFirst() {
 		if (tail == head) {
 			throw new NoSuchElementException("Empty deque");
 		}
@@ -206,7 +206,7 @@ public final class IntDeque {
 	 *
 	 * @throws NoSuchElementException if the deque is empty
 	 */
-	public int getLast() {
+	public char getLast() {
 		if (tail == head) {
 			throw new NoSuchElementException("Empty deque");
 		}
@@ -220,11 +220,11 @@ public final class IntDeque {
 	 *
 	 * @throws NoSuchElementException if the deque is empty
 	 */
-	public int removeFirst() {
+	public char removeFirst() {
 		if (tail == head) {
 			throw new NoSuchElementException("Empty deque");
 		}
-		int element = data[head];
+		char element = data[head];
 		head = (head + 1) & mask;
 		return element;
 	}
@@ -236,7 +236,7 @@ public final class IntDeque {
 	 *
 	 * @throws NoSuchElementException if the deque is empty
 	 */
-	public int removeLast() {
+	public char removeLast() {
 		if (tail == head) {
 			throw new NoSuchElementException("Empty deque");
 		}

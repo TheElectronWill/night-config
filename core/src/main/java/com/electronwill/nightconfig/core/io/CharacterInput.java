@@ -29,6 +29,22 @@ public interface CharacterInput {
 	char readChar();
 
 	/**
+	 * Gets the number of the line of the last character read. Peeks don't count.
+	 * The numbers start at one.
+	 *
+	 * @return the current line.
+	 */
+	int line();
+
+	/**
+	 * Gets the number of the column of the last character read. Peeks don't count.
+	 * The numbers start at one.
+	 *
+	 * @return the current column.
+	 */
+	int column();
+
+	/**
 	 * Reads the next characters, skipping some characters. Returns the next character that is not
 	 * in the given array.
 	 *
@@ -36,11 +52,11 @@ public interface CharacterInput {
 	 * @return the next character that is not in {@code toSkip}, or -1 if there is no more available
 	 * data
 	 */
-	default int readAndSkip(char[] toSkip) {
+	default int readSkipping(char[] toSkip) {
 		int c;
 		do {
 			c = read();
-		} while (c != -1 && Utils.arrayContains(toSkip, (char)c));
+		} while (Utils.arrayContains(toSkip, (char)c) && c != -1);
 		return c;
 	}
 
@@ -53,11 +69,27 @@ public interface CharacterInput {
 	 *
 	 * @throws ParsingException if there is no more available data
 	 */
-	default char readCharAndSkip(char[] toSkip) {
+	default char readCharSkipping(char[] toSkip) {
 		char c;
 		do {
 			c = readChar();
 		} while (Utils.arrayContains(toSkip, c));
+		return c;
+	}
+
+	default int readNonSpace() {
+		int c;
+		do {
+			c = read();
+		} while (c == ' ' || c == '\t');
+		return c;
+	}
+
+	default int readSolid() {
+		int c;
+		do {
+			c = read();
+		} while (c == ' ' || c == '\t' || c == '\r' || c == '\n');
 		return c;
 	}
 
