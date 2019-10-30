@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.io.CharacterOutput;
+import com.electronwill.nightconfig.core.impl.CharacterOutput;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
 import java.time.temporal.Temporal;

@@ -1,4 +1,6 @@
-package com.electronwill.nightconfig.core.io;
+package com.electronwill.nightconfig.core.impl;
+
+import com.electronwill.nightconfig.core.io.ParsingException;
 
 /**
  * An implementation of {@link CharacterInput} based on an array of characters.

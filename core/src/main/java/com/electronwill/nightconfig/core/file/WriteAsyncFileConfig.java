@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.impl.CharsWrapper;
 import com.electronwill.nightconfig.core.io.*;
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 

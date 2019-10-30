@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.core.io;
 
-import com.electronwill.nightconfig.core.utils.CharDeque;
+import com.electronwill.nightconfig.core.impl.CharDeque;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

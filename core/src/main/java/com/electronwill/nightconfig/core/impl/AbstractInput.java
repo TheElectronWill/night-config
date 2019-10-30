@@ -1,6 +1,6 @@
-package com.electronwill.nightconfig.core.io;
+package com.electronwill.nightconfig.core.impl;
 
-import com.electronwill.nightconfig.core.utils.CharDeque;
+import com.electronwill.nightconfig.core.io.ParsingException;
 
 /**
  * Abstract base class for CharacterInputs.

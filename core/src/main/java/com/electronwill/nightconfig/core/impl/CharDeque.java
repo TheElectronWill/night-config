@@ -1,4 +1,4 @@
-package com.electronwill.nightconfig.core.utils;
+package com.electronwill.nightconfig.core.impl;
 
 import java.util.NoSuchElementException;
 
@@ -9,27 +9,27 @@ import java.util.NoSuchElementException;
  * @author TheElectronWill
  * @see java.util.Deque
  */
-public final class CharDeque {
+final class CharDeque {
 	/**
 	 * The array that contains the data. It is used as a circular buffer.
 	 */
-	private char[] data;
+	char[] data;
 
 	/**
 	 * The position of the first element.
 	 */
-	private int head = 0;
+	int head = 0;
 
 	/**
 	 * The position of the last element + 1.
 	 */
-	private int tail = 0;
+	int tail = 0;
 
 	/**
 	 * Bitmask to calculate (x MODULO data.length) faster, by doing (x AND mask).
 	 * It works only if data.length is a power of two.
 	 */
-	private int mask;
+	int mask;
 
 	/**
 	 * Creates a new IntDeque with an initial capacity of 4.

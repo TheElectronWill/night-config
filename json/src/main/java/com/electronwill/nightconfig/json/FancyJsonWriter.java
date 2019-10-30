@@ -1,6 +1,9 @@
 package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.impl.CharacterOutput;
+import com.electronwill.nightconfig.core.impl.Utils;
+import com.electronwill.nightconfig.core.impl.WriterOutput;
 import com.electronwill.nightconfig.core.io.*;
 
 import java.io.Writer;

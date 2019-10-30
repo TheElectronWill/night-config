@@ -19,6 +19,6 @@ public class ParsingException extends RuntimeException {
 	}
 
 	public static ParsingException notEnoughData() {
-		return new ParsingException("Not enough data available");
+		return new ParsingException("Unexpected end of document: not enough data available");
 	}
 }

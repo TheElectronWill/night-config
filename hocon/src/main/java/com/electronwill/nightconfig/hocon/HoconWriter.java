@@ -2,6 +2,9 @@ package com.electronwill.nightconfig.hocon;
 
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.impl.CharacterOutput;
+import com.electronwill.nightconfig.core.impl.Utils;
+import com.electronwill.nightconfig.core.impl.WriterOutput;
 import com.electronwill.nightconfig.core.io.*;
 import com.electronwill.nightconfig.core.utils.FakeUnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.utils.StringUtils;

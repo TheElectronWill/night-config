@@ -1,6 +1,8 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.impl.CharacterOutput;
+import com.electronwill.nightconfig.core.impl.WriterOutput;
 import com.electronwill.nightconfig.core.io.*;
 import com.electronwill.nightconfig.core.utils.StringUtils;
 

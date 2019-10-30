@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.io;
 
-import org.junit.jupiter.api.Assertions;
+import com.electronwill.nightconfig.core.impl.CharsWrapper;
+import com.electronwill.nightconfig.core.impl.Utils;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

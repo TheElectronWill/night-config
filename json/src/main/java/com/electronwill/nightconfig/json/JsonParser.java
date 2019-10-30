@@ -2,6 +2,10 @@ package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.impl.CharacterInput;
+import com.electronwill.nightconfig.core.impl.CharsWrapper;
+import com.electronwill.nightconfig.core.impl.ReaderInput;
+import com.electronwill.nightconfig.core.impl.Utils;
 import com.electronwill.nightconfig.core.io.*;
 import com.electronwill.nightconfig.core.utils.FastStringReader;
 
@@ -83,7 +87,7 @@ public final class JsonParser implements ConfigParser<Config> {
 				throw new ParsingException("No json data: input is empty");
 			}
 		}
-		char firstChar = input.readCharAndSkip(SPACES);
+		char firstChar = input.readCharSkipping(SPACES);
 		if (firstChar == '{') {
 			return parseObject(input, configFormat.createConfig(), ParsingMode.MERGE);
 		}
@@ -117,7 +121,7 @@ public final class JsonParser implements ConfigParser<Config> {
 				throw new ParsingException("No json data: input is empty");
 			}
 		}
-		char firstChar = input.readCharAndSkip(SPACES);
+		char firstChar = input.readCharSkipping(SPACES);
 		if (firstChar != '{') {
 			throw new ParsingException("Invalid first character for a json object: " + firstChar);
 		}
@@ -163,7 +167,7 @@ public final class JsonParser implements ConfigParser<Config> {
 				throw new ParsingException("No json data: input is empty");
 			}
 		}
-		char firstChar = input.readCharAndSkip(SPACES);
+		char firstChar = input.readCharSkipping(SPACES);
 		if (firstChar != '[') {
 			throw new ParsingException("Invalid first character for a json array: " + firstChar);
 		}
@@ -171,7 +175,7 @@ public final class JsonParser implements ConfigParser<Config> {
 	}
 
 	private <T extends Config> T parseObject(CharacterInput input, T config, ParsingMode parsingMode) {
-		char kfirst = input.readCharAndSkip(SPACES);
+		char kfirst = input.readCharSkipping(SPACES);
 		if (kfirst == '}') {
 			return config;
 		} else if (kfirst != '"') {
@@ -179,13 +183,13 @@ public final class JsonParser implements ConfigParser<Config> {
 		}
 		parseKVPair(input, config, parsingMode);
 		while (true) {
-			char vsep = input.readCharAndSkip(SPACES);
+			char vsep = input.readCharSkipping(SPACES);
 			if (vsep == '}') {// end of the object
 				return config;
 			} else if (vsep != ',') {
 				throw new ParsingException("Invalid value separator: " + vsep);
 			}
-			kfirst = input.readCharAndSkip(SPACES);
+			kfirst = input.readCharSkipping(SPACES);
 			if (kfirst != '"') {
 				throw new ParsingException("Invalid beginning of a key: " + kfirst);
 			}
@@ -195,12 +199,12 @@ public final class JsonParser implements ConfigParser<Config> {
 
 	private void parseKVPair(CharacterInput input, Config config, ParsingMode parsingMode) {
 		String key = parseString(input);
-		char sep = input.readCharAndSkip(SPACES);
+		char sep = input.readCharSkipping(SPACES);
 		if (sep != ':') {
 			throw new ParsingException("Invalid key-value separator: " + sep);
 		}
 
-		char vfirst = input.readCharAndSkip(SPACES);
+		char vfirst = input.readCharSkipping(SPACES);
 		Object value = parseValue(input, vfirst, parsingMode);
 		parsingMode.put(config, key, value);
 	}
@@ -208,14 +212,14 @@ public final class JsonParser implements ConfigParser<Config> {
 	private <T> List<T> parseArray(CharacterInput input, List<T> list, ParsingMode parsingMode) {
 		boolean first = true;
 		while (true) {
-			char valueFirst = input.readCharAndSkip(SPACES);// the first character of the value
+			char valueFirst = input.readCharSkipping(SPACES);// the first character of the value
 			if (first && valueFirst == ']') {
 				return list;
 			}
 			first = false;
 			T value = (T)parseValue(input, valueFirst, parsingMode);
 			list.add(value);
-			char next = input.readCharAndSkip(SPACES);// the next character, should be ']' or ','
+			char next = input.readCharSkipping(SPACES);// the next character, should be ']' or ','
 			if (next == ']') {// end of the array
 				return list;
 			} else if (next != ',') {// invalid separator

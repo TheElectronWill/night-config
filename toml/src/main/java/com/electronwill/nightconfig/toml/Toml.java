@@ -1,8 +1,8 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.io.CharacterInput;
-import com.electronwill.nightconfig.core.io.CharsWrapper;
-import com.electronwill.nightconfig.core.io.Utils;
+import com.electronwill.nightconfig.core.impl.CharacterInput;
+import com.electronwill.nightconfig.core.impl.CharsWrapper;
+import com.electronwill.nightconfig.core.impl.Utils;
 import java.util.List;
 
 /**
@@ -19,10 +19,10 @@ final class Toml {
 	 * Returns the next "useful" character. Skips comments, spaces and newlines.
 	 */
 	static char readUsefulChar(CharacterInput input) {
-		char next = input.readCharAndSkip(WHITESPACE_OR_NEWLINE);
+		char next = input.readCharSkipping(WHITESPACE_OR_NEWLINE);
 		while (next == '#') {
 			input.readCharsUntil(NEWLINE);
-			next = input.readCharAndSkip(WHITESPACE_OR_NEWLINE);
+			next = input.readCharSkipping(WHITESPACE_OR_NEWLINE);
 		}
 		return next;
 	}
@@ -31,11 +31,11 @@ final class Toml {
 	 * Returns the next "useful" character. Skips comments, spaces and newlines.
 	 */
 	static int readUseful(CharacterInput input, List<CharsWrapper> commentsList) {
-		int next = input.readAndSkip(WHITESPACE_OR_NEWLINE);
+		int next = input.readSkipping(WHITESPACE_OR_NEWLINE);
 		while (next == '#') {
 			CharsWrapper comment = readLine(input);
 			commentsList.add(comment);
-			next = input.readAndSkip(WHITESPACE_OR_NEWLINE);
+			next = input.readSkipping(WHITESPACE_OR_NEWLINE);
 		}
 		return next;
 	}
@@ -44,16 +44,16 @@ final class Toml {
 	 * Reads the next non-space character. Doesn't skip comments.
 	 */
 	static char readNonSpaceChar(CharacterInput input, boolean skipNewlines) {
-		return skipNewlines ? input.readCharAndSkip(WHITESPACE_OR_NEWLINE)
-							: input.readCharAndSkip(WHITESPACE);
+		return skipNewlines ? input.readCharSkipping(WHITESPACE_OR_NEWLINE)
+							: input.readCharSkipping(WHITESPACE);
 	}
 
 	/**
 	 * Reads the next non-space character. Doesn't skip comments.
 	 */
 	static int readNonSpace(CharacterInput input, boolean skipNewlines) {
-		return skipNewlines ? input.readAndSkip(WHITESPACE_OR_NEWLINE)
-							: input.readAndSkip(WHITESPACE);
+		return skipNewlines ? input.readSkipping(WHITESPACE_OR_NEWLINE)
+							: input.readSkipping(WHITESPACE);
 	}
 
 	/**

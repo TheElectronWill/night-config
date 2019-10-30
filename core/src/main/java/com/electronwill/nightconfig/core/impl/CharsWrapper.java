@@ -1,4 +1,4 @@
-package com.electronwill.nightconfig.core.io;
+package com.electronwill.nightconfig.core.impl;
 
 import java.io.Writer;
 import java.util.Arrays;
@@ -403,7 +403,7 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	/**
 	 * Builder class for constructing CharsWrappers.
 	 */
-	public static final class Builder extends Writer implements CharacterOutput {
+	public static final class Builder extends Writer implements CharacterOutput, CharSequence {
 		private static final char[] NULL = {'n', 'u', 'l', 'l'};
 		private char[] data;
 		private int cursor = 0;
@@ -608,8 +608,25 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		 *
 		 * @return the length of this builder
 		 */
+		@Override
 		public int length() {
 			return cursor;
+		}
+
+		@Override
+		public char charAt(int index) {
+			if (index < 0 || index >= cursor) {
+				throw new IndexOutOfBoundsException("Index " + index + " is out of bounds.");
+			}
+			return data[index];
+		}
+
+		@Override
+		public CharSequence subSequence(int start, int end) {
+			if (end >= cursor || start > end || end < 0) {
+				throw new IndexOutOfBoundsException("Invalid range " + start + " until " + end);
+			}
+			return build(start, end);
 		}
 
 		/**
@@ -671,8 +688,8 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		 * @return a new CharsWrapper with the content of this builder
 		 */
 		public CharsWrapper build(int start) {
-			return new CharsWrapper(data, start,
-									cursor);//directly use this, no need to bound check here
+			return new CharsWrapper(data, start, cursor);
+			// directly use this, no need to bound check here
 		}
 
 		/**
@@ -707,8 +724,8 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 		 * @return a new CharsWrapper with a copy of the content of this builder
 		 */
 		public CharsWrapper copyAndBuild(int start) {
-			return new CharsWrapper(Arrays.copyOfRange(data, start,
-													   cursor));//directly use this, no need to bound check here
+			return new CharsWrapper(Arrays.copyOfRange(data, start, cursor));
+			// directly use this, no need to bound check here
 		}
 
 		/**

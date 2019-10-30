@@ -1,9 +1,9 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.io.CharacterInput;
-import com.electronwill.nightconfig.core.io.CharsWrapper;
+import com.electronwill.nightconfig.core.impl.CharacterInput;
+import com.electronwill.nightconfig.core.impl.CharsWrapper;
 import com.electronwill.nightconfig.core.io.ParsingException;
-import com.electronwill.nightconfig.core.io.Utils;
+import com.electronwill.nightconfig.core.impl.Utils;
 
 /**
  * @author TheElectronWill

@@ -1,4 +1,4 @@
-package com.electronwill.nightconfig.core.io;
+package com.electronwill.nightconfig.core.impl;
 
 /**
  * Interface for outputs of characters.

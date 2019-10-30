@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core.io;
 
+import com.electronwill.nightconfig.core.impl.CharsWrapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;

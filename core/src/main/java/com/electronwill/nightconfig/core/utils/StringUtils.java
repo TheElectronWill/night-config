@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.core.utils;
 
-import com.electronwill.nightconfig.core.io.CharsWrapper;
+import com.electronwill.nightconfig.core.impl.CharsWrapper;
 
 import java.util.*;
 

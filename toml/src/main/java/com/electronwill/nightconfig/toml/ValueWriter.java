@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.io.CharacterOutput;
+import com.electronwill.nightconfig.core.impl.CharacterOutput;
 import com.electronwill.nightconfig.core.io.WritingException;
 
 import java.time.temporal.Temporal;

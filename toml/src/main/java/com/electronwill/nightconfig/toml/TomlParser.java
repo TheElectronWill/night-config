@@ -3,6 +3,9 @@ package com.electronwill.nightconfig.toml;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.impl.CharacterInput;
+import com.electronwill.nightconfig.core.impl.CharsWrapper;
+import com.electronwill.nightconfig.core.impl.ReaderInput;
 import com.electronwill.nightconfig.core.io.*;
 
 import java.io.Reader;
