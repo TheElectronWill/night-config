@@ -122,10 +122,16 @@ public abstract class AbstractInput implements CharacterInput {
 
 	@Override
 	public void skipPeeks() {
-		while (!deque.isEmpty()) {
-			updatePosition(deque.removeLast());
-			// TODO optimize by using the internal structure of the queue
+		// Read the deque from the head and take each peeked char into account
+		final char[] data = deque.data;
+		final int mask = deque.mask;
+		final int head = deque.head;
+		final int end = head + deque.size();
+		for (int i = head; i < end; i++) {
+			updatePosition(data[i & mask]);
 		}
+		// Mark the deque as empty
+		deque.tail = head;
 	}
 
 	@Override
