@@ -90,8 +90,11 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	public String setComment(List<String> path, String comment) {
 		final int lastIndex = path.size() - 1;
 		final String lastKey = path.get(lastIndex);
-		if (lastIndex == 0 && comment != null) {
-			return commentMap.put(lastKey, comment);
+		if (lastIndex == 0) {
+			if (comment != null) {
+				return commentMap.put(lastKey, comment);
+			}
+			return commentMap.remove(lastKey);
 		}
 		final List<String> parentPath = path.subList(0, lastIndex);
 		Object parent = getRaw(parentPath);
