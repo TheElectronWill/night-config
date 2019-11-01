@@ -27,53 +27,75 @@ public final class ReaderInput extends AbstractInput {
 	}
 
 	@Override
-	protected char directReadChar() throws ParsingException {
-		int read;
-		try {
-			read = reader.read();
-		} catch (IOException e) {
-			throw ParsingException.readFailed(e);
+	public Charray readAtMost(int n) {
+		final int dequeSize = deque.size();
+		final char[] dst = new char[n];
+		int actualN;
+		if (dequeSize == 0) {
+			actualN = readOnce(dst, 0, n);
+		} else if (dequeSize <= n) {
+			deque.consumeAllNonEmptyQueue(dst);
+			actualN = dequeSize + readOnce(dst, dequeSize, n - dequeSize);
+		} else { // dequeSize > n
+			deque.consumeQueue(dst, 0, n);
+			actualN = dequeSize;
 		}
-		if (read == -1) {
-			throw ParsingException.notEnoughData();
-		}
-		return (char)read;
+		return new Charray(dst, 0, actualN);
 	}
 
 	@Override
-	public CharsWrapper read(int n) {
-		/* Overriden method to provide better performance: use parse(char[], ...) instead of
-		   taking the characters one by one. */
-		final char[] array = new char[n];
-		final int offset = Math.min(deque.size(), n);
-		CharsWrapper smaller = consumeDeque(array, offset, false);
-		if (smaller != null) {// Less than n characters were read
-			return smaller;
+	public Charray readExactly(int n) {
+		final int dequeSize = deque.size();
+		final char[] dst = new char[n];
+		int actualN;
+		if (dequeSize == 0) {
+			actualN = readLoop(dst, 0, n);
+		} else if (dequeSize <= n) {
+			deque.consumeAllNonEmptyQueue(dst);
+			actualN = dequeSize + readLoop(dst, dequeSize, n - dequeSize);
+		} else { // dequeSize > n
+			deque.consumeQueue(dst, 0, n);
+			actualN = dequeSize;
 		}
-		int nRead;
-		try {
-			nRead = reader.read(array, offset, n - offset);
-		} catch (IOException e) {
-			throw ParsingException.readFailed(e);
-		}
-		return new CharsWrapper(array, 0, offset + nRead);
-	}
-
-	@Override
-	public CharsWrapper readChars(int n) {
-		final char[] array = new char[n];
-		final int offset = Math.min(deque.size(), n);
-		consumeDeque(array, offset, true);
-		int length = n - offset;
-		int nRead;
-		try {
-			nRead = reader.read(array, offset, length);
-		} catch (IOException e) {
-			throw ParsingException.readFailed(e);
-		}
-		if (nRead != length) {
+		if (actualN != n) {
 			throw ParsingException.notEnoughData();
 		}
-		return new CharsWrapper(array);
+		return new Charray(dst);
+	}
+
+	/**
+	 * Reads multiple characters from the reader.
+	 *
+	 * @param dst    where to put the chars
+	 * @param dstPos where to start
+	 * @param maxLen how many chars to read (at most)
+	 * @return the number of chars actually read
+	 */
+	private int readOnce(char[] dst, int dstPos, int maxLen) {
+		try {
+			return reader.read(dst, dstPos, maxLen);
+		} catch (IOException ex) {
+			throw ParsingException.readFailed(ex);
+		}
+	}
+
+	/**
+	 * Best effort to read {@code maxLen} characters from the Reader, by waiting if needed.
+	 *
+	 * @param dst    where to put the chars
+	 * @param dstPos where to start
+	 * @param maxLen how many chars to read (at most)
+	 * @return the number of chars actually read
+	 */
+	private int readLoop(char[] dst, int dstPos, int maxLen) {
+		final int end = dstPos + maxLen;
+		int pos = dstPos;
+		while (pos < end) {
+			int read = readOnce(dst, pos, end - pos);
+			if (read == -1)
+				break;
+			pos += read;
+		}
+		return pos - dstPos;
 	}
 }

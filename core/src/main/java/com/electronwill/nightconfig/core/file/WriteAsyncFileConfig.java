@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.impl.CharsWrapper;
+import com.electronwill.nightconfig.core.impl.Charray;
 import com.electronwill.nightconfig.core.io.*;
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 
@@ -111,7 +111,7 @@ final class WriteAsyncFileConfig<C extends Config> extends ConfigWrapper<C> impl
 		boolean canSaveNow = currentlyWriting.compareAndSet(false, true);
 		if (canSaveNow) {// no writing is in progress: start one immediately
 			// Writes the config data to a ByteBuffer
-			CharsWrapper.Builder builder = new CharsWrapper.Builder(512);
+			Charray.Builder builder = new Charray.Builder(512);
 			writer.write(config, builder);
 			CharBuffer chars = CharBuffer.wrap(builder.build());
 			ByteBuffer buffer = charset.encode(chars);

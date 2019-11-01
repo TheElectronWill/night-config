@@ -4,32 +4,10 @@ import com.electronwill.nightconfig.core.io.ParsingException;
 
 /**
  * Interface for sources of characters.
- * <p>
- * The readXXX() and peek() methods do not throw any exception when the end of the available data
- * is reached, but return special non-null values.
- * <p>
- * The readCharXXX() and peekChar() methods do throw a RuntimeException when the end of the
- * available data is reached.
  *
  * @author TheElectronWill
  */
 public interface CharacterInput {
-	/**
-	 * Reads the next character.
-	 *
-	 * @return the next char, or -1 if there is no more available data
-	 */
-	int read();
-
-	/**
-	 * Reads the next character, throwing an exception if there is no more available data.
-	 *
-	 * @return the next character
-	 *
-	 * @throws ParsingException if there is no more available data
-	 */
-	char readChar();
-
 	/**
 	 * Gets the number of the line of the last character read. Peeks don't count.
 	 * The numbers start at one.
@@ -47,38 +25,48 @@ public interface CharacterInput {
 	int column();
 
 	/**
-	 * Reads the next characters, skipping some characters. Returns the next character that is not
-	 * in the given array.
+	 * Reads the next character.
+	 *
+	 * @return the next char, or -1 if there is no more available data
+	 */
+	int read();
+
+	/**
+	 * Reads at most n characters.
+	 *
+	 * @param n the number of characters to parse
+	 * @return an array containing at most n characters, not null
+	 */
+	Charray readAtMost(int n);
+
+	/**
+	 * Returns the next n characters. If there isn't enough available data, throws an exception.
+	 *
+	 * @param n the number of characters to parse
+	 * @return an array containing the next n characters, not null
+	 *
+	 * @throws ParsingException if there is no more available data
+	 */
+	Charray readExactly(int n);
+
+	/**
+	 * Reads until a character that is not in {@code toSkip} is found.
 	 *
 	 * @param toSkip the characters to skip
-	 * @return the next character that is not in {@code toSkip}, or -1 if there is no more available
-	 * data
+	 * @return the next character that is not in {@code toSkip}, -1 if there is no more data
 	 */
-	default int readSkipping(char[] toSkip) {
+	default int readSkipping(Charray toSkip) {
 		int c;
 		do {
 			c = read();
-		} while (Utils.arrayContains(toSkip, (char)c) && c != -1);
+		} while (toSkip.contains((char)c));
 		return c;
 	}
 
 	/**
-	 * Reads the next characters, skipping some characters. Returns the next character that is not
-	 * in the given array. This method throws an exception if there is no more available data.
-	 *
-	 * @param toSkip the characters to skip
-	 * @return the next character that is not in {@code toSkip}
-	 *
-	 * @throws ParsingException if there is no more available data
+	 * Reads the next characters, skipping spaces and tabs.
+	 * @return the next character that is not a space nor a tab, -1 if there is no more data
 	 */
-	default char readCharSkipping(char[] toSkip) {
-		char c;
-		do {
-			c = readChar();
-		} while (Utils.arrayContains(toSkip, c));
-		return c;
-	}
-
 	default int readNonSpace() {
 		int c;
 		do {
@@ -87,74 +75,51 @@ public interface CharacterInput {
 		return c;
 	}
 
+	/**
+	 * Reads the next "solid" character, ie the next char {@code ch > '\u005Cu0020'}.
+	 * This excludes (among others), {@code ' ', '\t', '\r', '\n'}.
+	 *
+	 * @return the next character, -1 if there is no more data
+	 */
 	default int readSolid() {
 		int c;
 		do {
 			c = read();
-		} while (c == ' ' || c == '\t' || c == '\r' || c == '\n');
+		} while (c <= ' ');
 		return c;
 	}
 
 	/**
-	 * Reads the next n characters, if possible. If there are less than n available characters,
-	 * return all the remaining characters.
+	 * Reads until a character in {@code stop} is encountered.
 	 *
-	 * @param n the number of characters to parse
-	 * @return an array containing at most n characters, not null
+	 * @param stop the characters to stop at
+	 * @return a Charray containing all the characters read before the stop, excluding it.
 	 */
-	default CharsWrapper read(int n) {
-		CharsWrapper.Builder builder = new CharsWrapper.Builder(n);
-		for (int i = 0; i < n; i++) {
-			int next = read();
-			if (next == -1)//EOS
-			{ break; }
-			builder.append((char)next);
-		}
-		return builder.build();
+	default Charray readUntil(Charray stop) {
+		return readUntil(stop, Charray.DEFAULT_CAPACITY);
 	}
 
 	/**
-	 * Reads the next n characters. If there isn't n available characters, this method throws an
-	 * exception.
+	 * Reads until a character in {@code stop} is encountered.
 	 *
-	 * @param n the number of characters to parse
-	 * @return an array containing the next n characters, not null
-	 *
-	 * @throws ParsingException if there is no more available data
+	 * @param stop the characters to stop at
+	 * @param sizeHint hint for the size of the Charray
+	 * @return a Charray containing all the characters read before the stop, excluding it.
 	 */
-	default CharsWrapper readChars(int n) {
-		char[] chars = new char[n];
-		for (int i = 0; i < n; i++) {
-			int next = read();
-			if (next == -1) {//EOS
-				throw ParsingException.notEnoughData();
+	default Charray readUntil(Charray stop, int sizeHint) {
+		Charray builder = new Charray(sizeHint);
+		int c;
+		while ((c = read()) != -1) {
+			char ch = (char)c;
+			if (stop.contains(ch)) {
+				pushBack(ch);
+				break;
+			} else {
+				builder.append(ch);
 			}
-			chars[i] = (char)next;
 		}
-		return new CharsWrapper(chars);
+		return builder;
 	}
-
-	/**
-	 * Reads all the character until a character containde in {@code stop} is reached or there is no
-	 * more available data, and returns the {@link CharsWrapper} that contains all the characters
-	 * before the stop (or the end of the data).
-	 *
-	 * @param stop the characters to stop at
-	 * @return a CharsWrapper that contains all the characters parse before the stop (or the end of
-	 * the data), not null
-	 */
-	CharsWrapper readUntil(char[] stop);
-
-	/**
-	 * Reads all the characters until a character contained in {@code stop} is reached, and returns
-	 * the {@link CharsWrapper} that contains all the characters before the stop.
-	 *
-	 * @param stop the characters to stop at
-	 * @return a CharsWrapper that contains all the characters parse before the stop
-	 *
-	 * @throws ParsingException if the end of the data is reached before a stop character
-	 */
-	CharsWrapper readCharsUntil(char[] stop);
 
 	/**
 	 * Returns the next character, without moving the reading position forward. After a call to
@@ -164,50 +129,28 @@ public interface CharacterInput {
 	 *
 	 * @return the next character, or -1 if there is no more available data
 	 */
-	int peek();
+	default int peek() {
+		return peek(0);
+	}
 
 	/**
 	 * Returns the next (n+1)th character, without moving the reading position forward.
-	 * The next character is n=0, then it's n=1 and so on.
+	 * The next character is given by peek(0), the one after it by peel(1), and so on.
 	 *
 	 * @param n the position to peek
-	 * @return the next (n+1)th character
-	 *
-	 * @throws ParsingException if there is no (n+1)th character
+	 * @return the next (n+1)th character, or -1 if there is no such character
 	 */
 	int peek(int n);
 
 	/**
-	 * Returns the next character, without moving the reading position forward. After a call to
-	 * {@code peek()}, the method {@link #read()} will return the exact same character.
-	 * <p>
-	 * This method behaves exactly like {@code peekChar(0)}
-	 * <p>
-	 * This method throws an exception if there is no more available data.
-	 *
-	 * @return the next character
-	 *
-	 * @throws ParsingException if there is no more available data
-	 */
-	char peekChar();
-
-	/**
-	 * Returns the next (n+1)th character, without moving the reading position forward.
-	 * The next character is n=0, then it's n=1 and so on.
-	 * <p>
-	 * This method throws an exception if there is no more available data.
-	 *
-	 * @param n the position to peek
-	 * @return the next (n+1)th character
-	 *
-	 * @throws ParsingException if there is no (n+1)th character
-	 */
-	char peekChar(int n);
-
-	/**
-	 * Skips all the character that have been peeked and not parsed yet.
+	 * Skips all the characters that have been peeked and not read yet.
 	 */
 	void skipPeeks();
+
+	/**
+	 * Reads and returns all the characters that have been peeked and not read yet.
+	 */
+	Charray readPeeks();
 
 	/**
 	 * Pushes a character back to the input, so that it will be returned by the next reading

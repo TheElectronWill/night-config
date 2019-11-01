@@ -18,7 +18,7 @@ public interface CharacterOutput {
 	 *
 	 * @param chars the characters to write
 	 */
-	default void write(char... chars) {
+	default void write(char[] chars) {
 		write(chars, 0, chars.length);
 	}
 
@@ -50,11 +50,22 @@ public interface CharacterOutput {
 	void write(String s, int offset, int length);
 
 	/**
-	 * Writes all the characters in the given CharsWrapper.
+	 * Writes a Charray.
 	 *
-	 * @param cw the CharsWrapper to write
+	 * @param cha the Charray to write
 	 */
-	default void write(CharsWrapper cw) {
-		write(cw.chars, cw.offset, cw.limit - cw.offset);
+	default void write(Charray cha) {
+		write(cha.chars, cha.offset, cha.limit - cha.offset);
+	}
+
+	/**
+	 * Writes a portion of a Charray.
+	 *
+	 * @param cha    the Charray to write
+	 * @param offset the index to start at
+	 * @param length the number of characters to write
+	 */
+	default void write(Charray cha, int offset, int length) {
+		write(cha.chars, cha.offset + offset, cha.offset + length);
 	}
 }

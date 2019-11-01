@@ -57,7 +57,7 @@ public final class Utils {
 	 * @param base  the base of the number
 	 * @return the long value represented by the CharsWrapper
 	 */
-	public static long parseLong(CharsWrapper chars, int base) {
+	public static long parseLong(Charray chars, int base) {
 		// Optimized lightweight parsing
 		int offset = chars.offset;
 		boolean negative = false;
@@ -88,7 +88,7 @@ public final class Utils {
 	 * @param base  the base of the number
 	 * @return the int value represented by the CharsWrapper
 	 */
-	public static int parseInt(CharsWrapper chars, int base) {
+	public static int parseInt(Charray chars, int base) {
 		return (int)parseLong(chars, base);
 	}
 
@@ -98,7 +98,7 @@ public final class Utils {
 	 * @param chars the CharsWrapper representing a double
 	 * @return the double value represented by the CharsWrapper
 	 */
-	public static double parseDouble(CharsWrapper chars) {
+	public static double parseDouble(Charray chars) {
 		return Double.parseDouble(chars.toString());
 	}
 }

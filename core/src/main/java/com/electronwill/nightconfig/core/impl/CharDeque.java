@@ -75,6 +75,44 @@ final class CharDeque {
 	}
 
 	/**
+	 * Consumes the CharDeque in FIFO order.
+	 * @return a new array containing the data
+	 */
+	public char[] consumeAllQueue() {
+		if (isEmpty())
+			return new char[0];
+
+		char[] fifo = new char[size()];
+		consumeAllNonEmptyQueue(fifo);
+		return fifo;
+	}
+
+	/**
+	 * Consumes the CharDeque in FIFO order. <b>The CharDeque must not be empty.</b>
+	 * @param dst where to put the data
+	 */
+	public void consumeAllNonEmptyQueue(char[] dst) {
+		fullNonEmptyCopy(dst);
+		clear();
+	}
+
+	/**
+	 * Consumes a portion of the CharDeque in FIFO order.
+	 *
+	 * @param dst    where to put the data
+	 * @param offset where to start
+	 * @param length where to end (exclusive)
+	 */
+	public void consumeQueue(char[] dst, int offset, int length) {
+		if (length > size())
+			throw new IllegalArgumentException(
+				String.format("Array length (%d) is too big", length)
+			);
+		partialCopy(dst, offset, length);
+		head = (head + length) & mask;
+	}
+
+	/**
 	 * @return true if the deque is empty, false if it's not
 	 */
 	public boolean isEmpty() {
@@ -102,24 +140,42 @@ final class CharDeque {
 			mask = 0;
 			return;
 		}
-		final int size = size();
+		int size = size();
 		int newCapacity = size + 1;// +1 because the array is never kept full
 		if (!isPowerOfTwo(newCapacity)) {
 			newCapacity = nextPowerOfTwo(newCapacity);
 		}
-		final char[] newData = new char[newCapacity];
-		if (tail > head) {
-			System.arraycopy(data, head, newData, 0, tail - head);
-		} else {
-			int lenght1 =
-					data.length - head;// length of the part from the head to the end of the array
-			System.arraycopy(data, head, newData, 0, lenght1);// head to end
-			System.arraycopy(data, 0, newData, lenght1, tail);// start to tail
-		}
+		char[] newData = new char[newCapacity];
+		fullNonEmptyCopy(newData);
 		head = 0;
 		tail = size;
 		data = newData;
 		mask = newData.length - 1;
+	}
+
+	private void fullNonEmptyCopy(char[] dst) {
+		if (tail > head) {
+			System.arraycopy(data, head, dst, 0, tail - head); // [head; tail[
+		} else {
+			int len1 = data.length - head; // length of [head; array.length[
+			System.arraycopy(data, head, dst, 0, len1);   // [head; array.length[
+			System.arraycopy(data, 0, dst, len1, tail); // [0; tail[
+		}
+	}
+
+	private void partialCopy(char[] dst, int dstPos, int len) {
+		if (tail > head) {
+			System.arraycopy(data, head, dst, dstPos, len);
+		} else {
+			final int rightLen = data.length - head; // [head; array.length[
+			if (rightLen >= len) {
+				System.arraycopy(data, head, dst, dstPos, len);
+			} else {
+				assert tail >= len - rightLen;
+				System.arraycopy(data, head, dst, dstPos, rightLen);
+				System.arraycopy(data, 0, dst, dstPos+rightLen, len-rightLen);
+			}
+		}
 	}
 
 	/**
@@ -128,9 +184,9 @@ final class CharDeque {
 	private void grow() {
 		final int newSize = data.length << 1;// double the size
 		if (newSize < 0) {// overflow!
-			throw new IllegalStateException("CharDeque too big");
+			throw new IllegalStateException("Charray too big");
 		}
-		final char[] newData = new char[newSize];// double the size
+		final char[] newData = new char[newSize];
 		final int lenght1 = data.length - head;// length of the part from the head to the end of the array
 		System.arraycopy(data, head, newData, 0, lenght1);// head to end
 		System.arraycopy(data, 0, newData, lenght1, tail);// start to tail

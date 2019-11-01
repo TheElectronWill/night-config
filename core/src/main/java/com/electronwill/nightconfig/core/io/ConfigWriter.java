@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import com.electronwill.nightconfig.core.impl.CharsWrapper;
+import com.electronwill.nightconfig.core.impl.CharrayWriter;
 
 import java.io.*;
 import java.net.URL;
@@ -145,8 +145,8 @@ public interface ConfigWriter {
 	 * @throws WritingException if an error occurs
 	 */
 	default String writeToString(UnmodifiableConfig config) {
-		CharsWrapper.Builder builder = new CharsWrapper.Builder(64);
-		write(config, builder);
-		return builder.toString();
+		CharrayWriter writer = new CharrayWriter();
+		write(config, writer);
+		return writer.toString();
 	}
 }

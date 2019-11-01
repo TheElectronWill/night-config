@@ -18,7 +18,7 @@ public final class ArrayInput extends AbstractInput {
 	 *
 	 * @param chars the CharsWrapper to use as an input
 	 */
-	public ArrayInput(CharsWrapper chars) {
+	public ArrayInput(Charray chars) {
 		this(chars.chars, chars.offset, chars.limit);
 	}
 
@@ -36,14 +36,14 @@ public final class ArrayInput extends AbstractInput {
 	 * Creates a new ArrayInput based on the specified array. Any modification to the array is
 	 * reflected in the input.
 	 *
-	 * @param chars  the char array to use as an input
-	 * @param offset the index to begin at (inclusive index)
-	 * @param limit  the limit to stop at (exclusive index)
+	 * @param chars the char array to use as an input
+	 * @param start the index to start at (inclusive index)
+	 * @param end   the index to stop at (exclusive index)
 	 */
-	public ArrayInput(char[] chars, int offset, int limit) {
+	public ArrayInput(char[] chars, int start, int end) {
 		this.chars = chars;
-		this.cursor = offset;
-		this.limit = limit;
+		this.cursor = start;
+		this.limit = end;
 	}
 
 	@Override
@@ -55,39 +55,33 @@ public final class ArrayInput extends AbstractInput {
 	}
 
 	@Override
-	protected char directReadChar() throws ParsingException {
-		if (cursor >= limit) {
-			throw ParsingException.notEnoughData();
-		}
-		return chars[cursor++];
+	public Charray readAtMost(int n) {
+		final int dequeSize = deque.size();
+		final int available = limit - cursor + dequeSize;
+		final int toRead = Math.min(available, n);
+		return readCharray(toRead, dequeSize);
 	}
 
 	@Override
-	public CharsWrapper read(int n) {
-		/* Overriden method to provide better performance: use System.arraycopy instead of
-		   taking the characters one by one. */
-		final int size = Math.min(n, limit - cursor + deque.size());
-		final int offset = Math.min(deque.size(), size);
-		final char[] array = new char[size];
-		CharsWrapper smaller = consumeDeque(array, offset, false);
-		if (smaller != null) {// Less than n characters were read
-			return smaller;
-		}
-		System.arraycopy(chars, cursor, array, offset, size - offset);
-		cursor += size;
-		return new CharsWrapper(array);
-	}
-
-	@Override
-	public CharsWrapper readChars(final int n) {
-		if (limit - cursor + deque.size() < n) {
+	public Charray readExactly(final int n) {
+		final int dequeSize = deque.size();
+		if (limit - cursor + dequeSize < n) {
 			throw ParsingException.notEnoughData();
 		}
-		final int offset = Math.min(deque.size(), n);
-		final char[] array = new char[n];
-		consumeDeque(array, offset, true);
-		System.arraycopy(chars, cursor, array, offset, n - offset);
+		return readCharray(n, dequeSize);
+	}
+
+	private Charray readCharray(int n, int dequeSize) {
+		char[] dst = new char[n];
+		if (dequeSize == 0) {
+			System.arraycopy(chars, cursor, dst, 0, n);
+		} else if (dequeSize <= n) {
+			deque.consumeAllNonEmptyQueue(dst);
+			System.arraycopy(chars, cursor, dst, dequeSize, n - dequeSize);
+		} else { // dequeSize > n
+			deque.consumeQueue(dst, 0, n);
+		}
 		cursor += n;
-		return new CharsWrapper(array);
+		return new Charray(dst);
 	}
 }

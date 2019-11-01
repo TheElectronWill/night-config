@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.core.utils;
 
-import com.electronwill.nightconfig.core.impl.CharsWrapper;
+import com.electronwill.nightconfig.core.impl.Charray;
 
 import java.util.*;
 
@@ -133,12 +133,12 @@ public final class StringUtils {
 	 * Join the first elements of an array of strings with the given delimiter.
 	 */
 	public static String join(String[] strings, int len, char delimiter) {
-		CharsWrapper.Builder builder = new CharsWrapper.Builder(32);
+		Charray builder = new Charray(32);
 		join(strings, len, delimiter, builder);
 		return builder.toString();
 	}
 
-	public static void join(String[] strings, int len, char delimiter, CharsWrapper.Builder dst) {
+	public static void join(String[] strings, int len, char delimiter, Charray dst) {
 		if (len <= 0) return;
 		for (int i = 0; i < len; i++) {
 			dst.append(strings[i]).append(delimiter);
