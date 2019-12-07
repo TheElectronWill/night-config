@@ -1,7 +1,9 @@
 package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.impl.CharacterOutput;
 import com.electronwill.nightconfig.core.impl.CharrayWriter;
+import com.electronwill.nightconfig.core.impl.WriterOutput;
 
 import java.io.*;
 import java.net.URL;
@@ -24,20 +26,32 @@ public interface ConfigWriter {
 	 * Writes a configuration.
 	 *
 	 * @param config the config to write
-	 * @param writer the writer to write it to
+	 * @param output where to write
 	 * @throws WritingException if an error occurs
 	 */
-	void write(UnmodifiableConfig config, Writer writer);
+	void write(UnmodifiableConfig config, CharacterOutput output);
 
 	/**
 	 * Writes a configuration.
 	 *
 	 * @param config the config to write
-	 * @param output the output to write it to
+	 * @param writer where to write
 	 * @throws WritingException if an error occurs
 	 */
-	default void write(UnmodifiableConfig config, OutputStream output, Charset charset) {
-		Writer writer = new BufferedWriter(new OutputStreamWriter(output, charset));
+	default void write(UnmodifiableConfig config, Writer writer) {
+		write(config, new WriterOutput(writer));
+	}
+
+	/**
+	 * Writes a configuration using the specified encoding.
+	 *
+	 * @param config the config to write
+	 * @param output where to write
+	 * @param cs text encoding
+	 * @throws WritingException if an error occurs
+	 */
+	default void write(UnmodifiableConfig config, OutputStream output, Charset cs) {
+		Writer writer = new BufferedWriter(new OutputStreamWriter(output, cs));
 		write(config, writer);
 		try {
 			writer.flush();
@@ -47,10 +61,10 @@ public interface ConfigWriter {
 	}
 
 	/**
-	 * Writes a configuration.
+	 * Writes a configuration <b>in UTF-8</b>.
 	 *
 	 * @param config the config to write
-	 * @param output the output to write it to
+	 * @param output where to write
 	 * @throws WritingException if an error occurs
 	 */
 	default void write(UnmodifiableConfig config, OutputStream output) {
@@ -58,82 +72,71 @@ public interface ConfigWriter {
 	}
 
 	/**
-	 * Writes a configuration. The content of the file is overwritten. This method is equivalent to
-	 * <pre>write(config, file, false)</pre>
+	 * Writes a configuration using the specified encoding.
 	 *
-	 * @param config  the config to write
-	 * @param file the nio Path to write it to
+	 * @param config the config to write
+	 * @param file where to write
 	 * @throws WritingException if an error occurs
 	 */
-	default void write(UnmodifiableConfig config, Path file, WritingMode writingMode) {
-		write(config, file, writingMode, StandardCharsets.UTF_8);
-	}
-
-	/**
-	 * Writes a configuration.
-	 *
-	 * @param config  the config to write
-	 * @param file the nio Path to write it to
-	 * @throws WritingException if an error occurs
-	 */
-	default void write(UnmodifiableConfig config, Path file, WritingMode writingMode, Charset charset) {
+	default void write(UnmodifiableConfig config, Path file, Charset cs, WritingMode mode) {
 		StandardOpenOption[] options;
-		if (writingMode == WritingMode.APPEND) {
+		if (mode == WritingMode.APPEND) {
 			options = new StandardOpenOption[] { WRITE, CREATE, APPEND };
 		} else {
 			options = new StandardOpenOption[] { WRITE, CREATE, TRUNCATE_EXISTING };
 		}
 		try (OutputStream output = Files.newOutputStream(file, options)) {
-			write(config, output, charset);
+			write(config, output, cs);
 		} catch (IOException e) {
 			throw new WritingException("An I/O error occured", e);
 		}
 	}
 
 	/**
-	 * Writes a configuration. The content of the file is overwritten. This method is equivalent to
-	 * <pre>write(config, file, false)</pre>
+	 * Writes a configuration <b>in UTF-8</b>.
 	 *
 	 * @param config the config to write
-	 * @param file   the file to write it to
+	 * @param file where to write
 	 * @throws WritingException if an error occurs
 	 */
-	default void write(UnmodifiableConfig config, File file, WritingMode writingMode) {
-		write(config, file, writingMode, StandardCharsets.UTF_8);
+	default void write(UnmodifiableConfig config, Path file, WritingMode mode) {
+		write(config, file, StandardCharsets.UTF_8, mode);
+	}
+
+	/**
+	 * Writes a configuration using the specified encoding.
+	 *
+	 * @param config the config to write
+	 * @param file where to write
+	 * @throws WritingException if an error occurs
+	 */
+	default void write(UnmodifiableConfig config, File file, Charset cs, WritingMode mode) {
+		write(config, file.toPath(), cs, mode);
+	}
+
+	/**
+	 * Writes a configuration <b>in UTF-8</b>.
+	 *
+	 * @param config the config to write
+	 * @param file where to write
+	 * @throws WritingException if an error occurs
+	 */
+	default void write(UnmodifiableConfig config, File file, WritingMode mode) {
+		write(config, file, StandardCharsets.UTF_8, mode);
 	}
 
 	/**
 	 * Writes a configuration.
 	 *
 	 * @param config the config to write
-	 * @param file   the file to write it to
-	 * @throws WritingException if an error occurs
-	 */
-	default void write(UnmodifiableConfig config, File file, WritingMode writingMode, Charset charset) {
-		write(config, file.toPath(), writingMode, charset);
-	}
-
-	/**
-	 * Writes a configuration.
-	 *
-	 * @param config the config to write
-	 * @param url    the url to write it to
+	 * @param url the url to write it to
 	 * @throws WritingException if an error occurs
 	 */
 	default void write(UnmodifiableConfig config, URL url) {
-		URLConnection connection;
-		try {
-			connection = url.openConnection();
-		} catch (IOException e) {
-			throw new WritingException("Unable to connect to the URL", e);
-		}
-		String encoding = connection.getContentEncoding();
-		Charset charset = (encoding == null) ? StandardCharsets.UTF_8 : Charset.forName(encoding);
-		try (OutputStream output = connection.getOutputStream()) {
-			write(config, output, charset);
-		} catch (IOException e) {
-			throw new WritingException("An I/O error occured", e);
-		}
+		IOUtils.useURL(url, null, URLConnection::getOutputStream, (outputStream, charset) -> {
+			write(config, outputStream, charset);
+			return null;
+		}, WritingException::new);
 	}
 
 	/**
@@ -141,12 +144,11 @@ public interface ConfigWriter {
 	 *
 	 * @param config the config to write
 	 * @return a new String
-	 *
 	 * @throws WritingException if an error occurs
 	 */
 	default String writeToString(UnmodifiableConfig config) {
 		CharrayWriter writer = new CharrayWriter();
-		write(config, writer);
+		write(config, (CharacterOutput)writer);
 		return writer.toString();
 	}
 }

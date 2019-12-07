@@ -1,7 +1,11 @@
 package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.MemoryConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
+import com.electronwill.nightconfig.core.impl.CharacterInput;
+import com.electronwill.nightconfig.core.impl.ReaderInput;
 import com.electronwill.nightconfig.core.utils.FastStringReader;
 
 import java.io.*;
@@ -13,35 +17,57 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Interface for reading configurations.
+ * Converts text data to {@link Config} objects.
  *
  * @author TheElectronWill
  */
 public interface ConfigParser {
+	// --- BASES ---
+
+	/** @return the format recognized by this parser. */
+	ConfigFormat getFormat();
+
 	/**
-	 * Parses a configuration.
+	 * Parses data and puts the result in an existing configuration.
 	 *
-	 * @param reader the reader to parse
-	 * @return a Config
-	 *
+	 * @param input data source
+	 * @param dst existing config
+	 * @param mode how to deal with existing value, see {@link ParsingMode} docs.
 	 * @throws ParsingException if an error occurs
 	 */
-	Config parse(Reader reader);
+	void parse(CharacterInput input, Config dst, ParsingMode mode);
 
 	/**
-	 * Parses a configuration.
+	 * Parses data and puts the result in a new configuration.
 	 *
-	 * @param reader      the reader to parse
-	 * @param destination the config where to put the data
+	 * @param input data source
+	 * @return a new config
+	 * @throws ParsingException if an error occurs
 	 */
-	void parse(Reader reader, Config destination, ParsingMode parsingMode);
+	default Config parse(CharacterInput input) {
+		Config cfg = new MemoryConfig();
+		parse(input, cfg, ParsingMode.REPLACE);
+		return cfg;
+	}
+
+	// --- PARSING TO A NEW CONFIG ---
 
 	/**
-	 * Parses a configuration String.
+	 * Parses data and puts the result in a new configuration.
 	 *
-	 * @param input the input to parse
-	 * @return a Config
+	 * @param reader data source
+	 * @return a new config
+	 * @throws ParsingException if an error occurs
+	 */
+	default Config parse(Reader reader) {
+		return parse(new ReaderInput(reader));
+	}
+
+	/**
+	 * Parses data and puts the result in a new configuration.
 	 *
+	 * @param input data source
+	 * @return a new config
 	 * @throws ParsingException if an error occurs
 	 */
 	default Config parse(String input) {
@@ -49,22 +75,24 @@ public interface ConfigParser {
 	}
 
 	/**
-	 * Parses a configuration String.
+	 * Parses data and puts the result in a new configuration.
 	 *
-	 * @param input       the input to parse
-	 * @param destination the config where to put the data
+	 * @param input data source
+	 * @return a new config
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(String input, Config destination, ParsingMode parsingMode) {
-		parse(new StringReader(input), destination, parsingMode);
+	default Config parse(InputStream input, Charset cs) {
+		CharacterInput ci = new ReaderInput(new BufferedReader(new InputStreamReader(input, cs)));
+		if (cs == StandardCharsets.UTF_8)
+			IOUtils.consumeUTF8BOM(ci);
+		return parse(ci);
 	}
 
 	/**
-	 * Parses a configuration with the UTF-8 charset.
+	 * Parses data and puts the result in a new configuration.
 	 *
-	 * @param input the input to parse
-	 * @return a Config
-	 *
+	 * @param input data source, <b>UTF-8 encoded</b>
+	 * @return a new config
 	 * @throws ParsingException if an error occurs
 	 */
 	default Config parse(InputStream input) {
@@ -72,194 +100,233 @@ public interface ConfigParser {
 	}
 
 	/**
-	 * Parses a configuration.
+	 * Parses data and puts the result in a new configuration.
 	 *
-	 * @param input the input to parse
-	 * @return a Config
-	 *
+	 * @param path data source
+	 * @param cs encoding
+	 * @param notFoundAction how to deal with missing file
+	 * @return a new config
 	 * @throws ParsingException if an error occurs
 	 */
-	default Config parse(InputStream input, Charset charset) {
-		return parse(new BufferedReader(new InputStreamReader(input, charset)));
-	}
-
-	/**
-	 * Parses a configuration with the UTF-8 charset.
-	 *
-	 * @param input       the input to parse
-	 * @param destination the config where to put the data
-	 * @throws ParsingException if an error occurs
-	 */
-	default void parse(InputStream input, Config destination, ParsingMode parsingMode) {
-		parse(input, destination, parsingMode, StandardCharsets.UTF_8);
-	}
-
-	/**
-	 * Parses a configuration.
-	 *
-	 * @param input       the input to parse
-	 * @param destination the config where to put the data
-	 * @throws ParsingException if an error occurs
-	 */
-	default void parse(InputStream input, Config destination, ParsingMode parsingMode, Charset charset) {
-		Reader reader = new BufferedReader(new InputStreamReader(input, charset));
-		parse(reader, destination, parsingMode);
-	}
-
-	/**
-	 * Parses a configuration with the UTF-8 charset.
-	 *
-	 * @param file the file to parse
-	 * @return a Config
-	 *
-	 * @throws ParsingException if an error occurs
-	 */
-	default Config parse(File file, FileNotFoundAction nefAction) {
-		return parse(file, nefAction, StandardCharsets.UTF_8);
-	}
-
-	/**
-	 * Parses a configuration.
-	 *
-	 * @param file the file to parse
-	 * @return a Config
-	 *
-	 * @throws ParsingException if an error occurs
-	 */
-	default Config parse(File file, FileNotFoundAction nefAction, Charset charset) {
-		return parse(file.toPath(), nefAction, charset);
-	}
-
-	/**
-	 * Parses a configuration with the UTF-8 charset.
-	 *
-	 * @param file        the file to parse
-	 * @param destination the config where to put the data
-	 * @throws ParsingException if an error occurs
-	 */
-	default void parse(File file, Config destination, ParsingMode parsingMode, FileNotFoundAction nefAction) {
-		parse(file, destination, parsingMode, nefAction, StandardCharsets.UTF_8);
-	}
-
-	/**
-	 * Parses a configuration.
-	 *
-	 * @param file        the file to parse
-	 * @param destination the config where to put the data
-	 * @throws ParsingException if an error occurs
-	 */
-	default void parse(File file, Config destination, ParsingMode parsingMode,
-					   FileNotFoundAction nefAction, Charset charset) {
-		parse(file.toPath(), destination, parsingMode, nefAction, charset);
-	}
-
-	/**
-	 * Parses a configuration with the UTF-8 charset.
-	 *
-	 * @param file the nio Path to parse
-	 * @return a Config
-	 * @throws ParsingException if an error occurs
-	 */
-	default Config parse(Path file, FileNotFoundAction nefAction) {
-		return parse(file, nefAction, StandardCharsets.UTF_8);
-	}
-
-	/**
-	 * Parses a configuration.
-	 *
-	 * @param file the nio Path to parse
-	 * @return a Config
-	 * @throws ParsingException if an error occurs
-	 */
-	default Config parse(Path file, FileNotFoundAction nefAction, Charset charset) {
+	default Config parse(Path path, Charset cs, FileNotFoundAction notFoundAction) {
 		try {
-			if(Files.notExists(file) && !nefAction.run(file, getFormat())) {
-				return getFormat().createConfig();
+			if (Files.notExists(path) && !notFoundAction.run(path, getFormat())) {
+				return new MemoryConfig();
 			}
-			try (InputStream input = Files.newInputStream(file)) {
-				return parse(input, charset);
+			try (InputStream input = Files.newInputStream(path)) {
+				return parse(input, cs);
 			}
 		} catch (IOException e) {
-			throw new WritingException("An I/O error occured", e);
+			throw new ParsingException("An I/O error occured", e);
 		}
 	}
 
 	/**
-	 * Parses a configuration with the UTF-8 charset.
+	 * Parses data and puts the result in a new configuration.
 	 *
-	 * @param file     the nio Path to parse
-	 * @param destination the config where to put the data
+	 * @param file data source, <b>UTF-8 encoded</b>
+	 * @return a new config
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(Path file, Config destination, ParsingMode parsingMode, FileNotFoundAction nefAction) {
-		parse(file, destination, parsingMode, nefAction, StandardCharsets.UTF_8);
+	default Config parse(Path file, FileNotFoundAction notFoundAction) {
+		return parse(file, StandardCharsets.UTF_8, notFoundAction);
 	}
 
 	/**
-	 * Parses a configuration.
+	 * Parses data and puts the result in a new configuration.
 	 *
-	 * @param file     the nio Path to parse
-	 * @param destination the config where to put the data
+	 * @param file data source
+	 * @param cs encoding
+	 * @param notFoundAction how to deal with missing file
+	 * @return a new config
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(Path file, Config destination, ParsingMode parsingMode,
-					   FileNotFoundAction nefAction, Charset charset) {
-		try {
-			if (Files.notExists(file) && !nefAction.run(file, getFormat())) {
-				return;
-			}
-			try (InputStream input = Files.newInputStream(file)) {
-				parse(input, destination, parsingMode, charset);
-			}
-		} catch (IOException e) {
-			throw new WritingException("An I/O error occured", e);
-		}
+	default Config parse(File file, Charset cs, FileNotFoundAction notFoundAction) {
+		return parse(file.toPath(), cs, notFoundAction);
 	}
 
 	/**
-	 * Parses a configuration.
+	 * Parses data and puts the result in a new configuration.
 	 *
-	 * @param url the url to parse
-	 * @return a Config
+	 * @param file data source, <b>UTF-8 encoded</b>
+	 * @return a new config
+	 * @throws ParsingException if an error occurs
+	 */
+	default Config parse(File file, FileNotFoundAction notFoundAction) {
+		return parse(file, StandardCharsets.UTF_8, notFoundAction);
+	}
+
+	/**
+	 * Downloads data, parses it and puts the results in a new configuration.
+	 * The text encoding is set by a parameter, server's information is ignored.
 	 *
+	 * @param url data url
+	 * @param cs data encoding
+	 * @return a new config
+	 * @throws ParsingException if an error occurs
+	 */
+	default Config parse(URL url, Charset cs) {
+		return IOUtils.useURL(url, cs, URLConnection::getInputStream, this::parse, ParsingException::new);
+	}
+
+	/**
+	 * Downloads data, parses it and puts the result in a new configuration.
+	 * The text encoding is selected according to the server's information.
+	 * If the server doesn't specify an encoding, UTF-8 is used.
+	 *
+	 * @param url data url
+	 * @return a new config
 	 * @throws ParsingException if an error occurs
 	 */
 	default Config parse(URL url) {
-		URLConnection connection;
+		return parse(url, null);
+	}
+
+	// --- PARSING TO AN EXISTING CONFIG ---
+
+	/**
+	 * Parses data and puts the result in an existing configuration.
+	 *
+	 * @param reader data source
+	 * @param dst existing config
+	 * @param mode how to deal with existing entries, see {@link ParsingMode} docs.
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(Reader reader, Config dst, ParsingMode mode) {
+		parse(new ReaderInput(reader), dst, mode);
+	}
+
+	/**
+	 * Parses data and puts the result in an existing configuration.
+	 *
+	 * @param input data source
+	 * @param dst existing config
+	 * @param mode how to deal with existing entries, see {@link ParsingMode} docs.
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(String input, Config dst, ParsingMode mode) {
+		parse(new FastStringReader(input), dst, mode);
+	}
+
+	/**
+	 * Parses data and puts the result in an existing configuration.
+	 *
+	 * @param input data source
+	 * @param cs data encoding
+	 * @param dst existing config
+	 * @param mode how to deal with existing entries, see {@link ParsingMode} docs.
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(InputStream input, Charset cs, Config dst, ParsingMode mode) {
+		CharacterInput ci = new ReaderInput(new BufferedReader(new InputStreamReader(input, cs)));
+		if (cs == StandardCharsets.UTF_8)
+			IOUtils.consumeUTF8BOM(ci);
+		parse(ci, dst, mode);
+	}
+
+	/**
+	 * Parses data and puts the result in an existing configuration.
+	 *
+	 * @param input data source, <b>UTF-8 encoded</b>
+	 * @param dst existing config
+	 * @param mode how to deal with existing entries, see {@link ParsingMode} docs.
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(InputStream input, Config dst, ParsingMode mode) {
+		parse(input, StandardCharsets.UTF_8, dst, mode);
+	}
+
+	/**
+	 * Parses data and puts the result in an existing configuration.
+	 *
+	 * @param path data source
+	 * @param cs data encoding
+	 * @param dst existing config
+	 * @param mode how to deal with existing entries, see {@link ParsingMode} docs.
+	 * @param notFoundAction how to deal with missing file
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(Path path, Charset cs, Config dst, ParsingMode mode, FileNotFoundAction notFoundAction) {
 		try {
-			connection = url.openConnection();
+			if (Files.notExists(path) && !notFoundAction.run(path, getFormat())) {
+				return; // nothing to parse
+			}
+			try (InputStream input = Files.newInputStream(path)) {
+				parse(input, cs, dst, mode);
+			}
 		} catch (IOException e) {
-			throw new WritingException("Unable to connect to the URL", e);
-		}
-		String encoding = connection.getContentEncoding();
-		Charset charset = (encoding == null) ? StandardCharsets.UTF_8 : Charset.forName(encoding);
-		try (Reader reader = new BufferedReader(new InputStreamReader(url.openStream(), charset))) {
-			return parse(reader);
-		} catch (IOException e) {
-			throw new WritingException("An I/O error occured", e);
+			throw new ParsingException("An I/O error occured", e);
 		}
 	}
 
 	/**
-	 * Parses a configuration.
+	 * Parses data and puts the result in an existing configuration.
 	 *
-	 * @param url         the url to parse
-	 * @param destination the config where to put the data
+	 * @param path data source, <b>UTF-8 encoded</b>
+	 * @param dst existing config
+	 * @param mode how to deal with existing entries, see {@link ParsingMode} docs.
+	 * @param notFoundAction how to deal with missing file
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(URL url, Config destination, ParsingMode parsingMode) {
-		URLConnection connection;
-		try {
-			connection = url.openConnection();
-		} catch (IOException e) {
-			throw new WritingException("Unable to connect to the URL", e);
-		}
-		String encoding = connection.getContentEncoding();
-		Charset charset = (encoding == null) ? StandardCharsets.UTF_8 : Charset.forName(encoding);
-		try (Reader reader = new BufferedReader(new InputStreamReader(url.openStream(), charset))) {
-			parse(reader, destination, parsingMode);
-		} catch (IOException e) {
-			throw new WritingException("An I/O error occured", e);
-		}
+	default void parse(Path path, Config dst, ParsingMode mode, FileNotFoundAction notFoundAction) {
+		parse(path, StandardCharsets.UTF_8, dst, mode, notFoundAction);
+	}
+
+	/**
+	 * Parses data and puts the result in an existing configuration.
+	 *
+	 * @param file data source
+	 * @param cs file encoding
+	 * @param dst existing config
+	 * @param mode how to deal with existing entries, see {@link ParsingMode} docs.
+	 * @param notFoundAction how to deal with missing file
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(File file, Charset cs, Config dst, ParsingMode mode, FileNotFoundAction notFoundAction) {
+		parse(file.toPath(), cs, dst, mode, notFoundAction);
+	}
+
+	/**
+	 * Parses data and puts the result in an existing configuration.
+	 *
+	 * @param file data source, <b>UTF-8 encoded</b>
+	 * @param dst existing config
+	 * @param mode how to deal with existing entries, see {@link ParsingMode} docs.
+	 * @param notFoundAction how to deal with missing file
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(File file, Config dst, ParsingMode mode, FileNotFoundAction notFoundAction) {
+		parse(file.toPath(), dst, mode, notFoundAction);
+	}
+
+	/**
+	 * Downloads data, parses it and puts the results in an existing configuration.
+	 * The text encoding is set by a parameter, server's information is ignored.
+	 *
+	 * @param url data url
+	 * @param cs data encoding
+	 * @param dst existing config
+	 * @param mode how to deal with existing entries, see {@link ParsingMode} docs.
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(URL url, Charset cs, Config dst, ParsingMode mode) {
+		IOUtils.useURL(url, cs, URLConnection::getInputStream, (inputStream, charset) -> {
+			parse(inputStream, charset, dst, mode);
+			return null;
+		}, ParsingException::new);
+	}
+
+	/**
+	 * Downloads data, parses it and puts the result in an existing configuration.
+	 * The text encoding is selected according to the server's information.
+	 * If the server doesn't specify an encoding, UTF-8 is used.
+	 *
+	 * @param url data url
+	 * @param dst existing config
+	 * @param mode how to deal with existing entries, see {@link ParsingMode} docs.
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(URL url, Config dst, ParsingMode mode) {
+		parse(url, null, dst, mode);
 	}
 }
