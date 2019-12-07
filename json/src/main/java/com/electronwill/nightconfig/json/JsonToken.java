@@ -1,0 +1,21 @@
+package com.electronwill.nightconfig.json;
+
+public enum JsonToken {
+	OBJECT_START,
+	OBJECT_END,
+
+	ARRAY_START,
+	ARRAY_END,
+
+	KV_SEPARATOR,
+	ELEMENT_SEPARATOR,
+
+	VALUE_STRING,
+	VALUE_INTEGER,
+	VALUE_FLOATING,
+	VALUE_TRUE,
+	VALUE_FALSE,
+	VALUE_NULL,
+
+	END_OF_DATA
+}

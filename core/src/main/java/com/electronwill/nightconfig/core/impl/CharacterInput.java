@@ -34,113 +34,151 @@ public interface CharacterInput {
 	/**
 	 * Reads at most n characters.
 	 *
-	 * @param n the number of characters to parse
-	 * @return an array containing at most n characters, not null
+	 * @param n how many characters to read
+	 * @return a Charray containing at most n characters, not null
 	 */
 	Charray readAtMost(int n);
 
 	/**
-	 * Returns the next n characters. If there isn't enough available data, throws an exception.
+	 * Reads exactly n characters. If there isn't enough available data, throws an exception.
 	 *
-	 * @param n the number of characters to parse
-	 * @return an array containing the next n characters, not null
-	 *
+	 * @param n how many characters to read
+	 * @return a Charray containing the next n characters, not null
 	 * @throws ParsingException if there is no more available data
 	 */
 	Charray readExactly(int n);
 
-	/**
-	 * Reads until a character that is not in {@code toSkip} is found.
-	 *
-	 * @param toSkip the characters to skip
-	 * @return the next character that is not in {@code toSkip}, -1 if there is no more data
-	 */
-	default int readSkipping(Charray toSkip) {
+	default int skip(int a) {
 		int c;
-		do {
-			c = read();
-		} while (toSkip.contains((char)c));
+		while ((c = read()) == a);
 		return c;
 	}
 
-	/**
-	 * Reads the next characters, skipping spaces and tabs.
-	 * @return the next character that is not a space nor a tab, -1 if there is no more data
-	 */
-	default int readNonSpace() {
+	default int skipAny(int a, int b) {
 		int c;
-		do {
-			c = read();
-		} while (c == ' ' || c == '\t');
+		do { c = read(); } while (c == a || c == b);
 		return c;
 	}
 
-	/**
-	 * Reads the next "solid" character, ie the next char {@code ch > '\u005Cu0020'}.
-	 * This excludes (among others), {@code ' ', '\t', '\r', '\n'}.
-	 *
-	 * @return the next character, -1 if there is no more data
-	 */
-	default int readSolid() {
+	default int skipAny(Charray chars) {
 		int c;
-		do {
-			c = read();
-		} while (c <= ' ');
+		while (chars.contains((char)(c = read())));
 		return c;
 	}
 
-	/**
-	 * Reads until a character in {@code stop} is encountered.
-	 *
-	 * @param stop the characters to stop at
-	 * @return a Charray containing all the characters read before the stop, excluding it.
-	 */
-	default Charray readUntil(Charray stop) {
-		return readUntil(stop, Charray.DEFAULT_CAPACITY);
+	default int skipRange(int min, int max) {
+		int c;
+		while ((c = read()) >= min && c <= max);
+		return c;
 	}
 
-	/**
-	 * Reads until a character in {@code stop} is encountered.
-	 *
-	 * @param stop the characters to stop at
-	 * @param sizeHint hint for the size of the Charray
-	 * @return a Charray containing all the characters read before the stop, excluding it.
-	 */
-	default Charray readUntil(Charray stop, int sizeHint) {
-		Charray builder = new Charray(sizeHint);
+	default int skipNotRange(int min, int max) {
+		int c;
+		while ((c = read()) < min || c > max);
+		return c;
+	}
+
+	default int skipWhitespace() {
+		return skipRange(0, ' ');
+	}
+
+	default Charray readWhileRange(int min, int max) {
+		Charray dst = new Charray();
+		readWhileRange(min, max, dst);
+		return dst;
+	}
+
+	default void readWhileRange(int min, int max, Charray dst) {
 		int c;
 		while ((c = read()) != -1) {
-			char ch = (char)c;
-			if (stop.contains(ch)) {
-				pushBack(ch);
-				break;
+			if (c < min || c > max) {
+				pushBack((char)c);
+				return;
 			} else {
-				builder.append(ch);
+				dst.append((char)c);
 			}
 		}
-		return builder;
+	}
+
+	default Charray readWhileAny(Charray chars) {
+		Charray dst = new Charray();
+		reawWhileAny(chars, dst);
+		return dst;
+	}
+
+	default void reawWhileAny(Charray chars, Charray dst) {
+		int c;
+		while (chars.contains((char)(c = read())))
+			dst.append((char)c);
+	}
+
+	default Charray readUntilAny(Charray chars) {
+		Charray dst = new Charray();
+		readUntilAny(chars, dst);
+		return dst;
+	}
+	default void readUntilAny(Charray chars, Charray dst) {
+		int c;
+		while ((c = read()) != -1 && !chars.contains((char)c))
+			dst.append((char)c);
+	}
+
+	default Charray readUntilRange(char min, char max) {
+		Charray dst = new Charray();
+		readUntilRange(min, max, dst);
+		return dst;
+	}
+
+	default void readUntilRange(int min, int max, Charray dst) {
+		int c;
+		while ((c = read()) != -1) {
+			if (c < min || c > max) {
+				dst.append((char)c);
+			} else {
+				pushBack((char)c);
+				return;
+			}
+		}
 	}
 
 	/**
 	 * Returns the next character, without moving the reading position forward. After a call to
 	 * {@code peek()}, the method {@link #read()} will return the exact same character.
 	 * <p>
-	 * This method behaves exactly like {@code peek(0)}
+	 * This method behaves exactly like {@code #peekAfter(0)}
 	 *
 	 * @return the next character, or -1 if there is no more available data
+	 * @see #peekAfter(int)
 	 */
 	default int peek() {
-		return peek(0);
+		return peekAfter(0);
 	}
 
 	/**
 	 * Returns the next (n+1)th character, without moving the reading position forward.
-	 * The next character is given by peek(0), the one after it by peel(1), and so on.
+	 * The next character is given by {@code peek(0)} (or just {@code peek()}, the one just after
+	 * it by {@code peek(1)}, and so on.
 	 *
 	 * @param n the position to peek
 	 * @return the next (n+1)th character, or -1 if there is no such character
 	 */
-	int peek(int n);
+	int peekAfter(int n);
+
+	/**
+	 * Returns the next n characters, without moving the reading position forward. After a call to
+	 * {@code peekExactly(n)}, the method {@code #readExactly(n)} will return the same characters.
+	 *
+	 * @param n how many characters to read
+	 */
+	Charray peekExactly(int n);
+
+	/**
+	 * Returns the next characters, at most n, without moving the reading position forward. After
+	 * a call to {@code peekAtMost(n)}, {@code #readAtMost(n)} will return the same characters.
+	 *
+	 * @param n how many characters to read
+	 */
+	Charray peekAtMost(int n);
 
 	/**
 	 * Skips all the characters that have been peeked and not read yet.

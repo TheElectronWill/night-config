@@ -73,7 +73,7 @@ public abstract class AbstractInput implements CharacterInput {
 	}
 
 	@Override
-	public int peek(int n) {
+	public int peekAfter(int n) {
 		final int toRead = n - deque.size();
 		if (toRead >= 0) {
 			for (int i = 0; i <= toRead; i++) {
@@ -86,6 +86,20 @@ public abstract class AbstractInput implements CharacterInput {
 			}
 		}
 		return deque.get(n);
+	}
+
+	@Override
+	public Charray peekExactly(int n) {
+		Charray read = readExactly(n);
+		deque.addFirst(read);
+		return read;
+	}
+
+	@Override
+	public Charray peekAtMost(int n) {
+		Charray read = readAtMost(n);
+		deque.addFirst(read);
+		return read;
 	}
 
 	@Override

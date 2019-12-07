@@ -178,15 +178,18 @@ final class CharDeque {
 		}
 	}
 
-	/**
-	 * Increases the deque's capacity.
-	 */
+	/** Doubles the deque's capacity */
 	private void grow() {
-		final int newSize = data.length << 1;// double the size
-		if (newSize < 0) {// overflow!
+		grow(data.length << 1);
+	}
+
+
+	/** Sets the deque's capacity. <b>cap must be a power of two!</b> */
+	private void grow(int cap) {
+		if (cap < 0) {// overflow!
 			throw new IllegalStateException("Charray too big");
 		}
-		final char[] newData = new char[newSize];
+		final char[] newData = new char[cap];
 		final int lenght1 = data.length - head;// length of the part from the head to the end of the array
 		System.arraycopy(data, head, newData, 0, lenght1);// head to end
 		System.arraycopy(data, 0, newData, lenght1, tail);// start to tail
@@ -210,6 +213,17 @@ final class CharDeque {
 		}
 	}
 
+	public void addFirst(Charray chars) {
+		final int len = chars.length();
+		if (data.length <= len) {
+			grow(nextPowerOfTwo(len+1)); // +1 (and <= len) because the array is never kept full
+		}
+		for (int i = chars.offset; i < chars.limit; i++) {
+			head = (head - 1) & mask;
+			data[head] = chars.get(i);
+		}
+	}
+
 	/**
 	 * Inserts an element at the tail of this deque. The deque increases its capacity if necessary.
 	 *
@@ -220,6 +234,17 @@ final class CharDeque {
 		tail = (tail + 1) & mask;
 		if (tail == head) {// deque full
 			grow();
+		}
+	}
+
+	public void addLast(Charray chars) {
+		final int len = chars.length();
+		if (data.length <= len) {
+			grow(nextPowerOfTwo(len+1)); // +1 (and <= len) because the array is never kept full
+		}
+		for (int i = chars.offset; i < chars.limit; i++) {
+			data[tail] = chars.get(i);
+			tail = (tail + 1) & mask;
 		}
 	}
 

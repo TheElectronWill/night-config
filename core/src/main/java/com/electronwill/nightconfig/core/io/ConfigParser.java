@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.utils.FastStringReader;
 
@@ -19,8 +18,6 @@ import java.nio.file.Path;
  * @author TheElectronWill
  */
 public interface ConfigParser {
-	ConfigFormat getFormat();
-
 	/**
 	 * Parses a configuration.
 	 *
