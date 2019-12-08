@@ -14,7 +14,7 @@ public abstract class AbstractInput implements CharacterInput {
 	/**
 	 * Tracks the current position.
 	 */
-	protected int currentLine = 1, currentColumn = 1;
+	protected int currentLine = 1, currentColumn = 0, previousLastColumn = -1;
 
 	/**
 	 * Tries to parse the next character without taking care of the peek deque.
@@ -36,7 +36,8 @@ public abstract class AbstractInput implements CharacterInput {
 	private void updatePosition(char read) {
 		if (read == '\n') {
 			currentLine += 1;
-			currentColumn = 1;
+			previousLastColumn = currentColumn;
+			currentColumn = 0;
 		} else {
 			currentColumn += 1;
 		}
@@ -45,7 +46,8 @@ public abstract class AbstractInput implements CharacterInput {
 	private void rollbackPosition(char pushedBack) {
 		if (pushedBack == '\n') {
 			currentLine -= 1;
-			currentColumn = 1; // ???
+			currentColumn = previousLastColumn;
+			previousLastColumn = -1;
 		} else {
 			currentColumn -= 1;
 		}
