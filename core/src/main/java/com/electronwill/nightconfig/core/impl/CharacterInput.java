@@ -44,42 +44,66 @@ public interface CharacterInput {
 	 *
 	 * @param n how many characters to read
 	 * @return a Charray containing the next n characters, not null
-	 * @throws ParsingException if there is no more available data
+	 * @throws ParsingException if there is less than n chars available
 	 */
 	Charray readExactly(int n);
 
-	default int skip(int a) {
+	/**
+	 * Skips at most n characters.
+	 *
+	 * @param n how many chars to skip
+	 * @return the actual number of chars to skip
+	 */
+	default int skipAtMost(int n) {
+		int i = 0;
+		while (i < n && read() != -1) { i++; }
+		return i;
+	}
+
+	/**
+	 * Skips exactly n characters. If there isn't enough availble data, throws an exception.
+	 *
+	 * @param n how many chars to skip
+	 * @throws ParsingException if there is less than n chars available
+	 */
+	default void skipExactly(int n) {
+		int actual = skipAtMost(n);
+		if (actual != n)
+			throw ParsingException.notEnoughData();
+	}
+
+	default int skipWhile(int a) {
 		int c;
 		while ((c = read()) == a);
 		return c;
 	}
 
-	default int skipAny(int a, int b) {
+	default int skipWhileAny(int a, int b) {
 		int c;
 		do { c = read(); } while (c == a || c == b);
 		return c;
 	}
 
-	default int skipAny(Charray chars) {
+	default int skipWhileAny(Charray chars) {
 		int c;
 		while (chars.contains((char)(c = read())));
 		return c;
 	}
 
-	default int skipRange(int min, int max) {
+	default int skipWhileRange(int min, int max) {
 		int c;
 		while ((c = read()) >= min && c <= max);
 		return c;
 	}
 
-	default int skipNotRange(int min, int max) {
+	default int skipUntilRange(int min, int max) {
 		int c;
 		while ((c = read()) < min || c > max);
 		return c;
 	}
 
-	default int skipWhitespace() {
-		return skipRange(0, ' ');
+	default int skipWhitespaces() {
+		return skipWhileRange(0, ' ');
 	}
 
 	default Charray readWhileRange(int min, int max) {
@@ -123,7 +147,7 @@ public interface CharacterInput {
 			dst.append((char)c);
 	}
 
-	default Charray readUntilRange(char min, char max) {
+	default Charray readUntilRange(int min, int max) {
 		Charray dst = new Charray();
 		readUntilRange(min, max, dst);
 		return dst;

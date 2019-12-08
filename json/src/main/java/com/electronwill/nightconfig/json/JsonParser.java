@@ -23,6 +23,10 @@ import static com.electronwill.nightconfig.json.JsonToken.*;
 public final class JsonParser implements ConfigParser {
 	private final boolean allowEmptyDoc;
 
+	public JsonParser() {
+		this(false);
+	}
+
 	public JsonParser(boolean alllowEmptyDoc) {
 		this.allowEmptyDoc = alllowEmptyDoc;
 	}

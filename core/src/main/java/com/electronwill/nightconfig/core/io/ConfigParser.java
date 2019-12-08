@@ -6,7 +6,7 @@ import com.electronwill.nightconfig.core.MemoryConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.impl.CharacterInput;
 import com.electronwill.nightconfig.core.impl.ReaderInput;
-import com.electronwill.nightconfig.core.utils.FastStringReader;
+import com.electronwill.nightconfig.core.impl.FastStringReader;
 
 import java.io.*;
 import java.net.URL;

@@ -17,6 +17,7 @@ public final class Charray implements CharSequence, Cloneable, Appendable {
 	char[] chars;
 	int offset, limit;
 
+	/** Creates a new empty Charrayof default capacity. */
 	public Charray() {
 		this(DEFAULT_CAPACITY);
 	}
@@ -466,6 +467,17 @@ public final class Charray implements CharSequence, Cloneable, Appendable {
 			limit--;
 		}
 		return new Charray(chars, offset, limit);
+	}
+
+	/**
+	 * Creates a new input backed by this Charray. The Charray is not modified by the use of the
+	 * input, so this method may be called multiple times. If the Charray is modified then the
+	 * input reflects these modifications.
+	 *
+	 * @return a new input that returns the characters of this charray
+	 */
+	public CharacterInput asInput() {
+		return new ArrayInput(this);
 	}
 
 	@Override

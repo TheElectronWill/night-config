@@ -1,10 +1,8 @@
-package com.electronwill.nightconfig.core.io;
+package com.electronwill.nightconfig.core.impl;
 
-import com.electronwill.nightconfig.core.impl.Charray;
-import com.electronwill.nightconfig.core.impl.Utils;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class UtilsTest {
 

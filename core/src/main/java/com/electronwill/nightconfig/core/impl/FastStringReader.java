@@ -1,6 +1,8 @@
-package com.electronwill.nightconfig.core.utils;
+package com.electronwill.nightconfig.core.impl;
 
+import java.io.IOException;
 import java.io.Reader;
+import java.nio.CharBuffer;
 import java.util.Objects;
 
 /**
@@ -15,7 +17,7 @@ public final class FastStringReader extends Reader {
 
 	public FastStringReader(String str, int lim) {
 		if (lim > str.length() || lim < 0) {
-			throw new IllegalArgumentException("Invalid limit " + lim + ": must be >= 0 and < str.length()");
+			throw new IllegalArgumentException("Invalid limit " + lim + ". It should be >= 0 and < str.length()");
 		}
 		this.str = Objects.requireNonNull(str, "The string must not be null.");
 		this.lim = lim;
@@ -32,6 +34,11 @@ public final class FastStringReader extends Reader {
 	}
 
 	@Override
+	public int read(char[] cbuf) {
+		return read(cbuf, 0, cbuf.length);
+	}
+
+	@Override
 	public int read(char[] cbuf, int off, int len) {
 		if (cursor == lim) {
 			return -1;
@@ -40,6 +47,17 @@ public final class FastStringReader extends Reader {
 		int srcEnd = cursor + len;
 		str.getChars(cursor, srcEnd, cbuf, off);
 		cursor = srcEnd;
+		return len;
+	}
+
+	@Override
+	public int read(CharBuffer buff) {
+		if (cursor == lim) {
+			return -1;
+		}
+		int len = Math.min(buff.remaining(), lim - cursor);
+		int srcEnd = cursor + len;
+		buff.put(str, cursor, srcEnd);
 		return len;
 	}
 
@@ -55,9 +73,13 @@ public final class FastStringReader extends Reader {
 		return true;
 	}
 
+	public void mark() {
+		mark = cursor;
+	}
+
 	@Override
 	public void mark(int readAheadLimit) {
-		mark = cursor;
+		mark();
 	}
 
 	@Override

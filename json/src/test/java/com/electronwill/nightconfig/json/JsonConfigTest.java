@@ -7,7 +7,6 @@ import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.io.IndentStyle;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.WritingMode;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
@@ -129,7 +128,7 @@ public class JsonConfigTest {
 		assertEquals(0, f.length());
 
 		assertThrows(ParsingException.class, ()->new JsonParser().parse(""));
-		new JsonParser().setEmptyDataAccepted(true).parse("");
+		new JsonParser(true).parse("");
 	}
 
 	@Test
@@ -170,7 +169,8 @@ public class JsonConfigTest {
 		assertEquals("vb", a1.get("2.b"));
 		assertEquals(Integer.valueOf(17), a1.get("2.a"));
 
-		Config a2 = new JsonParser().parse("{\"a\":{\"b\":{ \"c\": {\"d\":{},\"e\":{    }} }}}");
+		Config a2 = new JsonParser(
+			allowEmptyDoc).parse("{\"a\":{\"b\":{ \"c\": {\"d\":{},\"e\":{    }} }}}");
 		assertTrue(a2.<Config>get("a.b.c.d").isEmpty());
 		assertTrue(a2.<Config>get("a.b.c.e").isEmpty());
 	}

@@ -28,7 +28,7 @@ public final class JsonTokenizer implements Tokenizer<JsonToken> {
 
 	@Override
 	public JsonToken next() {
-		int c = input.skipWhitespace();
+		int c = input.skipWhitespaces();
 		switch (c) {
 			case -1:
 				return END_OF_DATA;

@@ -4,6 +4,9 @@ public interface Tokenizer<Token> {
 	Token next();
 
 	CharSequence textValue();
+	default String stringValue() {
+		return textValue().toString();
+	}
 
 	int intValue();
 	long longValue();
