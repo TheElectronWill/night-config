@@ -25,14 +25,18 @@ final class TableWriter {
 
 	static void writeInline(UnmodifiableConfig config, CharacterOutput output, TomlWriter writer) {
 		output.write('{');
-		for (Map.Entry<String, Object> entry : config.valueMap().entrySet()) {
+		Iterator<Map.Entry<String, Object>> iterator = config.valueMap().entrySet().iterator();
+		while (iterator.hasNext()) {
+			final Map.Entry<String, Object> entry = iterator.next();
 			final String key = entry.getKey();
 			final Object value = entry.getValue();
 			// Comments aren't written in an inline table
 			writer.writeKey(key, output);
 			output.write(KEY_VALUE_SEPARATOR);
 			ValueWriter.write(value, output, writer);
-			output.write(INLINE_ENTRY_SEPARATOR);
+			if (iterator.hasNext()) {
+				output.write(INLINE_ENTRY_SEPARATOR);
+			}
 		}
 		output.write('}');
 	}
