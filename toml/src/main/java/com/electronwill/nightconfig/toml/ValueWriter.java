@@ -5,6 +5,7 @@ import com.electronwill.nightconfig.core.io.CharacterOutput;
 import com.electronwill.nightconfig.core.io.WritingException;
 
 import java.time.temporal.Temporal;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
@@ -29,8 +30,13 @@ final class ValueWriter {
 		} else if (value instanceof List) {
 			List<?> list = (List<?>)value;
 			if (!list.isEmpty() && list.get(0) instanceof Config) {// Array of tables
-				for (Object table : list) {
+				Iterator<?> iterator = list.iterator();
+				while (iterator.hasNext()) {
+					final Object table = iterator.next();
 					TableWriter.writeInline((Config)table, output, writer);
+					if (iterator.hasNext()) {
+						output.write(ArrayWriter.ELEMENT_SEPARATOR);
+					}
 				}
 			} else {// Normal array
 				ArrayWriter.write((List<?>)value, output, writer);
