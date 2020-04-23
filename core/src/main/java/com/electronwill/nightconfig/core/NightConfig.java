@@ -27,7 +27,7 @@ public final class NightConfig {
 	 */
 	public static boolean isInsertionOrderPreserved() {
 		String prop = System.getProperty("nightconfig.preserveInsertionOrder");
-		return (prop != null) && (prop.equals("true") || prop.equals("1"));
+		return (prop == null) || prop.equals("true") || prop.equals("1");
 	}
 
 	/**
