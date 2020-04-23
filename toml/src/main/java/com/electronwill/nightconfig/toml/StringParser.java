@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.impl.CharacterInput;
-import com.electronwill.nightconfig.core.impl.CharsWrapper;
+import com.electronwill.nightconfig.core.impl.Charray;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.impl.Utils;
 
@@ -17,7 +17,7 @@ final class StringParser {
 	 * method.
 	 */
 	static String parseBasic(CharacterInput input, TomlParser parser) {
-		CharsWrapper.Builder builder = parser.createBuilder();
+		Charray.Builder builder = parser.createBuilder();
 		boolean escape = false;
 		char c;
 		while ((c = input.readChar()) != '\"' || escape) {
@@ -48,9 +48,9 @@ final class StringParser {
 	 * before calling this method.
 	 */
 	static String parseMultiBasic(CharacterInput input, TomlParser parser) {
-		CharsWrapper.Builder builder = parser.createBuilder();
+		Charray.Builder builder = parser.createBuilder();
 		char c;
-		while ((c = input.readChar()) != '\"' || input.peek() != '\"' || input.peek(1) != '\"') {
+		while ((c = input.readChar()) != '\"' || input.peek() != '\"' || input.peekAfter(1) != '\"') {
 			if (c == '\\') {
 				final char next = input.readChar();
 				if (next == '\n'
@@ -77,9 +77,9 @@ final class StringParser {
 	 * before calling this method.
 	 */
 	static String parseMultiLiteral(CharacterInput input, TomlParser parser) {
-		CharsWrapper.Builder builder = parser.createBuilder();
+		Charray.Builder builder = parser.createBuilder();
 		char c;
-		while ((c = input.readChar()) != '\'' || input.peek() != '\'' || input.peek(1) != '\'') {
+		while ((c = input.readChar()) != '\'' || input.peek() != '\'' || input.peekAfter(1) != '\'') {
 			builder.append(c);
 		}
 		input.skipPeeks();// Don't include the closing quotes in the String
@@ -90,7 +90,7 @@ final class StringParser {
 	 * Builds a multiline string with the content of a Builder. Trims the first line break if it's
 	 * at the beginning of the string.
 	 */
-	private static String buildMultilineString(CharsWrapper.Builder builder) {
+	private static String buildMultilineString(Charray.Builder builder) {
 		if (builder.get(0) == '\n') {
 			return builder.toString(1);
 		}
@@ -121,10 +121,10 @@ final class StringParser {
 			case 't':
 				return '\t';
 			case 'u':
-				CharsWrapper chars = input.readChars(4);
+				Charray chars = input.readExactly(4);
 				return (char)Utils.parseInt(chars, 16);
 			case 'U':
-				chars = input.readChars(8);
+				chars = input.readExactly(8);
 				return (char)Utils.parseInt(chars, 16);
 			default:
 				throw new ParsingException("Invalid escapement: \\" + c);

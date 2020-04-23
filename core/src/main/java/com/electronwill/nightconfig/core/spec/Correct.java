@@ -6,7 +6,7 @@ public final class Correct<T> extends CorrectionResult<T> {
 	private Correct() {}
 
 	@Override
-	boolean isCorrect() {
+	public boolean isCorrect() {
 		return true;
 	}
 }

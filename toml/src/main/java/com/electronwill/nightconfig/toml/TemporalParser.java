@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.impl.CharsWrapper;
+import com.electronwill.nightconfig.core.impl.Charray;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.impl.Utils;
 import java.time.LocalDate;
@@ -29,7 +29,7 @@ final class TemporalParser {
 	 * @param chars the CharsWrapper to parse, <b>must be trimmed</b>
 	 * @return a Temporal value
 	 */
-	static Temporal parse(CharsWrapper chars) {
+	static Temporal parse(Charray chars) {
 		if (chars.get(2) == ':') {// LocalTime
 			return parseTime(chars);
 		}
@@ -42,40 +42,40 @@ final class TemporalParser {
 			throw new ParsingException(
 					"Invalid separator between date and time: '" + dateTimeSeparator + "'.");
 		}
-		CharsWrapper afterDate = chars.subView(11);
+		Charray afterDate = chars.sub(11);
 		int offsetIndicatorIndex = afterDate.indexOfFirst(OFFSET_INDICATORS);
 		if (offsetIndicatorIndex == -1) {// LocalDateTime
 			LocalTime time = parseTime(afterDate);
 			return LocalDateTime.of(date, time);
 		}
-		LocalTime time = parseTime(afterDate.subView(0, offsetIndicatorIndex));
-		ZoneOffset offset = ZoneOffset.of(afterDate.subView(offsetIndicatorIndex).toString());
+		LocalTime time = parseTime(afterDate.sub(0, offsetIndicatorIndex));
+		ZoneOffset offset = ZoneOffset.of(afterDate.sub(offsetIndicatorIndex).toString());
 		return OffsetDateTime.of(date, time, offset);// OffsetDateTime
 	}
 
-	private static LocalDate parseDate(CharsWrapper chars) {
-		CharsWrapper yearChars = chars.subView(0, 4);
-		CharsWrapper monthChars = chars.subView(5, 7);
-		CharsWrapper dayChars = chars.subView(8, 10);
+	private static LocalDate parseDate(Charray chars) {
+		Charray yearChars = chars.sub(0, 4);
+		Charray monthChars = chars.sub(5, 7);
+		Charray dayChars = chars.sub(8, 10);
 		int year = Utils.parseInt(yearChars, 10);
 		int month = Utils.parseInt(monthChars, 10);
 		int day = Utils.parseInt(dayChars, 10);
 		return LocalDate.of(year, month, day);
 	}
 
-	private static LocalTime parseTime(CharsWrapper chars) {
-		CharsWrapper hourChars = chars.subView(0, 2);
-		CharsWrapper minuteChars = chars.subView(3, 5);
-		CharsWrapper secondChars = chars.subView(6, 8);
+	private static LocalTime parseTime(Charray chars) {
+		Charray hourChars = chars.sub(0, 2);
+		Charray minuteChars = chars.sub(3, 5);
+		Charray secondChars = chars.sub(6, 8);
 		int hour = Utils.parseInt(hourChars, 10);
 		int minutes = Utils.parseInt(minuteChars, 10);
 		int seconds = Utils.parseInt(secondChars, 10);
 		int nanos;
 
 		if (chars.length() > 8) {
-			CharsWrapper fractionChars = new CharsWrapper(chars.subView(9));
+			Charray fractionChars = new Charray(chars.sub(9));
 			if (fractionChars.length() > 9) {
-				fractionChars = fractionChars.subView(0, 9);// truncates if too many digits
+				fractionChars = fractionChars.sub(0, 9);// truncates if too many digits
 			}
 			int value = Utils.parseInt(fractionChars, 10);
 			int coeff = (int)Math.pow(10, 9 - fractionChars.length());

@@ -480,6 +480,15 @@ public final class Charray implements CharSequence, Cloneable, Appendable {
 		return new ArrayInput(this);
 	}
 
+	/**
+	 * Creates a new output backed by this Charray. The output writes at the end of this Charray.
+	 *
+	 * @return a new output that appends text to this charray
+	 */
+	public CharacterOutput asOutput() {
+		return new CharrayWriter(this);
+	}
+
 	@Override
 	public String toString() {
 		return new String(chars, offset, length());

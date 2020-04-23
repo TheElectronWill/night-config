@@ -2,7 +2,7 @@ package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.impl.CharacterInput;
-import com.electronwill.nightconfig.core.impl.CharsWrapper;
+import com.electronwill.nightconfig.core.impl.Charray;
 import com.electronwill.nightconfig.core.io.ParsingException;
 
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ final class TableParser {
 	static <T extends CommentedConfig> T parseNormal(CharacterInput input, TomlParser parser,
 													 T config) {
 		while (true) {
-			List<CharsWrapper> commentsList = new ArrayList<>(2);
+			List<Charray> commentsList = new ArrayList<>(2);
 			int keyFirst = Toml.readUseful(input, commentsList);
 			if (keyFirst == -1 || keyFirst == '[') {
 				parser.setComment(commentsList);// Saves the comments that are above the next table
@@ -63,7 +63,7 @@ final class TableParser {
 				return config;
 			}
 			if (after == '#') {
-				CharsWrapper comment = Toml.readLine(input);
+				Charray comment = Toml.readLine(input);
 				commentsList.add(comment);
 			} else if (after != '\n' && after != '\r') {
 				throw new ParsingException("Invalid character '"
@@ -125,7 +125,7 @@ final class TableParser {
 				}
 				char after = Toml.readNonSpaceChar(input, false);
 				if (after == '#') {// Comment
-					CharsWrapper comment = Toml.readLine(input);
+					Charray comment = Toml.readLine(input);
 					parser.setComment(comment);
 				} else if (after != '\n' && after != '\r') {
 					throw new ParsingException(
@@ -163,10 +163,10 @@ final class TableParser {
 		} else if (firstChar == '\'') {
 			return StringParser.parseLiteral(input, parser);
 		} else {
-			CharsWrapper restOfKey = input.readCharsUntil(KEY_END);
-			String bareKey = new CharsWrapper.Builder(restOfKey.length() + 1).append(firstChar)
-																			 .append(restOfKey)
-																			 .toString();
+			Charray restOfKey = input.readCharsUntil(KEY_END);
+			String bareKey = new Charray.Builder(restOfKey.length() + 1).append(firstChar)
+																		.append(restOfKey)
+																		.toString();
 			// Checks that the bare key is conform to the specification
 			if (bareKey.isEmpty()) {
 				throw new ParsingException("Empty bare keys aren't allowed.");

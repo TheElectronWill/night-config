@@ -238,7 +238,7 @@ public class FileConfigBuilder {
 					);
 				}
 			}
-			fileConfig = new AutoreloadFileConfig<>(fileConfig);
+			fileConfig = new AutoreloadFileConfig(fileConfig);
 		}
 		if (autosave) {
 			return buildAutosave(fileConfig);
@@ -247,7 +247,7 @@ public class FileConfigBuilder {
 	}
 
 	protected FileConfig buildAutosave(FileConfig chain) {
-		return new AutosaveFileConfig<>(chain);
+		return new AutosaveFileConfig(chain);
 	}
 
 	protected FileConfig buildNormal(FileConfig chain) {

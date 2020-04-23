@@ -44,7 +44,7 @@ import static com.electronwill.nightconfig.core.utils.StringUtils.single;
  * <h1>Checking configurations</h1>
  * <p>
  * Use the "isCorrect" methods to check whether a configuration is correct or not. A configuration
- * is correct if and only if:*
+ * is correct if and only if:
  * <ol>
  * <li>Each entry defined in the spec is present in the config.
  * <li>Each entry in the config is defined in the spec.

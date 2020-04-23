@@ -15,11 +15,15 @@ public final class CharrayWriter extends Writer implements CharacterOutput {
 	private final Charray cha;
 
 	public CharrayWriter() {
-		this(Charray.DEFAULT_CAPACITY);
+		this(new Charray());
 	}
 
 	public CharrayWriter(int initialCapacity) {
-		this.cha = new Charray(new char[initialCapacity], 0, 0);
+		this(new Charray(initialCapacity));
+	}
+
+	public CharrayWriter(Charray cha) {
+		this.cha = cha;
 	}
 
 	/** @return the Charray that contains all the data written to this CharrayWriter. */

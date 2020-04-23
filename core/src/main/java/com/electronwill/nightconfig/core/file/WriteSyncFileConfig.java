@@ -58,7 +58,7 @@ final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> imple
 				throw new IllegalStateException("Cannot save a closed FileConfig");
 			}
 			currentlyWriting = true;
-			writer.write(config, nioPath, writingMode, charset);
+			writer.write(config, nioPath, charset, writingMode);
 			currentlyWriting = false;
 		}
 	}

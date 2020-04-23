@@ -4,7 +4,7 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.impl.CharacterInput;
-import com.electronwill.nightconfig.core.impl.CharsWrapper;
+import com.electronwill.nightconfig.core.impl.Charray;
 import com.electronwill.nightconfig.core.impl.ReaderInput;
 import com.electronwill.nightconfig.core.io.*;
 
@@ -204,8 +204,8 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 		return new ArrayList<>(initialListCapacity);
 	}
 
-	CharsWrapper.Builder createBuilder() {
-		return new CharsWrapper.Builder(initialStringBuilderCapacity);
+	Charray.Builder createBuilder() {
+		return new Charray.Builder(initialStringBuilderCapacity);
 	}
 
 	// --- Comment management ---
@@ -221,7 +221,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 		return comment;
 	}
 
-	void setComment(CharsWrapper comment) {
+	void setComment(Charray comment) {
 		if (comment != null) {
 			if (currentComment == null) {
 				currentComment = comment.toString();
@@ -231,10 +231,10 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 		}
 	}
 
-	void setComment(List<CharsWrapper> commentsList) {
-		CharsWrapper.Builder builder = new CharsWrapper.Builder(32);
+	void setComment(List<Charray> commentsList) {
+		Charray.Builder builder = new Charray.Builder(32);
 		if (!commentsList.isEmpty()) {
-			Iterator<CharsWrapper> it = commentsList.iterator();
+			Iterator<Charray> it = commentsList.iterator();
 			builder.append(it.next());
 			while (it.hasNext()) {
 				builder.append('\n');

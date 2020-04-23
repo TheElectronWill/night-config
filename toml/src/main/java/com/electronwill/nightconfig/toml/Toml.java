@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.impl.CharacterInput;
-import com.electronwill.nightconfig.core.impl.CharsWrapper;
+import com.electronwill.nightconfig.core.impl.Charray;
 import com.electronwill.nightconfig.core.impl.Utils;
 import java.util.List;
 
@@ -30,10 +30,10 @@ final class Toml {
 	/**
 	 * Returns the next "useful" character. Skips comments, spaces and newlines.
 	 */
-	static int readUseful(CharacterInput input, List<CharsWrapper> commentsList) {
+	static int readUseful(CharacterInput input, List<Charray> commentsList) {
 		int next = input.readSkipping(WHITESPACE_OR_NEWLINE);
 		while (next == '#') {
-			CharsWrapper comment = readLine(input);
+			Charray comment = readLine(input);
 			commentsList.add(comment);
 			next = input.readSkipping(WHITESPACE_OR_NEWLINE);
 		}
@@ -59,11 +59,11 @@ final class Toml {
 	/**
 	 * Reads all the characters before the next newline or the end of the data.
 	 */
-	static CharsWrapper readLine(CharacterInput input) {
-		CharsWrapper chars = input.readUntil(NEWLINE);
+	static Charray readLine(CharacterInput input) {
+		Charray chars = input.readUntil(NEWLINE);
 		int lastIndex = chars.length() - 1;
 		if (lastIndex >= 0 && chars.get(lastIndex) == '\r') {
-			return chars.subView(0, lastIndex);
+			return chars.sub(0, lastIndex);
 		}
 		return chars;
 	}
