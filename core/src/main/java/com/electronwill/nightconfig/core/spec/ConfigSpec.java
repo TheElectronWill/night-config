@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.core.spec;
 
 import com.electronwill.nightconfig.core.*;
-import com.electronwill.nightconfig.core.Config.AttributeEntry;
+import com.electronwill.nightconfig.core.Config.Attribute;
 import com.electronwill.nightconfig.core.Config.Entry;
 
 import java.util.ArrayDeque;
@@ -63,6 +63,7 @@ import static com.electronwill.nightconfig.core.utils.StringUtils.single;
  *
  * @author TheElectronWill
  */
+@SuppressWarnings("unchecked")
 public class ConfigSpec {
 	private final Config storage = new MemoryConfig();
 	private boolean removeUnspecEntries = true;
@@ -185,11 +186,11 @@ public class ConfigSpec {
 		}
 		// Second step: fix the incorrect entries and add the missing ones
 		for (Entry specEntry : spec.entries()) {
-			final String specKey = specEntry.key();
+			final String specKey = specEntry.getKey();
 			final Object specValue = specEntry.getValue();
 			final String[] localPath = single(specKey);
 			final String[] fullPath = pathStack.toArray(single(null)); // provision 1 slot
-			final EntryData actual = target.getData(localPath);
+			final Config.Entry actual = target.getEntry(localPath);
 
 			pathStack.addLast(specKey);
 			Config subTarget = null;
@@ -201,9 +202,9 @@ public class ConfigSpec {
 				subTarget = correctIncompatible(target, actual, listener, fullPath);
 			} else {
 				// Expected entry, let's check all its attributes (including its value)
-				Iterator<? extends AttributeEntry<?>> it = actual.attributes().iterator();
+				Iterator<? extends Attribute<?>> it = actual.attributes().iterator();
 				while (it.hasNext()) {
-					AttributeEntry<?> entry = it.next();
+					Attribute<?> entry = it.next();
 					correctAttribute(it, specEntry, entry, listener, fullPath, rmUnspecAttr);
 				}
 			}
@@ -220,7 +221,7 @@ public class ConfigSpec {
 		Iterator<? extends Entry> it = target.entries().iterator();
 		while (it.hasNext()) {
 			Entry entry = it.next();
-			if (!spec.contains(single(entry.key()))) {
+			if (!spec.contains(single(entry.getKey()))) {
 				it.remove();
 			}
 		}
@@ -249,7 +250,7 @@ public class ConfigSpec {
 	}
 
 	private static Config correctIncompatible(Config target,
-											  EntryData actual,
+											  Config.Entry actual,
 											  CorrectionListener l,
 											  String[] fullPath) {
 		Config subTarget = target.createSubConfig();
@@ -262,16 +263,16 @@ public class ConfigSpec {
 
 	private static <T> void correctAttribute(Iterator<?> it,
 											 Entry specEntry,
-											 AttributeEntry<T> entry,
+											 Attribute<T> entry,
 											 CorrectionListener l,
 											 String[] fullPath,
 											 boolean rmUnspecAttr) {
-		AttributeType<T> attribute = entry.attribute();
+		AttributeType<T> attribute = entry.getType();
 		ValueCorrecter<T> correcter = specEntry.get(correcter(attribute));
 		if (correcter != null) {
-			CorrectionResult<T> correction = correcter.correct(entry.get());
+			CorrectionResult<T> correction = correcter.correct(entry.getValue());
 			if (correction.isReplaced()) {
-				entry.set(correction.replacementValue());
+				entry.setValue(correction.replacementValue());
 			} else if (correction.isRemoved()) {
 				it.remove();
 			}

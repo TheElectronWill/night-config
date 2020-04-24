@@ -2,7 +2,6 @@ package com.electronwill.nightconfig.core.utils;
 
 import com.electronwill.nightconfig.core.AttributeType;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import com.electronwill.nightconfig.core.UnmodifiableEntryData;
 
 import java.util.Map;
 import java.util.Objects;
@@ -19,8 +18,8 @@ public abstract class UnmodifiableConfigWrapper<C extends UnmodifiableConfig>
 	}
 
 	@Override
-	public UnmodifiableEntryData getData(String[] path) {
-		return config.getData(path);
+	public UnmodifiableConfig.Entry getEntry(String[] path) {
+		return config.getEntry(path);
 	}
 
 	@Override
@@ -36,11 +35,6 @@ public abstract class UnmodifiableConfigWrapper<C extends UnmodifiableConfig>
 	@Override
 	public Map<String, Object> valueMap() {
 		return config.valueMap();
-	}
-
-	@Override
-	public Map<String, ? extends UnmodifiableEntryData> dataMap() {
-		return config.dataMap();
 	}
 
 	@Override

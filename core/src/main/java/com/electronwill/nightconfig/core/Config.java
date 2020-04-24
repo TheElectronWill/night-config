@@ -2,10 +2,9 @@ package com.electronwill.nightconfig.core;
 
 import com.electronwill.nightconfig.core.check.CheckedConfig;
 import com.electronwill.nightconfig.core.check.ConfigChecker;
+import com.electronwill.nightconfig.core.utils.MapSupplier;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.splitPath;
 
@@ -17,19 +16,59 @@ import static com.electronwill.nightconfig.core.utils.StringUtils.splitPath;
  */
 @SuppressWarnings("unchecked")
 public interface Config extends UnmodifiableConfig {
-	default EntryData getData(String path) {
-		return getData(splitPath(path));
-	}
+	// --- ABSTRACT METHODS ---
+	@Override
+	Entry getEntry(String[] path);
 
-	EntryData getData(String[] path);
+	@Override
+	Set<Entry> entries();
+
+	<T> T add(AttributeType<T> attribute, String[] path, T value);
+
+	<T> T set(AttributeType<T> attribute, String[] path, T value);
+
+	<T> T remove(AttributeType<T> attribute, String[] path);
+
+	/** Removes all entries from the config. */
+	void clear();
+
+	/** Removes all comments from the config. */
+	void clearComments();
+
+	/** Removes all non-value attributes from the config. */
+	void clearExtraAttributes();
+
+	/**
+	 * Returns a Map view of the config's values.
+	 * Any change to the map is reflected in the config and vice-versa.
+	 */
+	Map<String, Object> valueMap();
+
+	/**
+	 * Creates a new sub-configuration for a value of this config.
+	 * This method can be called (among others) by {@link #set(String, Object)}
+	 * and {@link #add(String, Object)}.
+	 * <p>
+	 * Sub-configurations must use the same {@link MapSupplier} as their parent.
+	 * Sub-configurations are usually of the exact same type as their parent, but this is not
+	 * strictly required.
+	 *
+	 * @return a new subconfig
+	 */
+	Config createSubConfig();
+
+	// --- DEFAULT METHODS ---
+	default Entry getEntry(String path) {
+		return getEntry(splitPath(path));
+	}
 
 	// --- SETTERS FOR VALUES ---
 	/**
-	 * Adds or modify a value.
+	 * Adds or modifies a value.
 	 *
-	 * @param path  the value's path, each part separated by a dot. Example "a.b.c"
+	 * @param path the value's path, each part separated by a dot. Example "a.b.c"
 	 * @param value the value to set
-	 * @param <T>   the type of the old value
+	 * @param <T> the type of the old value
 	 * @return the old value if any, or {@code null}
 	 */
 	default <T> T set(String path, Object value) {
@@ -37,7 +76,7 @@ public interface Config extends UnmodifiableConfig {
 	}
 
 	/**
-	 * Adds or modify a value.
+	 * Adds or modifies a value.
 	 *
 	 * @param path  the value's path, each element is a different part of the path.
 	 * @param value the value to set
@@ -126,30 +165,24 @@ public interface Config extends UnmodifiableConfig {
 		valueMap().keySet().removeAll(config.valueMap().keySet());
 	}
 
-	/** Removes all entries from the config. */
-	void clear();
+
 
 	// --- SETTERS FOR ATTRIBUTES ---
 	default <T> T set(AttributeType<T> attribute, String path, T value) {
 		return set(attribute, splitPath(path), value);
 	}
 
-	<T> T set(AttributeType<T> attribute, String[] path, T value);
 
 	default <T> T add(AttributeType<T> attribute, String path, T value) {
 		return add(attribute, splitPath(path), value);
 	}
 
-	<T> T add(AttributeType<T> attribute, String[] path, T value);
 
 	default <T> T remove(AttributeType<T> attribute, String path) {
 		return remove(attribute, splitPath(path));
 	}
 
-	<T> T remove(AttributeType<T> attribute, String[] path);
 
-	/** Removes all non-value attributes from the config. */
-	void clearAttributes();
 
 	// --- SETTERS FOR COMMENTS ---
 	/**
@@ -194,11 +227,6 @@ public interface Config extends UnmodifiableConfig {
 		return remove(StandardAttributes.COMMENT, path);
 	}
 
-	/**
-	 * Removes all the comments from the config.
-	 */
-	void clearComments();
-
 	// --- OTHER METHODS ---
 	/**
 	 * Returns an Unmodifiable view of the config. Any change to the original (modifiable) config
@@ -211,31 +239,74 @@ public interface Config extends UnmodifiableConfig {
 		return new CheckedConfig(this, ConfigChecker.freeze());
 	}
 
-	/**
-	 * Returns a Map view of the config's values. Any change to the map is reflected in the config
-	 * and vice-versa.
-	 */
-	Map<String, Object> valueMap();
-
-	Map<String, EntryData> dataMap();
-
-	@Override
-	Set<Entry> entries();
 
 	/**
 	 * A modifiable config entry.
 	 */
 	interface Entry extends UnmodifiableConfig.Entry {
+		@Override
+		Iterable<? extends Attribute<?>> attributes();
+
+		/** Removes all the attributes except the value. */
+		void clearExtraAttributes();
+
+		/** @return an instance of Map.Entry with the same key and value as this entry. */
+		<T> Map.Entry<String, T> toMapEntry();
+
+		/**
+		 * Adds a value if there is none.
+		 *
+		 * @param value the new value
+		 * @param <T> the type of the old value
+		 * @return the old value, if any
+		 */
+		<T> T addValue(Object value);
+
 		/**
 		 * Sets the entry's value.
 		 *
 		 * @param value the new value
-		 * @param <T>   the type of the old value
+		 * @param <T> the type of the old value
 		 * @return the old value, if any
 		 */
-		default <T> T setValue(Object value) {
-			return (T)set(StandardAttributes.VALUE, value);
-		}
+		<T> T setValue(Object value);
+
+		/**
+		 * Removes the entry's value but keep its other attributes.
+		 *
+		 * @param <T> the type of the old value
+		 * @return the old value, if any
+		 */
+		<T> T removeValue();
+
+		/**
+		 * Sets the value of an attribute.
+		 *
+		 * @param attribute the type of attribute
+		 * @param value the new value
+		 * @param <T> the type of value
+		 * @return the old value if any
+		 */
+		<T> T set(AttributeType<T> attribute, T value);
+
+		/**
+		 * Adds an attribute to this entry, if it has no attribute of the given type.
+		 *
+		 * @param attribute the type of attribute
+		 * @param value the new value
+		 * @param <T> the type of value
+		 * @return the old value if any
+		 */
+		<T> T add(AttributeType<T> attribute, T value);
+
+		/**
+		 * Removes an attribute from this entry.
+		 *
+		 * @param attribute the type of attribute
+		 * @param <T> the type of the old value
+		 * @return the old value if any
+		 */
+		<T> T remove(AttributeType<T> attribute);
 
 		/**
 		 * Sets the entry's comment.
@@ -246,30 +317,14 @@ public interface Config extends UnmodifiableConfig {
 		default String setComment(String comment) {
 			return set(StandardAttributes.COMMENT, comment);
 		}
+	}
 
+	interface Attribute<T> extends UnmodifiableConfig.Attribute<T> {
 		/**
-		 * Sets an entry's attribute.
-		 *
-		 * @param attribute the type of attribute
+		 * Sets the attribute's value and returns the old one.
 		 * @param value the new value
-		 * @param <T> the type of value
-		 * @return the old value if any
+		 * @return the old value (if any)
 		 */
-		<T> T set(AttributeType<T> attribute, T value);
-
-		@Override
-		Iterable<? extends AttributeEntry<?>> attributes();
+		T setValue(T value);
 	}
-
-	interface AttributeEntry<T> extends UnmodifiableConfig.AttributeEntry<T> {
-		void set(T value);
-	}
-
-	/**
-	 * Creates a new sub config of this config, as created when a subconfig's creation is
-	 * implied by {@link #set(String, Object)} or {@link #add(String, Object)}.
-	 *
-	 * @return a new sub config
-	 */
-	Config createSubConfig();
 }

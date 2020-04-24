@@ -15,10 +15,37 @@ import static com.electronwill.nightconfig.core.utils.StringUtils.splitPath;
  */
 @SuppressWarnings("unchecked")
 public interface UnmodifiableConfig {
-	UnmodifiableEntryData getData(String[] path);
+	// --- ABSTRACT METHODS ---
 
-	default UnmodifiableEntryData getData(String path) {
-		return getData(splitPath(path));
+	/** @return a config entry */
+	Entry getEntry(String[] path);
+
+	/** @return an iterable on the config's entries. */
+	Iterable<? extends Entry> entries();
+
+	/** @return the number of top-level entries in this config. */
+	int size();
+
+	/**
+	 * Returns a Map view of the config's values.
+	 * If the config is unmodifiable then the returned map is unmodifiable too.
+	 *
+	 * @return a Map view of the config's values.
+	 */
+	Map<String, Object> valueMap();
+
+	// --- ENTRIES GETTERS ---
+	/** @return a config entry */
+	default Entry getEntry(String path) {
+		return getEntry(splitPath(path));
+	}
+
+	default Optional<Entry> getOptionalEntry(String path) {
+		return getOptionalEntry(splitPath(path));
+	}
+
+	default Optional<Entry> getOptionalEntry(String[] path) {
+		return Optional.ofNullable(getEntry(path));
 	}
 
 	// --- GETTER FOR VALUES ---
@@ -41,7 +68,7 @@ public interface UnmodifiableConfig {
 	 * @return the value at the given path, or {@code null} if there is no such value.
 	 */
 	default <T> T get(String[] path) {
-		UnmodifiableEntryData data = getData(path);
+		Entry data = getEntry(path);
 		return data == null ? null : data.getValue();
 	}
 
@@ -125,8 +152,8 @@ public interface UnmodifiableConfig {
 	}
 
 	default <T> T get(AttributeType<T> attribute, String[] path) {
-		UnmodifiableEntryData data = getData(path);
-		return data == null ? null : data.get(attribute);
+		Entry entry = getEntry(path);
+		return entry == null ? null : entry.get(attribute);
 	}
 
 	default <T> Optional<T> getOptional(AttributeType<T> attribute, String path) {
@@ -134,7 +161,8 @@ public interface UnmodifiableConfig {
 	}
 
 	default <T> Optional<T> getOptional(AttributeType<T> attribute, String[] path) {
-		return Optional.ofNullable(get(attribute, path));
+		Entry entry = getEntry(path);
+		return entry == null ? Optional.empty() : entry.getOptional(attribute);
 	}
 
 	default <T> T getOrElse(AttributeType<T> attribute, String path, T defaultValue) {
@@ -143,7 +171,7 @@ public interface UnmodifiableConfig {
 
 	default <T> T getOrElse(AttributeType<T> attribute, String[] path, T defaultValue) {
 		T value = get(attribute, path);
-		return (value == null) ? defaultValue : value;
+		return value == null ? defaultValue : value;
 	}
 
 	default <T> T getOrElse(AttributeType<T> attribute, String path, Supplier<T> defaultValueSupplier) {
@@ -152,7 +180,7 @@ public interface UnmodifiableConfig {
 
 	default <T> T getOrElse(AttributeType<T> attribute, String[] path, Supplier<T> defaultValueSupplier) {
 		T value = get(attribute, path);
-		return (value == null) ? defaultValueSupplier.get() : value;
+		return value == null ? defaultValueSupplier.get() : value;
 	}
 
 	// --- GETTERS FOR COMMENTS ---
@@ -682,7 +710,9 @@ public interface UnmodifiableConfig {
 	 * @param path the path to check, each element is a different part of the path.
 	 * @return {@code true} if the path is associated with a value, {@code false} if it's not.
 	 */
-	boolean contains(String[] path);
+	default boolean contains(String[] path) {
+		return getEntry(path) != null;
+	}
 
 	/**
 	 * Checks if an attribute is present at some path.
@@ -700,7 +730,10 @@ public interface UnmodifiableConfig {
 	 * @param path the path to check, each element is a different part of the path.
 	 * @return {@code true} if the path is associated with a value, {@code false} if it's not.
 	 */
-	boolean has(AttributeType<?> attribute, String[] path);
+	default boolean has(AttributeType<?> attribute, String[] path) {
+		Entry entry = getEntry(path);
+		return entry != null && entry.has(attribute);
+	}
 
 	/**
 	 * Checks if the config contains a null value at some path.
@@ -721,23 +754,9 @@ public interface UnmodifiableConfig {
 	 * {@code false} if it's associated with another value or with no value.
 	 */
 	default boolean isNull(String[] path) {
-		return contains(path) && get(path) == null;
+		Entry entry = getEntry(path);
+		return entry != null || entry.getValue() == null;
 	}
-
-	/**
-	 * Returns a Map view of the config's values. If the config is unmodifiable then the returned
-	 * map is unmodifiable too.
-	 *
-	 * @return a Map view of the config's values.
-	 */
-	Map<String, Object> valueMap();
-
-	Map<String, ? extends UnmodifiableEntryData> dataMap();
-
-	Iterable<? extends Entry> entries();
-
-	/** @return the number of top-level entries in this config. */
-	int size();
 
 	default boolean isEmpty() {
 		return size() == 0;
@@ -751,22 +770,33 @@ public interface UnmodifiableConfig {
 	 * An unmodifiable config entry.
 	 */
 	interface Entry {
-		default String key() {
-			return getKey();
-		}
-
 		String getKey();
 
-		default <T> T getValue() {
-			return (T)get(StandardAttributes.VALUE);
-		}
+		// --- VALUE GETTERS ---
+		<T> T getValue();
 
-		default <T> Optional<T> getOptional() {
+		default <T> Optional<T> getOptionalValue() {
 			return Optional.ofNullable(getValue());
 		}
 
-		default <T> T getOrElse(T defaultValue) {
+		default <T> T getValueOrElse(T defaultValue) {
 			T value = getValue();
+			return value == null ? defaultValue : value;
+		}
+
+		// --- ATTRIBUTES ---
+		Iterable<? extends Attribute<?>> attributes();
+
+		boolean has(AttributeType<?> attribute);
+
+		<T> T get(AttributeType<T> attribute);
+
+		default <T> Optional<T> getOptional(AttributeType<T> attribute) {
+			return Optional.ofNullable(get(attribute));
+		}
+
+		default <T> T getOrElse(AttributeType<T> attribute, T defaultValue) {
+			T value = get(attribute);
 			return value == null ? defaultValue : value;
 		}
 
@@ -774,18 +804,11 @@ public interface UnmodifiableConfig {
 			return get(StandardAttributes.COMMENT);
 		}
 
-		<T> T get(AttributeType<T> attribute);
-
-		<T> Optional<T> getOptional(AttributeType<T> attribute);
-
-		default <T> T getOrElse(AttributeType<T> attribute, T defaultValue) {
-			T value = get(attribute);
-			return value == null ? defaultValue : value;
+		default Optional<String> getOptionalComment() {
+			return getOptional(StandardAttributes.COMMENT);
 		}
 
-		Iterable<? extends AttributeEntry<?>> attributes();
-
-		// --- Primitive getters ---
+		// --- PRIMITIVE GETTERS ---
 		/**
 		 * @return the entry's value as an int
 		 */
@@ -862,8 +885,8 @@ public interface UnmodifiableConfig {
 		}
 	}
 
-	interface AttributeEntry<T> {
-		AttributeType<T> attribute();
-		T get();
+	interface Attribute<T> {
+		AttributeType<T> getType();
+		T getValue();
 	}
 }
