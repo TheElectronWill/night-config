@@ -100,6 +100,56 @@ public final class StringUtils {
 	}
 
 	/**
+	 * Builds a string that represent a config path. Avoids ambiguities, for instance:
+	 * <ul>
+	 * <li>{@code ["a", "b", "c"]} gives the string {@code a.b.c}</li>
+	 * <li>{@code ["a.b", "\"b\",b", "c"]} gives the string {@code ["a.b", "\"b\",b", "c"]}</li>
+	 * </ul>
+	 */
+	public static String pathToString(String[] path) {
+		return pathToString(path, path.length);
+	}
+
+	/**
+	 * Builds a string that represent a config path. Avoids ambiguities, for instance:
+	 * <ul>
+	 * <li>{@code ["a", "b", "c"]} gives the string {@code a.b.c}</li>
+	 * <li>{@code ["a.b", "\"b\",b", "c"]} gives the string {@code ["a.b", "\"b\",b", "c"]}</li>
+	 * </ul>
+	 */
+	public static String pathToString(String[] path, int len) {
+		if (len <= 0) return "";
+		Charray builder = new Charray();
+		for (int i = 0; i < len-1; i++) {
+			String part = path[i];
+			if (part.indexOf('.') == -1) {
+				// Builds the compact path string if possible
+				builder.append(part).append('.');
+			} else {
+				// Fall back to array-like representation
+				return pathToArrayString(path, len, builder);
+			}
+		}
+		builder.append(path[len-1]);
+		return builder.toString();
+	}
+
+	private static String pathToArrayString(String[] path, int len, Charray builder) {
+		builder.clear();
+		builder.append('[');
+		for (int i = 0; i < len; i++) {
+			String part = path[i];
+			builder.append('\"');
+			builder.append(part.replace("\"", "\\\""));
+			builder.append('\"');
+			if (i < len-1) {
+				builder.append(", ");
+			}
+		}
+		builder.append(']');
+		return builder.toString();
+	}
+	/**
 	 * Joins an array of strings with dots.
 	 * This is the opposite of {@link #splitPath(String)}.
 	 *

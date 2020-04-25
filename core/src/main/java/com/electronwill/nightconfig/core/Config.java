@@ -29,6 +29,8 @@ public interface Config extends UnmodifiableConfig {
 
 	<T> T remove(AttributeType<T> attribute, String[] path);
 
+	<T> T remove(String[] path);
+
 	/** Removes all entries from the config. */
 	void clear();
 
@@ -143,17 +145,6 @@ public interface Config extends UnmodifiableConfig {
 	 */
 	default <T> T remove(String path) {
 		return remove(splitPath(path));
-	}
-
-	/**
-	 * Removes a value from the config.
-	 *
-	 * @param path the entry's path, each element is a different part of the path.
-	 * @param <T>  the type of the old value
-	 * @return the old value if any, or {@code null}
-	 */
-	default <T> T remove(String[] path) {
-		return (T)remove(StandardAttributes.VALUE, path);
 	}
 
 	/**

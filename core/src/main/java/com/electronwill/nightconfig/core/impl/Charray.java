@@ -17,7 +17,7 @@ public final class Charray implements CharSequence, Cloneable, Appendable {
 	char[] chars;
 	int offset, limit;
 
-	/** Creates a new empty Charrayof default capacity. */
+	/** Creates a new empty Charray of default capacity 64. */
 	public Charray() {
 		this(DEFAULT_CAPACITY);
 	}
@@ -528,5 +528,10 @@ public final class Charray implements CharSequence, Cloneable, Appendable {
 	@Override
 	public Charray clone() {
 		return new Charray(Arrays.copyOfRange(chars, offset, limit));
+	}
+
+	/** Clears this Charray, without resizing the underlying array. */
+	public void clear() {
+		limit = offset;
 	}
 }

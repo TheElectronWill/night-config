@@ -1,8 +1,8 @@
 package com.electronwill.nightconfig.core;
 
 import com.electronwill.nightconfig.core.utils.MapSupplier;
+import com.electronwill.nightconfig.core.utils.StringUtils;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
-import com.electronwill.nightconfig.core.utils.TransformingSet;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -18,7 +18,6 @@ import static com.electronwill.nightconfig.core.utils.StringUtils.single;
  */
 @SuppressWarnings("unchecked")
 public abstract class AbstractConfig implements Config, Cloneable {
-	protected static final int REQUIRE = 0, CREATE = 1, OPTIONAL = 2;
 
 	protected final Entry root; // stores the "global" attributes
 	protected final Map<String, Entry> storage;
@@ -30,55 +29,60 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		this.root = new Entry(null, this);
 	}
 
-	protected Entry findEntry(String[] path, int mode) {
-		return findEntry(path, path.length, mode);
+	protected Entry findEntry(String[] path, EntrySearchMode mode) {
+		if (path == null) return root;
+		Map<String, Entry> parent = findEntryParent(path, mode);
+		if (parent == null) return null;
+		String leafKey = path[path.length - 1];
+		return processLeaf(parent, leafKey, mode);
 	}
 
-	protected Entry findEntry(String[] path, int len, int mode) {
-		if (path == null || len <= 0) return root;
+	private Entry processLeaf(Map<String, Entry> parent, String key, EntrySearchMode mode) {
+		switch (mode) {
+			default: // GET
+				return parent.get(key);
+			case CREATE:
+				Entry leaf = parent.get(key);
+				if (leaf == null) {
+					leaf = new Entry(key, null);
+					parent.put(key, leaf);
+				}
+				return leaf;
+			case DELETE:
+				return parent.remove(key);
+		}
+	}
 
-		// Finds the map that contains the last entry of the path (the leaf)
+	/** Finds the map that contains (maybe) the last entry of the path. */
+	private Map<String, Entry> findEntryParent(String[] path, EntrySearchMode mode) {
 		Map<String, Entry> current = storage;
-		final int leafIdx = len-1;
-		for (int i = 0; i < leafIdx; i++) {
+		for (int i = 0; i < path.length-1 && current != null; i++) {
 			final String key = path[i];
-			Entry entry = current.get(key);
-			if (entry == null) {
-				if (mode == CREATE) {
-					// The entry doesn't exist, we can create it
-					AbstractConfig sub = createSubConfig();
-					entry = new Entry(key, sub);
-					current.put(key, entry);
-					current = sub.storage;
-				} else if (mode == OPTIONAL) {
-					return null;
-				} else {
-					throw new WrongPathException(path, len, i, null);
-				}
-			} else {
-				final Object v = entry.getValue();
-				if (v instanceof AbstractConfig) {
-					current = ((AbstractConfig)v).storage;
-				} else if (mode == OPTIONAL) {
-					return null;
-				} else {
-					// If the entry has a null or incompatible value, throw an error
-					throw new WrongPathException(path, len, i, NullObject.or(v));
-				}
+			current = getNextLevel(path, i, current, key, mode);
+		}
+		return current;
+	}
+
+	private Map<String, Entry> getNextLevel(String[] path, int i, Map<String, Entry> current, String key, EntrySearchMode mode) {
+		Entry entry = current.get(key);
+		if (entry == null) {
+			if (mode == EntrySearchMode.CREATE) {
+				AbstractConfig sub = createSubConfig();
+				entry = new Entry(key, sub);
+				current.put(key, entry);
+				return sub.storage;
+			}
+		} else {
+			Object value = entry.getValue();
+			if (value instanceof AbstractConfig) {
+				return ((AbstractConfig)value).storage;
+			} else if (mode == EntrySearchMode.CREATE) {
+				String p = StringUtils.pathToString(path);
+				String l = StringUtils.pathToString(path, i);
+				throw WrongPathException.incompatibleIntermediateLevel(p, l, value);
 			}
 		}
-		// Checks that the leaf is valid
-		String leafKey = path[leafIdx];
-		Entry leaf = current.get(leafKey);
-		if (leaf == null) {
-			if (mode == CREATE) {
-				leaf = new Entry(leafKey, null);
-				current.put(leafKey, leaf);
-			} else if (mode == REQUIRE) {
-				throw new WrongPathException(path, len, leafIdx, NullObject.instance());
-			}
-		}
-		return leaf;
+		return null;
 	}
 
 	@Override
@@ -103,49 +107,43 @@ public abstract class AbstractConfig implements Config, Cloneable {
 
 	@Override
 	public Config.Entry getEntry(String[] path) {
-		return findEntry(path, OPTIONAL);
+		return findEntry(path, EntrySearchMode.GET);
 	}
 
 	// --- VALUES ---
 
 	@Override
 	public <T> T set(String[] path, Object value) {
-		return findEntry(path, CREATE).setValue(value);
+		return findEntry(path, EntrySearchMode.CREATE).setValue(value);
 	}
 
 	@Override
 	public Object add(String[] path, Object value) {
-		return findEntry(path, CREATE).setValue(value);
+		return findEntry(path, EntrySearchMode.CREATE).addValue(value);
 	}
 
 	@Override
-	public <T> T get(String[] path) {
-		Entry entry = findEntry(path, OPTIONAL);
-		return entry == null ? null : entry.getValue();
+	public <T> T remove(String[] path) {
+		Entry prev = findEntry(path, EntrySearchMode.DELETE);
+		return prev == null ? null : prev.getValue();
 	}
 
 	// --- OTHER ATTRIBUTES ---
 
 	@Override
 	public <T> T set(AttributeType<T> attribute, String[] path, T value) {
-		return findEntry(path, CREATE).set(attribute, value);
+		return findEntry(path, EntrySearchMode.CREATE).set(attribute, value);
 	}
 
 	@Override
 	public <T> T add(AttributeType<T> attribute, String[] path, T value) {
-		return findEntry(path, CREATE).add(attribute, value);
+		return findEntry(path, EntrySearchMode.CREATE).add(attribute, value);
 	}
 
 	@Override
 	public <T> T remove(AttributeType<T> attribute, String[] path) {
-		Entry entry = findEntry(path, OPTIONAL);
+		Entry entry = findEntry(path, EntrySearchMode.GET);
 		return entry == null ? null : entry.remove(attribute);
-	}
-
-	@Override
-	public <T> T get(AttributeType<T> attribute, String[] path) {
-		Entry entry = findEntry(path, OPTIONAL);
-		return entry == null ? null : entry.get(attribute);
 	}
 
 	// --- VIEWS ---
@@ -160,29 +158,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 
 	@Override
 	public Set<Config.Entry> entries() {
-		Function<Map.Entry<String, Entry>, Config.Entry> read = Map.Entry::getValue;
-
-		Function<Config.Entry, Map.Entry<String, Entry>> write =
-			e -> new Entry(e.getKey(), e.getValue()).toMapEntry();
-
-		Function<Object, Map.Entry<String, Entry>> search = o -> {
-			if (o instanceof Map.Entry) {
-				Map.Entry<?,?> entry = (Map.Entry<?,?>)o;
-				Object key = entry.getKey();
-				Object val = entry.getValue();
-				if (val instanceof Entry) {
-					return (Map.Entry<String, Entry>)entry;
-				} else {
-					return new Entry(String.valueOf(key), val).toMapEntry();
-				}
-			} else if (o instanceof Entry) {
-				return ((Entry)o).toMapEntry();
-			} else {
-				return null;
-			}
-		};
-		Set<Map.Entry<String, Entry>> storageEntries = storage.entrySet();
-		return new TransformingSet<>(storageEntries, read, write, search);
+		return new EntrySet();
 	}
 
 	public abstract AbstractConfig createSubConfig();
@@ -404,7 +380,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		}
 	}
 
-	protected final class EntrySet implements Set<Entry> {
+	protected final class EntrySet implements Set<Config.Entry> {
 		@Override
 		public int size() {
 			return storage.size();
@@ -420,14 +396,15 @@ public abstract class AbstractConfig implements Config, Cloneable {
 			if (o instanceof Entry) {
 				Entry query = (Entry)o;
 				Entry data = storage.get(query.getKey());
-				return data != null && Objects.equals(data.getValue(), query.getValue());
+				return query.equals(data);
 			}
 			return false;
 		}
 
 		@Override
-		public Iterator<Entry> iterator() {
-			return storage.values().iterator();
+		public Iterator<Config.Entry> iterator() {
+			Iterator<Entry> it = storage.values().iterator();
+			return (Iterator)it; // it's a shame Iterator isn't covariant!
 		}
 
 		@Override
@@ -441,14 +418,14 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		}
 
 		@Override
-		public boolean add(Entry entry) {
+		public boolean add(Config.Entry entry) {
 			return AbstractConfig.this.add(single(entry.getKey()), entry.getValue()) == null;
 		}
 
 		@Override
 		public boolean remove(Object o) {
-			if (o instanceof Entry) {
-				Entry query = (Entry)o;
+			if (o instanceof Config.Entry) {
+				Config.Entry query = (Config.Entry)o;
 				return AbstractConfig.this.remove(single(query.getKey())) != null;
 			}
 			return false;
@@ -460,8 +437,12 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		}
 
 		@Override
-		public boolean addAll(Collection<? extends Entry> c) {
-			return storage.values().addAll(c);
+		public boolean addAll(Collection<? extends Config.Entry> c) {
+			boolean changed = false;
+			for (Config.Entry entry : c) {
+				changed = add(entry) || changed;
+			}
+			return changed;
 		}
 
 		@Override
@@ -478,5 +459,9 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		public void clear() {
 			AbstractConfig.this.clear();
 		}
+	}
+
+	protected static enum EntrySearchMode {
+		GET, CREATE, DELETE
 	}
 }
