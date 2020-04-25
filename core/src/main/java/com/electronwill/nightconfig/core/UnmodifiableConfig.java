@@ -17,7 +17,6 @@ import static com.electronwill.nightconfig.core.utils.StringUtils.splitPath;
 public interface UnmodifiableConfig {
 	// --- ABSTRACT METHODS ---
 
-	/** @return a config entry */
 	Entry getEntry(String[] path);
 
 	/** @return an iterable on the config's entries. */
@@ -34,7 +33,8 @@ public interface UnmodifiableConfig {
 	 */
 	Map<String, Object> valueMap();
 
-	// --- ENTRIES GETTERS ---
+	// --- ENTRY GETTERS ---
+
 	/** @return a config entry */
 	default Entry getEntry(String path) {
 		return getEntry(splitPath(path));
@@ -48,7 +48,8 @@ public interface UnmodifiableConfig {
 		return Optional.ofNullable(getEntry(path));
 	}
 
-	// --- GETTER FOR VALUES ---
+	// --- VALUES GETTERS ---
+
 	/**
 	 * Gets a value from the config.
 	 *
@@ -96,57 +97,8 @@ public interface UnmodifiableConfig {
 		return Optional.ofNullable(get(path));
 	}
 
-	/**
-	 * Gets a value from the config. If the value doesn't exist, returns the default value.
-	 *
-	 * @param path         the value's path, each part separated by a dot. Example "a.b.c"
-	 * @param defaultValue the default value to return if not found
-	 * @param <T>          the value's type
-	 * @return the value at the given path, or the default value if not found.
-	 */
-	default <T> T getOrElse(String path, T defaultValue) {
-		return getOrElse(splitPath(path), defaultValue);
-	}
+	// --- ATTRIBUTES GETTERS ---
 
-	/**
-	 * Gets a value from the config. If the value doesn't exist, returns the default value.
-	 *
-	 * @param path         the value's path, each element is a different part of the path.
-	 * @param defaultValue the default value to return if not found
-	 * @param <T>          the value's type
-	 * @return the value at the given path, or the default value if not found.
-	 */
-	default <T> T getOrElse(String[] path, T defaultValue) {
-		T value = get(path);
-		return (value == null || value == NULL_OBJECT) ? defaultValue : value;
-	}
-
-	/**
-	 * Gets a value from the config. If the value doesn't exist, returns the default value.
-	 *
-	 * @param path                 the value's path, each element is a different part of the path.
-	 * @param defaultValueSupplier the Supplier of the default value
-	 * @param <T>                  the value's type
-	 * @return the value at the given path, or the default value if not found.
-	 */
-	default <T> T getOrElse(String[] path, Supplier<T> defaultValueSupplier) {
-		T value = get(path);
-		return (value == null || value == NULL_OBJECT) ? defaultValueSupplier.get() : value;
-	}
-
-	/**
-	 * Gets a value from the config. If the value doesn't exist, returns the default value.
-	 *
-	 * @param path                 the value's path, each part separated by a dot. Example "a.b.c"
-	 * @param defaultValueSupplier the Supplier of the default value
-	 * @param <T>                  the value's type
-	 * @return the value at the given path, or the default value if not found.
-	 */
-	default <T> T getOrElse(String path, Supplier<T> defaultValueSupplier) {
-		return getOrElse(splitPath(path), defaultValueSupplier);
-	}
-
-	// --- GETTERS FOR ATTRIBUTES ---
 	default <T> T get(AttributeType<T> attribute, String path) {
 		return get(attribute, splitPath(path));
 	}
@@ -165,25 +117,8 @@ public interface UnmodifiableConfig {
 		return entry == null ? Optional.empty() : entry.getOptional(attribute);
 	}
 
-	default <T> T getOrElse(AttributeType<T> attribute, String path, T defaultValue) {
-		return getOrElse(attribute, splitPath(path), defaultValue);
-	}
+	// --- COMMENTS GETTERS ---
 
-	default <T> T getOrElse(AttributeType<T> attribute, String[] path, T defaultValue) {
-		T value = get(attribute, path);
-		return value == null ? defaultValue : value;
-	}
-
-	default <T> T getOrElse(AttributeType<T> attribute, String path, Supplier<T> defaultValueSupplier) {
-		return getOrElse(attribute, splitPath(path), defaultValueSupplier);
-	}
-
-	default <T> T getOrElse(AttributeType<T> attribute, String[] path, Supplier<T> defaultValueSupplier) {
-		T value = get(attribute, path);
-		return value == null ? defaultValueSupplier.get() : value;
-	}
-
-	// --- GETTERS FOR COMMENTS ---
 	/**
 	 * Gets a comment from the config.
 	 *
@@ -227,6 +162,7 @@ public interface UnmodifiableConfig {
 	}
 
 	// --- GETTERS FOR ENUM VALUES ---
+
 	/**
 	 * Gets an Enum value from the config. If the value doesn't exist, returns null.
 	 *
@@ -328,120 +264,8 @@ public interface UnmodifiableConfig {
 		return getOptionalEnum(path, enumType, EnumGetMethod.NAME_IGNORECASE);
 	}
 
-	/**
-	 * Gets an Enum value from the config. If the value doesn't exist, returns the default value.
-	 *
-	 * @param path         the value's path, each part separated by a dot. Example "a.b.c"
-	 * @param defaultValue the default value
-	 * @param method       the method to use when converting a non-enum value like a String or an int
-	 * @param <T>          the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
-	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
-	 *                                  the enum constants, with regards to the given method
-	 * @throws ClassCastException       if the config contains a value that cannot be converted to
-	 *                                  an enum constant, like a List
-	 */
-	default <T extends Enum<T>> T getEnumOrElse(String path, T defaultValue, EnumGetMethod method) {
-		return getEnumOrElse(splitPath(path), defaultValue, method);
-	}
+	// --- PRIMITIVE INT GETTERS ---
 
-	/**
-	 * Calls {@link #getEnumOrElse(String, Enum, EnumGetMethod)} with method
-	 * {@link EnumGetMethod#NAME_IGNORECASE}.
-	 */
-	default <T extends Enum<T>> T getEnumOrElse(String path, T defaultValue) {
-		return getEnumOrElse(path, defaultValue, EnumGetMethod.NAME_IGNORECASE);
-	}
-
-	/**
-	 * Gets an Enum value from the config. If the value doesn't exist, returns the default value.
-	 *
-	 * @param path         the value's path, each element is a different part of the path.
-	 * @param defaultValue the default value
-	 * @param method       the method to use when converting a non-enum value like a String or an int
-	 * @param <T>          the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
-	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
-	 *                                  the enum constants, with regards to the given method
-	 * @throws ClassCastException       if the config contains a value that cannot be converted to
-	 *                                  an enum constant, like a List
-	 */
-	default <T extends Enum<T>> T getEnumOrElse(String[] path, T defaultValue, EnumGetMethod method) {
-		T value = getEnum(path, defaultValue.getDeclaringClass(), method);
-		return (value == null) ? defaultValue : value;
-	}
-
-	/**
-	 * Calls {@link #getEnumOrElse(String[], Enum, EnumGetMethod)} with method
-	 * {@link EnumGetMethod#NAME_IGNORECASE}.
-	 */
-	default <T extends Enum<T>> T getEnumOrElse(String[] path, T defaultValue) {
-		return getEnumOrElse(path, defaultValue, EnumGetMethod.NAME_IGNORECASE);
-	}
-
-	/**
-	 * Gets an Enum value from the config. If the value doesn't exist, returns the default value.
-	 *
-	 * @param path                 the value's path, each element is a different part of the path.
-	 * @param defaultValueSupplier Supplier of the default value, only used if needed
-	 * @param method               the method to use when converting a non-enum value like a String or an int
-	 * @param <T>                  the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
-	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
-	 *                                  the enum constants, with regards to the given method
-	 * @throws ClassCastException       if the config contains a value that cannot be converted to
-	 *                                  an enum constant, like a List
-	 */
-	default <T extends Enum<T>> T getEnumOrElse(String path,
-												Class<T> enumType,
-												EnumGetMethod method,
-												Supplier<T> defaultValueSupplier) {
-		return getEnumOrElse(splitPath(path), enumType, method, defaultValueSupplier);
-	}
-
-	/**
-	 * Calls {@link #getEnumOrElse(String, Class, EnumGetMethod, Supplier)} with method
-	 * {@link EnumGetMethod#NAME_IGNORECASE}.
-	 */
-	default <T extends Enum<T>> T getEnumOrElse(String path,
-												Class<T> enumType,
-												Supplier<T> defaultValueSupplier) {
-		return getEnumOrElse(path, enumType, EnumGetMethod.NAME_IGNORECASE, defaultValueSupplier);
-	}
-
-	/**
-	 * Gets an Enum value from the config. If the value doesn't exist, returns the default value.
-	 *
-	 * @param path                 the value's path, each element is a different part of the path.
-	 * @param defaultValueSupplier Supplier of the default value, only used if needed
-	 * @param method               the method to use when converting a non-enum value like a String or an int
-	 * @param <T>                  the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
-	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
-	 *                                  the enum constants, with regards to the given method
-	 * @throws ClassCastException       if the config contains a value that cannot be converted to
-	 *                                  an enum constant, like a List
-	 */
-	default <T extends Enum<T>> T getEnumOrElse(String[] path,
-												Class<T> enumType,
-												EnumGetMethod method,
-												Supplier<T> defaultValueSupplier) {
-		// The enumType is needed to avoid using the Supplier when the raw value is an enum constant
-		T value = getEnum(path, enumType, method);
-		return (value == null) ? defaultValueSupplier.get() : value;
-	}
-
-	/**
-	 * Calls {@link #getEnumOrElse(String[], Class, EnumGetMethod, Supplier)} with method
-	 * {@link EnumGetMethod#NAME_IGNORECASE}.
-	 */
-	default <T extends Enum<T>> T getEnumOrElse(String[] path,
-												Class<T> enumType,
-												Supplier<T> defaultValueSupplier) {
-		return getEnumOrElse(path, enumType, EnumGetMethod.NAME_IGNORECASE, defaultValueSupplier);
-	}
-
-	// --- Primitive getters: int ---
 	/**
 	 * Like {@link #get(String)} but returns a primitive int. The config's value must be a
 	 * {@link Number}.
@@ -475,41 +299,7 @@ public interface UnmodifiableConfig {
 		return (n == null) ? OptionalInt.empty() : OptionalInt.of(n.intValue());
 	}
 
-	/**
-	 * Like {@link #getOrElse(String, Object)} but returns a primitive int.
-	 * The config's value must be a {@link Number} or null or nonexistant.
-	 */
-	default int getIntOrElse(String path, int defaultValue) {
-		return getIntOrElse(splitPath(path), defaultValue);
-	}
-
-	/**
-	 * Like {@link #getOrElse(String[], Object)} but returns a primitive int.
-	 * The config's value must be a {@link Number} or null or nonexistant.
-	 */
-	default int getIntOrElse(String[] path, int defaultValue) {
-		Number n = get(path);
-		return (n == null) ? defaultValue : n.intValue();
-	}
-
-	/**
-	 * Like {@link #getOrElse(String, Supplier)} but returns a primitive int.
-	 * The config's value must be a {@link Number} or null or nonexistant.
-	 */
-	default int getIntOrElse(String path, IntSupplier defaultValueSupplier) {
-		return getIntOrElse(splitPath(path), defaultValueSupplier);
-	}
-
-	/**
-	 * Like {@link #getOrElse(String[], Supplier)} but returns a primitive int.
-	 * The config's value must be a {@link Number} or null or nonexistant.
-	 */
-	default int getIntOrElse(String[] path, IntSupplier defaultValueSupplier) {
-		Number n = get(path);
-		return (n == null) ? defaultValueSupplier.getAsInt() : n.intValue();
-	}
-
-	// --- Primitive getters: long ---
+	// --- PRIMITIVE LONG GETTERS ---
 	/**
 	 * Like {@link #get(String)} but returns a primitive long. The config's value must be a
 	 * {@link Number}.
@@ -543,41 +333,8 @@ public interface UnmodifiableConfig {
 		return (n == null) ? OptionalLong.empty() : OptionalLong.of(n.longValue());
 	}
 
-	/**
-	 * Like {@link #getOrElse(String, Object)} but returns a primitive long.
-	 * The config's value must be a {@link Number} or null or nonexistant.
-	 */
-	default long getLongOrElse(String path, long defaultValue) {
-		return getLongOrElse(splitPath(path), defaultValue);
-	}
+	// --- PRIMITIVE BYTE GETTERS ---
 
-	/**
-	 * Like {@link #getOrElse(String[], Object)} but returns a primitive long.
-	 * The config's value must be a {@link Number} or null or nonexistant.
-	 */
-	default long getLongOrElse(String[] path, long defaultValue) {
-		Number n = get(path);
-		return (n == null) ? defaultValue : n.longValue();
-	}
-
-	/**
-	 * Like {@link #getOrElse(String, Supplier)} but returns a primitive long.
-	 * The config's value must be a {@link Number} or null or nonexistant.
-	 */
-	default long getLongOrElse(String path, LongSupplier defaultValueSupplier) {
-		return getLongOrElse(splitPath(path), defaultValueSupplier);
-	}
-
-	/**
-	 * Like {@link #getOrElse(String[], Supplier)} but returns a primitive long.
-	 * The config's value must be a {@link Number} or null or nonexistant.
-	 */
-	default long getLongOrElse(String[] path, LongSupplier defaultValueSupplier) {
-		Number n = get(path);
-		return (n == null) ? defaultValueSupplier.getAsLong() : n.longValue();
-	}
-
-	// --- Primitive getters: byte ---
 	default byte getByte(String path) {
 		return this.<Number>get(path).byteValue();
 	}
@@ -586,16 +343,8 @@ public interface UnmodifiableConfig {
 		return this.<Number>get(path).byteValue();
 	}
 
-	default byte getByteOrElse(String path, byte defaultValue) {
-		return getByteOrElse(splitPath(path), defaultValue);
-	}
+	// --- PRIMITIVE SHORT GETTERS ---
 
-	default byte getByteOrElse(String[] path, byte defaultValue) {
-		Number n = get(path);
-		return (n == null) ? defaultValue : n.byteValue();
-	}
-
-	// ---- Primitive getters: short ----
 	default short getShort(String path) {
 		return this.<Number>get(path).shortValue();
 	}
@@ -604,16 +353,7 @@ public interface UnmodifiableConfig {
 		return this.<Number>get(path).shortValue();
 	}
 
-	default short getShortOrElse(String path, short defaultValue) {
-		return getShortOrElse(splitPath(path), defaultValue);
-	}
-
-	default short getShortOrElse(String[] path, short defaultValue) {
-		Number n = get(path);
-		return (n == null) ? defaultValue : n.shortValue();
-	}
-
-	// ---- Primitive getters: char ----
+	// --- PRIMITIVE CHAR GETTERS ---
 
 	/**
 	 * Returns a char value from the configuration.
@@ -650,49 +390,7 @@ public interface UnmodifiableConfig {
 		}
 	}
 
-	/**
-	 * Returns a char value from the configuration.
-	 * <p>
-	 * If the value is nonexistant, returns defaultValue.
-	 * If the value is a Number, returns {@link Number#intValue()}, cast to char.
-	 * If the value is a CharSequence, returns its first character.
-	 * Otherwise, attempts to cast the value to a char.
-	 *
-	 * @param path the value's path
-	 * @param defaultValue the char to return if the value doesn't exist in the config
-	 * @return the value, as a single char
-	 */
-	default char getCharOrElse(String path, char defaultValue) {
-		return getCharOrElse(splitPath(path), defaultValue);
-	}
-
-	/**
-	 * Returns a char value from the configuration.
-	 * <p>
-	 * If the value is nonexistant, returns defaultValue.
-	 * If the value is a Number, returns {@link Number#intValue()}, cast to char.
-	 * If the value is a CharSequence, returns its first character.
-	 * Otherwise, attempts to cast the value to a char.
-	 *
-	 * @param path the value's path
-	 * @param defaultValue the char to return if the value doesn't exist in the config
-	 * @return the value, as a single char
-	 */
-	default char getCharOrElse(String[] path, char defaultValue) {
-		Object value = get(path);
-		if (value == null) {
-			return defaultValue;
-		} else if (value instanceof Number) {
-			return (char)((Number)value).intValue();
-		} else if (value instanceof CharSequence) {
-			return ((CharSequence)value).charAt(0);
-		} else {
-			return (char)value;
-		}
-	}
-
-	// ---- End of getters ----
-
+	// --- BOOLEAN QUERIES ---
 
 	/**
 	 * Checks if the config contains a value at some path.
@@ -755,7 +453,7 @@ public interface UnmodifiableConfig {
 	 */
 	default boolean isNull(String[] path) {
 		Entry entry = getEntry(path);
-		return entry != null || entry.getValue() == null;
+		return entry != null && entry.getValue() == null;
 	}
 
 	default boolean isEmpty() {
@@ -793,11 +491,6 @@ public interface UnmodifiableConfig {
 
 		default <T> Optional<T> getOptional(AttributeType<T> attribute) {
 			return Optional.ofNullable(get(attribute));
-		}
-
-		default <T> T getOrElse(AttributeType<T> attribute, T defaultValue) {
-			T value = get(attribute);
-			return value == null ? defaultValue : value;
 		}
 
 		default String getComment() {
