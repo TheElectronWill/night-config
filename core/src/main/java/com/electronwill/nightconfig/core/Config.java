@@ -4,7 +4,9 @@ import com.electronwill.nightconfig.core.check.CheckedConfig;
 import com.electronwill.nightconfig.core.check.ConfigChecker;
 import com.electronwill.nightconfig.core.utils.MapSupplier;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.splitPath;
 
@@ -14,37 +16,64 @@ import static com.electronwill.nightconfig.core.utils.StringUtils.splitPath;
  *
  * @author TheElectronWill
  */
-@SuppressWarnings("unchecked")
 public interface Config extends UnmodifiableConfig {
-	// --- ABSTRACT METHODS ---
+
+	// --- OVERRIDES ---
 	@Override
 	Entry getEntry(String[] path);
 
 	@Override
+	Entry getEntry(Iterable<String> path);
+
+	@Override
+	default Entry getEntry(String path) {
+		return getEntry(splitPath(path));
+	}
+
+	@Override
+	default Optional<? extends Entry> getOptionalEntry(String path) {
+		return Optional.empty();
+	}
+
+	@Override
+	default Optional<? extends Entry> getOptionalEntry(String[] path) {
+		return Optional.empty();
+	}
+
+	@Override
+	default Optional<? extends Entry> getOptionalEntry(Iterable<String> path) {
+		return Optional.empty();
+	}
+
+	/**
+	 * Returns a Set view of the config's entries.
+	 * Any change to the set is reflected in the config and vice-versa.
+	 *
+	 * @return a Set view of the (top-level) entries
+	 */
+	@Override
 	Set<Entry> entries();
-
-	<T> T add(AttributeType<T> attribute, String[] path, T value);
-
-	<T> T set(AttributeType<T> attribute, String[] path, T value);
-
-	<T> T remove(AttributeType<T> attribute, String[] path);
-
-	<T> T remove(String[] path);
-
-	/** Removes all entries from the config. */
-	void clear();
-
-	/** Removes all comments from the config. */
-	void clearComments();
-
-	/** Removes all non-value attributes from the config. */
-	void clearExtraAttributes();
 
 	/**
 	 * Returns a Map view of the config's values.
 	 * Any change to the map is reflected in the config and vice-versa.
+	 *
+	 * @return a Map view of the values
 	 */
+	@Override
 	Map<String, Object> valueMap();
+
+
+	// --- CONFIG OPERATIONS ---
+
+	/** Removes all entries from the config. */
+	void clear();
+
+	/** Removes all comments from the config entries. */
+	void clearComments();
+
+	/** Removes all non-value attributes from the config entries. */
+	void clearExtraAttributes();
 
 	/**
 	 * Creates a new sub-configuration for a value of this config.
@@ -59,170 +88,324 @@ public interface Config extends UnmodifiableConfig {
 	 */
 	Config createSubConfig();
 
-	// --- DEFAULT METHODS ---
-	default Entry getEntry(String path) {
-		return getEntry(splitPath(path));
+
+	// --- GROUPED OPERATIONS ---
+
+	/**
+	 * Adds all entries of another config to this one. No existing entry is replaced.
+	 *
+	 * @param config source config
+	 */
+	void addAll(UnmodifiableConfig config, Depth depth);
+
+	/**
+	 * Adds all entries of another config to this one.
+	 * New foreign entries replace old local entries.
+	 *
+	 * @param config source config
+	 */
+	void putAll(UnmodifiableConfig config, Depth depth);
+
+	/**
+	 * Removes all the entries of this config that exist in another config.
+	 *
+	 * @param config config to compare
+	 */
+	void removeAll(UnmodifiableConfig config, Depth depth);
+
+
+	// --- VALUES OPERATIONS ---
+
+	/**
+	 * If no entry exists at the given path, creates a new entry and every required intermediate
+	 * level (sub-configurations). If an entry exists but has a null value, replaces its value.
+	 * If an entry exists and has a non-null value, does nothing.
+	 *
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @param value value to add
+	 * @param <T> type of the previous value
+	 * @return the previous value, or {@code null} if there was no entry
+	 */
+	default <T> T add(String path, Object value) {
+		return add(splitPath(path), value);
 	}
 
-	// --- SETTERS FOR VALUES ---
 	/**
-	 * Adds or modifies a value.
+	 * If no entry exists at the given path, creates a new entry and every required intermediate
+	 * level (sub-configurations). If an entry exists but has a null value, replaces its value.
+	 * If an entry exists and has a non-null value, does nothing.
 	 *
-	 * @param path the value's path, each part separated by a dot. Example "a.b.c"
-	 * @param value the value to set
-	 * @param <T> the type of the old value
-	 * @return the old value if any, or {@code null}
+	 * @param path path to the entry
+	 * @param value value to add
+	 * @param <T> type of the previous value
+	 * @return the previous value, or {@code null} if there was no entry
+	 */
+	<T> T add(String[] path, Object value);
+
+	/**
+	 * If no entry exists at the given path, creates a new entry and every required intermediate
+	 * level (sub-configurations). If an entry exists but has a null value, replaces its value.
+	 * If an entry exists and has a non-null value, does nothing.
+	 *
+	 * @param path path to the entry
+	 * @param value value to add
+	 * @param <T> type of the previous value
+	 * @return the previous value, or {@code null} if there was no entry
+	 */
+	<T> T add(Iterable<String> path, Object value);
+
+	/**
+	 * If no entry exists at the given path, creates a new entry and every required intermediate
+	 * level (sub-configurations). If an entry exists, replaces its value.
+	 *
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @param value new value to set
+	 * @param <T> type of the previous value
+	 * @return the previous value, or {@code null} if there was no entry
 	 */
 	default <T> T set(String path, Object value) {
 		return set(splitPath(path), value);
 	}
 
 	/**
-	 * Adds or modifies a value.
+	 * If no entry exists at the given path, creates a new entry and every required intermediate
+	 * level (sub-configurations). If an entry exists, replaces its value.
 	 *
-	 * @param path  the value's path, each element is a different part of the path.
-	 * @param value the value to set
-	 * @param <T>   the type of the old value
-	 * @return the old value if any, or {@code null}
+	 * @param path path to the entry
+	 * @param value new value to set
+	 * @param <T> type of the previous value
+	 * @return the previous value, or {@code null} if there was no entry
 	 */
-	default <T> T set(String[] path, Object value) {
-		return (T)set(StandardAttributes.VALUE, path, value);
-	}
+	<T> T set(String[] path, Object value);
 
 	/**
-	 * Adds a value to the config. The value is set iff there is no value associated with the given path.
+	 * If no entry exists at the given path, creates a new entry and every required intermediate
+	 * level (sub-configurations). If an entry exists, replaces its value.
 	 *
-	 * @param path  the value's path, each part separated by a dot. Example "a.b.c"
-	 * @param value the value to set
-	 * @return the existing value if any, or {@code null}
+	 * @param path path to the entry
+	 * @param value new value to set
+	 * @param <T> type of the previous value
+	 * @return the previous value, or {@code null} if there was no entry
 	 */
-	default Object add(String path, Object value) {
-		return add(splitPath(path), value);
-	}
+	<T> T set(Iterable<String> path, Object value);
 
 	/**
-	 * Adds a value to the config. The value is set iff there is no value associated with the given path.
+	 * Removes an entry from the config and returns its value.
+	 * The whole entry is deleted, not just its value.
 	 *
-	 * @param path  the value's path, each element is a different part of the path.
-	 * @param value the value to set
-	 * @return the existing value if any, or {@code null}
-	 */
-	default Object add(String[] path, Object value) {
-		return add(StandardAttributes.VALUE, path, value);
-	}
-
-	/**
-	 * Copies a config's entries, without replacing existing entries.
-	 *
-	 * @param config the source config
-	 */
-	default void addAll(UnmodifiableConfig config) {
-		for (UnmodifiableConfig.Entry entry : config.entries()) {
-			String[] key = {entry.getKey()};
-			Object value = entry.getValue();
-			Object existingValue = add(key, value);
-			if (existingValue instanceof Config && value instanceof UnmodifiableConfig) {
-				((Config)existingValue).addAll((UnmodifiableConfig)value);
-			}
-		}
-	}
-
-	/**
-	 * Copies a config's entries, replacing any existing entries.
-	 *
-	 * @param config the source config
-	 */
-	default void putAll(UnmodifiableConfig config) {
-		valueMap().putAll(config.valueMap());
-	}
-
-	/**
-	 * Removes an entry from the config.
-	 *
-	 * @param path the entry's path, each part separated by a dot. Example "a.b.c"
-	 * @param <T>  the type of the old value
-	 * @return the old value if any, or {@code null}
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @param <T> type of the previous value
+	 * @return the previous value of the entry, or {@code null} if there was no entry
 	 */
 	default <T> T remove(String path) {
 		return remove(splitPath(path));
 	}
 
 	/**
-	 * Removes all the values of the given config from this config.
+	 * Removes an entry from the config and returns its value.
+	 * The whole entry is deleted, not just its value.
 	 *
-	 * @param config the values to remove
+	 * @param path path to the entry
+	 * @param <T> type of the previous value
+	 * @return the previous value of the entry, or {@code null} if there was no entry
 	 */
-	default void removeAll(UnmodifiableConfig config) {
-		valueMap().keySet().removeAll(config.valueMap().keySet());
-	}
+	<T> T remove(String[] path);
+
+	/**
+	 * Removes an entry from the config and returns its value. The whole entry is deleted.
+	 *
+	 * @param path path to the entry
+	 * @param <T> type of the previous value
+	 * @return the previous value of the entry, or {@code null} if there was no entry
+	 */
+	<T> T remove(Iterable<String> path);
 
 
+	// --- ATTRIBUTES OPERATIONS ---
 
-	// --- SETTERS FOR ATTRIBUTES ---
-	default <T> T set(AttributeType<T> attribute, String path, T value) {
-		return set(attribute, splitPath(path), value);
-	}
-
-
+	/**
+	 * If no entry exists at the given path, creates a new entry and every required intermediate
+	 * level (sub-configurations). If an entry exists but doesn't have the given attribute, adds it.
+	 * If an entry exists and has the given attribute, does nothing.
+	 *
+	 * @param attribute attribute to add
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @param value value to add
+	 * @param <T> type of the previous value
+	 * @return the previous value of the attribute, or {@code null} if there was none
+	 */
 	default <T> T add(AttributeType<T> attribute, String path, T value) {
 		return add(attribute, splitPath(path), value);
 	}
 
+	/**
+	 * If no entry exists at the given path, creates a new entry and every required intermediate
+	 * level (sub-configurations). If an entry exists but doesn't have the given attribute, adds it.
+	 * If an entry exists and has the given attribute, does nothing.
+	 *
+	 * @param attribute attribute to add
+	 * @param path path to the entry
+	 * @param value value to add
+	 * @param <T> type of the previous value
+	 * @return the previous value of the attribute, or {@code null} if there was none
+	 */
+	<T> T add(AttributeType<T> attribute, String[] path, T value);
 
+	/**
+	 * If no entry exists at the given path, creates a new entry and every required intermediate
+	 * level (sub-configurations). If an entry exists but doesn't have the given attribute, adds it.
+	 * If an entry exists and has the given attribute, does nothing.
+	 *
+	 * @param attribute attribute to add
+	 * @param path path to the entry
+	 * @param value value to add
+	 * @param <T> type of the previous value
+	 * @return the previous value of the attribute, or {@code null} if there was none
+	 */
+	<T> T add(AttributeType<T> attribute, Iterable<String> path, T value);
+
+	/**
+	 * If no entry exists at the given path, creates a new entry and every required intermediate
+	 * level (sub-configurations). If an entry exists, sets the value of its given attribute.
+	 *
+	 * @param attribute attribute to set
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @param value new value to set
+	 * @param <T> type of the previous value
+	 * @return the previous value of the attribute, or {@code null} if there was none
+	 */
+	default <T> T set(AttributeType<T> attribute, String path, T value) {
+		return set(attribute, splitPath(path), value);
+	}
+
+	/**
+	 * If no entry exists at the given path, creates a new entry and every required intermediate
+	 * level (sub-configurations). If an entry exists, sets the value of its given attribute.
+	 *
+	 * @param attribute attribute to set
+	 * @param path path to the entry
+	 * @param value new value to set
+	 * @param <T> type of the previous value
+	 * @return the previous value of the attribute, or {@code null} if there was none
+	 */
+	<T> T set(AttributeType<T> attribute, String[] path, T value);
+
+	/**
+	 * If no entry exists at the given path, creates a new entry and every required intermediate
+	 * level (sub-configurations). If an entry exists, sets the value of its given attribute.
+	 *
+	 * @param attribute attribute to set
+	 * @param path path to the entry
+	 * @param value new value to set
+	 * @param <T> type of the previous value
+	 * @return the previous value of the attribute, or {@code null} if there was none
+	 */
+	<T> T set(AttributeType<T> attribute, Iterable<String> path, T value);
+
+	/**
+	 * Removes an attribute from an entry. The entry itself is not removed.
+	 *
+	 * @param attribute attribute to remove
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @param <T> type of the previous value
+	 * @return the previous value of the attribute, or {@code null} if there was none
+	 */
 	default <T> T remove(AttributeType<T> attribute, String path) {
 		return remove(attribute, splitPath(path));
 	}
 
-
-
-	// --- SETTERS FOR COMMENTS ---
 	/**
-	 * Sets a config comment.
+	 * Removes an attribute from an entry. The entry itself is not removed.
 	 *
-	 * @param path    the comment's path, each part separated by a dot. Example "a.b.c"
-	 * @param comment the comment to set
-	 * @return the old comment if any, or {@code null}
+	 * @param attribute attribute to remove
+	 * @param path path to the entry
+	 * @param <T> type of the previous value
+	 * @return the previous value of the attribute, or {@code null} if there was none
+	 */
+	<T> T remove(AttributeType<T> attribute, String[] path);
+
+	/**
+	 * Removes an attribute from an entry. The entry itself is not removed.
+	 *
+	 * @param attribute attribute to remove
+	 * @param path path to the entry
+	 * @param <T> type of the previous value
+	 * @return the previous value of the attribute, or {@code null} if there was none
+	 */
+	<T> T remove(AttributeType<T> attribute, Iterable<String> path);
+
+
+	// --- COMMENTS ---
+
+	/**
+	 * Sets the comment of a config entry.
+	 *
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @param comment comment to set
+	 * @return the old comment, or {@code null} if the entry doesn't exist or doesn't have a comment
 	 */
 	default String setComment(String path, String comment) {
 		return setComment(splitPath(path), comment);
 	}
 
 	/**
-	 * Sets a config comment.
+	 * Sets the comment of a config entry.
 	 *
-	 * @param path    the comment's path, each element is a different part of the path.
-	 * @param comment the comment to set
-	 * @return the old comment if any, or {@code null}
+	 * @param path path to the entry
+	 * @param comment comment to set
+	 * @return the old comment, or {@code null} if the entry doesn't exist or doesn't have a comment
 	 */
 	default String setComment(String[] path, String comment) {
 		return set(StandardAttributes.COMMENT, path, comment);
 	}
 
 	/**
-	 * Removes a comment from the config.
+	 * Sets the comment of a config entry.
 	 *
-	 * @param path the comment's path, each part separated by a dot. Example "a.b.c"
-	 * @return the old comment if any, or {@code null}
+	 * @param path path to the entry
+	 * @param comment comment to set
+	 * @return the old comment, or {@code null} if the entry doesn't exist or doesn't have a comment
+	 */
+	default String setComment(Iterable<String> path, String comment) {
+		return set(StandardAttributes.COMMENT, path, comment);
+	}
+
+	/**
+	 * Removes the comment of a config entry.
+	 *
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @return the old comment, or {@code null} if the entry doesn't exist or doesn't have a comment
 	 */
 	default String removeComment(String path) {
 		return removeComment(splitPath(path));
 	}
 
 	/**
-	 * Removes a comment from the config.
+	 * Removes the comment of a config entry.
 	 *
-	 * @param path the comment's path, each element is a different part of the path.
-	 * @return the old comment if any, or {@code null}
+	 * @param path path to the entry
+	 * @return the old comment, or {@code null} if the entry doesn't exist or doesn't have a comment
 	 */
 	default String removeComment(String[] path) {
 		return remove(StandardAttributes.COMMENT, path);
 	}
 
+	/**
+	 * Removes the comment of a config entry.
+	 *
+	 * @param path path to the entry
+	 * @return the old comment, or {@code null} if the entry doesn't exist or doesn't have a comment
+	 */
+	default String removeComment(Iterable<String> path) {
+		return remove(StandardAttributes.COMMENT, path);
+	}
+
+
 	// --- OTHER METHODS ---
+
 	/**
 	 * Returns an Unmodifiable view of the config. Any change to the original (modifiable) config
-	 * is still reflected to the returned UnmodifiableConfig, so it's unmodifiable but not
-	 * immutable.
+	 * is still reflected to the returned UnmodifiableConfig.
 	 *
 	 * @return an Unmodifiable view of the config.
 	 */
@@ -310,11 +493,15 @@ public interface Config extends UnmodifiableConfig {
 		}
 	}
 
+	/**
+	 * A modifiable attribute.
+	 * @param <T> type of value
+	 */
 	interface Attribute<T> extends UnmodifiableConfig.Attribute<T> {
 		/**
 		 * Sets the attribute's value and returns the old one.
 		 * @param value the new value
-		 * @return the old value (if any)
+		 * @return the old value
 		 */
 		T setValue(T value);
 	}

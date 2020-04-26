@@ -1,11 +1,7 @@
 package com.electronwill.nightconfig.core;
 
 import java.util.*;
-import java.util.function.IntSupplier;
-import java.util.function.LongSupplier;
-import java.util.function.Supplier;
 
-import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 import static com.electronwill.nightconfig.core.utils.StringUtils.splitPath;
 
 /**
@@ -13,38 +9,81 @@ import static com.electronwill.nightconfig.core.utils.StringUtils.splitPath;
  *
  * @author TheElectronWill
  */
-@SuppressWarnings("unchecked")
 public interface UnmodifiableConfig {
-	// --- ABSTRACT METHODS ---
 
-	Entry getEntry(String[] path);
+	// --- CONFIG VIEWS ---
 
-	/** @return an iterable on the config's entries. */
+	/** @return an iterable on the top-level entries of this config. */
 	Iterable<? extends Entry> entries();
-
-	/** @return the number of top-level entries in this config. */
-	int size();
 
 	/**
 	 * Returns a Map view of the config's values.
 	 * If the config is unmodifiable then the returned map is unmodifiable too.
 	 *
-	 * @return a Map view of the config's values.
+	 * @return a Map view of the values.
 	 */
 	Map<String, Object> valueMap();
 
+
+	// --- CONFIG METADATA ---
+
+	/** @return the number of top-level entries in this config. */
+	int size();
+
+	default boolean isEmpty() {
+		return size() == 0;
+	}
+
+
 	// --- ENTRY GETTERS ---
 
-	/** @return a config entry */
+	/**
+	 * Gets a config entry.
+	 * @param path path to the entry
+	 * @return the entry, or {@code null} if it doesn't exist
+	 */
+	Entry getEntry(String[] path);
+
+	/**
+	 * Gets a config entry.
+	 * @param path path to the entry
+	 * @return the entry, or {@code null} if it doesn't exist
+	 */
+	Entry getEntry(Iterable<String> path);
+
+	/**
+	 * Gets a config entry.
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @return the entry, or {@code null} if it doesn't exist
+	 */
 	default Entry getEntry(String path) {
 		return getEntry(splitPath(path));
 	}
 
-	default Optional<Entry> getOptionalEntry(String path) {
+	/**
+	 * Gets a config entry, wrapped in {@link Optional}.
+	 * @param path path to the entry
+	 * @return an Optional containing the entry, or an empty Optional if it doesn't exist
+	 */
+	default Optional<? extends Entry> getOptionalEntry(String path) {
 		return getOptionalEntry(splitPath(path));
 	}
 
-	default Optional<Entry> getOptionalEntry(String[] path) {
+	/**
+	 * Gets a config entry, wrapped in {@link Optional}.
+	 * @param path path to the entry
+	 * @return an Optional containing the entry, or an empty Optional if it doesn't exist
+	 */
+	default Optional<? extends Entry> getOptionalEntry(String[] path) {
+		return Optional.ofNullable(getEntry(path));
+	}
+
+	/**
+	 * Gets a config entry, wrapped in {@link Optional}.
+	 * @param path path to the entry
+	 * @return an Optional containing the entry, or an empty Optional if it doesn't exist
+	 */
+	default Optional<? extends Entry> getOptionalEntry(Iterable<String> path) {
 		return Optional.ofNullable(getEntry(path));
 	}
 
@@ -53,9 +92,9 @@ public interface UnmodifiableConfig {
 	/**
 	 * Gets a value from the config.
 	 *
-	 * @param path the value's path, each part separated by a dot. Example "a.b.c"
-	 * @param <T>  the value's type
-	 * @return the value at the given path, or {@code null} if there is no such value.
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @param <T>  type of value
+	 * @return the value of the entry at that path, or {@code null} if the entry doesn't exist
 	 */
 	default <T> T get(String path) {
 		return get(splitPath(path));
@@ -64,9 +103,9 @@ public interface UnmodifiableConfig {
 	/**
 	 * Gets a value from the config.
 	 *
-	 * @param path the value's path, each element is a different part of the path.
-	 * @param <T>  the value's type
-	 * @return the value at the given path, or {@code null} if there is no such value.
+	 * @param path path to the entry
+	 * @param <T>  type of value
+	 * @return the value of the entry at that path, or {@code null} if the entry doesn't exist
 	 */
 	default <T> T get(String[] path) {
 		Entry data = getEntry(path);
@@ -74,45 +113,128 @@ public interface UnmodifiableConfig {
 	}
 
 	/**
-	 * Gets an optional value from the config.
+	 * Gets a value from the config.
 	 *
-	 * @param path the value's path, each part separated by a dot. Example "a.b.c"
-	 * @param <T>  the value's type
-	 * @return an Optional containing the value at the given path, or {@code Optional.empty()} if
-	 * there is no such value.
+	 * @param path path to the entry
+	 * @param <T>  type of value
+	 * @return the value of the entry at that path, or {@code null} if the entry doesn't exist
+	 */
+	default <T> T get(Iterable<String> path) {
+		Entry data = getEntry(path);
+		return data == null ? null : data.getValue();
+	}
+
+	/**
+	 * Gets a value from the config, wrapped in {@link Optional}.
+	 *
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @param <T>  type of value
+	 * @return an Optional containing the value, or an empty Optional if the entry doesn't exist
 	 */
 	default <T> Optional<T> getOptional(String path) {
 		return getOptional(splitPath(path));
 	}
 
 	/**
-	 * Gets an optional value from the config.
+	 * Gets a value from the config, wrapped in {@link Optional}.
 	 *
-	 * @param path the value's path, each element is a different part of the path.
-	 * @param <T>  the value's type
-	 * @return an Optional containing the value at the given path, or {@code Optional.empty()} if
-	 * there is no such value.
+	 * @param path path to the entry
+	 * @param <T>  type of value
+	 * @return an Optional containing the value, or an empty Optional if the entry doesn't exist
 	 */
 	default <T> Optional<T> getOptional(String[] path) {
 		return Optional.ofNullable(get(path));
 	}
 
+	/**
+	 * Gets a value from the config, wrapped in {@link Optional}.
+	 *
+	 * @param path path to the entry
+	 * @param <T>  type of value
+	 * @return an Optional containing the value, or an empty Optional if the entry doesn't exist
+	 */
+	default <T> Optional<T> getOptional(Iterable<String> path) {
+		return Optional.ofNullable(get(path));
+	}
+
+
 	// --- ATTRIBUTES GETTERS ---
 
+	/**
+	 * Gets an attribute from the config.
+	 *
+	 * @param attribute type of attribute
+	 * @param path      dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @param <T>       type of value
+	 * @return the value of the attribute, or {@code null} if the entry doesn't exist or doesn't have this attribute
+	 */
 	default <T> T get(AttributeType<T> attribute, String path) {
 		return get(attribute, splitPath(path));
 	}
 
+	/**
+	 * Gets an attribute from the config.
+	 *
+	 * @param attribute type of attribute
+	 * @param path      path to the entry
+	 * @param <T>       type of value
+	 * @return the value of the attribute, or {@code null} if the entry doesn't exist or doesn't have this attribute
+	 */
 	default <T> T get(AttributeType<T> attribute, String[] path) {
 		Entry entry = getEntry(path);
 		return entry == null ? null : entry.get(attribute);
 	}
 
+	/**
+	 * Gets an attribute from the config.
+	 *
+	 * @param attribute type of attribute
+	 * @param path      path to the entry
+	 * @param <T>       type of value
+	 * @return the value of the attribute, or {@code null} if the entry doesn't exist or doesn't have this attribute
+	 */
+	default <T> T get(AttributeType<T> attribute, Iterable<String> path) {
+		Entry entry = getEntry(path);
+		return entry == null ? null : entry.get(attribute);
+	}
+
+	/**
+	 * Gets an attribute from the config, wrapped in {@link Optional}.
+	 *
+	 * @param attribute type of attribute
+	 * @param path      dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @param <T>       type of value
+	 * @return an Optional containing the value of the attribute,
+	 * or an empty Optional if the entry doesn't exist or doesn't have this attribute
+	 */
 	default <T> Optional<T> getOptional(AttributeType<T> attribute, String path) {
 		return getOptional(attribute, splitPath(path));
 	}
 
+	/**
+	 * Gets an attribute from the config, wrapped in {@link Optional}.
+	 *
+	 * @param attribute type of attribute
+	 * @param path      path to the entry
+	 * @param <T>       type of value
+	 * @return an Optional containing the value of the attribute,
+	 * or an empty Optional if the entry doesn't exist or doesn't have this attribute
+	 */
 	default <T> Optional<T> getOptional(AttributeType<T> attribute, String[] path) {
+		Entry entry = getEntry(path);
+		return entry == null ? Optional.empty() : entry.getOptional(attribute);
+	}
+
+	/**
+	 * Gets an attribute from the config, wrapped in {@link Optional}.
+	 *
+	 * @param attribute type of attribute
+	 * @param path      path to the entry
+	 * @param <T>       type of value
+	 * @return an Optional containing the value of the attribute,
+	 * or an empty Optional if the entry doesn't exist or doesn't have this attribute
+	 */
+	default <T> Optional<T> getOptional(AttributeType<T> attribute, Iterable<String> path) {
 		Entry entry = getEntry(path);
 		return entry == null ? Optional.empty() : entry.getOptional(attribute);
 	}
@@ -122,8 +244,8 @@ public interface UnmodifiableConfig {
 	/**
 	 * Gets a comment from the config.
 	 *
-	 * @param path the comment's path, each part separated by a dot. Example "a.b.c"
-	 * @return the comment at the given path, or {@code null} if there is none.
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @return the old comment, or {@code null} if the entry doesn't exist or doesn't have a comment
 	 */
 	default String getComment(String path) {
 		return get(StandardAttributes.COMMENT, path);
@@ -132,49 +254,73 @@ public interface UnmodifiableConfig {
 	/**
 	 * Gets a comment from the config.
 	 *
-	 * @param path the comment's path, each element is a different part of the path.
-	 * @return the comment at the given path, or {@code null} if there is none.
+	 * @param path path to the entry
+	 * @return the old comment, or {@code null} if the entry doesn't exist or doesn't have a comment
 	 */
 	default String getComment(String[] path) {
 		return get(StandardAttributes.COMMENT, path);
 	}
 
 	/**
-	 * Gets an optional comment from the config.
+	 * Gets a comment from the config.
 	 *
-	 * @param path the comment's path, each part separated by a dot. Example "a.b.c"
-	 * @return an Optional containing the comment at the given path, or {@code Optional.empty()} if
-	 * there is no such comment.
+	 * @param path path to the entry
+	 * @return the old comment, or {@code null} if the entry doesn't exist or doesn't have a comment
+	 */
+	default String getComment(Iterable<String> path) {
+		return get(StandardAttributes.COMMENT, path);
+	}
+
+	/**
+	 * Gets a comment from the config, wrapped in {@link Optional}.
+	 *
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @return an Optional containing the comment,
+	 * or an empty Optional if the entry doesn't exist or doesn't have a comment
 	 */
 	default Optional<String> getOptionalComment(String path) {
 		return getOptional(StandardAttributes.COMMENT, path);
 	}
 
 	/**
-	 * Gets an optional comment from the config.
+	 * Gets a comment from the config, wrapped in {@link Optional}.
 	 *
-	 * @param path the comment's path, each element is a different part of the path.
-	 * @return an Optional containing the comment at the given path, or {@code Optional.empty()} if
-	 * there is no such comment.
+	 * @param path path to the entry
+	 * @return an Optional containing the comment,
+	 * or an empty Optional if the entry doesn't exist or doesn't have a comment
 	 */
 	default Optional<String> getOptionalComment(String[] path) {
+		return getOptional(StandardAttributes.COMMENT, path);
+	}
+
+	/**
+	 * Gets a comment from the config, wrapped in {@link Optional}.
+	 *
+	 * @param path path to the entry
+	 * @return an Optional containing the comment,
+	 * or an empty Optional if the entry doesn't exist or doesn't have a comment
+	 */
+	default Optional<String> getOptionalComment(Iterable<String> path) {
 		return getOptional(StandardAttributes.COMMENT, path);
 	}
 
 	// --- GETTERS FOR ENUM VALUES ---
 
 	/**
-	 * Gets an Enum value from the config. If the value doesn't exist, returns null.
+	 * Gets an Enum value from the config.
+	 * <p>
+	 * Returns null if the entry doesn't exist.
+	 * Throws an exception if the value cannot be converted to the given enum.
 	 *
-	 * @param path     the value's path, each part separated by a dot. Example "a.b.c"
-	 * @param enumType the class of the Enum
-	 * @param method   the method to use when converting a non-enum value like a String or an int
-	 * @param <T>      the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
-	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
+	 * @param path     dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @param enumType class of the Enum
+	 * @param method   way of converting a non-enum value (like a String or an int) to an enum value
+	 * @param <T>      generic enum type
+	 * @return the value of the entry at that path, or {@code null} if the entry doesn't exist
+	 * @throws IllegalArgumentException if the config contains a value that doesn't match any of
 	 *                                  the enum constants, with regards to the given method
 	 * @throws ClassCastException       if the config contains a value that cannot be converted to
-	 *                                  an enum constant, like a List
+	 *                                  an enum constant because of its type, for instance a List
 	 */
 	default <T extends Enum<T>> T getEnum(String path, Class<T> enumType, EnumGetMethod method) {
 		return getEnum(splitPath(path), enumType, method);
@@ -183,23 +329,35 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getEnum(String, Class, EnumGetMethod)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 * <p>
+	 * Returns null if the entry doesn't exist.
+	 * Throws an exception if the value cannot be converted to the given enum.
+	 *
+	 * @return the value of the entry at that path, or {@code null} if the entry doesn't exist
+	 * @throws IllegalArgumentException if the config contains a value that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant because of its type, for instance a List
 	 */
 	default <T extends Enum<T>> T getEnum(String path, Class<T> enumType) {
 		return getEnum(splitPath(path), enumType, EnumGetMethod.NAME_IGNORECASE);
 	}
 
 	/**
-	 * Gets an Enum value from the config. If the value doesn't exist, returns null.
+	 * Gets an Enum value from the config.
+	 * <p>
+	 * Returns null if the entry doesn't exist.
+	 * Throws an exception if the value cannot be converted to the given enum.
 	 *
-	 * @param path     the value's path, each element is a different part of the path.
-	 * @param enumType the class of the Enum
-	 * @param method   the method to use when converting a non-enum value like a String or an int
-	 * @param <T>      the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
-	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
+	 * @param path     path to the entry
+	 * @param enumType class of the Enum
+	 * @param method   way of converting a non-enum value (like a String or an int) to an enum value
+	 * @param <T>      generic enum type
+	 * @return the value of the entry at that path, or {@code null} if the entry doesn't exist
+	 * @throws IllegalArgumentException if the config contains a value that doesn't match any of
 	 *                                  the enum constants, with regards to the given method
 	 * @throws ClassCastException       if the config contains a value that cannot be converted to
-	 *                                  an enum constant, like a List
+	 *                                  an enum constant because of its type, for instance a List
 	 */
 	default <T extends Enum<T>> T getEnum(String[] path, Class<T> enumType, EnumGetMethod method) {
 		final Object value = get(path);
@@ -207,83 +365,196 @@ public interface UnmodifiableConfig {
 	}
 
 	/**
-	 * Calls {@link #getEnum(String[], Class, EnumGetMethod)} with method
+	 * Calls {@link #getEnum(String[], Class, EnumGetMethod)} with
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 * <p>
+	 * Returns null if the entry doesn't exist.
+	 * Throws an exception if the value cannot be converted to the given enum.
+	 *
+	 * @return the value of the entry at that path, or {@code null} if the entry doesn't exist
+	 * @throws IllegalArgumentException if the config contains a value that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant because of its type, for instance a List
 	 */
 	default <T extends Enum<T>> T getEnum(String[] path, Class<T> enumType) {
 		return getEnum(path, enumType, EnumGetMethod.NAME_IGNORECASE);
 	}
 
 	/**
-	 * Gets an optional Enum value from the config.
+	 * Gets an Enum value from the config.
+	 * <p>
+	 * Returns null if the entry doesn't exist.
+	 * Throws an exception if the value cannot be converted to the given enum.
 	 *
-	 * @param path     the value's path, each part separated by a dot. Example "a.b.c"
-	 * @param enumType the class of the Enum
-	 * @param method   the method to use when converting a non-enum value like a String or an int
-	 * @param <T>      the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
-	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
+	 * @param path     path to the entry
+	 * @param enumType class of the Enum
+	 * @param method   way of converting a non-enum value (like a String or an int) to an enum value
+	 * @param <T>      generic enum type
+	 * @return the value of the entry at that path, or {@code null} if the entry doesn't exist
+	 * @throws IllegalArgumentException if the config contains a value that doesn't match any of
 	 *                                  the enum constants, with regards to the given method
 	 * @throws ClassCastException       if the config contains a value that cannot be converted to
-	 *                                  an enum constant, like a List
+	 *                                  an enum constant because of its type, for instance a List
+	 */
+	default <T extends Enum<T>> T getEnum(Iterable<String> path, Class<T> enumType, EnumGetMethod method) {
+		final Object value = get(path);
+		return method.get(value, enumType);
+	}
+
+	/**
+	 * Calls {@link #getEnum(Iterable, Class, EnumGetMethod)} with
+	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 * <p>
+	 * Returns null if the entry doesn't exist.
+	 * Throws an exception if the value cannot be converted to the given enum.
+	 *
+	 * @return the value of the entry at that path, or {@code null} if the entry doesn't exist
+	 * @throws IllegalArgumentException if the config contains a value that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant because of its type, for instance a List
+	 */
+	default <T extends Enum<T>> T getEnum(Iterable<String> path, Class<T> enumType) {
+		return getEnum(path, enumType, EnumGetMethod.NAME_IGNORECASE);
+	}
+
+	/**
+	 * Gets an Enum value from the config, wrapped in {@link Optional}.
+	 * <p>
+	 * Returns null if the entry doesn't exist.
+	 * Throws an exception if the value cannot be converted to the given enum.
+	 *
+	 * @param path     dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @param enumType class of the Enum
+	 * @param method   way of converting a non-enum value (like a String or an int) to an enum value
+	 * @param <T>      generic enum type
+	 * @return the value of the entry at that path, or {@code null} if the entry doesn't exist
+	 * @throws IllegalArgumentException if the config contains a value that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant because of its type, for instance a List
 	 */
 	default <T extends Enum<T>> Optional<T> getOptionalEnum(String path, Class<T> enumType, EnumGetMethod method) {
 		return getOptionalEnum(splitPath(path), enumType, method);
 	}
 
 	/**
-	 * Calls {@link #getOptionalEnum(String, Class, EnumGetMethod)} with method
+	 * Calls {@link #getOptionalEnum(String, Class, EnumGetMethod)} with
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 * <p>
+	 * Returns null if the entry doesn't exist.
+	 * Throws an exception if the value cannot be converted to the given enum.
+	 *
+	 * @return the value of the entry at that path, or {@code null} if the entry doesn't exist
+	 * @throws IllegalArgumentException if the config contains a value that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant because of its type, for instance a List
 	 */
 	default <T extends Enum<T>> Optional<T> getOptionalEnum(String path, Class<T> enumType) {
 		return getOptionalEnum(path, enumType, EnumGetMethod.NAME_IGNORECASE);
 	}
 
 	/**
-	 * Gets an optional Enum value from the config.
+	 * Gets an Enum value from the config, wrapped in {@link Optional}.
+	 * <p>
+	 * Returns null if the entry doesn't exist.
+	 * Throws an exception if the value cannot be converted to the given enum.
 	 *
-	 * @param path     the value's path, each element is a different part of the path.
-	 * @param enumType the class of the Enum
-	 * @param method   the method to use when converting a non-enum value like a String or an int
-	 * @param <T>      the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
-	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
+	 * @param path     path to the entry
+	 * @param enumType class of the Enum
+	 * @param method   way of converting a non-enum value (like a String or an int) to an enum value
+	 * @param <T>      generic enum type
+	 * @return the value of the entry at that path, or {@code null} if the entry doesn't exist
+	 * @throws IllegalArgumentException if the config contains a value that doesn't match any of
 	 *                                  the enum constants, with regards to the given method
 	 * @throws ClassCastException       if the config contains a value that cannot be converted to
-	 *                                  an enum constant, like a List
+	 *                                  an enum constant because of its type, for instance a List
 	 */
 	default <T extends Enum<T>> Optional<T> getOptionalEnum(String[] path, Class<T> enumType, EnumGetMethod method) {
 		return Optional.ofNullable(getEnum(path, enumType, method));
 	}
 
 	/**
-	 * Calls {@link #getOptionalEnum(String[], Class, EnumGetMethod)} with method
+	 * Calls {@link #getOptionalEnum(String[], Class, EnumGetMethod)} with
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 * <p>
+	 * Returns null if the entry doesn't exist.
+	 * Throws an exception if the value cannot be converted to the given enum.
+	 *
+	 * @return the value of the entry at that path, or {@code null} if the entry doesn't exist
+	 * @throws IllegalArgumentException if the config contains a value that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant because of its type, for instance a List
 	 */
 	default <T extends Enum<T>> Optional<T> getOptionalEnum(String[] path, Class<T> enumType) {
+		return getOptionalEnum(path, enumType, EnumGetMethod.NAME_IGNORECASE);
+	}
+
+	/**
+	 * Gets an Enum value from the config, wrapped in {@link Optional}.
+	 * <p>
+	 * Returns null if the entry doesn't exist.
+	 * Throws an exception if the value cannot be converted to the given enum.
+	 *
+	 * @param path     path to the entry
+	 * @param enumType class of the Enum
+	 * @param method   way of converting a non-enum value (like a String or an int) to an enum value
+	 * @param <T>      generic enum type
+	 * @return the value of the entry at that path, or {@code null} if the entry doesn't exist
+	 * @throws IllegalArgumentException if the config contains a value that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant because of its type, for instance a List
+	 */
+	default <T extends Enum<T>> Optional<T> getOptionalEnum(Iterable<String> path, Class<T> enumType, EnumGetMethod method) {
+		return Optional.ofNullable(getEnum(path, enumType, method));
+	}
+
+	/**
+	 * Calls {@link #getOptionalEnum(Iterable, Class, EnumGetMethod)} with
+	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 * <p>
+	 * Returns null if the entry doesn't exist.
+	 * Throws an exception if the value cannot be converted to the given enum.
+	 *
+	 * @return the value of the entry at that path, or {@code null} if the entry doesn't exist
+	 * @throws IllegalArgumentException if the config contains a value that doesn't match any of
+	 *                                  the enum constants, with regards to the given method
+	 * @throws ClassCastException       if the config contains a value that cannot be converted to
+	 *                                  an enum constant because of its type, for instance a List
+	 */
+	default <T extends Enum<T>> Optional<T> getOptionalEnum(Iterable<String> path, Class<T> enumType) {
 		return getOptionalEnum(path, enumType, EnumGetMethod.NAME_IGNORECASE);
 	}
 
 	// --- PRIMITIVE INT GETTERS ---
 
 	/**
-	 * Like {@link #get(String)} but returns a primitive int. The config's value must be a
-	 * {@link Number}.
+	 * Like {@link #get(String)} but returns a primitive int. The value must be a {@link Number}.
 	 */
 	default int getInt(String path) {
 		return this.<Number>get(path).intValue();
 	}
 
 	/**
-	 * Like {@link #get(String[])} but returns a primitive int. The config's value must be a
-	 * {@link Number}.
+	 * Like {@link #get(String[])} but returns a primitive int. The value must be a {@link Number}.
 	 */
 	default int getInt(String[] path) {
 		return this.<Number>get(path).intValue();
 	}
 
 	/**
-	 * Like {@link #getOptional(String)} but returns a primitive int. The config's value must be a
+	 * Like {@link #get(Iterable)} but returns a primitive int. The value must be a {@link Number}.
+	 */
+	default int getInt(Iterable<String> path) {
+		return this.<Number>get(path).intValue();
+	}
+
+	/**
+	 * Like {@link #getOptional(String)} but returns a primitive int. The value must be a
 	 * {@link Number} or null or nonexistant.
 	 */
 	default OptionalInt getOptionalInt(String path) {
@@ -291,72 +562,184 @@ public interface UnmodifiableConfig {
 	}
 
 	/**
-	 * Like {@link #getOptional(String[])} but returns a primitive int. The config's value must be a
+	 * Like {@link #getOptional(String[])} but returns an {@link OptionalInt}. The value must be a
 	 * {@link Number} or null or nonexistant.
 	 */
 	default OptionalInt getOptionalInt(String[] path) {
 		Number n = get(path);
-		return (n == null) ? OptionalInt.empty() : OptionalInt.of(n.intValue());
+		return n == null ? OptionalInt.empty() : OptionalInt.of(n.intValue());
+	}
+
+	/**
+	 * Like {@link #getOptional(Iterable)} but returns an {@link OptionalInt}. The value must be a
+	 * {@link Number} or null or nonexistant.
+	 */
+	default OptionalInt getOptionalInt(Iterable<String> path) {
+		Number n = get(path);
+		return n == null ? OptionalInt.empty() : OptionalInt.of(n.intValue());
 	}
 
 	// --- PRIMITIVE LONG GETTERS ---
 	/**
-	 * Like {@link #get(String)} but returns a primitive long. The config's value must be a
-	 * {@link Number}.
+	 * Like {@link #get(String)} but returns a primitive long. The value must be a {@link Number}.
 	 */
 	default long getLong(String path) {
 		return this.<Number>get(path).longValue();
 	}
 
 	/**
-	 * Like {@link #get(String[])} but returns a primitive long. The config's value must be a
-	 * {@link Number}.
+	 * Like {@link #get(String[])} but returns a primitive long. The value must be a {@link Number}.
 	 */
 	default long getLong(String[] path) {
 		return this.<Number>get(path).longValue();
 	}
 
 	/**
-	 * Like {@link #getOptional(String)} but returns a primitive long. The config's value must be a
-	 * {@link Number} or null or nonexistant.
+	 * Like {@link #get(Iterable)} but returns a primitive long. The value must be a {@link Number}.
+	 */
+	default long getLong(Iterable<String> path) {
+		return this.<Number>get(path).longValue();
+	}
+
+	/**
+	 * Like {@link #getOptional(String)} but returns an {@link OptionalLong}. The value must be a
+	 * {@link Number}.
 	 */
 	default OptionalLong getOptionalLong(String path) {
 		return getOptionalLong(splitPath(path));
 	}
 
 	/**
-	 * Like {@link #getOptional(String[])} but returns a primitive long. The config's value must be a
-	 * {@link Number} or null or nonexistant.
+	 * Like {@link #getOptional(String[])} but returns an {@link OptionalLong}. The value must be a
+	 * {@link Number}.
 	 */
 	default OptionalLong getOptionalLong(String[] path) {
 		Number n = get(path);
-		return (n == null) ? OptionalLong.empty() : OptionalLong.of(n.longValue());
+		return n == null ? OptionalLong.empty() : OptionalLong.of(n.longValue());
+	}
+
+	/**
+	 * Like {@link #getOptional(Iterable)} but returns an {@link OptionalLong}. The value must be a
+	 * {@link Number}.
+	 */
+	default OptionalLong getOptionalLong(Iterable<String> path) {
+		Number n = get(path);
+		return n == null ? OptionalLong.empty() : OptionalLong.of(n.longValue());
 	}
 
 	// --- PRIMITIVE BYTE GETTERS ---
 
+	/**
+	 * Like {@link #get(String)} but returns a primitive byte. The value must be a {@link Number}.
+	 */
 	default byte getByte(String path) {
 		return this.<Number>get(path).byteValue();
 	}
 
+	/**
+	 * Like {@link #get(String[])} but returns a primitive long. The value must be a {@link Number}.
+	 */
 	default byte getByte(String[] path) {
 		return this.<Number>get(path).byteValue();
 	}
 
-	// --- PRIMITIVE SHORT GETTERS ---
+	/**
+	 * Like {@link #get(Iterable)} but returns a primitive long. The value must be a {@link Number}.
+	 */
+	default byte getByte(Iterable<String> path) {
+		return this.<Number>get(path).byteValue();
+	}
 
+	// --- PRIMITIVE SHORT GETTERS ---
+	/**
+	 * Like {@link #get(String)} but returns a primitive short. The value must be a {@link Number}.
+	 */
 	default short getShort(String path) {
 		return this.<Number>get(path).shortValue();
 	}
 
+	/**
+	 * Like {@link #get(String)} but returns a primitive short. The value must be a {@link Number}.
+	 */
 	default short getShort(String[] path) {
 		return this.<Number>get(path).shortValue();
+	}
+
+	/**
+	 * Like {@link #get(Iterable)} but returns a primitive short. The value must be a {@link Number}.
+	 */
+	default short getShort(Iterable<String> path) {
+		return this.<Number>get(path).shortValue();
+	}
+
+	// --- PRIMITIVE DOUBLE GETTERS ---
+
+	/**
+	 * Like {@link #get(String)} but returns a primitive double. The value must be a {@link Number}.
+	 */
+	default double getDouble(String path) {
+		return this.<Number>get(path).doubleValue();
+	}
+
+	/**
+	 * Like {@link #get(String[])} but returns a primitive double. The value must be a {@link Number}.
+	 */
+	default double getDouble(String[] path) {
+		return this.<Number>get(path).doubleValue();
+	}
+
+	/**
+	 * Like {@link #get(Iterable)} but returns a primitive double. The value must be a {@link Number}.
+	 */
+	default double getDouble(Iterable<String> path) {
+		return this.<Number>get(path).doubleValue();
+	}
+
+	/**
+	 * Like {@link #getOptional(String)} but returns a primitive double. The value must be a {@link Number}.
+	 */
+	default OptionalDouble getOptionalDouble(String path) {
+		return getOptionalDouble(splitPath(path));
+	}
+
+	/**
+	 * Like {@link #getOptional(String[])} but returns a primitive double. The value must be a {@link Number}.
+	 */
+	default OptionalDouble getOptionalDouble(String[] path) {
+		Number n = get(path);
+		return n == null ? OptionalDouble.empty() : OptionalDouble.of(n.doubleValue());
+	}
+
+	/**
+	 * Like {@link #getOptional(Iterable)} but returns a primitive double. The value must be a {@link Number}.
+	 */
+	default OptionalDouble getOptionalDouble(Iterable<String> path) {
+		Number n = get(path);
+		return n == null ? OptionalDouble.empty() : OptionalDouble.of(n.doubleValue());
+	}
+
+	// --- PRIMITIVE FLOAT GETTERS ---
+
+	/**
+	 * Like {@link #get(String)} but returns a primitive float. The config's value must be a
+	 * {@link Number}.
+	 */
+	default float getFloat(String path) {
+		return this.<Number>get(path).floatValue();
+	}
+
+	/**
+	 * Like {@link #get(String[])} but returns a primitive float. The config's value must be a
+	 * {@link Number}.
+	 */
+	default float getFloat(String[] path) {
+		return this.<Number>get(path).floatValue();
 	}
 
 	// --- PRIMITIVE CHAR GETTERS ---
 
 	/**
-	 * Returns a char value from the configuration.
+	 * Like {@link #get(String)} but returns a primitive char.
 	 * <p>
 	 * If the value is a Number, returns {@link Number#intValue()}, cast to char.
 	 * If the value is a CharSequence, returns its first character.
@@ -370,7 +753,7 @@ public interface UnmodifiableConfig {
 	}
 
 	/**
-	 * Returns a char value from the configuration.
+	 * Like {@link #get(String[])} but returns a primitive char.
 	 * <p>
 	 * If the value is a Number, returns {@link Number#intValue()}, cast to char.
 	 * If the value is a CharSequence, returns its first character.
@@ -385,48 +768,79 @@ public interface UnmodifiableConfig {
 			return (char)((Number)value).intValue();
 		} else if (value instanceof CharSequence) {
 			return ((CharSequence)value).charAt(0);
-		} else {
-			return (char)value;
 		}
+		return (char)value;
+	}
+
+	/**
+	 * Like {@link #get(String[])} but returns a primitive char.
+	 * <p>
+	 * If the value is a Number, returns {@link Number#intValue()}, cast to char.
+	 * If the value is a CharSequence, returns its first character.
+	 * Otherwise, attempts to cast the value to a char.
+	 *
+	 * @param path the value's path as a list of String
+	 * @return the value, as a single char
+	 */
+	default char getChar(Iterable<String> path) {
+		Object value = get(path);
+		if (value instanceof Number) {
+			return (char)((Number)value).intValue();
+		} else if (value instanceof CharSequence) {
+			return ((CharSequence)value).charAt(0);
+		}
+		return (char)value;
 	}
 
 	// --- BOOLEAN QUERIES ---
 
 	/**
-	 * Checks if the config contains a value at some path.
+	 * Returns true if there exist an entry at the given path in this config.
 	 *
-	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
-	 * @return {@code true} if the path is associated with a value, {@code false} if it's not.
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @return {@code true} if the entry exist, {@code false} if it doesn't.
 	 */
 	default boolean contains(String path) {
 		return contains(splitPath(path));
 	}
 
 	/**
-	 * Checks if the config contains a value at some path.
+	 * Returns true if there exist an entry at the given path in this config.
 	 *
-	 * @param path the path to check, each element is a different part of the path.
-	 * @return {@code true} if the path is associated with a value, {@code false} if it's not.
+	 * @param path path to the entry
+	 * @return {@code true} if the entry exist, {@code false} if it doesn't.
 	 */
 	default boolean contains(String[] path) {
 		return getEntry(path) != null;
 	}
 
 	/**
-	 * Checks if an attribute is present at some path.
+	 * Returns true if there exist an entry at the given path in this config.
 	 *
-	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
-	 * @return {@code true} if the path is associated with a value, {@code false} if it's not.
+	 * @param path path to the entry
+	 * @return {@code true} if the entry exist, {@code false} if it doesn't.
+	 */
+	default boolean contains(Iterable<String> path) {
+		return getEntry(path) != null;
+	}
+
+	/**
+	 * Returns true if there exist an entry at the given path and this entry has the given attribute.
+	 *
+	 * @param attribute attribute type
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @return {@code true} if the entry exist and it has the given attribute, {@code false} otherwise
 	 */
 	default boolean has(AttributeType<?> attribute, String path) {
 		return has(attribute, splitPath(path));
 	}
 
 	/**
-	 * Checks if an attribute is present at some path.
+	 * Returns true if there exist an entry at the given path and this entry has the given attribute.
 	 *
-	 * @param path the path to check, each element is a different part of the path.
-	 * @return {@code true} if the path is associated with a value, {@code false} if it's not.
+	 * @param attribute attribute type
+	 * @param path path to the entry
+	 * @return {@code true} if the entry exist and it has the given attribute, {@code false} otherwise
 	 */
 	default boolean has(AttributeType<?> attribute, String[] path) {
 		Entry entry = getEntry(path);
@@ -434,34 +848,15 @@ public interface UnmodifiableConfig {
 	}
 
 	/**
-	 * Checks if the config contains a null value at some path.
+	 * Returns true if there exist an entry at the given path and this entry has the given attribute.
 	 *
-	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
-	 * @return {@code true} if the path is associated with null.
-	 * {@code false} if it's associated with another value or with no value.
+	 * @param attribute attribute type
+	 * @param path path to the entry
+	 * @return {@code true} if the entry exist and it has the given attribute, {@code false} otherwise
 	 */
-	default boolean isNull(String path) {
-		return isNull(splitPath(path));
-	}
-
-	/**
-	 * Checks if the config contains a null value at some path.
-	 *
-	 * @param path the path to check, each element is a different part of the path.
-	 * @return {@code true} if the path is associated with null.
-	 * {@code false} if it's associated with another value or with no value.
-	 */
-	default boolean isNull(String[] path) {
+	default boolean has(AttributeType<?> attribute, Iterable<String> path) {
 		Entry entry = getEntry(path);
-		return entry != null && entry.getValue() == null;
-	}
-
-	default boolean isEmpty() {
-		return size() == 0;
-	}
-
-	default boolean nonEmpty() {
-		return size() != 0;
+		return entry != null && entry.has(attribute);
 	}
 
 	/**
@@ -511,7 +906,7 @@ public interface UnmodifiableConfig {
 
 		default OptionalInt getOptionalInt() {
 			Number value = getValue();
-			return (value == null) ? OptionalInt.empty() : OptionalInt.of(value.intValue());
+			return value == null ? OptionalInt.empty() : OptionalInt.of(value.intValue());
 		}
 
 		/**
@@ -523,7 +918,7 @@ public interface UnmodifiableConfig {
 
 		default OptionalLong getOptionalLong() {
 			Number value = getValue();
-			return (value == null) ? OptionalLong.empty() : OptionalLong.of(value.longValue());
+			return value == null ? OptionalLong.empty() : OptionalLong.of(value.longValue());
 		}
 
 		/**
@@ -542,7 +937,7 @@ public interface UnmodifiableConfig {
 
 		default OptionalDouble getOptionalDouble() {
 			Number value = getValue();
-			return (value == null) ? OptionalDouble.empty() : OptionalDouble.of(value.doubleValue());
+			return value == null ? OptionalDouble.empty() : OptionalDouble.of(value.doubleValue());
 		}
 
 		/**
@@ -572,9 +967,8 @@ public interface UnmodifiableConfig {
 				return (char)((Number)value).intValue();
 			} else if (value instanceof CharSequence) {
 				return ((CharSequence)value).charAt(0);
-			} else {
-				return (char)value;
 			}
+			return (char)value;
 		}
 	}
 

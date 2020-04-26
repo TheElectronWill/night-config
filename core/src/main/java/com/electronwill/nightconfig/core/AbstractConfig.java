@@ -37,6 +37,31 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		return processLeaf(parent, leafKey, mode);
 	}
 
+	protected Entry findEntry(Iterable<String> path, EntrySearchMode mode) {
+		if (path == null) return root;
+
+		// Find the parent and the leaf key by iterating the path
+		String leafKey = null;
+		Map<String, Entry> parent = storage;
+		Iterator<String> it = path.iterator();
+		int i = 0;
+		while (parent != null) {
+			String key = it.next();
+			if (!it.hasNext()) { // the last string is the leaf, not a parent
+				leafKey = key;
+				break;
+			}
+			parent = getNextLevel(path, i++, parent, key, mode);
+		}
+
+		// Process the entry
+		if (parent == null) {
+			return null;
+		}
+		assert leafKey != null;
+		return processLeaf(parent, leafKey, mode);
+	}
+
 	private Entry processLeaf(Map<String, Entry> parent, String key, EntrySearchMode mode) {
 		switch (mode) {
 			default: // GET
@@ -53,7 +78,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		}
 	}
 
-	/** Finds the map that contains (maybe) the last entry of the path. */
+	/** Finds the map that contains (maybe) the last entry of the path. Array version. */
 	private Map<String, Entry> findEntryParent(String[] path, EntrySearchMode mode) {
 		Map<String, Entry> current = storage;
 		for (int i = 0; i < path.length-1 && current != null; i++) {
@@ -63,7 +88,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		return current;
 	}
 
-	private Map<String, Entry> getNextLevel(String[] path, int i, Map<String, Entry> current, String key, EntrySearchMode mode) {
+	private Map<String, Entry> getNextLevel(Object path, int i, Map<String, Entry> current, String key, EntrySearchMode mode) {
 		Entry entry = current.get(key);
 		if (entry == null) {
 			if (mode == EntrySearchMode.CREATE) {
@@ -77,8 +102,20 @@ public abstract class AbstractConfig implements Config, Cloneable {
 			if (value instanceof AbstractConfig) {
 				return ((AbstractConfig)value).storage;
 			} else if (mode == EntrySearchMode.CREATE) {
-				String p = StringUtils.pathToString(path);
-				String l = StringUtils.pathToString(path, i);
+				String p, l;
+				if (path instanceof String[]) {
+					String[] arrayPath = (String[])path;
+					p = StringUtils.pathToString(arrayPath);
+					l = StringUtils.pathToString(arrayPath, i);
+				} else {
+					assert path instanceof Iterable;
+					Iterable<String> iterablePath = (Iterable<String>)path;
+					p = StringUtils.pathToString(iterablePath);
+					l = StringUtils.pathToString(iterablePath, i);
+				}
+				if (value == null) {
+					throw WrongPathException.nullIntermediateLevel(p, l);
+				}
 				throw WrongPathException.incompatibleIntermediateLevel(p, l, value);
 			}
 		}
@@ -113,13 +150,23 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	// --- VALUES ---
 
 	@Override
+	public <T> T add(String[] path, Object value) {
+		return findEntry(path, EntrySearchMode.CREATE).addValue(value);
+	}
+
+	@Override
+	public <T> T add(Iterable<String> path, Object value) {
+		return findEntry(path, EntrySearchMode.CREATE).addValue(value);
+	}
+
+	@Override
 	public <T> T set(String[] path, Object value) {
 		return findEntry(path, EntrySearchMode.CREATE).setValue(value);
 	}
 
 	@Override
-	public Object add(String[] path, Object value) {
-		return findEntry(path, EntrySearchMode.CREATE).addValue(value);
+	public <T> T set(Iterable<String> path, Object value) {
+		return findEntry(path, EntrySearchMode.CREATE).setValue(value);
 	}
 
 	@Override
@@ -128,12 +175,14 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		return prev == null ? null : prev.getValue();
 	}
 
-	// --- OTHER ATTRIBUTES ---
-
 	@Override
-	public <T> T set(AttributeType<T> attribute, String[] path, T value) {
-		return findEntry(path, EntrySearchMode.CREATE).set(attribute, value);
+	public <T> T remove(Iterable<String> path) {
+		Entry prev = findEntry(path, EntrySearchMode.DELETE);
+		return prev == null ? null : prev.getValue();
 	}
+
+
+	// --- OTHER ATTRIBUTES ---
 
 	@Override
 	public <T> T add(AttributeType<T> attribute, String[] path, T value) {
@@ -141,10 +190,32 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	}
 
 	@Override
+	public <T> T add(AttributeType<T> attribute, Iterable<String> path, T value) {
+		return findEntry(path, EntrySearchMode.CREATE).add(attribute, value);
+	}
+
+	@Override
+	public <T> T set(AttributeType<T> attribute, String[] path, T value) {
+		return findEntry(path, EntrySearchMode.CREATE).set(attribute, value);
+	}
+
+	@Override
+	public <T> T set(AttributeType<T> attribute, Iterable<String> path, T value) {
+		return findEntry(path, EntrySearchMode.CREATE).set(attribute, value);
+	}
+
+	@Override
 	public <T> T remove(AttributeType<T> attribute, String[] path) {
 		Entry entry = findEntry(path, EntrySearchMode.GET);
 		return entry == null ? null : entry.remove(attribute);
 	}
+
+	@Override
+	public <T> T remove(AttributeType<T> attribute, Iterable<String> path) {
+		Entry entry = findEntry(path, EntrySearchMode.GET);
+		return entry == null ? null : entry.remove(attribute);
+	}
+
 
 	// --- VIEWS ---
 
@@ -402,6 +473,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		}
 
 		@Override
+		@SuppressWarnings("rawtypes")
 		public Iterator<Config.Entry> iterator() {
 			Iterator<Entry> it = storage.values().iterator();
 			return (Iterator)it; // it's a shame Iterator isn't covariant!

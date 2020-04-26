@@ -2,7 +2,9 @@ package com.electronwill.nightconfig.core.utils;
 
 import com.electronwill.nightconfig.core.impl.Charray;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Fast string utilities.
@@ -33,9 +35,9 @@ public final class StringUtils {
 	}
 
 	/**
-	 * Splits a String around each occurence of the specified character. The result is <b>not</b>
-	 * the same as {@link String#split(String)}. In particular, this method never returns an
-	 * empty list.
+	 * Splits a String around each occurence of the specified character.
+	 * The result is <b>not</b> the same as {@link String#split(String)}.
+	 * In particular, the result is never an empty list.
 	 * <p>
 	 * Examples:
 	 * <ul>
@@ -127,28 +129,70 @@ public final class StringUtils {
 				builder.append(part).append('.');
 			} else {
 				// Fall back to array-like representation
-				return pathToArrayString(path, len, builder);
+				return pathToArrayString(Arrays.asList(path), builder);
 			}
 		}
 		builder.append(path[len-1]);
 		return builder.toString();
 	}
 
-	private static String pathToArrayString(String[] path, int len, Charray builder) {
+	private static String pathToArrayString(Iterable<String> path, Charray builder) {
 		builder.clear();
 		builder.append('[');
-		for (int i = 0; i < len; i++) {
-			String part = path[i];
+		Iterator<String> it = path.iterator();
+		while (true) {
+			String part = it.next();
 			builder.append('\"');
 			builder.append(part.replace("\"", "\\\""));
 			builder.append('\"');
-			if (i < len-1) {
+			if (it.hasNext()) {
 				builder.append(", ");
+			} else {
+				break;
 			}
 		}
 		builder.append(']');
 		return builder.toString();
 	}
+
+	/**
+	 * Builds a string that represent a config path. Avoids ambiguities, for instance:
+	 * <ul>
+	 * <li>{@code ["a", "b", "c"]} gives the string {@code a.b.c}</li>
+	 * <li>{@code ["a.b", "\"b\",b", "c"]} gives the string {@code ["a.b", "\"b\",b", "c"]}</li>
+	 * </ul>
+	 */
+	public static String pathToString(Iterable<String> path) {
+		return pathToString(path, Integer.MAX_VALUE);
+	}
+
+	/**
+	 * Builds a string that represent a config path. Avoids ambiguities, for instance:
+	 * <ul>
+	 * <li>{@code ["a", "b", "c"]} gives the string {@code a.b.c}</li>
+	 * <li>{@code ["a.b", "\"b\",b", "c"]} gives the string {@code ["a.b", "\"b\",b", "c"]}</li>
+	 * </ul>
+	 */
+	public static String pathToString(Iterable<String> path, int maxLen) {
+		Charray builder = new Charray();
+		Iterator<String> it = path.iterator();
+		boolean hasNext = it.hasNext();
+		int i = 0;
+		while (hasNext && i < maxLen) {
+			String part = it.next();
+			if (part.indexOf('.') != -1) {
+				return pathToArrayString(path, builder);
+			}
+			hasNext = it.hasNext();
+			builder.append(path);
+			if (hasNext) {
+				builder.append(',');
+			}
+			i++;
+		}
+		return builder.toString();
+	}
+
 	/**
 	 * Joins an array of strings with dots.
 	 * This is the opposite of {@link #splitPath(String)}.
