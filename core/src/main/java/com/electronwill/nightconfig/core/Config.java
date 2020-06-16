@@ -11,8 +11,8 @@ import java.util.Set;
 import static com.electronwill.nightconfig.core.utils.StringUtils.splitPath;
 
 /**
- * A (modifiable) configuration that contains key/value mappings. Configurations are generally
- * <b>not</b> thread-safe.
+ * A (modifiable) configuration that contains key/value mappings.
+ * Configurations are generally <b>not</b> thread-safe.
  *
  * @author TheElectronWill
  */
@@ -64,7 +64,39 @@ public interface Config extends UnmodifiableConfig {
 	Map<String, Object> valueMap();
 
 
-	// --- CONFIG OPERATIONS ---
+	// --- ENTRY CREATION ---
+
+	/**
+	 * If no entry exists at the given path, creates a new entry and every required intermediate
+	 * level (sub-configurations). If an entry exists, returns it.
+	 *
+	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
+	 * @return the entry, new or existing
+	 */
+	default Entry addEntry(String path) {
+		return addEntry(splitPath(path));
+	}
+
+	/**
+	 * If no entry exists at the given path, creates a new entry and every required intermediate
+	 * level (sub-configurations). If an entry exists, returns it.
+	 *
+	 * @param path path to the entry
+	 * @return the entry, new or existing
+	 */
+	Entry addEntry(String[] path);
+
+	/**
+	 * If no entry exists at the given path, creates a new entry and every required intermediate
+	 * level (sub-configurations). If an entry exists, returns it.
+	 *
+	 * @param path path to the entry
+	 * @return the entry, new or existing
+	 */
+	Entry addEntry(Iterable<String> path);
+
+
+	// --- GENERAL OPERATIONS ---
 
 	/** Removes all entries from the config. */
 	void clear();
@@ -92,26 +124,28 @@ public interface Config extends UnmodifiableConfig {
 	// --- GROUPED OPERATIONS ---
 
 	/**
-	 * Adds all entries of another config to this one. No existing entry is replaced.
+	 * Adds to this configuration a copy of all "new" entries coming from another configuration.
+	 * No existing entry is replaced.
 	 *
 	 * @param config source config
 	 */
 	void addAll(UnmodifiableConfig config, Depth depth);
 
 	/**
-	 * Adds all entries of another config to this one.
-	 * New foreign entries replace old local entries.
+	 * Adds to this configuration a copy of all the entries of another configuration.
+	 * New "foreign" entries replace local entries.
 	 *
 	 * @param config source config
 	 */
-	void putAll(UnmodifiableConfig config, Depth depth);
+	void putAll(UnmodifiableConfig config);
 
 	/**
-	 * Removes all the entries of this config that exist in another config.
+	 * Removes from this config all the entries that exist in another config.
+	 * This is based on the name of the entries, not their content.
 	 *
 	 * @param config config to compare
 	 */
-	void removeAll(UnmodifiableConfig config, Depth depth);
+	void removeAll(UnmodifiableConfig config);
 
 
 	// --- VALUES OPERATIONS ---

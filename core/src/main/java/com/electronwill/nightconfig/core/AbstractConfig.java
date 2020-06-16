@@ -29,12 +29,24 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		this.root = new Entry(null, this);
 	}
 
+	// --- INTERNALS ---
+
 	protected Entry findEntry(String[] path, EntrySearchMode mode) {
 		if (path == null) return root;
 		Map<String, Entry> parent = findEntryParent(path, mode);
 		if (parent == null) return null;
 		String leafKey = path[path.length - 1];
 		return processLeaf(parent, leafKey, mode);
+	}
+
+	/** Finds the map that contains (maybe) the last entry of the path. Array version. */
+	private Map<String, Entry> findEntryParent(String[] path, EntrySearchMode mode) {
+		Map<String, Entry> current = storage;
+		for (int i = 0; i < path.length-1 && current != null; i++) {
+			final String key = path[i];
+			current = getNextLevel(path, i, current, key, mode);
+		}
+		return current;
 	}
 
 	protected Entry findEntry(Iterable<String> path, EntrySearchMode mode) {
@@ -78,16 +90,6 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		}
 	}
 
-	/** Finds the map that contains (maybe) the last entry of the path. Array version. */
-	private Map<String, Entry> findEntryParent(String[] path, EntrySearchMode mode) {
-		Map<String, Entry> current = storage;
-		for (int i = 0; i < path.length-1 && current != null; i++) {
-			final String key = path[i];
-			current = getNextLevel(path, i, current, key, mode);
-		}
-		return current;
-	}
-
 	private Map<String, Entry> getNextLevel(Object path, int i, Map<String, Entry> current, String key, EntrySearchMode mode) {
 		Entry entry = current.get(key);
 		if (entry == null) {
@@ -122,6 +124,8 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		return null;
 	}
 
+	// --- PUBLIC CONFIG METHODS ---
+
 	@Override
 	public int size() {
 		return storage.size();
@@ -145,6 +149,53 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	@Override
 	public Config.Entry getEntry(String[] path) {
 		return findEntry(path, EntrySearchMode.GET);
+	}
+
+	@Override
+	public Config.Entry getEntry(Iterable<String> path) {
+		return findEntry(path, EntrySearchMode.GET);
+	}
+
+	@Override
+	public Config.Entry addEntry(String[] path) {
+		return findEntry(path, EntrySearchMode.CREATE);
+	}
+
+	@Override
+	public Config.Entry addEntry(Iterable<String> path) {
+		return findEntry(path, EntrySearchMode.CREATE);
+	}
+
+	@Override
+	public void addAll(UnmodifiableConfig config, Depth depth) {
+		for (UnmodifiableConfig.Entry other : config.entries()) {
+			String key = other.getKey();
+			Entry e = storage.get(key);
+			if (e == null) {
+				storage.put(key, new Entry(other)); // TODO optimize when other instanceof Entry
+			} else if (depth == Depth.DEEP) {
+				Object eVal = e.getValue();
+				Object oVal = other.getValue();
+				if (eVal instanceof Config && oVal instanceof UnmodifiableConfig) {
+					((Config)eVal).addAll((UnmodifiableConfig)oVal, depth);
+				}
+			}
+		}
+	}
+
+	@Override
+	public void putAll(UnmodifiableConfig config) {
+		for (UnmodifiableConfig.Entry other : config.entries()) {
+			String key = other.getKey();
+			storage.put(key, new Entry(other));
+		}
+	}
+
+	@Override
+	public void removeAll(UnmodifiableConfig config) {
+		for (UnmodifiableConfig.Entry other : config.entries()) {
+			storage.remove(other.getKey());
+		}
 	}
 
 	// --- VALUES ---
@@ -265,6 +316,20 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		public Entry(String key, Object value) {
 			this.key = key;
 			this.value = value;
+		}
+
+		public Entry(Entry toCopy) {
+			this.key = toCopy.key;
+			this.value = toCopy.value;
+			this.extra = new HashMap<>(toCopy.extra);
+		}
+
+		public Entry(UnmodifiableConfig.Entry toCopy) {
+			this.key = toCopy.getKey();
+			this.value = toCopy.getValue();
+			for (UnmodifiableConfig.Attribute<?> attr : toCopy.attributes()) {
+				this.extraAttributesMap().put(attr.getType(), attr.getValue());
+			}
 		}
 
 		private Map<AttributeType<?>, Object> extraAttributesMap() {
