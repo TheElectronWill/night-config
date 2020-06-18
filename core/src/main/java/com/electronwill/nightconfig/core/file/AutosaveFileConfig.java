@@ -109,8 +109,8 @@ final class AutosaveFileConfig extends FileConfigWrapper {
 		}
 
 		@Override
-		public void clearExtraAttributes() {
-			entry.clearExtraAttributes();
+		public void clearAttributes() {
+			entry.clearAttributes();
 			save();
 		}
 

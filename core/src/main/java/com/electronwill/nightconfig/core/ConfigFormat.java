@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.core;
 
-import com.electronwill.nightconfig.core.check.ConfigChecker;
+import com.electronwill.nightconfig.core.check.UpdateChecker;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.utils.WriterSupplier;
@@ -26,11 +26,10 @@ public interface ConfigFormat {
 	 * @return a ConfigChecker that checks whether the config's values are supported by this
 	 * configuration format.
 	 */
-	ConfigChecker checker();
+	UpdateChecker checker();
 
 	/**
 	 * @return true if this format handles the given attribute.
-	 * Always true for {@link StandardAttributes#VALUE}
 	 */
 	boolean supportsAttribute(AttributeType<?> attribute);
 

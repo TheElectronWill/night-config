@@ -2,16 +2,22 @@ package com.electronwill.nightconfig.core.spec;
 
 import com.electronwill.nightconfig.core.AttributeType;
 
-@FunctionalInterface
 public interface CorrectionListener {
-	<T> void onCorrect(String[] path, AttributeType<T> attribute, CorrectionResult<T> result);
+	void onValueCorrection(String[] path, CorrectionResult<?> result);
+
+	<T> void onAttributeCorrection(AttributeType<T> attribute, String[] path, CorrectionResult<T> result);
 
 	/** @return a CorrectionListener that does nothing. */
 	static CorrectionListener noop() {
 		return new CorrectionListener() {
 			@Override
-			public <T> void onCorrect(String[] path, AttributeType<T> attribute,
-									  CorrectionResult<T> result) {
+			public void onValueCorrection(String[] path, CorrectionResult<?> result) {
+				// does nothing
+			}
+
+			@Override
+			public <T> void onAttributeCorrection(AttributeType<T> attribute, String[] path,
+												  CorrectionResult<T> result) {
 				// does nothing
 			}
 		};

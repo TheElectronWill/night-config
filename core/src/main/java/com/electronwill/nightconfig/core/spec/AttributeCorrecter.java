@@ -2,15 +2,8 @@ package com.electronwill.nightconfig.core.spec;
 
 import com.electronwill.nightconfig.core.AttributeType;
 
-final class AttributeCorrecter<T> implements AttributeType<ValueCorrecter<T>> {
-	private final String name;
-
+final class AttributeCorrecter<T> extends AttributeType<ValueCorrecter<T>> {
 	AttributeCorrecter(AttributeType<T> attribute) {
-		this.name = "AttributeCorrecter" + attribute.getName() + ")";
-	}
-
-	@Override
-	public String getName() {
-		return name;
+		super("AttributeCorrecter(" + attribute.getName() + ")");
 	}
 }

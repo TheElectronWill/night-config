@@ -41,8 +41,8 @@ public abstract class ConfigWrapper<C extends Config> extends UnmodifiableConfig
 	}
 
 	@Override
-	public void clearExtraAttributes() {
-		config.clearExtraAttributes();
+	public void clearAttributes() {
+		config.clearAttributes();
 	}
 
 	@Override

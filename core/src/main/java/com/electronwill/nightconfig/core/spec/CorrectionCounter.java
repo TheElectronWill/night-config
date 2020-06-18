@@ -6,8 +6,8 @@ public class CorrectionCounter implements CorrectionListener {
 	protected int correctionCount;
 
 	@Override
-	public <T> void onCorrect(String[] path, AttributeType<T> attribute,
-							  CorrectionResult<T> result) {
+	public <T> void onAttributeCorrection(AttributeType<T> attribute, String[] path,
+										  CorrectionResult<T> result) {
 		if (result.isFailed()) {
 			throw new CorrectionFailedException(result.failure());
 		} else if (!result.isCorrect()) {

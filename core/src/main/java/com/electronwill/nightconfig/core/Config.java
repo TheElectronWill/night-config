@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.core;
 
 import com.electronwill.nightconfig.core.check.CheckedConfig;
-import com.electronwill.nightconfig.core.check.ConfigChecker;
+import com.electronwill.nightconfig.core.check.UpdateChecker;
 import com.electronwill.nightconfig.core.utils.MapSupplier;
 
 import java.util.Map;
@@ -104,8 +104,8 @@ public interface Config extends UnmodifiableConfig {
 	/** Removes all comments from the config entries. */
 	void clearComments();
 
-	/** Removes all non-value attributes from the config entries. */
-	void clearExtraAttributes();
+	/** Removes all attributes from the config entries. */
+	void clearAttributes();
 
 	/**
 	 * Creates a new sub-configuration for a value of this config.
@@ -444,7 +444,7 @@ public interface Config extends UnmodifiableConfig {
 	 * @return an Unmodifiable view of the config.
 	 */
 	default UnmodifiableConfig unmodifiable() {
-		return new CheckedConfig(this, ConfigChecker.freeze());
+		return new CheckedConfig(this, UpdateChecker.freeze());
 	}
 
 
@@ -455,8 +455,8 @@ public interface Config extends UnmodifiableConfig {
 		@Override
 		Iterable<? extends Attribute<?>> attributes();
 
-		/** Removes all the attributes except the value. */
-		void clearExtraAttributes();
+		/** Removes all the attributes. */
+		void clearAttributes();
 
 		/** @return an instance of Map.Entry with the same key and value as this entry. */
 		<T> Map.Entry<String, T> toMapEntry();

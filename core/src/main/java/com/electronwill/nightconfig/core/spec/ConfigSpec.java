@@ -8,10 +8,13 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static com.electronwill.nightconfig.core.utils.StringUtils.single;
+import static com.electronwill.nightconfig.core.utils.StringUtils.splitPath;
 
 /**
  * Represents a specification for a configuration. With a ConfigSpec you can define mandatory
@@ -85,24 +88,20 @@ public class ConfigSpec {
 		this.removeUnspecAttributes = removeUnspecAttributes;
 	}
 
-	public void define(String path, ValueCorrecter correcter) {
-		Objects.requireNonNull(correcter);
-		storage.set(path, correcter);
+	public void define(String path, ValueCorrecter<?> correcter) {
+		define(splitPath(path), correcter);
 	}
 
 	public void define(String[] path, ValueCorrecter<?> correcter) {
-		Objects.requireNonNull(correcter);
-		storage.set(path, correcter);
+		storage.set(path, Objects.requireNonNull(correcter));
 	}
 
 	public <T> void define(AttributeType<T> attribute, String path, ValueCorrecter<T> correcter) {
-		Objects.requireNonNull(correcter);
-		storage.set(correcter(attribute), path, correcter); // yes it's wrongly typed, but practical
+		define(attribute, splitPath(path), correcter);
 	}
 
 	public <T> void define(AttributeType<T> attribute, String[] path, ValueCorrecter<T> correcter) {
-		Objects.requireNonNull(correcter);
-		storage.set(correcter(attribute), path, correcter);
+		storage.set(correcter(attribute), path, Objects.requireNonNull(correcter));
 	}
 
 	public void undefine(String path) {
@@ -174,13 +173,27 @@ public class ConfigSpec {
 		correct(storage, config, stack, listener, removeUnspecEntries, removeUnspecAttributes);
 	}
 
+	public void correct(Config config, BiConsumer<String[], CorrectionResult<?>> onCorrection) {
+		correct(config, new CorrectionListener() {
+			@Override
+			public void onValueCorrection(String[] path, CorrectionResult<?> result) {
+				onCorrection.accept(path, result);
+			}
+
+			@Override
+			public <T> void onAttributeCorrection(AttributeType<T> attribute, String[] path, CorrectionResult<T> result) {
+				// does nothing
+			}
+		});
+	}
+
 	private static void correct(Config spec,
 								Config target,
 								Deque<String> pathStack,
 								CorrectionListener listener,
 								boolean rmUnspecEntries,
 								boolean rmUnspecAttr) {
-		// First step: remove the unspecified entries, if keepUnspecifiedEntries is false
+		// First step: remove the unspecified entries, if asked so
 		if (rmUnspecEntries) {
 			removeUnspecified(spec, target);
 		}
@@ -245,7 +258,7 @@ public class ConfigSpec {
 			correction = correcter.correct(null);
 			target.set(localPath, correction.replacementValue());
 		}
-		l.onCorrect(fullPath, StandardAttributes.VALUE, correction);
+		l.onValueCorrection(fullPath, correction);
 		return sub;
 	}
 
@@ -255,9 +268,9 @@ public class ConfigSpec {
 											  String[] fullPath) {
 		Config subTarget = target.createSubConfig();
 		actual.setValue(subTarget);
-		actual.clearExtraAttributes();
+		actual.clearAttributes();
 		CorrectionResult<Object> correction = CorrectionResult.replacedBy(subTarget);
-		l.onCorrect(fullPath, StandardAttributes.VALUE, correction);
+		l.onValueCorrection(fullPath, correction);
 		return subTarget;
 	}
 
@@ -276,19 +289,14 @@ public class ConfigSpec {
 			} else if (correction.isRemoved()) {
 				it.remove();
 			}
-			l.onCorrect(fullPath, attribute, correction);
+			l.onAttributeCorrection(attribute, fullPath, correction);
 		} else if (rmUnspecAttr) {
 			it.remove();
-			l.onCorrect(fullPath, attribute, CorrectionResult.removed());
+			l.onAttributeCorrection(attribute, fullPath, CorrectionResult.removed());
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private static <T> AttributeType<ValueCorrecter<T>> correcter(AttributeType<T> attr) {
-		if (attr == StandardAttributes.VALUE) {
-			// Store the correcter of VALUE directly in the entry value
-			return (AttributeType<ValueCorrecter<T>>)attr;
-		}
 		return new AttributeCorrecter<>(attr);
 	}
 }

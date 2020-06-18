@@ -3,9 +3,6 @@ package com.electronwill.nightconfig.core;
 public final class StandardAttributes {
 	private StandardAttributes() {}
 
-	/** Entry's value */
-	public static final AttributeType<Object> VALUE = new AttributeType<>("value");
-
 	/** Entry's comment (only some config formats support comments).
 	 * @see ConfigFormat#supportsComments */
 	public static final AttributeType<String> COMMENT = new AttributeType<>("comment");

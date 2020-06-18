@@ -8,7 +8,6 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import static com.electronwill.nightconfig.core.StandardAttributes.VALUE;
 import static com.electronwill.nightconfig.core.utils.StringUtils.single;
 
 /**
@@ -137,8 +136,8 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	}
 
 	@Override
-	public void clearExtraAttributes() {
-		storage.forEach((key, data) -> data.clearExtraAttributes());
+	public void clearAttributes() {
+		storage.forEach((key, data) -> data.clearAttributes());
 	}
 
 	@Override
@@ -311,7 +310,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	protected static final class Entry implements Config.Entry, Cloneable {
 		private final String key;
 		private Object value;
-		private Map<AttributeType<?>, Object> extra = null;
+		private Map<AttributeType<?>, Object> attributes = null;
 
 		public Entry(String key, Object value) {
 			this.key = key;
@@ -321,22 +320,22 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		public Entry(Entry toCopy) {
 			this.key = toCopy.key;
 			this.value = toCopy.value;
-			this.extra = new HashMap<>(toCopy.extra);
+			this.attributes = new HashMap<>(toCopy.attributes);
 		}
 
 		public Entry(UnmodifiableConfig.Entry toCopy) {
 			this.key = toCopy.getKey();
 			this.value = toCopy.getValue();
 			for (UnmodifiableConfig.Attribute<?> attr : toCopy.attributes()) {
-				this.extraAttributesMap().put(attr.getType(), attr.getValue());
+				this.getAttributesMap().put(attr.getType(), attr.getValue());
 			}
 		}
 
-		private Map<AttributeType<?>, Object> extraAttributesMap() {
-			if (extra == null) {
-				extra = new HashMap<>();
+		private Map<AttributeType<?>, Object> getAttributesMap() {
+			if (attributes == null) {
+				attributes = new HashMap<>();
 			}
-			return extra;
+			return attributes;
 		}
 
 		@Override
@@ -372,47 +371,32 @@ public abstract class AbstractConfig implements Config, Cloneable {
 
 		@Override
 		public <T> T set(AttributeType<T> attribute, T value) {
-			if (attribute == VALUE) {
-				return setValue(value);
-			}
-			return (T)extraAttributesMap().put(attribute, value);
+			return (T) getAttributesMap().put(attribute, value);
 		}
 
 		@Override
 		public <T> T add(AttributeType<T> attribute, T value) {
-			if (attribute == VALUE) {
-				return addValue(value);
-			}
-			return (T)extraAttributesMap().putIfAbsent(attribute, value);
+			return (T) getAttributesMap().putIfAbsent(attribute, value);
 		}
 
 		@Override
 		public <T> T remove(AttributeType<T> attribute) {
-			if (attribute == VALUE) {
-				return removeValue();
-			} else if (extra == null) {
-				return null;
-			} else {
-				return (T)extra.remove(attribute);
-			}
+			return attributes == null ? null : (T) attributes.remove(attribute);
 		}
 
 		@Override
 		public boolean has(AttributeType<?> attribute) {
-			return attribute == VALUE || (extra != null && extra.containsKey(attribute));
+			return attributes != null && attributes.containsKey(attribute);
 		}
 
 		@Override
 		public <T> T get(AttributeType<T> attribute) {
-			if (attribute == VALUE) {
-				return (T)value;
-			}
-			return extra == null ? null : (T)extra.get(attribute);
+			return attributes == null ? null : (T) attributes.get(attribute);
 		}
 
 		@Override
-		public void clearExtraAttributes() {
-			extra = null;
+		public void clearAttributes() {
+			attributes = null;
 		}
 
 		@Override
@@ -422,10 +406,10 @@ public abstract class AbstractConfig implements Config, Cloneable {
 
 		@Override
 		public String toString() {
-			if (extra == null) {
+			if (attributes == null) {
 				return String.valueOf(value);
 			}
-			return String.format("%s {attributes: %s}", value, extra);
+			return String.format("%s = %s with attributes %s", key, value, attributes);
 		}
 
 		@Override
@@ -434,12 +418,12 @@ public abstract class AbstractConfig implements Config, Cloneable {
 			Entry entry = (Entry)o;
 			return Objects.equals(key, entry.key) &&
 				   Objects.equals(value, entry.value) &&
-				   Objects.equals(extra, entry.extra);
+				   Objects.equals(attributes, entry.attributes);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(key, value, extra);
+			return Objects.hash(key, value, attributes);
 		}
 
 		@Override
@@ -463,55 +447,34 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		}
 
 		private final class AttributesIterator implements Iterator<Attribute<?>> {
-			private boolean passedValue = false;
-			private final Iterator<Map.Entry<AttributeType<?>, Object>> extraIterator =
-				extra == null ? null : extra.entrySet().iterator();
+			private final Iterator<Map.Entry<AttributeType<?>, Object>> entryIterator =
+				attributes == null ? null : attributes.entrySet().iterator();
 
 			@Override
 			public boolean hasNext() {
-				return !passedValue || (extraIterator != null && extraIterator.hasNext());
+				return entryIterator != null && entryIterator.hasNext();
 			}
 
 			@Override
 			public Config.Attribute<?> next() {
-				if (passedValue) {
-					if (extraIterator == null) throw new NoSuchElementException();
-					final Map.Entry<AttributeType<?>, Object> entry = extraIterator.next();
-					return new Config.Attribute<Object>() {
-						@Override
-						public Object setValue(Object value) {
-							return entry.setValue(value);
-						}
+				if (entryIterator == null) throw new NoSuchElementException();
+				final Map.Entry<AttributeType<?>, Object> entry = entryIterator.next();
+				return new Config.Attribute<Object>() {
+					@Override
+					public Object setValue(Object value) {
+						return entry.setValue(value);
+					}
 
-						@Override
-						public AttributeType<Object> getType() {
-							return (AttributeType<Object>)entry.getKey();
-						}
+					@Override
+					public AttributeType<Object> getType() {
+						return (AttributeType<Object>)entry.getKey();
+					}
 
-						@Override
-						public Object getValue() {
-							return entry.getValue();
-						}
-					};
-				} else {
-					passedValue = true;
-					return new Config.Attribute<Object>() {
-						@Override
-						public Object setValue(Object value) {
-							return Entry.this.setValue(value);
-						}
-
-						@Override
-						public AttributeType<Object> getType() {
-							return VALUE;
-						}
-
-						@Override
-						public Object getValue() {
-							return Entry.this.getValue();
-						}
-					};
-				}
+					@Override
+					public Object getValue() {
+						return entry.getValue();
+					}
+				};
 			}
 		}
 	}

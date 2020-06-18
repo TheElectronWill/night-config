@@ -13,17 +13,17 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A configuration that checks every modification (add, set, remove) with a {@link ConfigChecker}.
+ * A configuration that checks every modification (add, set, remove) with a {@link UpdateChecker}.
  */
 public class CheckedConfig extends ConfigWrapper<Config> {
-	protected final ConfigChecker checker;
+	protected final UpdateChecker checker;
 
 	/**
 	 * Creates a new CheckedConfig and checks the existing elements with the checker.
 	 * @param config the config to use as a data storage
 	 * @param checker will check the config's data
 	 */
-	public CheckedConfig(Config config, ConfigChecker checker) {
+	public CheckedConfig(Config config, UpdateChecker checker) {
 		super(config);
 		this.checker = checker;
 
@@ -37,34 +37,21 @@ public class CheckedConfig extends ConfigWrapper<Config> {
 		});
 	}
 
-	private void recursiveCheck(Deque<String> path, Object value) {
-		if (value instanceof Config) {
-			for (Config.Entry entry : ((Config)value).entries()) {
-				path.addLast(entry.getKey());
-				recursiveCheck(path, entry.getValue());
-				path.removeLast();
-			}
-		} else {
-			String[] arr = (String[])path.toArray();
-			checker.checkUpdate(StandardAttributes.VALUE, arr, value, value);
-		}
-	}
-
 	@Override
 	public <T> T set(AttributeType<T> attribute, String[] path, T value) {
-		checker.checkUpdate(attribute, path, config.get(path), value);
+		checker.checkAttributeUpdate(attribute, path, config.get(path), value);
 		return config.set(attribute, path, value);
 	}
 
 	@Override
 	public <T> T add(AttributeType<T> attribute, String[] path, T value) {
-		checker.checkUpdate(StandardAttributes.VALUE, path, null, value);
+		checker.checkValueUpdate(path, null, value);
 		return config.add(attribute, path, value);
 	}
 
 	@Override
 	public <T> T remove(AttributeType<T> attribute, String[] path) {
-		checker.checkUpdate(attribute, path, config.get(path), null);
+		checker.checkAttributeUpdate(attribute, path, config.get(path), null);
 		return config.remove(attribute, path);
 	}
 
@@ -80,7 +67,7 @@ public class CheckedConfig extends ConfigWrapper<Config> {
 
 	private <T> T checkMapWrite(String key, T value) {
 		String[] path = { key };
-		checker.checkUpdate(StandardAttributes.VALUE, path, get(path), value);
+		checker.checkValueUpdate(path, get(path), value);
 		return value;
 	}
 
@@ -93,5 +80,18 @@ public class CheckedConfig extends ConfigWrapper<Config> {
 			return (Config.Entry)o;
 		}
 		return null;
+	}
+
+	private void recursiveCheck(Deque<String> path, Object value) {
+		if (value instanceof Config) {
+			for (Config.Entry entry : ((Config)value).entries()) {
+				path.addLast(entry.getKey());
+				recursiveCheck(path, entry.getValue());
+				path.removeLast();
+			}
+		} else {
+			String[] arr = (String[])path.toArray();
+			checker.checkValueUpdate(arr, value, value);
+		}
 	}
 }

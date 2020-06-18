@@ -14,9 +14,15 @@ public final class IncorrectUpdateException extends RuntimeException {
 	private final AttributeType<?> attribute;
 	private final Object incorrectValue;
 
-	public IncorrectUpdateException(String[] path, AttributeType<?> attribute, Object incorrectValue) {
-		super("Incorrect " + attribute.getName() + " '" + incorrectValue + "' for path "
-				  + StringUtils.joinPath(path));
+	public IncorrectUpdateException(String[] path, Object incorrectValue) {
+		super("Incorrect update " + StringUtils.joinPath(path) + " = " + incorrectValue);
+		this.path = path;
+		this.attribute = null;
+		this.incorrectValue = incorrectValue;
+	}
+
+	public IncorrectUpdateException(AttributeType<?> attribute, String[] path, Object incorrectValue) {
+		super("Incorrect " + attribute.getName() + " update " + StringUtils.joinPath(path) + " = " + incorrectValue);
 		this.path = path;
 		this.attribute = attribute;
 		this.incorrectValue = incorrectValue;
