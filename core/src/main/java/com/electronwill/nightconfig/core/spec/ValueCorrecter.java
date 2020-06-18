@@ -41,14 +41,14 @@ public interface ValueCorrecter<T> {
 		return value -> checker.check(value) ? CorrectionResult.correct() : replacedBy(replace.get());
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	static <E, C extends Collection<E>> ValueCorrecter<C> correctElements(
 			Supplier<C> replacementSupplier, ValueCorrecter<E> elementCorrecter) {
 		return value -> {
 			if (!(value instanceof Iterable)) {
 				return replacedBy(replacementSupplier.get());
 			}
-			// Corrects the collection in-place if possible
+			// Correct the collection in-place if possible
 			if (value instanceof List) {
 				List<Object> l = (List)value;
 				int state = 0; // 0: all elements are correct, 1: some replaced, -1: exception
@@ -67,7 +67,8 @@ public interface ValueCorrecter<T> {
 							break;
 						}
 					} else if (result.isFailed()) {
-						return (CorrectionResult<C>)result; // ok because there is no replacement value
+						return (CorrectionResult<C>)result; // propagate the failure
+						// it's ok to cast and return the result as is because there is no replacement value
 					}
 				}
 				if (state == 0) {
@@ -76,7 +77,7 @@ public interface ValueCorrecter<T> {
 					return modified();
 				} // else: continue below
 			}
-			// Otherwise, build a new collection if needed
+			// Otherwise, build a new collection
 			C newCollection = null;
 			for (Object elem : (Iterable)value) {
 				CorrectionResult<E> result = elementCorrecter.correct(elem);

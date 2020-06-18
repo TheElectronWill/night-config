@@ -3,7 +3,6 @@ package com.electronwill.nightconfig.core.check;
 import com.electronwill.nightconfig.core.EnumGetMethod;
 
 import java.lang.reflect.Array;
-import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -19,15 +18,25 @@ public interface ValueChecker {
 	 */
 	boolean check(Object value);
 
+	/** Checks {@code this and other} */
 	default ValueChecker and(ValueChecker other) {
 		return value -> this.check(value) && other.check(value);
 	}
 
+	/** Checks {@code this or other} */
 	default ValueChecker or(ValueChecker other) {
 		return value -> this.check(value) || other.check(value);
 	}
 
 	// --- STATIC METHODS ---
+
+	/**
+	 * Checks that there exist at last one correct element in the iterable or array.
+	 *
+	 * @param elementChecker check for one element
+	 * @return a ValueChecker that returns "correct" if the value is an iterable or an array
+	 * and if at least one element is correct
+	 */
 	static ValueChecker any(ValueChecker elementChecker) {
 		return value -> {
 			if (value instanceof Iterable) {
@@ -48,7 +57,14 @@ public interface ValueChecker {
 		};
 	}
 
-	static ValueChecker each(ValueChecker elementChecker) {
+	/**
+	 * Checks that all the elements are correct in the iterable or array.
+	 *
+	 * @param elementChecker check for one element
+	 * @return a ValueChecker that returns "correct" if the value is an iterable or an array
+	 * and if all its elements are correct
+	 */
+	static ValueChecker all(ValueChecker elementChecker) {
 		return value -> {
 			if (value instanceof Iterable) {
 				for (Object elem : (Iterable<?>)value) {
@@ -68,10 +84,24 @@ public interface ValueChecker {
 		};
 	}
 
+	/**
+	 * Checks that the value is <b>not null</b> and assignable to a specific class.
+	 *
+	 * @param cls class to check
+	 * @return a ValueChecker that returns "correct" if the value is not null and assignable to cls
+	 * @see Class#isAssignableFrom(Class)
+	 */
 	static ValueChecker assignableTo(Class<?> cls) {
 		return value -> value != null && cls.isAssignableFrom(value.getClass());
 	}
 
+	/**
+	 * Checks that the value is <b>not null</b> and assignable to one of the given classes.
+	 *
+	 * @param acceptableClasses classes to check
+	 * @return a ValueChecker that returns "correct" if the value is not null and assignable to one of the given classes
+	 * @see Class#isAssignableFrom(Class)
+	 */
 	static ValueChecker assignableTo(Class<?>... acceptableClasses) {
 		return value -> {
 			if (value == null) {
@@ -87,26 +117,68 @@ public interface ValueChecker {
 		};
 	}
 
+	/**
+	 * Checks that the value is null OR assignable to a specific class.
+	 *
+	 * @param cls class to check
+	 * @return a ValueChecker that returns "correct" if the value is null OR assignable to cls
+	 * @see Class#isAssignableFrom(Class)
+	 */
 	static ValueChecker assignableToNullable(Class<?> cls) {
 		return value -> value == null || cls.isAssignableFrom(value.getClass());
 	}
 
+	/**
+	 * Checks that the value is in range {@code [min,max]}.
+	 *
+	 * @param min minimum value, inclusive
+	 * @param max maximum value, inclusive
+	 * @param <T> value type
+	 * @return a ValueChecker that returns "correct" if the value is in the range
+	 */
 	static <T extends Comparable<T>> ValueChecker closedRange(T min, T max) {
 		return range(min, max, true, true);
 	}
 
+	/**
+	 * Checks that the value is in range {@code ]min,max[}.
+	 *
+	 * @param min minimum value, exclusive
+	 * @param max maximum value, exclusive
+	 * @param <T> value type
+	 * @return a ValueChecker that returns "correct" if the value is in the range
+	 */
 	static <T extends Comparable<T>> ValueChecker openRange(T min, T max) {
 		return range(min, max, false, false);
 	}
 
-	static <T extends Comparable<T>> ValueChecker leftRange(T excludedMin, T includedMax) {
-		return range(excludedMin, includedMax, true, false);
+	/**
+	 * Checks that the value is in range {@code [min,max[} (left-closed).
+	 *
+	 * @param inclusiveMin minimum value, inclusive
+	 * @param exclusiveMax maximum value, exclusive
+	 * @param <T> value type
+	 * @return a ValueChecker that returns "correct" if the value is in the range
+	 */
+	static <T extends Comparable<T>> ValueChecker leftRange(T inclusiveMin, T exclusiveMax) {
+		return range(inclusiveMin, exclusiveMax, true, false);
 	}
 
-	static <T extends Comparable<T>> ValueChecker rightRange(T includedMin, T excludedMax) {
-		return range(includedMin, excludedMax, false, true);
+	/**
+	 * Checks that the value is in range {@code [min,max[} (left-closed).
+	 *
+	 * @param exclusiveMin minimum value, exclusive
+	 * @param inclusiveMax maximum value, inclusive
+	 * @param <T> value type
+	 * @return a ValueChecker that returns "correct" if the value is in the range
+	 */
+	static <T extends Comparable<T>> ValueChecker rightRange(T exclusiveMin, T inclusiveMax) {
+		return range(exclusiveMin, inclusiveMax, false, true);
 	}
 
+	/**
+	 * Checks that the value is in the given range.
+	 */
 	@SuppressWarnings("unchecked")
 	static <T extends Comparable<T>> ValueChecker range(T min, T max, boolean inclusiveMin,
 														boolean inclusiveMax) {
@@ -127,31 +199,79 @@ public interface ValueChecker {
 		};
 	}
 
-	static ValueChecker isRef(Object reference) {
+	/**
+	 * Checks that the value refers to a specific object.
+	 *
+	 * @param reference the correct reference
+	 * @return a ValueChecker that returns "correct" if the value refers to the same object,
+	 * ie if {@code value == reference}
+	 */
+	static ValueChecker sameRef(Object reference) {
 		return v -> v == reference;
 	}
 
+	/**
+	 * Checks that the value is equal to something, according to the {@link Object#equals(Object)} method.
+	 * It is assumed that the {@code equals} method of the given object is symmetric.
+	 *
+	 * @param to the correct object
+	 * @return a ValueChecker that returns "correct" if the value is non-null and equal to the given object
+	 */
 	static ValueChecker equalTo(Object to) {
-		assert to != null;
+		Objects.requireNonNull(to);
 		return to::equals;
 	}
 
+	/**
+	 * Checks that the value refers to one of the given objects.
+	 *
+	 * @param acceptableValues the acceptable references
+	 * @return a ValueChecker that returns "correct" if {@code value == o} for at least one acceptable value o.
+	 */
 	static ValueChecker refIn(Object... acceptableValues) {
 		return value -> any(a -> a == value).check(acceptableValues);
 	}
 
+	/**
+	 * Checks that the value refers to one of the given objects.
+	 *
+	 * @param acceptableValues the acceptable references
+	 * @return a ValueChecker that returns "correct" if {@code value == o} for at least one acceptable value o.
+	 */
 	static ValueChecker refIn(Iterable<?> acceptableValues) {
 		return value -> any(a -> a == value).check(acceptableValues);
 	}
 
+	/**
+	 * Checks that the value is equal to one of the given objects.
+	 * It is assumed that the {@code equals} method of the given object is symmetric.
+	 *
+	 * @param acceptableValues the acceptable references
+	 * @return a ValueChecker that returns "correct" if {@code Objects.equals(value,o)} for at least one acceptable value o.
+	 */
 	static ValueChecker containedIn(Object... acceptableValues) {
 		return value -> any(a -> Objects.equals(value, a)).check(acceptableValues);
 	}
 
+	/**
+	 * Checks that the value is equal to one of the given objects.
+	 * It is assumed that the {@code equals} method of the given object is symmetric.
+	 *
+	 * @param acceptableValues the acceptable references
+	 * @return a ValueChecker that returns "correct" if {@code Objects.equals(value,o)} for at least one acceptable value o.
+	 */
 	static ValueChecker containedIn(Iterable<?> acceptableValues) {
 		return value -> any(a -> Objects.equals(value, a)).check(acceptableValues);
 	}
 
+	/**
+	 * Checks that the value represents an enum.
+	 *
+	 * @param enumClass class of enum
+	 * @param method how to "translate" the value to an enum value
+	 * @param <T> type of enum
+	 * @return a ValueChecker that returns "correct" if {@link EnumGetMethod#validate(Object, Class)} returns true.
+	 */
 	static <T extends Enum<T>> ValueChecker enumeration(Class<T> enumClass, EnumGetMethod method) {
 		return value -> method.validate(value, enumClass);
 	}

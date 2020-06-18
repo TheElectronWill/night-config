@@ -1,15 +1,16 @@
 package com.electronwill.nightconfig.core.spec;
 
-import com.electronwill.nightconfig.core.*;
+import com.electronwill.nightconfig.core.AttributeType;
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.Config.Attribute;
 import com.electronwill.nightconfig.core.Config.Entry;
+import com.electronwill.nightconfig.core.MapConfig;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -72,18 +73,34 @@ public class ConfigSpec {
 	private boolean removeUnspecEntries = true;
 	private boolean removeUnspecAttributes = true;
 
+	/**
+	 * @return true if this ConfigSpec removes unspecified entries when correcting.
+	 */
 	public boolean removesUnspecEntries() {
 		return removeUnspecEntries;
 	}
 
+	/**
+	 * Chooses to remove (true) or to keep (false) unspecified entries when correcting.
+	 *
+	 * @param removeUnspecEntries true to remove unspecified entries when correction
+	 */
 	public void removeUnspecEntries(boolean removeUnspecEntries) {
 		this.removeUnspecEntries = removeUnspecEntries;
 	}
 
+	/**
+	 * @return true if this ConfigSpec removes unspecified attributes when correcting.
+	 */
 	public boolean removesUnspecAttributes() {
 		return removeUnspecAttributes;
 	}
 
+	/**
+	 * Chooses to remove (true) or to keep (false) unspecified attributes when correcting.
+	 *
+	 * @param removeUnspecAttributes true to remove unspecified attributes when correction
+	 */
 	public void removeUnspecAttributes(boolean removeUnspecAttributes) {
 		this.removeUnspecAttributes = removeUnspecAttributes;
 	}
@@ -96,11 +113,19 @@ public class ConfigSpec {
 		storage.set(path, Objects.requireNonNull(correcter));
 	}
 
+	public void define(Iterable<String> path, ValueCorrecter<?> correcter) {
+		storage.set(path, Objects.requireNonNull(correcter));
+	}
+
 	public <T> void define(AttributeType<T> attribute, String path, ValueCorrecter<T> correcter) {
 		define(attribute, splitPath(path), correcter);
 	}
 
 	public <T> void define(AttributeType<T> attribute, String[] path, ValueCorrecter<T> correcter) {
+		storage.set(correcter(attribute), path, Objects.requireNonNull(correcter));
+	}
+
+	public <T> void define(AttributeType<T> attribute, Iterable<String> path, ValueCorrecter<T> correcter) {
 		storage.set(correcter(attribute), path, Objects.requireNonNull(correcter));
 	}
 
@@ -112,11 +137,19 @@ public class ConfigSpec {
 		storage.remove(path);
 	}
 
+	public void undefine(Iterable<String> path) {
+		storage.remove(path);
+	}
+
 	public void undefine(AttributeType<?> attribute, String path) {
 		storage.remove(attribute, path);
 	}
 
 	public void undefine(AttributeType<?> attribute, String[] path) {
+		storage.remove(attribute, path);
+	}
+
+	public void undefine(AttributeType<?> attribute, Iterable<String> path) {
 		storage.remove(attribute, path);
 	}
 
@@ -128,11 +161,19 @@ public class ConfigSpec {
 		return storage.contains(path);
 	}
 
+	public boolean isDefined(Iterable<String> path) {
+		return storage.contains(path);
+	}
+
 	public boolean isDefined(AttributeType<?> attribute, String path) {
 		return storage.has(correcter(attribute), path);
 	}
 
 	public boolean isDefined(AttributeType<?> attribute, String[] path) {
+		return storage.has(correcter(attribute), path);
+	}
+
+	public boolean isDefined(AttributeType<?> attribute, Iterable<String> path) {
 		return storage.has(correcter(attribute), path);
 	}
 
@@ -144,6 +185,10 @@ public class ConfigSpec {
 		return storage.<ValueCorrecter<?>>get(path).correct(value);
 	}
 
+	public CorrectionResult<?> correct(Iterable<String> path, Object value) {
+		return storage.<ValueCorrecter<?>>get(path).correct(value);
+	}
+
 	public <T> CorrectionResult<T> correct(AttributeType<T> attribute, String path, Object value) {
 		return storage.get(correcter(attribute), path).correct(value);
 	}
@@ -152,27 +197,39 @@ public class ConfigSpec {
 		return storage.get(correcter(attribute), path).correct(value);
 	}
 
-	public Config correctCopy(UnmodifiableConfig config) {
-		return correctCopy(config, CorrectionListener.noop());
+	public <T> CorrectionResult<T> correct(AttributeType<T> attribute, Iterable<String> path, Object value) {
+		return storage.get(correcter(attribute), path).correct(value);
 	}
 
-	public Config correctCopy(UnmodifiableConfig config, CorrectionListener listener) {
-		Config copy = new MapConfig(config);
-		correct(copy, listener);
-		return copy;
-	}
-
+	/**
+	 * Corrects a configuration in place.
+	 *
+	 * @param config config to correct
+	 * @return number of corrections applied
+	 */
 	public int correct(Config config) {
 		CorrectionCounter counter = new CorrectionCounter();
 		correct(config, counter);
 		return counter.correctionCount();
 	}
 
+	/**
+	 * Corrects a configuration in place an notifies the listener on each corrected value and attribute.
+	 *
+	 * @param config config to correct
+	 * @param listener listener to notify
+	 */
 	public void correct(Config config, CorrectionListener listener) {
 		Deque<String> stack = new ArrayDeque<>(8); // path depth is usually small
 		correct(storage, config, stack, listener, removeUnspecEntries, removeUnspecAttributes);
 	}
 
+	/**
+	 * Corrects a configuration in place an notifies the listener on each corrected value.
+	 *
+	 * @param config config to correct
+	 * @param onCorrection listener to notify
+	 */
 	public void correct(Config config, BiConsumer<String[], CorrectionResult<?>> onCorrection) {
 		correct(config, new CorrectionListener() {
 			@Override
@@ -186,6 +243,9 @@ public class ConfigSpec {
 			}
 		});
 	}
+
+
+	// --- INTERNALS ---
 
 	private static void correct(Config spec,
 								Config target,

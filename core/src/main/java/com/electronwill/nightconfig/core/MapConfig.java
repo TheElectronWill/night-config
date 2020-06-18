@@ -335,6 +335,9 @@ public class MapConfig implements Config, Cloneable {
 		return getClass().getSimpleName() + ": " + storage;
 	}
 
+	/**
+	 * Implementation of Config.Entry, with a simple Map for the attributes.
+	 */
 	@SuppressWarnings("unchecked")
 	protected static final class Entry implements Config.Entry, Cloneable {
 		private final String key;
@@ -475,39 +478,45 @@ public class MapConfig implements Config, Cloneable {
 			};
 		}
 
+		/**
+		 * View of the {@code Map<AttributeType,Object} as {@code Iterator<Attribute>}.
+		 */
 		private final class AttributesIterator implements Iterator<Attribute<?>> {
-			private final Iterator<Map.Entry<AttributeType<?>, Object>> entryIterator =
+			private final Iterator<Map.Entry<AttributeType<?>, Object>> mapIterator =
 				attributes == null ? null : attributes.entrySet().iterator();
 
 			@Override
 			public boolean hasNext() {
-				return entryIterator != null && entryIterator.hasNext();
+				return mapIterator != null && mapIterator.hasNext();
 			}
 
 			@Override
 			public Config.Attribute<?> next() {
-				if (entryIterator == null) throw new NoSuchElementException();
-				final Map.Entry<AttributeType<?>, Object> entry = entryIterator.next();
+				if (mapIterator == null) throw new NoSuchElementException();
+				final Map.Entry<AttributeType<?>, Object> mapEntry = mapIterator.next();
 				return new Config.Attribute<Object>() {
 					@Override
 					public Object setValue(Object value) {
-						return entry.setValue(value);
+						return mapEntry.setValue(value);
 					}
 
 					@Override
 					public AttributeType<Object> getType() {
-						return (AttributeType<Object>)entry.getKey();
+						return (AttributeType<Object>)mapEntry.getKey();
 					}
 
 					@Override
 					public Object getValue() {
-						return entry.getValue();
+						return mapEntry.getValue();
 					}
 				};
 			}
 		}
 	}
 
+	/**
+	 * View of the configuration as a {@code Set<Config.Entry}.
+	 */
 	protected final class EntrySet implements Set<Config.Entry> {
 		@Override
 		public int size() {
