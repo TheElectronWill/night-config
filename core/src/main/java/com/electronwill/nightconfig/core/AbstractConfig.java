@@ -156,13 +156,13 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	}
 
 	@Override
-	public Config.Entry addEntry(String[] path) {
-		return findEntry(path, EntrySearchMode.CREATE);
+	public Config.Entry addEntry(String[] path, Object value) {
+		return findEntry(path, EntrySearchMode.CREATE).addValue(value);
 	}
 
 	@Override
-	public Config.Entry addEntry(Iterable<String> path) {
-		return findEntry(path, EntrySearchMode.CREATE);
+	public Config.Entry addEntry(Iterable<String> path, Object value) {
+		return findEntry(path, EntrySearchMode.CREATE).addValue(value);
 	}
 
 	@Override

@@ -67,33 +67,33 @@ public interface Config extends UnmodifiableConfig {
 	// --- ENTRY CREATION ---
 
 	/**
-	 * If no entry exists at the given path, creates a new entry and every required intermediate
-	 * level (sub-configurations). If an entry exists, returns it.
+	 * If no entry exists at the given path, creates a new entry with the given value.
+	 * If an entry exists, returns it.
 	 *
 	 * @param path dot-separated string, for example "a.b.c" refers to path {@code ["a", "b", "c"]}
 	 * @return the entry, new or existing
 	 */
-	default Entry addEntry(String path) {
-		return addEntry(splitPath(path));
+	default Entry addEntry(String path, Object value) {
+		return addEntry(splitPath(path), value);
 	}
 
 	/**
-	 * If no entry exists at the given path, creates a new entry and every required intermediate
-	 * level (sub-configurations). If an entry exists, returns it.
+	 * If no entry exists at the given path, creates a new entry with the given value
+	 * If an entry exists, returns it.
 	 *
 	 * @param path path to the entry
 	 * @return the entry, new or existing
 	 */
-	Entry addEntry(String[] path);
+	Entry addEntry(String[] path, Object value);
 
 	/**
-	 * If no entry exists at the given path, creates a new entry and every required intermediate
-	 * level (sub-configurations). If an entry exists, returns it.
+	 * If no entry exists at the given path, creates a new entry with the given value.
+	 * If an entry exists, returns it.
 	 *
 	 * @param path path to the entry
 	 * @return the entry, new or existing
 	 */
-	Entry addEntry(Iterable<String> path);
+	Entry addEntry(Iterable<String> path, Object value);
 
 
 	// --- GENERAL OPERATIONS ---
