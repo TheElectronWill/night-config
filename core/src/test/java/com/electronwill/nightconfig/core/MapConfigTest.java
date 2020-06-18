@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author TheElectronWill
  */
-public class AbstractConfigTest {
+public class MapConfigTest {
 
 	@Test
 	public void basicTest() {
@@ -153,13 +153,13 @@ public class AbstractConfigTest {
 		config.remove("int");
 		assertFalse(config.contains("int"));
 	}
-	
+
 	@Test
 	public void backingMap() {
 		Config config = Config.of(LinkedHashMap::new, InMemoryFormat.withUniversalSupport());
 		testValuesOrder(config);
 	}
-	
+
 	@Test
 	public void nestedBackingMap() {
 		Config config = Config.of(LinkedHashMap::new, InMemoryFormat.withUniversalSupport());

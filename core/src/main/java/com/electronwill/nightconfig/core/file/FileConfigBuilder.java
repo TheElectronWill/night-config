@@ -2,7 +2,7 @@ package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.MemoryConfig;
+import com.electronwill.nightconfig.core.MapConfig;
 import com.electronwill.nightconfig.core.NightConfig;
 import com.electronwill.nightconfig.core.io.*;
 
@@ -45,7 +45,7 @@ public class FileConfigBuilder {
 	protected ParsingMode parsingMode = ParsingMode.REPLACE;
 	protected FileNotFoundAction nefAction = FileNotFoundAction.CREATE_EMPTY;
 	protected boolean sync = false, autosave = false, autoreload = false, concurrent = false;
-	protected Supplier<Config> baseSupplier = MemoryConfig::new;
+	protected Supplier<Config> baseSupplier = MapConfig::new;
 
 	public FileConfigBuilder(Path file, ConfigFormat format) {
 		this.file = file;
@@ -189,7 +189,7 @@ public class FileConfigBuilder {
 	 * @return this builder
 	 */
 	public FileConfigBuilder preserveInsertionOrder() {
-		baseSupplier = () -> new MemoryConfig(LinkedHashMap::new);
+		baseSupplier = () -> new MapConfig(LinkedHashMap::new);
 		return this;
 	}
 

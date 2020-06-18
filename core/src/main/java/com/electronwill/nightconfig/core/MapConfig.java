@@ -11,21 +11,44 @@ import java.util.function.Function;
 import static com.electronwill.nightconfig.core.utils.StringUtils.single;
 
 /**
- * Base class for configurations. It uses a {@link java.util.Map} to store the config entries.
+ * Basic configuration based on a {@link java.util.Map}.
  *
  * @author TheElectronWill
  */
 @SuppressWarnings("unchecked")
-public abstract class AbstractConfig implements Config, Cloneable {
+public class MapConfig implements Config, Cloneable {
 
 	protected final Entry root; // stores the "global" attributes
 	protected final Map<String, Entry> storage;
 	protected final MapSupplier mapSupplier;
 
-	public AbstractConfig(MapSupplier mapSupplier) {
+	public MapConfig() {
+		this(NightConfig.getDefaultMapSupplier());
+	}
+
+	public MapConfig(MapSupplier mapSupplier) {
 		this.mapSupplier = mapSupplier;
 		this.storage = mapSupplier.get();
 		this.root = new Entry(null, this);
+	}
+
+	public MapConfig(UnmodifiableConfig toCopy) {
+		this(toCopy, toCopy instanceof MapConfig ? ((MapConfig) toCopy).mapSupplier : NightConfig.getDefaultMapSupplier());
+	}
+
+	public MapConfig(UnmodifiableConfig toCopy, MapSupplier mapSupplier) {
+		if (toCopy instanceof MapConfig) {
+			MapConfig config = (MapConfig) toCopy;
+			this.root = new Entry(config.root);
+			this.root.setValue(this);
+			this.storage = mapSupplier.copy(config.storage);
+			this.mapSupplier = mapSupplier;
+		} else {
+			this.root = new Entry(null, this);
+			this.storage = mapSupplier.get();
+			this.mapSupplier = mapSupplier;
+			this.putAll(toCopy);
+		}
 	}
 
 	// --- INTERNALS ---
@@ -93,15 +116,15 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		Entry entry = current.get(key);
 		if (entry == null) {
 			if (mode == EntrySearchMode.CREATE) {
-				AbstractConfig sub = createSubConfig();
+				MapConfig sub = createSubConfig();
 				entry = new Entry(key, sub);
 				current.put(key, entry);
 				return sub.storage;
 			}
 		} else {
 			Object value = entry.getValue();
-			if (value instanceof AbstractConfig) {
-				return ((AbstractConfig)value).storage;
+			if (value instanceof MapConfig) {
+				return ((MapConfig)value).storage;
 			} else if (mode == EntrySearchMode.CREATE) {
 				String p, l;
 				if (path instanceof String[]) {
@@ -282,17 +305,23 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		return new EntrySet();
 	}
 
-	public abstract AbstractConfig createSubConfig();
+	@Override
+	public MapConfig createSubConfig() {
+		return new MapConfig(mapSupplier);
+	}
 
-	public abstract AbstractConfig clone();
+	@Override
+	public MapConfig clone() {
+		return new MapConfig(this);
+	}
 
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
-		if (!(o instanceof AbstractConfig))
+		if (!(o instanceof MapConfig))
 			return false;
-		AbstractConfig that = (AbstractConfig)o;
+		MapConfig that = (MapConfig)o;
 		return storage.equals(that.storage);
 	}
 
@@ -519,14 +548,14 @@ public abstract class AbstractConfig implements Config, Cloneable {
 
 		@Override
 		public boolean add(Config.Entry entry) {
-			return AbstractConfig.this.add(single(entry.getKey()), entry.getValue()) == null;
+			return MapConfig.this.add(single(entry.getKey()), entry.getValue()) == null;
 		}
 
 		@Override
 		public boolean remove(Object o) {
 			if (o instanceof Config.Entry) {
 				Config.Entry query = (Config.Entry)o;
-				return AbstractConfig.this.remove(single(query.getKey())) != null;
+				return MapConfig.this.remove(single(query.getKey())) != null;
 			}
 			return false;
 		}
@@ -557,7 +586,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 
 		@Override
 		public void clear() {
-			AbstractConfig.this.clear();
+			MapConfig.this.clear();
 		}
 	}
 

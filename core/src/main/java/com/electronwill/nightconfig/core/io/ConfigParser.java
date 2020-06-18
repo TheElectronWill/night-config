@@ -2,7 +2,7 @@ package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.MemoryConfig;
+import com.electronwill.nightconfig.core.MapConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.impl.CharacterInput;
 import com.electronwill.nightconfig.core.impl.ReaderInput;
@@ -45,7 +45,7 @@ public interface ConfigParser {
 	 * @throws ParsingException if an error occurs
 	 */
 	default Config parse(CharacterInput input) {
-		Config cfg = new MemoryConfig();
+		Config cfg = new MapConfig();
 		parse(input, cfg, ParsingMode.REPLACE);
 		return cfg;
 	}
@@ -111,7 +111,7 @@ public interface ConfigParser {
 	default Config parse(Path path, Charset cs, FileNotFoundAction notFoundAction) {
 		try {
 			if (Files.notExists(path) && !notFoundAction.run(path, getFormat())) {
-				return new MemoryConfig();
+				return new MapConfig();
 			}
 			try (InputStream input = Files.newInputStream(path)) {
 				return parse(input, cs);

@@ -68,7 +68,7 @@ import static com.electronwill.nightconfig.core.utils.StringUtils.splitPath;
  */
 @SuppressWarnings("unchecked")
 public class ConfigSpec {
-	private final Config storage = new MemoryConfig();
+	private final Config storage = new MapConfig();
 	private boolean removeUnspecEntries = true;
 	private boolean removeUnspecAttributes = true;
 
@@ -157,7 +157,7 @@ public class ConfigSpec {
 	}
 
 	public Config correctCopy(UnmodifiableConfig config, CorrectionListener listener) {
-		Config copy = new MemoryConfig(config);
+		Config copy = new MapConfig(config);
 		correct(copy, listener);
 		return copy;
 	}

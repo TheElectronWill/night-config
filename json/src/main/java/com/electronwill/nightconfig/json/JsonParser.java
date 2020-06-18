@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.MemoryConfig;
+import com.electronwill.nightconfig.core.MapConfig;
 import com.electronwill.nightconfig.core.impl.ReaderInput;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ParsingException;
@@ -92,7 +92,7 @@ public final class JsonParser implements ConfigParser {
 			case ARRAY_START:
 				return parseListContent(tokenizer, new ArrayList<>());
 			case OBJECT_START:
-				return parseConfigContent(tokenizer, new MemoryConfig());
+				return parseConfigContent(tokenizer, new MapConfig());
 			default:
 				throw new ParsingException("");
 		}
