@@ -1,7 +1,9 @@
 package com.electronwill.nightconfig.core;
 
+import com.electronwill.nightconfig.core.utils.ListSupplier;
 import com.electronwill.nightconfig.core.utils.MapSupplier;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
@@ -13,6 +15,8 @@ public final class NightConfig {
 
 	private static volatile MapSupplier DEFAULT_MAP_SUPPLIER =
 		isInsertionOrderPreserved() ? LinkedHashMap::new : HashMap::new;
+
+	private static volatile ListSupplier DEFAULT_LIST_SUPPLIER = ArrayList::new;
 
 	/**
 	 * Checks if the newly created configs keep the insertion order of their content.
@@ -62,5 +66,23 @@ public final class NightConfig {
 	 */
 	public static void setDefaultMapSupplier(MapSupplier mapSupplier) {
 		DEFAULT_MAP_SUPPLIER = mapSupplier;
+	}
+
+	/**
+	 * Returns the default list supplier. This method is thread-safe.
+	 *
+	 * @return the default supplier
+	 */
+	public static ListSupplier getDefaultListSupplier() {
+		return DEFAULT_LIST_SUPPLIER;
+	}
+
+	/**
+	 * Sets the default list supplier. This method is thread-safe.
+	 *
+	 * @param listSupplier the new supplier
+	 */
+	public static void setDefaultListSupplier(ListSupplier listSupplier) {
+		DEFAULT_LIST_SUPPLIER = listSupplier;
 	}
 }

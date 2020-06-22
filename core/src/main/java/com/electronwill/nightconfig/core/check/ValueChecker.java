@@ -3,6 +3,8 @@ package com.electronwill.nightconfig.core.check;
 import com.electronwill.nightconfig.core.EnumGetMethod;
 
 import java.lang.reflect.Array;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Objects;
 
 /**
@@ -26,6 +28,16 @@ public interface ValueChecker {
 	/** Checks {@code this or other} */
 	default ValueChecker or(ValueChecker other) {
 		return value -> this.check(value) || other.check(value);
+	}
+
+	/** Checks {@code this xor other}, ie {@code (this and not other) or (not this and other)}. */
+	default ValueChecker xor(ValueChecker other) {
+		return value -> this.check(value) ^ other.check(value);
+	}
+
+	/** Checks {@code not other} */
+	static ValueChecker not(ValueChecker other) {
+		return value -> !other.check(value);
 	}
 
 	// --- STATIC METHODS ---
@@ -85,6 +97,16 @@ public interface ValueChecker {
 	}
 
 	/**
+	 * Checks that the value's class is correct.
+	 *
+	 * @param cls accepted class
+	 * @return a ValueChecker that returns "correct" if the value is not null and of class cls
+	 */
+	static ValueChecker ofExactClass(Class<?> cls) {
+		return value -> value != null && value.getClass() == cls;
+	}
+
+	/**
 	 * Checks that the value is <b>not null</b> and assignable to a specific class.
 	 *
 	 * @param cls class to check
@@ -136,8 +158,8 @@ public interface ValueChecker {
 	 * @param <T> value type
 	 * @return a ValueChecker that returns "correct" if the value is in the range
 	 */
-	static <T extends Comparable<T>> ValueChecker closedRange(T min, T max) {
-		return range(min, max, true, true);
+	static <T extends Comparable<T>> ValueChecker inClosedRange(T min, T max) {
+		return inRange(min, max, true, true);
 	}
 
 	/**
@@ -148,8 +170,8 @@ public interface ValueChecker {
 	 * @param <T> value type
 	 * @return a ValueChecker that returns "correct" if the value is in the range
 	 */
-	static <T extends Comparable<T>> ValueChecker openRange(T min, T max) {
-		return range(min, max, false, false);
+	static <T extends Comparable<T>> ValueChecker inOpenRange(T min, T max) {
+		return inRange(min, max, false, false);
 	}
 
 	/**
@@ -160,8 +182,8 @@ public interface ValueChecker {
 	 * @param <T> value type
 	 * @return a ValueChecker that returns "correct" if the value is in the range
 	 */
-	static <T extends Comparable<T>> ValueChecker leftRange(T inclusiveMin, T exclusiveMax) {
-		return range(inclusiveMin, exclusiveMax, true, false);
+	static <T extends Comparable<T>> ValueChecker inLeftRange(T inclusiveMin, T exclusiveMax) {
+		return inRange(inclusiveMin, exclusiveMax, true, false);
 	}
 
 	/**
@@ -172,27 +194,34 @@ public interface ValueChecker {
 	 * @param <T> value type
 	 * @return a ValueChecker that returns "correct" if the value is in the range
 	 */
-	static <T extends Comparable<T>> ValueChecker rightRange(T exclusiveMin, T inclusiveMax) {
-		return range(exclusiveMin, inclusiveMax, false, true);
+	static <T extends Comparable<T>> ValueChecker inRightRange(T exclusiveMin, T inclusiveMax) {
+		return inRange(exclusiveMin, inclusiveMax, false, true);
 	}
 
 	/**
-	 * Checks that the value is in the given range.
+	 * Checks that the value is in the given range, according to {@link Comparable#compareTo(Object)}.
+	 */
+	static <T extends Comparable<T>> ValueChecker inRange(T min, T max, boolean inclusiveMin, boolean inclusiveMax) {
+		return inRange(min, max, inclusiveMin, inclusiveMax, Comparator.naturalOrder());
+	}
+
+	/**
+	 * Checks that the value is in the given range, according to {@link Comparator#compare(Object, Object)}.
 	 */
 	@SuppressWarnings("unchecked")
-	static <T extends Comparable<T>> ValueChecker range(T min, T max, boolean inclusiveMin,
-														boolean inclusiveMax) {
+	static <T> ValueChecker inRange(T min, T max, boolean inclusiveMin, boolean inclusiveMax, Comparator<T> comparator) {
 		return value -> {
 			if (value == null) {
 				return false;
 			}
 			try {
 				T tvalue = (T)value;
-				int compMin = min.compareTo(tvalue);
-				int compMax = max.compareTo(tvalue);
-				boolean okMin = inclusiveMin ? compMin <= 0 : compMin < 0;
-				boolean okMax = inclusiveMax ? compMax >= 0 : compMax > 0;
-				return okMin && okMax;
+				int compMin = comparator.compare(min, tvalue);
+				if (compMin > 0 || compMin == 0 && !inclusiveMin) {
+					return false;
+				}
+				int compMax = comparator.compare(max, tvalue);
+				return compMax > 0 || compMax == 0 && inclusiveMax;
 			} catch (ClassCastException ex) {
 				return false; // the value is of the wrong type
 			}
@@ -206,7 +235,7 @@ public interface ValueChecker {
 	 * @return a ValueChecker that returns "correct" if the value refers to the same object,
 	 * ie if {@code value == reference}
 	 */
-	static ValueChecker sameRef(Object reference) {
+	static ValueChecker sameRefAs(Object reference) {
 		return v -> v == reference;
 	}
 
@@ -228,7 +257,7 @@ public interface ValueChecker {
 	 * @param acceptableValues the acceptable references
 	 * @return a ValueChecker that returns "correct" if {@code value == o} for at least one acceptable value o.
 	 */
-	static ValueChecker refIn(Object... acceptableValues) {
+	static ValueChecker sameRefAsAny(Object... acceptableValues) {
 		return value -> any(a -> a == value).check(acceptableValues);
 	}
 
@@ -238,7 +267,7 @@ public interface ValueChecker {
 	 * @param acceptableValues the acceptable references
 	 * @return a ValueChecker that returns "correct" if {@code value == o} for at least one acceptable value o.
 	 */
-	static ValueChecker refIn(Iterable<?> acceptableValues) {
+	static ValueChecker sameRefAsAny(Iterable<?> acceptableValues) {
 		return value -> any(a -> a == value).check(acceptableValues);
 	}
 
@@ -262,6 +291,16 @@ public interface ValueChecker {
 	 */
 	static ValueChecker containedIn(Iterable<?> acceptableValues) {
 		return value -> any(a -> Objects.equals(value, a)).check(acceptableValues);
+	}
+
+	/**
+	 * Checks that the value is contained in a collection, according to {@link Collection#contains(Object)}.
+	 *
+	 * @param c the collection
+	 * @return a ValueChecker that returns "correct" if {@code Collection.contains(value)}.
+	 */
+	static ValueChecker containedIn(Collection<?> c) {
+		return c::contains;
 	}
 
 	/**

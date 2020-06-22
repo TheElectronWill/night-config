@@ -1,12 +1,13 @@
 package com.electronwill.nightconfig.core.spec;
 
+import com.electronwill.nightconfig.core.NightConfig;
 import com.electronwill.nightconfig.core.check.ValueChecker;
+import com.electronwill.nightconfig.core.utils.ListSupplier;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 import java.util.function.Supplier;
 
+import static com.electronwill.nightconfig.core.check.ValueChecker.not;
 import static com.electronwill.nightconfig.core.spec.CorrectionResult.*;
 
 /**
@@ -16,80 +17,150 @@ import static com.electronwill.nightconfig.core.spec.CorrectionResult.*;
 @FunctionalInterface
 public interface ValueCorrecter<T> {
 	/**
-	 * Fix a config value by providing a new value or by modifying the existing value.
+	 * Fixes a config value by providing a new value or by modifying the existing value.
 	 *
 	 * @param value the value to correct
 	 * @return the result of the correction
 	 */
 	CorrectionResult<T> correct(Object value);
 
+	/**
+	 * If the correction fails, recovers with another result.
+	 *
+	 * @param recovery supplies the result to return in case of failure
+	 * @return a ValueCorrecter that returns the given result instead of {@link CorrectionResult#failed(Throwable)}.
+	 */
+	default ValueCorrecter<T> onFailure(Supplier<CorrectionResult<T>> recovery) {
+		return value -> {
+			CorrectionResult<T> res = correct(value);
+			return res.isFailed() ? recovery.get() : res;
+		};
+	}
+
+	/**
+	 * If the correction fails, replaces the value with a default one.
+	 *
+	 * @param recoveryValue the value to use in case of failure
+	 * @return a ValueCorrecter that returns {@code replacedBy(recoveryValue)} instead of {@code failed}.
+	 */
+	default ValueCorrecter<T> replaceFailure(T recoveryValue) {
+		return this.onFailure(() -> CorrectionResult.replacedBy(recoveryValue));
+	}
+
+	/**
+	 * If the correction fails, replaces the value with a default one.
+	 *
+	 * @param recoveryValue supplies the value to use in case of failure
+	 * @return a ValueCorrecter that returns {@code replacedBy(recoveryValue)} instead of {@code failed}.
+	 */
+	default ValueCorrecter<T> replaceFailure(Supplier<T> recoveryValue) {
+		return this.onFailure(() -> CorrectionResult.replacedBy(recoveryValue.get()));
+	}
+
+	/**
+	 * If the correction fails, removes the value.
+	 *
+	 * @return a ValueCorrecter that returns {@link CorrectionResult#removed()} instead of {@code failed}.
+	 */
+	default ValueCorrecter<T> removeFailure() {
+		return this.onFailure(CorrectionResult::removed);
+	}
+
 	// --- STATIC METHODS ---
+
+	// ------ CORRECTION OF SIMPLE VALUES ------
+
+	/**
+	 * Fails if the value doesn't fulfill some criteria.
+	 */
 	static <T> ValueCorrecter<T> failIfNot(ValueChecker checker) {
 		return value -> {
-			if (checker.check(value)) {
-				return CorrectionResult.correct();
+			try {
+				if (checker.check(value)) {
+					return CorrectionResult.correct();
+				}
+			} catch (Exception ex) {
+				return CorrectionResult.failed(ex);
 			}
 			return failed(new IncorrectValueException(value));
 		};
 	}
 
-	static <T> ValueCorrecter<T> replaceIfNot(T replace, ValueChecker checker) {
-		return value -> checker.check(value) ? CorrectionResult.correct() : replacedBy(replace);
-	}
-
-	static <T> ValueCorrecter<T> replaceIfNot(Supplier<T> replace, ValueChecker checker) {
-		return value -> checker.check(value) ? CorrectionResult.correct() : replacedBy(replace.get());
-	}
-
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	static <E, C extends Collection<E>> ValueCorrecter<C> correctElements(
-			Supplier<C> replacementSupplier, ValueCorrecter<E> elementCorrecter) {
+	static <T> ValueCorrecter<T> replaceIfNot(T replacement, ValueChecker checker) {
 		return value -> {
-			if (!(value instanceof Iterable)) {
-				return replacedBy(replacementSupplier.get());
+			try {
+				return checker.check(value) ? CorrectionResult.correct() : replacedBy(replacement);
+			} catch (Exception ex) {
+				return CorrectionResult.failed(ex);
 			}
-			// Correct the collection in-place if possible
+		};
+	}
+
+	static <T> ValueCorrecter<T> replaceIfNot(Supplier<T> replacement, ValueChecker checker) {
+		return value -> {
+			try {
+				return checker.check(value) ? CorrectionResult.correct() : replacedBy(replacement.get());
+			} catch (Exception ex) {
+				return CorrectionResult.failed(ex);
+			}
+		};
+	}
+
+	static <T> ValueCorrecter<T> failIf(ValueChecker checker) {
+		return failIfNot(not(checker));
+	}
+
+	static <T> ValueCorrecter<T> replaceIf(T replacement, ValueChecker checker) {
+		return replaceIfNot(replacement, not(checker));
+	}
+
+	static <T> ValueCorrecter<T> replaceIf(Supplier<T> replacement, ValueChecker checker) {
+		return replaceIfNot(replacement, not(checker));
+	}
+
+	// ------ CORRECTION OF ITERABLES ------
+
+	static <E> ValueCorrecter<Iterable<E>> replaceElementIfNot(E replacement, ValueChecker checker) {
+		return correctElements(NightConfig.getDefaultListSupplier(), replaceIfNot(replacement, checker));
+	}
+
+	static <E> ValueCorrecter<Iterable<E>> replaceElementIfNot(Supplier<E> replacement, ValueChecker checker) {
+		return correctElements(NightConfig.getDefaultListSupplier(), replaceIfNot(replacement, checker));
+	}
+
+	static <E> ValueCorrecter<Iterable<E>> removeElementIfNot(ValueChecker checker) {
+		ValueCorrecter<E> elementCorrecter = e -> checker.check(e) ? CorrectionResult.correct() : removed();
+		return correctElements(NightConfig.getDefaultListSupplier(), elementCorrecter);
+	}
+
+	static <E> ValueCorrecter<Iterable<E>> replaceElementIf(E replacement, ValueChecker checker) {
+		return replaceElementIfNot(replacement, not(checker));
+	}
+
+	static <E> ValueCorrecter<Iterable<E>> replaceElementIf(Supplier<E> replacement, ValueChecker checker) {
+		return replaceElementIfNot(replacement, not(checker));
+	}
+
+	static <E> ValueCorrecter<Iterable<E>> removeElementIf(ValueChecker checker) {
+		return removeElementIfNot(not(checker));
+	}
+
+	static <E> ValueCorrecter<Iterable<E>> correctElements(ValueCorrecter<E> elementCorrecter) {
+		return correctElements(NightConfig.getDefaultListSupplier(), elementCorrecter);
+	}
+
+	static <E> ValueCorrecter<Iterable<E>> correctElements(ListSupplier ls, ValueCorrecter<E> elementCorrecter) {
+		return value -> {
 			if (value instanceof List) {
-				List<Object> l = (List)value;
-				int state = 0; // 0: all elements are correct, 1: some replaced, -1: exception
-				for (ListIterator<Object> it = l.listIterator(); it.hasNext(); ) {
-					Object elem = it.next();
-					CorrectionResult<E> result = elementCorrecter.correct(elem);
-					if (result.isReplaced()) {
-						try {
-							it.set(result.replacementValue());
-							state = 1;
-						} catch (Exception ex) {
-							// it.set might throw UnsupportedOperationException or
-							// IllegalStateException (eg. for singleton lists), or
-							// many other RuntimeExceptions. That's why I catch'em all here.
-							state = -1;
-							break;
-						}
-					} else if (result.isFailed()) {
-						return (CorrectionResult<C>)result; // propagate the failure
-						// it's ok to cast and return the result as is because there is no replacement value
-					}
-				}
-				if (state == 0) {
-					return CorrectionResult.correct();
-				} else if (state == 1) {
-					return modified();
-				} // else: continue below
-			}
-			// Otherwise, build a new collection
-			C newCollection = null;
-			for (Object elem : (Iterable)value) {
-				CorrectionResult<E> result = elementCorrecter.correct(elem);
-				if (newCollection == null && !result.isCorrect()) {
-					newCollection = replacementSupplier.get();
-				}
-				if (newCollection != null) {
-					E okElement = result.isReplaced() ? result.replacementValue() : (E)elem;
-					newCollection.add(okElement);
+				return CorrectionUtils.correctListElements((List<Object>)value, elementCorrecter, ls);
+			} else {
+				try {
+					Iterable<Object> it = CorrectionUtils.asIterable(value, ls);
+					return CorrectionUtils.correctIterableIfWrong(it, elementCorrecter, ls);
+				} catch (Exception ex) {
+					return CorrectionResult.failed(ex);
 				}
 			}
-			return (newCollection == null) ? CorrectionResult.correct() : replacedBy(newCollection);
 		};
 	}
 }
