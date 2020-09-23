@@ -24,6 +24,12 @@ configure(subprojects.findAll {it.name != "examples"}) {
 		useJUnitPlatform()
 	}
 
+	jar {
+		manifest {
+			attributes "Automatic-Module-Name": "com.electronwill.nightconfig.$project.name"
+		}
+	}
+
 	task javadocJar(type: Jar, dependsOn: javadoc) {
 		archiveClassifier = 'javadoc'
 		from javadoc.destinationDir
