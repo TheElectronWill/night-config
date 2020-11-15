@@ -201,11 +201,14 @@ public final class JsonParser implements ConfigParser<Config> {
 		}
 
 		char vfirst = input.readCharAndSkip(SPACES);
-		Object value = parseValue(input, vfirst, parsingMode);
+		Object value = parseValue(input, vfirst, parsingMode, config);
 		parsingMode.put(config, key, value);
 	}
 
 	private <T> List<T> parseArray(CharacterInput input, List<T> list, ParsingMode parsingMode) {
+		return parseArray(input, list, parsingMode, null);
+	}
+	private <T> List<T> parseArray(CharacterInput input, List<T> list, ParsingMode parsingMode, Config parentConfig) {
 		boolean first = true;
 		while (true) {
 			char valueFirst = input.readCharAndSkip(SPACES);// the first character of the value
@@ -213,7 +216,7 @@ public final class JsonParser implements ConfigParser<Config> {
 				return list;
 			}
 			first = false;
-			T value = (T)parseValue(input, valueFirst, parsingMode);
+			T value = (T)parseValue(input, valueFirst, parsingMode, parentConfig);
 			list.add(value);
 			char next = input.readCharAndSkip(SPACES);// the next character, should be ']' or ','
 			if (next == ']') {// end of the array
@@ -224,14 +227,14 @@ public final class JsonParser implements ConfigParser<Config> {
 		}
 	}
 
-	private Object parseValue(CharacterInput input, char firstChar, ParsingMode parsingMode) {
+	private Object parseValue(CharacterInput input, char firstChar, ParsingMode parsingMode, Config parentConfig) {
 		switch (firstChar) {
 			case '"':
 				return parseString(input);
 			case '{':
-				return parseObject(input, configFormat.createConfig(), parsingMode);
+				return parseObject(input, parentConfig == null ? configFormat.createConfig() : parentConfig.createSubConfig(), parsingMode);
 			case '[':
-				return parseArray(input, new ArrayList<>(), parsingMode);
+				return parseArray(input, new ArrayList<>(), parsingMode, parentConfig);
 			case 't':
 				return parseTrue(input);
 			case 'f':
