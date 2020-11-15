@@ -69,7 +69,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 											   + " because of an invalid "
 											   + "parent that isn't a table.");
 				}
-				CommentedConfig table = TableParser.parseNormal(input, this);
+				CommentedConfig table = TableParser.parseNormal(input, this, CommentedConfig.fake(parentConfig.createSubConfig()));
 				List<CommentedConfig> arrayOfTables = (List)parentMap.get(lastKey);
 				if (arrayOfTables == null) {
 					arrayOfTables = createList();
@@ -85,7 +85,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 				}
 				Object alreadyDeclared = parentMap.get(lastKey);
 				if (alreadyDeclared == null) {
-					CommentedConfig table = TableParser.parseNormal(input, this);
+					CommentedConfig table = TableParser.parseNormal(input, this, CommentedConfig.fake(parentConfig.createSubConfig()));
 					parentMap.put(lastKey, table);
 				} else {
 					if (alreadyDeclared instanceof Config) {
@@ -110,7 +110,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 		for (String key : path) {
 			Object value = currentConfig.valueMap().get(key);
 			if (value == null) {
-				Config sub = TomlFormat.instance().createConfig();
+				Config sub = parentTable.createSubConfig();
 				currentConfig.valueMap().put(key, sub);
 				currentConfig = sub;
 			} else if (value instanceof Config) {

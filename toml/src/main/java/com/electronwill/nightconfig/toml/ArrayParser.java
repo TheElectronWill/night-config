@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.toml;
 
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.CharacterInput;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import java.util.List;
@@ -12,7 +13,7 @@ final class ArrayParser {
 	/**
 	 * Parses a plain array, not an array of tables.
 	 */
-	static List<?> parse(CharacterInput input, TomlParser parser) {
+	static List<?> parse(CharacterInput input, TomlParser parser, Config parentConfig) {
 		List<Object> list = parser.createList();
 		while (true) {
 			char firstChar = Toml.readUsefulChar(input);
@@ -28,7 +29,7 @@ final class ArrayParser {
 										   + "' - "
 										   + "Expected end of array because of the leading comma.");
 			}
-			Object value = ValueParser.parse(input, firstChar, parser);
+			Object value = ValueParser.parse(input, firstChar, parser, parentConfig);
 			list.add(value);
 			char after = Toml.readUsefulChar(input);
 			if (after == ']') {// End of the array
