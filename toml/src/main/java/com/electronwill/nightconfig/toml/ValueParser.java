@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.io.CharacterInput;
 import com.electronwill.nightconfig.core.io.CharsWrapper;
 import com.electronwill.nightconfig.core.io.ParsingException;
@@ -25,7 +25,7 @@ final class ValueParser {
 	 * Parses a TOML value. The value's type is determinated with the first character, and with
 	 * the next ones if necessary.
 	 */
-	static Object parse(CharacterInput input, char firstChar, TomlParser parser, Config parentConfig) {
+	static Object parse(CharacterInput input, char firstChar, TomlParser parser, CommentedConfig parentConfig) {
 		switch (firstChar) {
 			case '{':
 				return TableParser.parseInline(input, parser, parentConfig);
@@ -65,7 +65,7 @@ final class ValueParser {
 		}
 	}
 
-	static Object parse(CharacterInput input, TomlParser parser, Config parentConfig) {
+	static Object parse(CharacterInput input, TomlParser parser, CommentedConfig parentConfig) {
 		return parse(input, Toml.readNonSpaceChar(input, false), parser, parentConfig);
 	}
 

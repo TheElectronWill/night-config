@@ -52,14 +52,14 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 			final int lastIndex = path.size() - 1;
 			final String lastKey = path.get(lastIndex);
 			final List<String> parentPath = path.subList(0, lastIndex);
-			final Config parentConfig = getSubTable(rootTable, parentPath);
+			final CommentedConfig parentConfig = getSubTable(rootTable, parentPath);
 			final Map<String, Object> parentMap = (parentConfig != null) ? parentConfig.valueMap()
 																		 : null;
 			if (hasPendingComment()) {// Handles comments that are before the table declaration
 				String comment = consumeComment();
-				if (parentConfig instanceof CommentedConfig) {
+				if (parentConfig != null) {
 					List<String> lastPath = Collections.singletonList(lastKey);
-					((CommentedConfig)parentConfig).setComment(lastPath, comment);
+					parentConfig.setComment(lastPath, comment);
 				}
 			}
 			if (isArray) {// It's an element of an array of tables
@@ -69,7 +69,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 											   + " because of an invalid "
 											   + "parent that isn't a table.");
 				}
-				CommentedConfig table = TableParser.parseNormal(input, this, CommentedConfig.fake(parentConfig.createSubConfig()));
+				CommentedConfig table = TableParser.parseNormal(input, this, parentConfig.createSubConfig());
 				List<CommentedConfig> arrayOfTables = (List)parentMap.get(lastKey);
 				if (arrayOfTables == null) {
 					arrayOfTables = createList();
@@ -85,7 +85,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 				}
 				Object alreadyDeclared = parentMap.get(lastKey);
 				if (alreadyDeclared == null) {
-					CommentedConfig table = TableParser.parseNormal(input, this, CommentedConfig.fake(parentConfig.createSubConfig()));
+					CommentedConfig table = TableParser.parseNormal(input, this, parentConfig.createSubConfig());
 					parentMap.put(lastKey, table);
 				} else {
 					if (alreadyDeclared instanceof Config) {
@@ -102,24 +102,24 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 		return destination;
 	}
 
-	private Config getSubTable(Config parentTable, List<String> path) {
+	private CommentedConfig getSubTable(CommentedConfig parentTable, List<String> path) {
 		if (path.isEmpty()) {
 			return parentTable;
 		}
-		Config currentConfig = parentTable;
+		CommentedConfig currentConfig = parentTable;
 		for (String key : path) {
 			Object value = currentConfig.valueMap().get(key);
 			if (value == null) {
-				Config sub = parentTable.createSubConfig();
+				CommentedConfig sub = parentTable.createSubConfig();
 				currentConfig.valueMap().put(key, sub);
 				currentConfig = sub;
 			} else if (value instanceof Config) {
-				currentConfig = (Config)value;
+				currentConfig = CommentedConfig.fake((Config)value);
 			} else if (value instanceof List) {
 				List<?> list = (List<?>)value;
 				if (!list.isEmpty() && list.get(0) instanceof Config) {// Arrays of tables
 					int lastIndex = list.size() - 1;
-					currentConfig = (Config)list.get(lastIndex);
+					currentConfig = CommentedConfig.fake((Config)list.get(lastIndex));
 				} else {
 					return null;
 				}

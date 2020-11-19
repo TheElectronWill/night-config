@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.io.CharacterInput;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import java.util.List;
@@ -13,7 +13,7 @@ final class ArrayParser {
 	/**
 	 * Parses a plain array, not an array of tables.
 	 */
-	static List<?> parse(CharacterInput input, TomlParser parser, Config parentConfig) {
+	static List<?> parse(CharacterInput input, TomlParser parser, CommentedConfig parentConfig) {
 		List<Object> list = parser.createList();
 		while (true) {
 			char firstChar = Toml.readUsefulChar(input);

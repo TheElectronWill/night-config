@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.io.CharacterInput;
 import com.electronwill.nightconfig.core.io.CharsWrapper;
 import com.electronwill.nightconfig.core.io.ParsingException;
@@ -18,8 +17,8 @@ final class TableParser {
 
 	private static final char[] KEY_END = {'\t', ' ', '=', '.', '\n', '\r', ']', ':'};
 
-	static CommentedConfig parseInline(CharacterInput input, TomlParser parser, Config parentConfig) {
-		CommentedConfig config = CommentedConfig.fake(parentConfig.createSubConfig());
+	static CommentedConfig parseInline(CharacterInput input, TomlParser parser, CommentedConfig parentConfig) {
+		CommentedConfig config = parentConfig.createSubConfig();
 		while (true) {
 			char keyFirst = Toml.readNonSpaceChar(input, false);
 			if (keyFirst == '}') {
