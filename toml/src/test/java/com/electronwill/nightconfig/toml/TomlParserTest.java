@@ -1,14 +1,19 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.TestEnum;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.io.ParsingException;
+import com.electronwill.nightconfig.core.io.ParsingMode;
+
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -44,6 +49,18 @@ public class TomlParserTest {
 		CommentedConfig reparsed = new TomlParser().parse(new StringReader(sw.toString()));
 		System.out.println("--- reparsed --- \n" + reparsed);
 		assertEquals(parsed, reparsed);
+	}
+
+	@Test
+	public void testIterationOrder() {
+		File file = new File("test.toml");
+		CommentedConfig parsed = TomlFormat.newConfig(Config.getDefaultMapCreator(false, true));
+		new TomlParser().parse(file, parsed, ParsingMode.MERGE, FileNotFoundAction.THROW_ERROR);
+		assertTrue(parsed.valueMap() instanceof LinkedHashMap);
+		assertTrue(parsed.<CommentedConfig>get("inline_table").valueMap() instanceof LinkedHashMap);
+		assertTrue(parsed.<CommentedConfig>get("table").valueMap() instanceof LinkedHashMap);
+		assertTrue(parsed.<CommentedConfig>get("table").<CommentedConfig>get("subTable").valueMap() instanceof LinkedHashMap);
+		assertTrue(parsed.<CommentedConfig>get("array").<List<CommentedConfig>>get("ofTables").get(0).valueMap() instanceof LinkedHashMap);
 	}
 
 	@Test

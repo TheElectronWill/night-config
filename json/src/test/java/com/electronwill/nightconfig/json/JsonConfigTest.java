@@ -14,6 +14,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -211,4 +212,15 @@ public class JsonConfigTest {
 		writer.write(config, sw);
 		System.out.println("Written:\n" + sw);
 	}
+
+	@Test
+	public void testEntryOrder() {
+		FileConfig config = FileConfig.builder(file, JsonFormat.fancyInstance())
+				.preserveInsertionOrder()
+				.build();
+		config.load();
+		assertTrue(config.valueMap() instanceof LinkedHashMap);
+		assertTrue(config.<Config>get("config").valueMap() instanceof LinkedHashMap);
+	}
+
 }

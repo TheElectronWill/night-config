@@ -17,8 +17,8 @@ final class TableParser {
 
 	private static final char[] KEY_END = {'\t', ' ', '=', '.', '\n', '\r', ']', ':'};
 
-	static CommentedConfig parseInline(CharacterInput input, TomlParser parser) {
-		CommentedConfig config = TomlFormat.instance().createConfig();
+	static CommentedConfig parseInline(CharacterInput input, TomlParser parser, CommentedConfig parentConfig) {
+		CommentedConfig config = parentConfig.createSubConfig();
 		while (true) {
 			char keyFirst = Toml.readNonSpaceChar(input, false);
 			if (keyFirst == '}') {
@@ -28,7 +28,7 @@ final class TableParser {
 			char sep = Toml.readNonSpaceChar(input, false);
 			checkInvalidSeparator(sep, key, parser);
 
-			Object value = ValueParser.parse(input, parser);
+			Object value = ValueParser.parse(input, parser, parentConfig);
 			Object previous = parser.getParsingMode().put(config.valueMap(), key, value);
 			checkDuplicateKey(key, previous, true);
 
@@ -54,7 +54,7 @@ final class TableParser {
 			}
 			List<String> key = parseDottedKey(input, (char)keyFirst, parser);
 
-			Object value = ValueParser.parse(input, parser);
+			Object value = ValueParser.parse(input, parser, config);
 			Object previous = parser.getParsingMode().put(config, key, value);
 			checkDuplicateKey(key, previous, parser.configWasEmpty());
 
