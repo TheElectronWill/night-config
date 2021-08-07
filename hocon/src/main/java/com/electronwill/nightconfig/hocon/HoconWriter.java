@@ -202,6 +202,9 @@ public final class HoconWriter implements ConfigWriter {
 
 	private boolean canBeUnquoted(CharSequence s) {
 		final int length = s.length();
+		if (length == 0) {
+			return false;
+		}
 		for (int i = 0; i < length; i++) {
 			if (Utils.arrayContains(FORBIDDEN_IN_UNQUOTED, s.charAt(i))) {
 				return false;

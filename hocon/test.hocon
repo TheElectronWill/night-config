@@ -30,3 +30,5 @@ config {
 }
 long: 123456789
 nullSub: { a: test, n: null }
+empty_string: ""
+empty_list: []
