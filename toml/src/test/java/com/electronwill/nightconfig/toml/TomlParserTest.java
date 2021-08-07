@@ -75,6 +75,7 @@ public class TomlParserTest {
 		assertThrows(ParsingException.class, this::testInvalidNotAComment);
 		assertThrows(ParsingException.class, this::testInvalidNotAComment2);
 		assertThrows(ParsingException.class, this::testInvalidUnquotedString);
+		assertThrows(ParsingException.class, this::testInvalidStringOnTwoLines);
 		assertThrows(ParsingException.class, this::testInvalidTableDeclaration);
 		assertThrows(ParsingException.class, this::testInvalidTableDeclaration2);
 		assertThrows(ParsingException.class, this::testInvalidTableDeclaration3);
@@ -138,6 +139,11 @@ public class TomlParserTest {
 
 	private void testInvalidUnquotedString() {
 		String toml = "string = this is invalid";
+		parseAndPrint(toml);
+	}
+
+	private void testInvalidStringOnTwoLines() {
+		String toml = "key = \"line1\nline2\"";
 		parseAndPrint(toml);
 	}
 

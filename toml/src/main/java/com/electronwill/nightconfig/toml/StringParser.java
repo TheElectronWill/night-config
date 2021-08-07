@@ -27,6 +27,12 @@ final class StringParser {
 			} else if (c == '\\') {
 				escape = true;
 			} else {
+				if (c <= '\u001F') {
+					if (c == '\n' || c == '\r') {
+						throw new ParsingException("Invalid newline in string. Are you missing a \" quote? Use \\n to include a newline in the string.");
+					}
+					throw new ParsingException("Character \\u" + String.format("%04x", (int)c) + " must be escaped.");
+				}
 				builder.write(c);
 			}
 		}
