@@ -45,7 +45,7 @@ dotted.sub.subsub.key = { a = "b", c = "d", d = 12, e = 3.14, f = true }# more c
 dotted.more_data = 'some string' # comments here!
 
 # Numbers in different bases
-hexa = 0xffff
+hexa = 0xdeadbeef
 octal = 0o777
 binary = 0b101011
 
