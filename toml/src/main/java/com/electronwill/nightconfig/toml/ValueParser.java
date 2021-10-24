@@ -95,7 +95,7 @@ final class ValueParser {
 			return Double.NaN;
 		}
 		// Parse other fp values
-		if (valueChars.indexOfFirst(ONLY_IN_FP_NUMBER) != -1 && !valueChars.subView(0, 2).toString.equals("0x")) {
+		if (valueChars.indexOfFirst(ONLY_IN_FP_NUMBER) != -1 && !valueChars.subView(0, 2).toString().equals("0x")) {
 			try {
 				return Utils.parseDouble(valueChars);
 			} catch (NumberFormatException ex) {
