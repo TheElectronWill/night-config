@@ -3,10 +3,9 @@ configure(subprojects.findAll {it.name != "examples"}) {
 	version projectVersion
 	description "$projectDescription - $name module"
 
+	apply plugin: 'java-library'
 	apply plugin: 'maven-publish'
 	apply plugin: 'signing'
-	apply plugin: 'maven'
-	apply plugin: 'java'
 
 	sourceCompatibility = javaVersion
 	archivesBaseName = "nightconfig-$name"
@@ -16,8 +15,8 @@ configure(subprojects.findAll {it.name != "examples"}) {
 	}
 
 	dependencies {
-		testCompile "org.junit.jupiter:junit-jupiter-api:$junitVersion"
-		testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
+		testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+		testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
 	}
 
 	test {
@@ -93,13 +92,8 @@ configure(subprojects.findAll {!it.name.contains("core") && it.name != "examples
 	}
 
 	dependencies {
-		if (project.name.contains("android")) {
-			compile project(':core_android')
-			testCompile project(path: ':core_android', configuration: 'tests')
-		} else {
-			compile project(':core')
-			testCompile project(path: ':core', configuration: 'tests')
-		}
+		api project(':core')
+		testCompileOnly project(path: ':core', configuration: 'tests')
 	}
 }
 
@@ -108,7 +102,7 @@ configure(subprojects.findAll {it.name.contains("core")}) {
 	   to use the core test classes for their tests. */
 
 	task testJar(type: Jar, dependsOn: testClasses) {
-		baseName = "test-${project.archivesBaseName}"
+		archiveBaseName = "test-${project.archivesBaseName}"
 		from sourceSets.test.output
 	}
 

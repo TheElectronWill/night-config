@@ -11,6 +11,6 @@ repositories {
 }
 
 dependencies {
-	compile project(':toml')
-	compile project(':json')
+	implementation project(':toml')
+	implementation project(':json')
 }
