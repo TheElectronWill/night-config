@@ -187,7 +187,7 @@ public interface ValueChecker {
 	}
 
 	/**
-	 * Checks that the value is in range {@code [min,max[} (left-closed).
+	 * Checks that the value is in range {@code ]min,max]} (right-closed).
 	 *
 	 * @param exclusiveMin minimum value, exclusive
 	 * @param inclusiveMax maximum value, inclusive

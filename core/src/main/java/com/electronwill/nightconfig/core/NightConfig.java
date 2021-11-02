@@ -20,7 +20,9 @@ public final class NightConfig {
 
 	/**
 	 * Checks if the newly created configs keep the insertion order of their content.
-	 * By default this is not the case. This can be controlled with the `nightconfig.ordered`
+	 * By default, the insertion order is preserved.
+	 *
+	 * This can be controlled with the `nightconfig.ordered`
 	 * system property or by calling {@link #setInsertionOrderPreserved(boolean)}.
 	 * <p>
 	 * This setting does not apply to configurations created from a Map, from another Config,

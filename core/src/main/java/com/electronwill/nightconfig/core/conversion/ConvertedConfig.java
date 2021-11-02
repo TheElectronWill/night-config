@@ -39,7 +39,8 @@ public final class ConvertedConfig extends AbstractConvertedConfig<Config> {
 	@Override
 	@SuppressWarnings("unchecked")
 	public Set<Config.Entry> entries() {
-		Function<Config.Entry, Config.Entry> readTransfo = entry -> null;/*TODOnew Config.Entry() {
+		Function<Config.Entry, Config.Entry> readTransfo = entry -> null;/*TODO
+		new Config.Entry() {
 			@Override
 			public Object setValue(Object value) {
 				return readConversion.apply(entry.setValue(writeConversion.apply(value)));

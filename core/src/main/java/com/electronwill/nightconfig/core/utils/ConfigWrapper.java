@@ -21,6 +21,11 @@ public abstract class ConfigWrapper<C extends Config> extends UnmodifiableConfig
 	}
 
 	@Override
+	public Config.Entry getEntry(Iterable<String> path) {
+		return config.getEntry(path);
+	}
+
+	@Override
 	public <T> T set(AttributeType<T> attribute, String[] path, T value) {
 		return config.set(attribute, path, value);
 	}
