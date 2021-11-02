@@ -93,14 +93,6 @@ final class ValueParser {
 		} else if (remaining.contentEquals(FP_NAN)) {
 			return Double.NaN;
 		}
-		// Parse other fp values
-		if (valueChars.indexOfFirst(ONLY_IN_FP_NUMBER) != -1) {
-			try {
-				return Utils.parseDouble(valueChars);
-			} catch (NumberFormatException ex) {
-				throw new ParsingException("Invalid value: " + valueChars);
-			}
-		}
 		// Parse integers
 		CharsWrapper numberChars = valueChars;
 		int base = 10;
@@ -120,11 +112,19 @@ final class ValueParser {
 				numberChars = valueChars.subView(2);
 			}
 		}
+		// Parse other fp values if no base specified
+		if (base == 10 && valueChars.indexOf('.') != -1) {
+			try {
+				return Utils.parseDouble(valueChars);
+			} catch (NumberFormatException ex) {
+				throw new ParsingException("Invalid floating-point value: " + valueChars);
+			}
+		}
 		long longValue;
 		try {
 			longValue = Utils.parseLong(numberChars, base);
 		} catch (NumberFormatException ex) {
-			throw new ParsingException("Invalid value: " + valueChars);
+			throw new ParsingException("Invalid integer value: " + valueChars);
 		}
 		int intValue = (int)longValue;
 		if (intValue == longValue) {

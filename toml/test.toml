@@ -45,7 +45,8 @@ dotted.sub.subsub.key = { a = "b", c = "d", d = 12, e = 3.14, f = true }# more c
 dotted.more_data = 'some string' # comments here!
 
 # Numbers in different bases
-hexa = 0xffff
+hexa = 0xabcdef
+hexa2 = 0x01234
 octal = 0o777
 binary = 0b101011
 
@@ -60,6 +61,7 @@ binary = 0b101011
     date=2017-04-04
     time=16:41:20
     preciseTime=16:41:20.00700
+	tz = 1979-05-27T07:32:00-08:00 # nice
 
 [[  array  .  ofTables  ]]
     a = false

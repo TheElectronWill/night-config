@@ -24,6 +24,13 @@ public class TomlParserTest {
 	}
 
 	@Test
+	public void readOfficialExample() {
+		File f = new File("example.toml");
+		CommentedConfig parsed = new TomlParser().parse(f, FileNotFoundAction.THROW_ERROR);
+		System.out.println("--- parsed --- \n" + parsed);
+	}
+
+	@Test
 	public void readWriteReadAgain() {
 		File file = new File("test.toml");
 		CommentedConfig parsed = new TomlParser().parse(file, FileNotFoundAction.THROW_ERROR);

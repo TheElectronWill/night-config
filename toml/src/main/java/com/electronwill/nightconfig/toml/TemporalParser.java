@@ -49,7 +49,7 @@ final class TemporalParser {
 			return LocalDateTime.of(date, time);
 		}
 		LocalTime time = parseTime(afterDate.subView(0, offsetIndicatorIndex));
-		ZoneOffset offset = ZoneOffset.of(afterDate.subView(offsetIndicatorIndex).toString());
+		ZoneOffset offset = ZoneOffset.of(afterDate.subView(offsetIndicatorIndex).trimmedView().toString());
 		return OffsetDateTime.of(date, time, offset);// OffsetDateTime
 	}
 
