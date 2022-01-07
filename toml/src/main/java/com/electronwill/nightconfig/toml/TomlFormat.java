@@ -70,6 +70,6 @@ public final class TomlFormat implements ConfigFormat<CommentedConfig> {
 
 	@Override
 	public boolean supportsType(Class<?> type) {
-		return ConfigFormat.super.supportsType(type) || Temporal.class.isAssignableFrom(type);
+		return type != null && (ConfigFormat.super.supportsType(type) || Temporal.class.isAssignableFrom(type));
 	}
 }
