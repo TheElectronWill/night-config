@@ -64,7 +64,7 @@ final class TableWriter {
 				continue;
 			} else if (value instanceof List) {
 				List<?> list = (List<?>)value;
-				if (!list.isEmpty() && list.get(0) instanceof UnmodifiableConfig) {
+				if (!list.isEmpty() && list.stream().allMatch(UnmodifiableConfig.class::isInstance)) {
 					tableArraysEntries.add(entry);
 					continue;
 				}

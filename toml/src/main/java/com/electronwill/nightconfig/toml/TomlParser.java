@@ -117,7 +117,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 				currentConfig = (Config)value;
 			} else if (value instanceof List) {
 				List<?> list = (List<?>)value;
-				if (!list.isEmpty() && list.get(0) instanceof Config) {// Arrays of tables
+				if (!list.isEmpty() && list.stream().allMatch(Config.class::isInstance)) {// Arrays of tables
 					int lastIndex = list.size() - 1;
 					currentConfig = (Config)list.get(lastIndex);
 				} else {
