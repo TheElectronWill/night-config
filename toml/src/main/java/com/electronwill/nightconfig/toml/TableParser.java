@@ -19,6 +19,7 @@ final class TableParser {
 
 	static CommentedConfig parseInline(CharacterInput input, TomlParser parser) {
 		CommentedConfig config = TomlFormat.instance().createConfig();
+		parser.registerInlineTable(config);
 		while (true) {
 			char keyFirst = Toml.readNonSpaceChar(input, false);
 			if (keyFirst == '}') {

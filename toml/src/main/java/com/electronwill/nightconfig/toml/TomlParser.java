@@ -22,6 +22,21 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 	private boolean configWasEmpty = false;
 	private ParsingMode parsingMode;
 
+	// --- Parser's state for TOML compliance ---
+	private final Set<Config> inlineTables = Collections.newSetFromMap(new IdentityHashMap<>());
+
+	void registerInlineTable(Config table) {
+		inlineTables.add(table);
+	}
+
+	boolean isInlineTable(Config table) {
+		return inlineTables.contains(table);
+	}
+
+	private void clearParsingState() {
+		inlineTables.clear();
+	}
+
 	// --- Parser's methods ---
 	@Override
 	public CommentedConfig parse(Reader reader) {
@@ -99,6 +114,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 				}
 			}
 		}
+		clearParsingState();
 		return destination;
 	}
 
@@ -125,6 +141,10 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 				}
 			} else {
 				return null;
+			}
+			if (this.isInlineTable(currentConfig)) {
+				// reject modification of inline tables
+				throw new ParsingException("Cannot modify an inline table after its creation. Key path: " + path);
 			}
 		}
 		return currentConfig;

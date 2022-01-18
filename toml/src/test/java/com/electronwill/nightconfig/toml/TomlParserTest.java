@@ -77,6 +77,7 @@ public class TomlParserTest {
 		assertThrows(ParsingException.class, this::testMixedArraySubtableTable);
 		assertThrows(ParsingException.class, this::testMixedArraySubtablePrimitive);
 		assertThrows(ParsingException.class, this::testInlineTableArraySubtable);
+		assertThrows(ParsingException.class, this::testInlineTableArraySubtable2);
 	}
 
 	private void testAlreadyDefinedTable() {
@@ -199,8 +200,15 @@ public class TomlParserTest {
 	}
 
 	private void testInlineTableArraySubtable() {
-		String toml = "array = [{}, {}]\n"
-			+ "[array.subtable]\n"
+		String toml = "array_full_inline = [{}, {}]\n"
+			+ "[array_full_inline.subtable]\n"
+			+ "   test = 'success'\n";
+		parseAndPrint(toml);
+	}
+
+	private void testInlineTableArraySubtable2() {
+		String toml = "array_full_inline = [{}, {}]\n"
+			+ "[array_full_inline.sub2.subtable]\n"
 			+ "   test = 'success'\n";
 		parseAndPrint(toml);
 	}
