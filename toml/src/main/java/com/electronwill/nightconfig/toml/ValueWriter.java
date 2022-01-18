@@ -29,7 +29,7 @@ final class ValueWriter {
 			TableWriter.writeInline((Config)value, output, writer);
 		} else if (value instanceof List) {
 			List<?> list = (List<?>)value;
-			if (!list.isEmpty() && list.get(0) instanceof Config) {// Array of tables
+			if (!list.isEmpty() && list.stream().allMatch(Config.class::isInstance)) {// Array of tables
 				Iterator<?> iterator = list.iterator();
 				while (iterator.hasNext()) {
 					final Object table = iterator.next();

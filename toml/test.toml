@@ -27,6 +27,7 @@ multilineArray = [
 mixed_array = [0, 1.0]
 mixed_array2 = ["a", ["b"]]
 mixed_array3 = [true, 0x1, "c"]
+mixed_array_with_inline_tables = [{"a" = true}, "b", {"c" = 42}, "d"]
 
 basicMultiline = """
 First line
