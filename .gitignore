@@ -19,8 +19,8 @@ nbproject
 *.iml
 .idea
 
+# VS Code
+.vscode
+
 # Working directory of code examples
 examples/working_dir/
-
-# Results of *_android:applyPatches
-android/*/src/main/
