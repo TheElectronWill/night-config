@@ -3,6 +3,7 @@ version projectVersion
 description "$projectDescription - $name module"
 
 apply plugin: 'java'
+apply plugin: 'application'
 
 sourceCompatibility = javaVersion
 
@@ -13,4 +14,8 @@ repositories {
 dependencies {
 	compile project(':toml')
 	compile project(':json')
+}
+
+application {
+    mainClassName = project.hasProperty("mainClass") ? project.getProperty("mainClass") : "NULL"
 }
