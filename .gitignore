@@ -19,6 +19,9 @@ nbproject
 *.iml
 .idea
 
+# VS Code
+.vscode
+
 # Working directory of code examples
 examples/working_dir/
 
