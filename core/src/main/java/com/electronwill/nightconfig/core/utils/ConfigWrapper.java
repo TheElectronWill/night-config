@@ -41,8 +41,18 @@ public abstract class ConfigWrapper<C extends Config> extends UnmodifiableConfig
 	}
 
 	@Override
-	public Set<Config.Entry> entries() {
+	public Iterable<? extends Config.Entry> entries() {
 		return config.entries();
+	}
+
+	@Override
+	public Iterable<String> keys() {
+		return config.keys();
+	}
+
+	@Override
+	public Iterable<Object> values() {
+		return config.values();
 	}
 
 	@Override

@@ -2,13 +2,8 @@ package com.electronwill.nightconfig.core;
 
 import com.electronwill.nightconfig.core.utils.MapSupplier;
 import com.electronwill.nightconfig.core.utils.StringUtils;
-import com.electronwill.nightconfig.core.utils.TransformingMap;
 
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
-import static com.electronwill.nightconfig.core.utils.StringUtils.single;
 
 /**
  * Basic configuration based on a {@link java.util.Map}.
@@ -293,8 +288,8 @@ public class MapConfig implements Config, Cloneable {
 	// --- VIEWS ---
 
 	@Override
-	public Set<Config.Entry> entries() {
-		return new EntrySet();
+	public Iterable<Entry> entries() {
+		return () -> new EntryIterator();
 	}
 
 	/** @return an iterable on the top-level keys of this config. */
@@ -304,7 +299,7 @@ public class MapConfig implements Config, Cloneable {
 
 	/** @return an iterable on the top-level values of this config. */
 	public Iterable<Object> values() {
-		return () -> new ValuesIterator();
+		return () -> new ValueIterator();
 	}
 
 	@Override
@@ -521,95 +516,24 @@ public class MapConfig implements Config, Cloneable {
 		}
 	}
 
-	/**
-	 * View of the configuration as a {@code Set<Config.Entry}.
-	 */
-	protected final class EntrySet implements Set<Config.Entry> {
+	protected final class EntryIterator implements Iterator<Entry> {
+		private final Iterator<Map.Entry<String, Entry>> it = storage.entrySet().iterator();
+
 		@Override
-		public int size() {
-			return storage.size();
+		public boolean hasNext() {
+			return it.hasNext();
 		}
 
 		@Override
-		public boolean isEmpty() {
-			return storage.isEmpty();
-		}
-
-		@Override
-		public boolean contains(Object o) {
-			if (o instanceof Entry) {
-				Entry query = (Entry)o;
-				Entry data = storage.get(query.getKey());
-				return query.equals(data);
-			}
-			return false;
-		}
-
-		@Override
-		@SuppressWarnings("rawtypes")
-		public Iterator<Config.Entry> iterator() {
-			Iterator<Entry> it = storage.values().iterator();
-			return (Iterator)it; // it's a shame Iterator isn't covariant!
-		}
-
-		@Override
-		public Object[] toArray() {
-			return storage.values().toArray();
-		}
-
-		@Override
-		public <T> T[] toArray(T[] a) {
-			return storage.values().toArray(a);
-		}
-
-		@Override
-		public boolean add(Config.Entry entry) {
-			return MapConfig.this.add(single(entry.getKey()), entry.getValue()) == null;
-		}
-
-		@Override
-		public boolean remove(Object o) {
-			if (o instanceof Config.Entry) {
-				Config.Entry query = (Config.Entry)o;
-				return MapConfig.this.remove(single(query.getKey())) != null;
-			}
-			return false;
-		}
-
-		@Override
-		public boolean containsAll(Collection<?> c) {
-			return storage.values().containsAll(c);
-		}
-
-		@Override
-		public boolean addAll(Collection<? extends Config.Entry> c) {
-			boolean changed = false;
-			for (Config.Entry entry : c) {
-				changed = add(entry) || changed;
-			}
-			return changed;
-		}
-
-		@Override
-		public boolean retainAll(Collection<?> c) {
-			return storage.values().retainAll(c);
-		}
-
-		@Override
-		public boolean removeAll(Collection<?> c) {
-			return storage.values().removeAll(c);
-		}
-
-		@Override
-		public void clear() {
-			MapConfig.this.clear();
+		public Entry next() {
+			return it.next().getValue();
 		}
 	}
 
 	/**
 	 * Iterates on entries' values.
 	 */
-	protected final class ValuesIterator implements Iterator<Object> {
+	protected final class ValueIterator implements Iterator<Object> {
 		private final Iterator<Entry> it = storage.values().iterator();
 
 		@Override

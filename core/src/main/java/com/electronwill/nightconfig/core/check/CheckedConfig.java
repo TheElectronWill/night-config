@@ -56,13 +56,8 @@ public class CheckedConfig extends ConfigWrapper<Config> {
 	}
 
 	@Override
-	public Map<String, Object> valueMap() {
-		return new TransformingMap<>(super.valueMap(), (k,v) -> v, this::checkMapWrite, o -> o);
-	}
-
-	@Override
-	public Set<Config.Entry> entries() {
-		return new TransformingSet<>(config.entries(), v -> v, this::checkSetWrite, this::searchEntryTransform);
+	public Iterable<? extends Config.Entry> entries() {
+		return config.entries();
 	}
 
 	private <T> T checkMapWrite(String key, T value) {

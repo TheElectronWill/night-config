@@ -306,22 +306,6 @@ public final class ObjectBinder {
 		}
 
 		@Override
-		public Map<String, Object> valueMap() {
-			Function<Object, Object> readConversion = o -> {
-				if (o instanceof FieldInfos) {
-					FieldInfos fieldInfos = (FieldInfos)o;
-					if (fieldInfos.boundConfig != null) {
-						return fieldInfos.getUpdatedConfig(object);// Updates the object
-					}
-					return fieldInfos.getValue(object);
-				}
-				return o;
-			};
-			return new TransformingMap<>(dataMap, readConversion, o -> o, o -> o);
-			// TODO better search conversion
-		}
-
-		@Override
 		public Set<? extends Entry> entrySet() {
 			Function<Map.Entry<String, Object>, Entry> readTransfo = entry -> new Entry() {
 				@Override
