@@ -48,11 +48,10 @@ NightConfig is built with Gradle. The project is divided in several modules, the
 The releases are available on [Maven Central](https://search.maven.org/search?q=com.electronwill.night-config) and [JitPack](https://jitpack.io/#TheElectronWill/Night-Config).
 
 # Android
-Older versions of Android don't provide the packages `java.util.function` and `java.nio.file`, which
-NightConfig heavily uses. If you encounter issues on android you can use the special version that
-I've made for you by adding `_android` to the modules' names.
 
-Please [read the wiki](https://github.com/TheElectronWill/Night-Config/wiki/Modules-and-dependencies) for more information.
+Very old (API version < 24) versions of Android don't provide the packages `java.util.function` and `java.nio.file`, which
+NightConfig heavily uses. These versions are disappearing from the market, and it's a bit difficult to continue to maintain them,
+therefore NightConfig v4+ doesn't attempt to support them.
 
 # Repo branches
 The repository has several branches:
@@ -60,4 +59,5 @@ The repository has several branches:
 [stable-1.x](https://github.com/TheElectronWill/Night-Config/tree/stable-1.x),
 [stable-2.x](https://github.com/TheElectronWill/Night-Config/tree/stable-2.x)
 [stable-2.1.x](https://github.com/TheElectronWill/Night-Config/tree/stable-2.1.x)
-- Current in-development branch: [master](https://github.com/TheElectronWill/Night-Config/tree/master)
+- Current stable branch: [master](https://github.com/TheElectronWill/night-config/tree/master)
+- WIP in-development branch: [dev](https://github.com/TheElectronWill/night-config/tree/master)
