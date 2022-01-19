@@ -1,14 +1,11 @@
 package com.electronwill.nightconfig.core.conversion;
 
-import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.utils.ConfigWrapper;
-import com.electronwill.nightconfig.core.utils.TransformingMap;
-
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Predicate;
+
+import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.utils.ConfigWrapper;
+import com.electronwill.nightconfig.core.utils.TransformingMap;
 
 /**
  * @author TheElectronWill

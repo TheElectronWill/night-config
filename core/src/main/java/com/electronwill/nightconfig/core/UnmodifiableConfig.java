@@ -16,20 +16,18 @@ public interface UnmodifiableConfig {
 	/** @return an iterable on the top-level entries of this config. */
 	Iterable<? extends Entry> entries();
 
-	/**
-	 * Returns a Map view of the config's values.
-	 * If the config is unmodifiable then the returned map is unmodifiable too.
-	 *
-	 * @return a Map view of the values.
-	 */
-	Map<String, Object> valueMap();
+	/** @return an iterable on the top-level keys of this config. */
+	Iterable<String> keys();
 
+	/** @return an iterable on the top-level values of this config. */
+	Iterable<Object> values();
 
 	// --- CONFIG METADATA ---
 
 	/** @return the number of top-level entries in this config. */
 	int size();
 
+	/** @return true if this configration is empty, i.e. if it contains no entry. */
 	default boolean isEmpty() {
 		return size() == 0;
 	}

@@ -293,16 +293,18 @@ public class MapConfig implements Config, Cloneable {
 	// --- VIEWS ---
 
 	@Override
-	public Map<String, Object> valueMap() {
-		BiFunction<String, Entry, Object> read = (k, e) -> e.getValue();
-		BiFunction<String, Object, Entry> write = Entry::new;
-		Function<Object, Entry> search = o -> o instanceof Entry ? (Entry)o : null;
-		return new TransformingMap<>(storage, read, write, search);
-	}
-
-	@Override
 	public Set<Config.Entry> entries() {
 		return new EntrySet();
+	}
+
+	/** @return an iterable on the top-level keys of this config. */
+	public Iterable<String> keys() {
+		return storage.keySet();
+	}
+
+	/** @return an iterable on the top-level values of this config. */
+	public Iterable<Object> values() {
+		return () -> new ValuesIterator();
 	}
 
 	@Override
@@ -601,6 +603,23 @@ public class MapConfig implements Config, Cloneable {
 		@Override
 		public void clear() {
 			MapConfig.this.clear();
+		}
+	}
+
+	/**
+	 * Iterates on entries' values.
+	 */
+	protected final class ValuesIterator implements Iterator<Object> {
+		private final Iterator<Entry> it = storage.values().iterator();
+
+		@Override
+		public boolean hasNext() {
+			return it.hasNext();
+		}
+
+		@Override
+		public Object next() {
+			return it.next().getValue();
 		}
 	}
 

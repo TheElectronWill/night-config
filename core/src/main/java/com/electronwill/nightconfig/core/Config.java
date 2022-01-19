@@ -45,24 +45,8 @@ public interface Config extends UnmodifiableConfig {
 		return Optional.empty();
 	}
 
-	/**
-	 * Returns a Set view of the config's entries.
-	 * Any change to the set is reflected in the config and vice-versa.
-	 *
-	 * @return a Set view of the (top-level) entries
-	 */
-	@Override
-	Set<Entry> entries();
-
-	/**
-	 * Returns a Map view of the config's values.
-	 * Any change to the map is reflected in the config and vice-versa.
-	 *
-	 * @return a Map view of the values
-	 */
-	@Override
-	Map<String, Object> valueMap();
-
+	/** @return an iterable on the top-level entries of this config. */
+	Iterable<? extends Entry> entries();
 
 	// --- ENTRY CREATION ---
 
