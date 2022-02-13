@@ -14,9 +14,9 @@ import java.util.function.Function;
  * @author TheElectronWill
  * @see TransformingMap
  */
-public final class TransformingIterator<InternalV, ExternalV> implements Iterator<ExternalV> {
-	private final Function<? super InternalV, ? extends ExternalV> readTransformation;
-	private final Iterator<InternalV> internalIterator;
+public class TransformingIterator<InternalV, ExternalV> implements Iterator<ExternalV> {
+	protected final Function<? super InternalV, ? extends ExternalV> readTransformation;
+	protected final Iterator<InternalV> internalIterator;
 
 	public TransformingIterator(Iterator<InternalV> internalIterator,
 								Function<? super InternalV, ? extends ExternalV> readTransformation) {
@@ -43,5 +43,20 @@ public final class TransformingIterator<InternalV, ExternalV> implements Iterato
 	public void forEachRemaining(Consumer<? super ExternalV> action) {
 		internalIterator.forEachRemaining(
 				internalV -> action.accept(readTransformation.apply(internalV)));
+	}
+
+	@Override
+	public int hashCode() {
+		return internalIterator.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return internalIterator.equals(obj);
+	}
+
+	@Override
+	public String toString() {
+		return internalIterator.toString();
 	}
 }
