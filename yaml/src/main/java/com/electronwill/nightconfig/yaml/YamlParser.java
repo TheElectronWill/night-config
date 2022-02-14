@@ -5,11 +5,13 @@ import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.ParsingMode;
+import com.electronwill.nightconfig.core.utils.TransformingList;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.Reader;
+import java.util.List;
 import java.util.Map;
 
 import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
@@ -70,10 +72,17 @@ public final class YamlParser implements ConfigParser<Config> {
 		return new TransformingMap<>(map, this::wrap, v -> v, v -> v);
 	}
 
+	private List<Object> wrapList(List<Object> list) {
+		return new TransformingList<>(list, this::wrap, v -> v, v -> v);
+	}
+
 	private Object wrap(Object value) {
 		if (value instanceof Map) {
 			Map<String, Object> map = wrap((Map)value);
 			return Config.wrap(map, configFormat);
+		}
+		if (value instanceof List) {
+			return (List<Object>) wrapList((List)value);
 		}
 		if (value == null) {
 			return NULL_OBJECT;

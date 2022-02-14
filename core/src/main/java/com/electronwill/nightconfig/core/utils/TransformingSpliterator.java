@@ -72,4 +72,19 @@ public final class TransformingSpliterator<InternalV, ExternalV> implements Spli
 											  .compare(writeTransformation.apply(o1),
 													   writeTransformation.apply(o2));
 	}
+
+	@Override
+	public int hashCode() {
+		return internalSpliterator.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return internalSpliterator.equals(obj);
+	}
+
+	@Override
+	public String toString() {
+		return internalSpliterator.toString();
+	}
 }

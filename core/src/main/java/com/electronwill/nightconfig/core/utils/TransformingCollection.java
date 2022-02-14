@@ -20,10 +20,10 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("unchecked")
 public class TransformingCollection<InternalV, ExternalV> implements Collection<ExternalV> {
-	private final Function<? super InternalV, ? extends ExternalV> readTransformation;
-	private final Function<? super ExternalV, ? extends InternalV> writeTransformation;
-	private final Function<Object, Object> searchTransformation;
-	private final Collection<InternalV> internalCollection;
+	protected final Function<? super InternalV, ? extends ExternalV> readTransformation;
+	protected final Function<? super ExternalV, ? extends InternalV> writeTransformation;
+	protected final Function<Object, Object> searchTransformation;
+	protected final Collection<InternalV> internalCollection;
 
 	public TransformingCollection(Collection<InternalV> internalCollection,
 								  Function<? super InternalV, ? extends ExternalV> readTransformation,
@@ -86,20 +86,20 @@ public class TransformingCollection<InternalV, ExternalV> implements Collection<
 	@Override
 	public boolean containsAll(Collection<?> c) {
 		return internalCollection.containsAll(
-				new TransformingCollection(c, searchTransformation, o -> o, searchTransformation));
+			new TransformingCollection(c, searchTransformation, o -> o, searchTransformation));
 	}
 
 	@Override
 	public boolean addAll(Collection<? extends ExternalV> c) {
 		return internalCollection.addAll(
-				new TransformingCollection(c, writeTransformation, readTransformation,
-										   searchTransformation));
+			new TransformingCollection(c, writeTransformation, readTransformation,
+				searchTransformation));
 	}
 
 	@Override
 	public boolean removeAll(Collection<?> c) {
 		return internalCollection.removeAll(
-				new TransformingCollection(c, searchTransformation, o -> o, searchTransformation));
+			new TransformingCollection(c, searchTransformation, o -> o, searchTransformation));
 	}
 
 	@Override
@@ -111,7 +111,7 @@ public class TransformingCollection<InternalV, ExternalV> implements Collection<
 	@Override
 	public boolean retainAll(Collection<?> c) {
 		return internalCollection.retainAll(
-				new TransformingCollection(c, searchTransformation, o -> o, searchTransformation));
+			new TransformingCollection(c, searchTransformation, o -> o, searchTransformation));
 	}
 
 	@Override
@@ -138,5 +138,20 @@ public class TransformingCollection<InternalV, ExternalV> implements Collection<
 	@Override
 	public void forEach(Consumer<? super ExternalV> action) {
 		internalCollection.forEach(internalV -> action.accept(readTransformation.apply(internalV)));
+	}
+
+	@Override
+	public int hashCode() {
+		return internalCollection.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return internalCollection.equals(obj);
+	}
+
+	@Override
+	public String toString() {
+		return internalCollection.toString();
 	}
 }
