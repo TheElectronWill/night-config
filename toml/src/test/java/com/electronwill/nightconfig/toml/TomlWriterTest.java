@@ -1,18 +1,22 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.NullObject;
-import com.electronwill.nightconfig.core.TestEnum;
-import com.electronwill.nightconfig.core.io.WritingException;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
+import static org.junit.jupiter.api.Assertions.assertLinesMatch;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.StringWriter;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+
+import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.NullObject;
+import com.electronwill.nightconfig.core.TestEnum;
+import com.electronwill.nightconfig.core.io.WritingException;
+import com.electronwill.nightconfig.core.utils.StringUtils;
 
 /**
  * @author TheElectronWill
@@ -52,14 +56,69 @@ public class TomlWriterTest {
 	}
 
 	@Test
+	public void correctNewlinesSub() {
+		Config conf = TomlFormat.instance().createConfig();
+		Config sub = conf.createSubConfig();
+		conf.set("table", sub);
+		sub.set("key", "value");
+
+		TomlWriter tWriter = new TomlWriter();
+		String written = tWriter.writeToString(conf);
+		System.out.println(written);
+		assertLinesMatch(Arrays.asList("[table]", "\tkey = \"value\"", ""), StringUtils.splitLines(written));
+	}
+
+	@Test
+	public void correctNewlinesArrayOfTables() {
+		Config conf = TomlFormat.instance().createConfig();
+
+		Config sub = conf.createSubConfig();
+		sub.set("key", "value");
+
+		List<Config> arrayOfTables = Arrays.asList(sub);
+		conf.set("aot", arrayOfTables);
+
+		TomlWriter tWriter = new TomlWriter();
+		String written = tWriter.writeToString(conf);
+		System.out.println(written);
+		assertLinesMatch(Arrays.asList("[[aot]]", "\tkey = \"value\"", ""), StringUtils.splitLines(written));
+	}
+
+	@Test
+	public void correctNewlinesSimple() {
+		Config conf = TomlFormat.instance().createConfig();
+		conf.set("simple", 123);
+
+		TomlWriter tWriter = new TomlWriter();
+		String written = tWriter.writeToString(conf);
+		System.out.println(written);
+		assertLinesMatch(Arrays.asList("simple = 123", ""), StringUtils.splitLines(written));
+	}
+
+	@Test
+	public void correctNewlinesMixed() {
+		Config conf = TomlFormat.instance().createConfig();
+		Config sub = conf.createSubConfig();
+		conf.set("simple", 123);
+		conf.set("table", sub);
+		sub.set("key", "value");
+
+		TomlWriter tWriter = new TomlWriter();
+		String written = tWriter.writeToString(conf);
+		System.out.println(written);
+		assertLinesMatch(Arrays.asList("simple = 123", "", "[table]", "\tkey = \"value\"", ""),
+				StringUtils.splitLines(written));
+	}
+
+	@Test
 	public void noNulls() {
 		Config config = TomlFormat.newConfig();
 		Executable tryToWrite = () -> TomlFormat.instance().createWriter().writeToString(config);
 
 		config.set("null", null);
-		Assertions.assertThrows(WritingException.class, tryToWrite);
+		assertThrows(WritingException.class, tryToWrite);
 
 		config.set("null", NullObject.NULL_OBJECT);
-		Assertions.assertThrows(WritingException.class, tryToWrite);
+		assertThrows(WritingException.class, tryToWrite);
 	}
 }

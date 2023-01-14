@@ -5,7 +5,6 @@ import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.CharacterOutput;
 import com.electronwill.nightconfig.core.io.WritingException;
-import com.electronwill.nightconfig.core.utils.FakeUnmodifiableCommentedConfig;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -76,7 +75,12 @@ final class TableWriter {
 			ValueWriter.write(value, output, writer);
 			writer.writeNewline(output);
 		}
-		writer.writeNewline(output);
+
+		int nonSimpleValuesCount = tablesEntries.size() + tableArraysEntries.size();
+		int simpleValuesCount = config.size() - nonSimpleValuesCount;
+		if (simpleValuesCount > 0 && nonSimpleValuesCount > 0) {
+			writer.writeNewline(output);
+		}
 
 		// Writes the tables:
 		for (UnmodifiableCommentedConfig.Entry entry : tablesEntries) {
