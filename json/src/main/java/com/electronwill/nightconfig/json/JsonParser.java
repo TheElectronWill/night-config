@@ -7,6 +7,7 @@ import com.electronwill.nightconfig.core.utils.FastStringReader;
 
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -194,7 +195,7 @@ public final class JsonParser implements ConfigParser<Config> {
 	}
 
 	private void parseKVPair(CharacterInput input, Config config, ParsingMode parsingMode) {
-		String key = parseString(input);
+		List<String> key = Collections.singletonList(parseString(input)); // the list is necessary if there are dots in the key
 		char sep = input.readCharAndSkip(SPACES);
 		if (sep != ':') {
 			throw new ParsingException("Invalid key-value separator: " + sep);

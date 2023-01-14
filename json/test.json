@@ -16,6 +16,7 @@
 		"boolean": true,
 		"false": false
 	},
+	"dots.in.key": "value",
 	"int": 123456,
 	"long": 1234567890,
 	"enum": "A"

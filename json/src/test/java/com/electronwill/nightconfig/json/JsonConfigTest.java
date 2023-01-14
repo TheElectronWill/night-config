@@ -7,7 +7,6 @@ import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.io.IndentStyle;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.WritingMode;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
@@ -38,6 +37,7 @@ public class JsonConfigTest {
 		config.set("list", Arrays.asList("a", "b", 3, null, true, false, 17.5));
 		config.set("null", null);
 		config.set("enum", TestEnum.A);
+		config.set(Arrays.asList("dots.in.key"), "value");
 	}
 
 	private final File file = new File("test.json");
