@@ -1,3 +1,7 @@
+plugins {
+    id 'biz.aQute.bnd.builder' version '6.3.1' apply false
+}
+
 configure(subprojects.findAll {it.name != "examples"}) {
 	group projectGroup
 	version projectVersion
@@ -7,6 +11,7 @@ configure(subprojects.findAll {it.name != "examples"}) {
 	apply plugin: 'signing'
 	apply plugin: 'maven'
 	apply plugin: 'java'
+    apply plugin: 'biz.aQute.bnd.builder'
 
 	sourceCompatibility = javaVersion
 	archivesBaseName = "nightconfig-$name"
@@ -28,7 +33,12 @@ configure(subprojects.findAll {it.name != "examples"}) {
 		manifest {
 			attributes "Automatic-Module-Name": "com.electronwill.nightconfig.$project.name"
 		}
-	}
+        bundle {
+            bnd("Bundle-SymbolicName": "com.electronwill.nightconfig.$project.name",
+                "-exportcontents": "com.electronwill.nightconfig.*",
+                "-sources": "true")
+        }
+  	}
 
 	task javadocJar(type: Jar, dependsOn: javadoc) {
 		archiveClassifier = 'javadoc'
