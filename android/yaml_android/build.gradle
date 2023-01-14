@@ -10,7 +10,7 @@ import java.nio.file.StandardCopyOption
 import java.util.regex.Pattern
 
 dependencies {
-	compile "org.yaml:snakeyaml:$snakeYamlVersion"
+	implementation "org.yaml:snakeyaml:$snakeYamlVersion"
 }
 
 String pak = "com/electronwill/nightconfig/yaml"

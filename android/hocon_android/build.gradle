@@ -9,7 +9,7 @@ import java.nio.file.StandardCopyOption
 import java.util.regex.Pattern
 
 dependencies {
-	compile "com.typesafe:config:$typesafeConfigVersion"
+	implementation "com.typesafe:config:$typesafeConfigVersion"
 }
 
 String pak = "com/electronwill/nightconfig/hocon"

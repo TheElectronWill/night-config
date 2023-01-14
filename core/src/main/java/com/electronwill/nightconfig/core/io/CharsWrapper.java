@@ -351,7 +351,8 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 
 	/**
 	 * Calculates the hash code of this CharsWrapper.
-	 * <h1>Relation to String's hash code</h1>
+	 *
+	 * <strong>Relation to String's hash code</strong>
 	 * The hash code calculated by this method is guaranteed to return the same thing as
 	 * {@code wrapper.toString().hashCode()}. That is, if a String and a CharsWrapper contain
 	 * exactly the same characters then they will have the same hash code.

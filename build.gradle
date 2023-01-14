@@ -9,8 +9,7 @@ configure(subprojects.findAll {it.name != "examples"}) {
 
 	apply plugin: 'maven-publish'
 	apply plugin: 'signing'
-	apply plugin: 'maven'
-	apply plugin: 'java'
+	apply plugin: 'java-library'
     apply plugin: 'biz.aQute.bnd.builder'
 
 	sourceCompatibility = javaVersion
@@ -20,15 +19,14 @@ configure(subprojects.findAll {it.name != "examples"}) {
 		mavenCentral()
 	}
 
-	dependencies {
-		testCompile "org.junit.jupiter:junit-jupiter-api:$junitVersion"
-		testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
-	}
-
 	test {
 		useJUnitPlatform()
 	}
-	
+
+	dependencies {
+		testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
+	}
+
 	jar {
 		manifest {
 			attributes "Automatic-Module-Name": "com.electronwill.nightconfig.$project.name"
@@ -36,7 +34,7 @@ configure(subprojects.findAll {it.name != "examples"}) {
         bundle {
             bnd("Bundle-SymbolicName": "com.electronwill.nightconfig.$project.name",
                 "-exportcontents": "com.electronwill.nightconfig.*",
-                "-sources": "true")
+                "-sources": false) // We don't want a OSGI-OPT directory in the non-sources jar
         }
   	}
 
@@ -97,6 +95,7 @@ configure(subprojects.findAll {it.name != "examples"}) {
 	}
 
 	signing {
+		required { false }
 		sign publishing.publications.mavenJava
 	}
 }
@@ -110,11 +109,11 @@ configure(subprojects.findAll {!it.name.contains("core") && it.name != "examples
 
 	dependencies {
 		if (project.name.contains("android")) {
-			compile project(':core_android')
-			testCompile project(path: ':core_android', configuration: 'tests')
+			api project(':core_android')
+			testImplementation project(path: ':core_android', configuration: 'tests')
 		} else {
-			compile project(':core')
-			testCompile project(path: ':core', configuration: 'tests')
+			api project(':core')
+			testImplementation project(path: ':core', configuration: 'tests')
 		}
 	}
 }
@@ -124,7 +123,7 @@ configure(subprojects.findAll {it.name.contains("core")}) {
 	   to use the core test classes for their tests. */
 
 	task testJar(type: Jar, dependsOn: testClasses) {
-		baseName = "test-${project.archivesBaseName}"
+		archiveBaseName = "test-${project.archivesBaseName}"
 		from sourceSets.test.output
 	}
 
