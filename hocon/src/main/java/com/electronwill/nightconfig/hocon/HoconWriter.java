@@ -64,14 +64,17 @@ public final class HoconWriter implements ConfigWriter {
 		}
 		if (!root) {
 			output.write('{');// HOCON allows to omit the root braces
-		}
-		if (newlineAfterObjectStart) {
-			output.write(newline);
+			if (newlineAfterObjectStart) {
+				output.write(newline);
+			}
 		}
 		final Iterator<? extends UnmodifiableCommentedConfig.Entry> it = config.entrySet().iterator();
 		final boolean indentElements = indentObjectElementsPredicate.test(config);
 		if (indentElements) {
-			output.write(newline);
+			if (!root && !newlineAfterObjectStart) {
+				// only write newline if there isn't already one
+				output.write(newline);
+			}
 			increaseIndentLevel();
 		}
 		do {
