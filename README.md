@@ -65,10 +65,10 @@ NightConfig is built with Gradle. The project is divided in several modules, the
 
 The releases are available on [Maven Central](https://search.maven.org/search?q=com.electronwill.night-config) and [JitPack](https://jitpack.io/#TheElectronWill/Night-Config).
 
-## Android
+## Old Android modules
 
-⚠️ The `_android` modules are deprecated and will be removed in a future version. ⚠️
+Older versions of Android (before Android Oreo) didn't provide the packages `java.util.function` and `java.nio.file`, which NightConfig heavily uses.
+To attempt to mitigate these issues, I made a special version of each modules, suffixed with `_android`, that you could use instead of the regular modules.
 
-*Why? Because the maintainance burden of these modules is not worth it, given that almost no smartphone uses these very old versions of Android.*
-
-Older versions of Android don't provide the packages `java.util.function` and `java.nio.file`, which NightConfig heavily uses. If you encounter issues on android you can use the special version that I've made for you by adding `_android` to the modules' names.
+These old `_android` modules are deprecated and will no longer receive updates.
+The maintainance burden of these modules is not worth it, and these versions of Android have reached end of life since several years already.
