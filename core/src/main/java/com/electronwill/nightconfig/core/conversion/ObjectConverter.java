@@ -141,6 +141,9 @@ public final class ObjectConverter {
 				} catch (IllegalAccessException e) {// Unexpected: setAccessible is called if needed
 					throw new ReflectionException("Unable to parse the field " + field, e);
 				}
+				if (value == null) {
+					value = AnnotationUtils.getDefaultValue(field);
+				}
 				AnnotationUtils.checkField(field, value);/* Checks that the value is conform to an
 																eventual @SpecSometing annotation */
 				Converter<Object, Object> converter = AnnotationUtils.getConverter(field);
@@ -220,6 +223,9 @@ public final class ObjectConverter {
 				Converter<Object, Object> converter = AnnotationUtils.getConverter(field);
 				if (converter != null) {
 					value = converter.convertToField(value);
+				}
+				if (value == null) {
+					value = AnnotationUtils.getDefaultValue(field);
 				}
 
 				// --- Writes the value to the object's field, converting it if needed ---

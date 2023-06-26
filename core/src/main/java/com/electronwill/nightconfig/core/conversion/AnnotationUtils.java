@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Utility class for the annotations.
@@ -285,5 +286,45 @@ final class AnnotationUtils {
 			throw new InvalidValueException("Invalid type %s for field %s, expected %s", valueClass,
 											field, expectedClass);
 		}
+	}
+
+	public static Object getDefaultValue(Field field) {
+		DefaultBoolean defaultBoolean = field.getDeclaredAnnotation(DefaultBoolean.class);
+		if (defaultBoolean != null) {
+			return defaultBoolean.value();
+		}
+
+		DefaultInt defaultInt = field.getDeclaredAnnotation(DefaultInt.class);
+		if (defaultInt != null) {
+			return defaultInt.value();
+		}
+
+		DefaultLong defaultLong = field.getDeclaredAnnotation(DefaultLong.class);
+		if (defaultLong != null) {
+			return defaultLong.value();
+		}
+
+		DefaultDouble defaultDouble = field.getDeclaredAnnotation(DefaultDouble.class);
+		if (defaultDouble != null) {
+			return defaultDouble.value();
+		}
+
+		DefaultString defaultString = field.getDeclaredAnnotation(DefaultString.class);
+		if (defaultString != null) {
+			return defaultString.value();
+		}
+
+		DefaultValue anyValue = field.getDeclaredAnnotation(DefaultValue.class);
+		if (anyValue != null) {
+			try {
+				Constructor<? extends DefaultValueFactory<?>> constructor = anyValue.value().getConstructor();
+				constructor.setAccessible(true);
+				DefaultValueFactory<?> defaultValueFactory = constructor.newInstance();
+				return defaultValueFactory.defaultValue();
+			} catch (Throwable t) {
+				throw new ReflectionException("Could not create a default value factory for a field " + field, t);
+			}
+		}
+		return null;
 	}
 }
