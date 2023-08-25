@@ -21,7 +21,7 @@ import java.util.function.Consumer;
  * @author TheElectronWill
  */
 public final class FileWatcher {
-	private static final long SLEEP_TIME_NANOS = 1000;
+	private static final long SLEEP_TIME_MILLIS = 1000;
 	private static volatile FileWatcher DEFAULT_INSTANCE;
 
 	/**
@@ -187,7 +187,11 @@ public final class FileWatcher {
 					key.reset();
 				}
 				if (allNull) {
-					LockSupport.parkNanos(SLEEP_TIME_NANOS);
+					try {
+						Thread.sleep(SLEEP_TIME_MILLIS);
+					} catch (InterruptedException e) {
+						run = false;
+					}
 				}
 			}
 			// Closes the WatchServices
