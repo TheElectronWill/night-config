@@ -5,7 +5,9 @@ description "$projectDescription - $name module"
 apply plugin: 'java'
 apply plugin: 'application'
 
-sourceCompatibility = javaVersion
+java {
+	sourceCompatibility = JavaVersion.VERSION_1_8
+}
 
 repositories {
     mavenCentral()

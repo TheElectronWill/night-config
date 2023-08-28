@@ -12,11 +12,14 @@ configure(subprojects.findAll {it.name != "examples"}) {
 	apply plugin: 'java-library'
     apply plugin: 'biz.aQute.bnd.builder'
 
-	sourceCompatibility = javaVersion
 	archivesBaseName = "nightconfig-$name"
 
 	repositories {
 		mavenCentral()
+	}
+
+	java {
+		sourceCompatibility = JavaVersion.VERSION_1_8
 	}
 
 	test {
@@ -95,6 +98,7 @@ configure(subprojects.findAll {it.name != "examples"}) {
 	}
 
 	signing {
+		useGpgCmd()
 		required { false }
 		sign publishing.publications.mavenJava
 	}
