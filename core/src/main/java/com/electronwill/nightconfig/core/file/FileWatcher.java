@@ -12,6 +12,9 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -61,8 +64,14 @@ public final class FileWatcher {
 		}
 	}
 
-	private final ConcurrentMap<FileSystem, FSWatcher> watchers = new ConcurrentHashMap<>();
+	private static final long SERVICE_POLL_TIMEOUT_NANOS = Duration.ofMillis(200).toNanos();
+	private static final Duration DEFAULT_THROTTLE_DELAY = Duration.ofMillis(500);
+
+	private final ConcurrentMap<FileSystem, FsWatcher> watchers = new ConcurrentHashMap<>();
 	private final Consumer<Exception> exceptionHandler;
+	private final Duration throttleDelay;
+
+	// stop flag read by all watchers
 	private volatile boolean running = true;
 
 	/**
@@ -73,13 +82,18 @@ public final class FileWatcher {
 	 * </code>
 	 */
 	public FileWatcher() {
-		this(Throwable::printStackTrace);
+		this(DEFAULT_THROTTLE_DELAY);
+	}
+
+	public FileWatcher(Duration throttleDelay) {
+		this(throttleDelay, Throwable::printStackTrace);
 	}
 
 	/**
 	 * Creates a new FileWatcher.
 	 */
-	public FileWatcher(Consumer<Exception> exceptionHandler) {
+	public FileWatcher(Duration throttleDelay, Consumer<Exception> exceptionHandler) {
+		this.throttleDelay = throttleDelay;
 		this.exceptionHandler = exceptionHandler;
 	}
 
@@ -133,11 +147,11 @@ public final class FileWatcher {
 		CanonicalPath canon = CanonicalPath.from(file);
 		FileSystem fs = canon.parentDirectory.getFileSystem();
 		try {
-			FSWatcher watcher = watchers.computeIfAbsent(fs, k -> {
+			FsWatcher watcher = watchers.computeIfAbsent(fs, k -> {
 				// start a new watcher for this filesystem
 				try {
 					WatchService service = fs.newWatchService();
-					FSWatcher w = new FSWatcher(service);
+					FsWatcher w = new FsWatcher(service);
 					Thread t = new Thread(w);
 					t.start();
 					t.setDaemon(true);
@@ -170,7 +184,7 @@ public final class FileWatcher {
 	public void removeWatch(Path file) {
 		CanonicalPath canon = CanonicalPath.from(file);
 		FileSystem fs = canon.parentDirectory.getFileSystem();
-		FSWatcher watcher = watchers.get(fs);
+		FsWatcher watcher = watchers.get(fs);
 		if (watcher != null) {
 			watcher.send(new ControlMessage(ControlMessageKind.REMOVE, canon, null));
 		}
@@ -185,12 +199,12 @@ public final class FileWatcher {
 	}
 
 	/** A directory watcher for one filesystem. */
-	private final class FSWatcher implements Runnable {
+	private final class FsWatcher implements Runnable {
 		private final WatchService watchService;
 		private final Map<Path, WatchedDirectory> watchedDirectories = new HashMap<>();
 		private final ConcurrentLinkedQueue<ControlMessage> controlMessages = new ConcurrentLinkedQueue<>();
 
-		FSWatcher(WatchService watchService) {
+		FsWatcher(WatchService watchService) {
 			this.watchService = watchService;
 		}
 
@@ -230,17 +244,13 @@ public final class FileWatcher {
 							// Combine the handlers if there's already one, otherwise set it
 							WatchedDirectory w = watchDirectory(dir);
 							if (w != null) {
-								Runnable existingHandler = w.fileChangeHandlers.get(fileName);
 								Runnable msgHandler = msg.handler;
-								Runnable newHandler;
+								ThrottledRunnable existingHandler = w.fileChangeHandlers.get(fileName);
+								ThrottledRunnable newHandler;
 								if (existingHandler != null) {
-									// combine the handlers
-									newHandler = () -> {
-										existingHandler.run();
-										msgHandler.run();
-									};
+									newHandler = existingHandler.andThen(msgHandler);
 								} else {
-									newHandler = msgHandler;
+									newHandler = new ThrottledRunnable(msgHandler, throttleDelay);
 								}
 								w.fileChangeHandlers.put(fileName, newHandler);
 							}
@@ -250,7 +260,8 @@ public final class FileWatcher {
 							// Set the handler, replacing any existing handler
 							WatchedDirectory w = watchDirectory(dir);
 							if (w != null) {
-								w.fileChangeHandlers.put(fileName, msg.handler);
+								ThrottledRunnable newHandler = new ThrottledRunnable(msg.handler, throttleDelay);
+								w.fileChangeHandlers.put(fileName, newHandler);
 							}
 							break;
 						}
@@ -276,7 +287,7 @@ public final class FileWatcher {
 				// poll the events from the filesystem (monitoring of the files)
 				WatchKey key = null;
 				try {
-					key = watchService.poll(100, TimeUnit.MILLISECONDS);
+					key = watchService.poll(SERVICE_POLL_TIMEOUT_NANOS, TimeUnit.NANOSECONDS);
 				} catch (InterruptedException e) {
 					// we can proceed
 				}
@@ -292,10 +303,10 @@ public final class FileWatcher {
 						if (kind == StandardWatchEventKinds.OVERFLOW) {
 							// The probability of this happening is very low, and what to do is not obvious, especially from the pov of our library.
 							// We could add a specific handler so that we can optionnaly notify the user and reload all files if they want to.
-							exceptionHandler.accept(new WatchingException("Got event OVERFLOW"));
+							exceptionHandler.accept(new WatchingException("Got watch event OVERFLOW"));
 						} else {
 							Path file = (Path)evt.context();
-							Runnable changeHandler = w.fileChangeHandlers.get(file);
+							ThrottledRunnable changeHandler = w.fileChangeHandlers.get(file);
 							if (changeHandler != null) {
 								// The handler is null if the file that has changed is not in the list of monitored files
 								// (there exist a sibling file in the same directory that we want to monitor).
@@ -330,19 +341,60 @@ public final class FileWatcher {
 	}
 
 	private static final class WatchedDirectory {
-		final WatchKey key;
-		final Map<Path, Runnable> fileChangeHandlers;
+		private final WatchKey key;
+		private final Map<Path, ThrottledRunnable> fileChangeHandlers;
 
-		WatchedDirectory(WatchKey key, Map<Path, Runnable> fileChangeHandlers) {
+		WatchedDirectory(WatchKey key, Map<Path, ThrottledRunnable> fileChangeHandlers) {
 			this.key = Objects.requireNonNull(key);
 			this.fileChangeHandlers = Objects.requireNonNull(fileChangeHandlers);
 		}
 	}
 
+	private static final class ThrottledRunnable {
+		private final Runnable runnable;
+		private final long throttleDelayNanos;
+		private Instant lastRun = Instant.MIN;
+
+		private ThrottledRunnable(Runnable runnable, long throttleDelayNanos, Instant lastRun) {
+			this.runnable = runnable;
+			this.throttleDelayNanos = throttleDelayNanos;
+			this.lastRun = lastRun;
+		}
+
+		public ThrottledRunnable(Runnable runnable, Duration throttleDelay) {
+			this.runnable = runnable;
+			this.throttleDelayNanos = throttleDelay.toNanos();
+		}
+
+		/**
+		 * Runs the underlying {@ Runnable} if and only if the time elapsed since the last
+		 * run is bigger than the throttling delay.
+		 * @return true if it has run, false it it's been throttleds
+		 */
+		public boolean run() {
+			Instant now = Instant.now();
+			if (lastRun.until(now, ChronoUnit.NANOS) >= throttleDelayNanos) {
+				lastRun = now;
+				runnable.run();
+				return true;
+			}
+			return false;
+		}
+
+		/** Combine this runnable with another one, while keeping the `lastRun` information. */
+		public ThrottledRunnable andThen(Runnable then) {
+			Runnable combined = () -> {
+				runnable.run();
+				then.run();
+			};
+			return new ThrottledRunnable(combined, throttleDelayNanos, lastRun);
+		}
+	}
+
 	private static final class ControlMessage {
-		final ControlMessageKind kind;
-		final Path parentDirectory, fileName;
-		final Runnable handler; // null for some kinds of messages
+		private final ControlMessageKind kind;
+		private final Path parentDirectory, fileName;
+		private final Runnable handler; // null for some kinds of messages
 
 		ControlMessage(ControlMessageKind kind, CanonicalPath path, Runnable handler) {
 			this.parentDirectory = path.parentDirectory;
