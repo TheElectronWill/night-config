@@ -14,8 +14,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
-
 /**
  * Contains conversions functions organized by value's type. A ConversionTable grows as necessary.
  *

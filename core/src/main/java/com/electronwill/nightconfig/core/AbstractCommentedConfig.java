@@ -3,7 +3,6 @@ package com.electronwill.nightconfig.core;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Supplier;
 
@@ -20,7 +19,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		super(concurrent);
 		this.commentMap = getDefaultCommentMap(concurrent);
 	}
-	
+
 	public AbstractCommentedConfig(Supplier<Map<String, Object>> mapCreator) {
 		super(mapCreator);
 		this.commentMap = AbstractConfig.<String>getWildcardMapCreator(mapCreator).get();
@@ -45,7 +44,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		super(toCopy, concurrent);
 		this.commentMap = getDefaultCommentMap(concurrent);
 	}
-	
+
 	public AbstractCommentedConfig(UnmodifiableConfig toCopy, Supplier<Map<String, Object>> mapCreator) {
 		super(toCopy, mapCreator);
 		this.commentMap = AbstractConfig.<String>getWildcardMapCreator(mapCreator).get();
@@ -61,12 +60,12 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		this.commentMap = getDefaultCommentMap(concurrent);
 		this.commentMap.putAll(toCopy.commentMap());
 	}
-	
+
 	public AbstractCommentedConfig(UnmodifiableCommentedConfig toCopy, Supplier<Map<String, Object>> mapCreator) {
 		super(toCopy, mapCreator);
 		this.commentMap = AbstractConfig.<String>getWildcardMapCreator(mapCreator).get();
 	}
-	
+
 	protected static Map<String, String> getDefaultCommentMap(boolean concurrent) {
 		return AbstractConfig.<String>getDefaultMapCreator(concurrent).get();
 	}

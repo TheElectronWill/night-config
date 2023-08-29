@@ -58,7 +58,7 @@ public class InMemoryCommentedFormat implements ConfigFormat<CommentedConfig> {
 
 	@Override
 	public boolean supportsType(Class<?> type) {
-		return true;
+		return supportPredicate.test(type);
 	}
 
 	@Override

@@ -15,8 +15,7 @@ import java.util.Set;
  *
  * @author TheElectronWill
  */
-class CheckedCommentedConfig extends CommentedConfigWrapper<CommentedConfig>
-		implements CommentedConfig {
+class CheckedCommentedConfig extends CommentedConfigWrapper<CommentedConfig> {
 	/**
 	 * Creates a new CheckedConfig around a commented configuration.
 	 * <p>

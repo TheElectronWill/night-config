@@ -3,7 +3,6 @@ package com.electronwill.nightconfig.core;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Supplier;
 
