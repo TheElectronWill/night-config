@@ -1,6 +1,7 @@
 sub: {'null': null, nullObject: null}
 'null': null
 string: this is a string
+not.a.subconfig: works
 nullObject: null
 list: [10, 12]
 enum: !!com.electronwill.nightconfig.core.BasicTestEnum 'A'

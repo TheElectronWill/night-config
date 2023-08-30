@@ -36,6 +36,7 @@ public class YamlTest {
 		config.set("enum", BasicTestEnum.A); // complex enums doesn't appear to work with SnakeYAML
 		config.set("list", Arrays.asList(10, 12));
 		config.set("objectList", Arrays.asList(config1, config2));
+		config.set(Arrays.asList("not.a.subconfig"), "works");
 
 		System.out.println("Config: " + config);
 		System.out.println("classOf[sub] = " + config.get("sub").getClass());
@@ -44,7 +45,7 @@ public class YamlTest {
 		YamlFormat yamlFormat = YamlFormat.defaultInstance();
 		yamlFormat.createWriter().write(config, file, WritingMode.REPLACE);
 
-		Config parsed = yamlFormat.createConcurrentConfig();
+		Config parsed = yamlFormat.createConfig();
 		yamlFormat.createParser().parse(file, parsed, ParsingMode.REPLACE, THROW_ERROR);
 		System.out.println("\nParsed: " + parsed);
 		System.out.println("classOf[sub] = " + parsed.get("sub").getClass());
@@ -55,7 +56,7 @@ public class YamlTest {
 		assertEquals(BasicTestEnum.A, parsed.getEnum("enum", BasicTestEnum.class));
 		assertEquals(12, parsed.<List<Integer>>get("list").get(1));
 		assertEquals(Boolean.TRUE, parsed.<List<UnmodifiableConfig>>get("objectList").get(1).get("baz"));
-
-		Assertions.assertEquals(config, parsed, "Error: written != parsed");
+		assertEquals("works", parsed.<String>get(Arrays.asList("not.a.subconfig")));
+		Assertions.assertEquals(config, parsed, "written != parsed");
 	}
 }
