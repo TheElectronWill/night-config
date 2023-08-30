@@ -42,7 +42,8 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	protected WritingMode writingMode = WritingMode.REPLACE;
 	protected ParsingMode parsingMode = ParsingMode.REPLACE;
 	protected FileNotFoundAction nefAction = FileNotFoundAction.CREATE_EMPTY;
-	protected boolean sync = false, autosave = false, autoreload = false, concurrent = false;
+	protected boolean sync = false, autosave = false, concurrent = false;
+	protected FileWatcher autoreloadFileWatcher = null;
 	protected boolean insertionOrder = Config.isInsertionOrderPreserved();
 	protected Supplier<Map<String, Object>> mapCreator = null;
 
@@ -166,7 +167,16 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 * @return this builder
 	 */
 	public GenericBuilder<Base, Result> autoreload() {
-		autoreload = true;
+		return autoreload(FileWatcher.defaultInstance());
+	}
+
+	/**
+	 * Makes the configuration "autoreloaded", using the given FileWatcher to monitor the config file.
+	 *
+	 * @return this builder
+	 */
+	public GenericBuilder<Base, Result> autoreload(FileWatcher fileWatcher) {
+		autoreloadFileWatcher = fileWatcher;
 		return this;
 	}
 
@@ -220,7 +230,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 			fileConfig = new WriteSyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
 				parser, parsingMode, nefAction);
 		} else {
-			if (autoreload) {
+			if (autoreloadFileWatcher != null) {
 				concurrent();
 				// Autoreloading is done from a background thread, therefore we need thread-safety
 				// This isn't needed with WriteSyncFileConfig because it synchronizes loads and writes.
@@ -228,7 +238,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 			fileConfig = new WriteAsyncFileConfig<>(getConfig(), file, charset, writer, writingMode,
 				parser, parsingMode, nefAction);
 		}
-		if (autoreload) {
+		if (autoreloadFileWatcher != null) {
 			if (Files.notExists(file)) {
 				try {
 					nefAction.run(file, format);
@@ -239,7 +249,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 					);
 				}
 			}
-			fileConfig = new AutoreloadFileConfig<>(fileConfig);
+			fileConfig = new AutoreloadFileConfig<>(fileConfig, autoreloadFileWatcher);
 		}
 		if (autosave) {
 			return buildAutosave(fileConfig);

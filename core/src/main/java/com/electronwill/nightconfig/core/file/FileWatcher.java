@@ -16,12 +16,16 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
@@ -35,6 +39,7 @@ import java.util.function.Consumer;
  * @author TheElectronWill
  */
 public final class FileWatcher {
+	private static final AtomicInteger instanceCount = new AtomicInteger(0);
 	private static volatile FileWatcher DEFAULT_INSTANCE;
 
 	/**
@@ -64,37 +69,63 @@ public final class FileWatcher {
 		}
 	}
 
+	/** The timeout for {@link WatchService#poll(long, TimeUnit)}.
+	 * If there's no filesystem event, commands sent to the watcher thread will be taken into account after the expiration of this timeout.
+	 * Therefore, it should not be too high.
+	 */
 	private static final long SERVICE_POLL_TIMEOUT_NANOS = Duration.ofMillis(200).toNanos();
+
+	/** The default throttle delay. */
 	private static final Duration DEFAULT_THROTTLE_DELAY = Duration.ofMillis(500);
 
+	private final ThreadGroup threadGroup;
+	private final AtomicInteger threadCount = new AtomicInteger(0);
 	private final ConcurrentMap<FileSystem, FsWatcher> watchers = new ConcurrentHashMap<>();
 	private final Consumer<Exception> exceptionHandler;
 	private final Duration throttleDelay;
-
-	// stop flag read by all watchers
+	private final int instanceId;
 	private volatile boolean running = true;
 
 	/**
-	 * Creates a new FileWatcher with a default exception handler.
+	 * Creates a new FileWatcher with a default exception handler and a default throttling delay.
+	 *
 	 * The default exception handler is simply:
 	 * <code>
 	 * (e) -> e.printStackTrace();
 	 * </code>
+	 *
+	 * The default throttling delay is unspecified and may change in the future, but is typically
+	 * around 1 second or less.
 	 */
 	public FileWatcher() {
 		this(DEFAULT_THROTTLE_DELAY);
 	}
 
+	/**
+	 * Creates a new FileWatcher with a default exception handler.
+	 *
+	 * The default exception handler is simply:
+	 * <code>
+	 * (e) -> e.printStackTrace();
+	 * </code>
+	 *
+	 * @param throttleDelay delay between each call of the file's changeHandler.
+	 */
 	public FileWatcher(Duration throttleDelay) {
 		this(throttleDelay, Throwable::printStackTrace);
 	}
 
 	/**
-	 * Creates a new FileWatcher.
+	 * Creates a new FileWatcher with the given exception handler.
+	 *
+	 * @param throttleDelay delay between each call of the file's changeHandler.
+	 * @param exceptionHandler called when an exception occurs during the handling of file events
 	 */
 	public FileWatcher(Duration throttleDelay, Consumer<Exception> exceptionHandler) {
+		this.instanceId = instanceCount.getAndIncrement();
 		this.throttleDelay = throttleDelay;
 		this.exceptionHandler = exceptionHandler;
+		this.threadGroup = new ThreadGroup("watchers-" + instanceId);
 	}
 
 	/**
@@ -144,6 +175,7 @@ public final class FileWatcher {
 	}
 
 	private void addOrPutWatch(Path file, Runnable changeHandler, ControlMessageKind kind) {
+		ensureRunning();
 		CanonicalPath canon = CanonicalPath.from(file);
 		FileSystem fs = canon.parentDirectory.getFileSystem();
 		try {
@@ -151,17 +183,19 @@ public final class FileWatcher {
 				// start a new watcher for this filesystem
 				try {
 					WatchService service = fs.newWatchService();
-					FsWatcher w = new FsWatcher(service);
-					Thread t = new Thread(w);
-					t.start();
+					FsWatcher w = new FsWatcher(exceptionHandler, throttleDelay, service);
+					threadGroup.activeCount();
+					String threadName = "config-file-watcher-" + instanceId + "-" + threadCount.getAndIncrement();
+					Thread t = new Thread(threadGroup, w, threadName);
 					t.setDaemon(true);
+					t.start();
 					return w;
 				} catch (IOException ex) {
 					throw new WatchingException("Failed to start a new watcher thread for directory " + canon.parentDirectory, ex);
 				}
 			});
 			// tell the watcher thread to watch the file
-			watcher.send(new ControlMessage(kind, canon, changeHandler));
+			watcher.send(ControlMessage.addOrPut(kind, canon, changeHandler));
 		} catch (Exception ex) {
 			throw new WatchingException("Failed to watch path '" + file + "', canonical path '" + canon + "'", ex);
 		}
@@ -182,11 +216,12 @@ public final class FileWatcher {
 	 * @param file the file to stop watching
 	 */
 	public void removeWatch(Path file) {
+		ensureRunning();
 		CanonicalPath canon = CanonicalPath.from(file);
 		FileSystem fs = canon.parentDirectory.getFileSystem();
 		FsWatcher watcher = watchers.get(fs);
 		if (watcher != null) {
-			watcher.send(new ControlMessage(ControlMessageKind.REMOVE, canon, null));
+			watcher.send(ControlMessage.remove(canon));
 		}
 	}
 
@@ -195,16 +230,37 @@ public final class FileWatcher {
 	 * the file modification handlers won't be called anymore.
 	 */
 	public void stop() {
-		running = false; // volatile write
+		// prevent further use of the FileWatcher
+		running = false;
+
+		// stop each watcher thread
+		for (FsWatcher watcher : watchers.values()) {
+			watcher.send(ControlMessage.poison());
+		}
+		// interrupt each watcher thread so that they handle the "poison" asap
+		threadGroup.interrupt();
 	}
 
-	/** A directory watcher for one filesystem. */
-	private final class FsWatcher implements Runnable {
+	private void ensureRunning() {
+		if (!running) {
+			throw new IllegalStateException("FileWatcher " + instanceId + " has been stopped and cannot be used anymore.");
+		}
+	}
+
+	/** A directory watcher for one filesystem.
+	 * The watcher runs in its own thread, and is controlled via asynchronous messages of type {@link ControlMessage}.
+	 */
+	private static final class FsWatcher implements Runnable {
+		private final Consumer<Exception> exceptionHandler;
+		private final Duration throttleDelay;
+
 		private final WatchService watchService;
 		private final Map<Path, WatchedDirectory> watchedDirectories = new HashMap<>();
 		private final ConcurrentLinkedQueue<ControlMessage> controlMessages = new ConcurrentLinkedQueue<>();
 
-		FsWatcher(WatchService watchService) {
+		FsWatcher(Consumer<Exception> exceptionHandler, Duration throttleDelay, WatchService watchService) {
+			this.exceptionHandler = exceptionHandler;
+			this.throttleDelay = throttleDelay;
 			this.watchService = watchService;
 		}
 
@@ -226,14 +282,12 @@ public final class FileWatcher {
 			});
 		}
 
-		private void close() throws IOException {
-			watchService.close();
-			watchedDirectories.clear();
-		}
-
 		@Override
 		public void run() {
-			while (running) {
+			Set<ThrottledRunnable> throttledHandlersToRetry = new LinkedHashSet<>();
+
+			mainLoop:
+			while (true) {
 				// handle control messages coming from other threads (modification of the watch list)
 				ControlMessage msg;
 				while ((msg = controlMessages.poll()) != null) {
@@ -278,6 +332,10 @@ public final class FileWatcher {
 							}
 							break;
 						}
+						case POISON: {
+							// Kill the thread
+							break mainLoop;
+						}
 						default: {
 							break;
 						}
@@ -289,13 +347,12 @@ public final class FileWatcher {
 				try {
 					key = watchService.poll(SERVICE_POLL_TIMEOUT_NANOS, TimeUnit.NANOSECONDS);
 				} catch (InterruptedException e) {
-					// we can proceed
+					// loop back to the handling of control messages
+					continue;
 				}
 
-				if (key == null) {
-					// no key available after the given delay, or interrupted
-					continue;
-				} else {
+				if (key != null) {
+					// a key has been polled
 					Path dir = (Path) key.watchable();
 					WatchedDirectory w = watchedDirectories.get(dir);
 					for (WatchEvent<?> evt : key.pollEvents()) {
@@ -312,15 +369,19 @@ public final class FileWatcher {
 								// (there exist a sibling file in the same directory that we want to monitor).
 								// A WatchService monitors directories, not files, that's why we need to do a check here.
 								try {
-									changeHandler.run();
+									boolean didRun = changeHandler.run();
+									if (!didRun) {
+										// throttled! retry later
+										throttledHandlersToRetry.add(changeHandler);
+									}
 								} catch (Exception ex) {
 									exceptionHandler.accept(ex);
 									// TODO: change the API to pass more information to the exception handler and the change handler
 								}
 							}
 						}
-						if (!running) {
-							break; // early stop
+						if (Thread.interrupted()) {
+							continue mainLoop; // early stop
 						}
 					}
 					boolean valid = key.reset();
@@ -331,9 +392,21 @@ public final class FileWatcher {
 						break;
 					}
 				}
+
+				// Retry to run handlers that have been throttled, so that we don't miss the last event
+				for (Iterator<ThrottledRunnable> it = throttledHandlersToRetry.iterator(); it.hasNext(); ) {
+					ThrottledRunnable handler = it.next();
+					if (handler.run()) {
+						it.remove();
+						if (Thread.interrupted()) {
+							continue mainLoop; // early stop
+						}
+					}
+				}
 			}
 			try {
-				close();
+				watchService.close();
+				watchedDirectories.clear();
 			} catch (IOException e) {
 				exceptionHandler.accept(e);
 			}
@@ -353,7 +426,7 @@ public final class FileWatcher {
 	private static final class ThrottledRunnable {
 		private final Runnable runnable;
 		private final long throttleDelayNanos;
-		private Instant lastRun = Instant.MIN;
+		private Instant lastRun = Instant.EPOCH;
 
 		private ThrottledRunnable(Runnable runnable, long throttleDelayNanos, Instant lastRun) {
 			this.runnable = runnable;
@@ -367,9 +440,10 @@ public final class FileWatcher {
 		}
 
 		/**
-		 * Runs the underlying {@ Runnable} if and only if the time elapsed since the last
+		 * Runs the underlying {@link Runnable} if and only if the time elapsed since the last
 		 * run is bigger than the throttling delay.
-		 * @return true if it has run, false it it's been throttleds
+		 *
+		 * @return true if it has run, false it it's been throttled
 		 */
 		public boolean run() {
 			Instant now = Instant.now();
@@ -391,16 +465,32 @@ public final class FileWatcher {
 		}
 	}
 
+	/** Control message that can be send to a watcher thread. */
 	private static final class ControlMessage {
 		private final ControlMessageKind kind;
-		private final Path parentDirectory, fileName;
-		private final Runnable handler; // null for some kinds of messages
+		private final Path parentDirectory, fileName; // null for poison
+		private final Runnable handler; // null for some poison and remove
 
-		ControlMessage(ControlMessageKind kind, CanonicalPath path, Runnable handler) {
+		private ControlMessage(ControlMessageKind kind, CanonicalPath path, Runnable handler) {
 			this.parentDirectory = path.parentDirectory;
 			this.fileName = path.fileName;
 			this.kind = kind;
 			this.handler = handler;
+		}
+
+		static ControlMessage addOrPut(ControlMessageKind kind, CanonicalPath path, Runnable handler) {
+			if (kind != ControlMessageKind.ADD && kind != ControlMessageKind.PUT) {
+				throw new IllegalArgumentException("Unexpected message kind " + kind);
+			}
+			return new ControlMessage(kind, path, handler);
+		}
+
+		static ControlMessage remove(CanonicalPath path) {
+			return new ControlMessage(ControlMessageKind.REMOVE, path, null);
+		}
+
+		static ControlMessage poison() {
+			return new ControlMessage(ControlMessageKind.POISON, null, null);
 		}
 	}
 
@@ -439,7 +529,7 @@ public final class FileWatcher {
 	}
 
 	private static enum ControlMessageKind {
-		PUT, ADD, REMOVE
+		PUT, ADD, REMOVE, POISON
 	}
 
 }

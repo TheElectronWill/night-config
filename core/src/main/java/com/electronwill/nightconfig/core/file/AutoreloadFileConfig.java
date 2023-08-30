@@ -9,10 +9,11 @@ import java.nio.file.Path;
  * @author TheElectronWill
  */
 final class AutoreloadFileConfig<C extends FileConfig> extends ConfigWrapper<C> implements FileConfig {
-	private final FileWatcher watcher = FileWatcher.defaultInstance();
+	private final FileWatcher watcher;
 
-	AutoreloadFileConfig(C config) {
+	AutoreloadFileConfig(C config, FileWatcher watcher) {
 		super(config);
+		this.watcher = watcher;
 		watcher.addWatch(config.getNioPath(), config::load);
 	}
 
