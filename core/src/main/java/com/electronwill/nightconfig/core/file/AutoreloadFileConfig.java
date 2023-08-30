@@ -13,7 +13,7 @@ final class AutoreloadFileConfig<C extends FileConfig> extends ConfigWrapper<C> 
 
 	AutoreloadFileConfig(C config) {
 		super(config);
-		watcher.addWatch(config.getFile(), config::load);
+		watcher.addWatch(config.getNioPath(), config::load);
 	}
 
 	@Override
@@ -38,7 +38,7 @@ final class AutoreloadFileConfig<C extends FileConfig> extends ConfigWrapper<C> 
 
 	@Override
 	public void close() {
-		watcher.removeWatch(config.getFile());
+		watcher.removeWatch(config.getNioPath());
 		config.close();
 	}
 }
