@@ -13,17 +13,15 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -75,30 +73,32 @@ public final class FileWatcher {
 	 */
 	private static final long SERVICE_POLL_TIMEOUT_NANOS = Duration.ofMillis(200).toNanos();
 
-	/** The default throttle delay. */
-	private static final Duration DEFAULT_THROTTLE_DELAY = Duration.ofMillis(500);
+	/** When a file is modified, wait for the debounce time to expire before triggering the change handler.
+	 * Any modification resets the countdown, there needs to be a period of "calm" before the handler is triggered.
+	 */
+	private static final Duration DEFAULT_DEBOUNCE_TIME = Duration.ofMillis(500);
 
 	private final ThreadGroup threadGroup;
 	private final AtomicInteger threadCount = new AtomicInteger(0);
 	private final ConcurrentMap<FileSystem, FsWatcher> watchers = new ConcurrentHashMap<>();
-	private final Consumer<Exception> exceptionHandler;
-	private final Duration throttleDelay;
+	private final Consumer<Throwable> exceptionHandler;
+	private final Duration debounceTime;
 	private final int instanceId;
 	private volatile boolean running = true;
 
 	/**
-	 * Creates a new FileWatcher with a default exception handler and a default throttling delay.
+	 * Creates a new FileWatcher with a default exception handler and a default debounce time.
 	 *
 	 * The default exception handler is simply:
 	 * <code>
 	 * (e) -> e.printStackTrace();
 	 * </code>
 	 *
-	 * The default throttling delay is unspecified and may change in the future, but is typically
+	 * The default debounce time is unspecified and may change in the future, but is typically
 	 * around 1 second or less.
 	 */
 	public FileWatcher() {
-		this(DEFAULT_THROTTLE_DELAY);
+		this(DEFAULT_DEBOUNCE_TIME);
 	}
 
 	/**
@@ -109,10 +109,10 @@ public final class FileWatcher {
 	 * (e) -> e.printStackTrace();
 	 * </code>
 	 *
-	 * @param throttleDelay delay between each call of the file's changeHandler.
+	 * @param debounceTime hwo much time to wait after each modification of a file before triggering the change handler
 	 */
-	public FileWatcher(Duration throttleDelay) {
-		this(throttleDelay, Throwable::printStackTrace);
+	public FileWatcher(Duration debounceTime) {
+		this(debounceTime, Throwable::printStackTrace);
 	}
 
 	/**
@@ -121,9 +121,9 @@ public final class FileWatcher {
 	 * @param throttleDelay delay between each call of the file's changeHandler.
 	 * @param exceptionHandler called when an exception occurs during the handling of file events
 	 */
-	public FileWatcher(Duration throttleDelay, Consumer<Exception> exceptionHandler) {
+	public FileWatcher(Duration throttleDelay, Consumer<Throwable> exceptionHandler) {
 		this.instanceId = instanceCount.getAndIncrement();
-		this.throttleDelay = throttleDelay;
+		this.debounceTime = throttleDelay;
 		this.exceptionHandler = exceptionHandler;
 		this.threadGroup = new ThreadGroup("watchers-" + instanceId);
 	}
@@ -183,7 +183,7 @@ public final class FileWatcher {
 				// start a new watcher for this filesystem
 				try {
 					WatchService service = fs.newWatchService();
-					FsWatcher w = new FsWatcher(exceptionHandler, throttleDelay, service);
+					FsWatcher w = new FsWatcher(exceptionHandler, debounceTime, service);
 					threadGroup.activeCount();
 					String threadName = "config-file-watcher-" + instanceId + "-" + threadCount.getAndIncrement();
 					Thread t = new Thread(threadGroup, w, threadName);
@@ -251,16 +251,16 @@ public final class FileWatcher {
 	 * The watcher runs in its own thread, and is controlled via asynchronous messages of type {@link ControlMessage}.
 	 */
 	private static final class FsWatcher implements Runnable {
-		private final Consumer<Exception> exceptionHandler;
-		private final Duration throttleDelay;
+		private final Consumer<Throwable> exceptionHandler;
+		private final Duration debounceTime;
 
 		private final WatchService watchService;
 		private final Map<Path, WatchedDirectory> watchedDirectories = new HashMap<>();
 		private final ConcurrentLinkedQueue<ControlMessage> controlMessages = new ConcurrentLinkedQueue<>();
 
-		FsWatcher(Consumer<Exception> exceptionHandler, Duration throttleDelay, WatchService watchService) {
+		FsWatcher(Consumer<Throwable> exceptionHandler, Duration debounceTime, WatchService watchService) {
 			this.exceptionHandler = exceptionHandler;
-			this.throttleDelay = throttleDelay;
+			this.debounceTime = debounceTime;
 			this.watchService = watchService;
 		}
 
@@ -284,7 +284,7 @@ public final class FileWatcher {
 
 		@Override
 		public void run() {
-			Set<ThrottledRunnable> throttledHandlersToRetry = new LinkedHashSet<>();
+			ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
 			mainLoop:
 			while (true) {
@@ -298,13 +298,12 @@ public final class FileWatcher {
 							// Combine the handlers if there's already one, otherwise set it
 							WatchedDirectory w = watchDirectory(dir);
 							if (w != null) {
-								Runnable msgHandler = msg.handler;
-								ThrottledRunnable existingHandler = w.fileChangeHandlers.get(fileName);
-								ThrottledRunnable newHandler;
+								DebouncedRunnable newHandler;
+								DebouncedRunnable existingHandler = w.fileChangeHandlers.get(fileName);
 								if (existingHandler != null) {
-									newHandler = existingHandler.andThen(msgHandler);
+									newHandler = existingHandler.andThen(msg.handler);
 								} else {
-									newHandler = new ThrottledRunnable(msgHandler, throttleDelay);
+									newHandler = new DebouncedRunnable(msg.handler, debounceTime);
 								}
 								w.fileChangeHandlers.put(fileName, newHandler);
 							}
@@ -314,7 +313,7 @@ public final class FileWatcher {
 							// Set the handler, replacing any existing handler
 							WatchedDirectory w = watchDirectory(dir);
 							if (w != null) {
-								ThrottledRunnable newHandler = new ThrottledRunnable(msg.handler, throttleDelay);
+								DebouncedRunnable newHandler = new DebouncedRunnable(msg.handler, debounceTime);
 								w.fileChangeHandlers.put(fileName, newHandler);
 							}
 							break;
@@ -363,17 +362,13 @@ public final class FileWatcher {
 							exceptionHandler.accept(new WatchingException("Got watch event OVERFLOW"));
 						} else {
 							Path file = (Path)evt.context();
-							ThrottledRunnable changeHandler = w.fileChangeHandlers.get(file);
+							DebouncedRunnable changeHandler = w.fileChangeHandlers.get(file);
+							// The handler is null if the file that has changed is not in the list of monitored files
+							// (there exist a sibling file in the same directory that we want to monitor).
+							// A WatchService monitors directories, not files, that's why we need to do a check here.
 							if (changeHandler != null) {
-								// The handler is null if the file that has changed is not in the list of monitored files
-								// (there exist a sibling file in the same directory that we want to monitor).
-								// A WatchService monitors directories, not files, that's why we need to do a check here.
 								try {
-									boolean didRun = changeHandler.run();
-									if (!didRun) {
-										// throttled! retry later
-										throttledHandlersToRetry.add(changeHandler);
-									}
+									changeHandler.run(executor);
 								} catch (Exception ex) {
 									exceptionHandler.accept(ex);
 									// TODO: change the API to pass more information to the exception handler and the change handler
@@ -392,19 +387,9 @@ public final class FileWatcher {
 						break;
 					}
 				}
-
-				// Retry to run handlers that have been throttled, so that we don't miss the last event
-				for (Iterator<ThrottledRunnable> it = throttledHandlersToRetry.iterator(); it.hasNext(); ) {
-					ThrottledRunnable handler = it.next();
-					if (handler.run()) {
-						it.remove();
-						if (Thread.interrupted()) {
-							continue mainLoop; // early stop
-						}
-					}
-				}
 			}
 			try {
+				executor.shutdown();
 				watchService.close();
 				watchedDirectories.clear();
 			} catch (IOException e) {
@@ -415,53 +400,50 @@ public final class FileWatcher {
 
 	private static final class WatchedDirectory {
 		private final WatchKey key;
-		private final Map<Path, ThrottledRunnable> fileChangeHandlers;
+		private final Map<Path, DebouncedRunnable> fileChangeHandlers;
 
-		WatchedDirectory(WatchKey key, Map<Path, ThrottledRunnable> fileChangeHandlers) {
+		WatchedDirectory(WatchKey key, Map<Path, DebouncedRunnable> fileChangeHandlers) {
 			this.key = Objects.requireNonNull(key);
 			this.fileChangeHandlers = Objects.requireNonNull(fileChangeHandlers);
 		}
 	}
 
-	private static final class ThrottledRunnable {
+	private static final class DebouncedRunnable {
 		private final Runnable runnable;
-		private final long throttleDelayNanos;
-		private Instant lastRun = Instant.EPOCH;
+		private final long debounceTimeNanos;
+		private ScheduledFuture<?> scheduledTask;
 
-		private ThrottledRunnable(Runnable runnable, long throttleDelayNanos, Instant lastRun) {
+		private DebouncedRunnable(Runnable runnable, long debounceTimeNanos, ScheduledFuture<?> scheduledTask) {
 			this.runnable = runnable;
-			this.throttleDelayNanos = throttleDelayNanos;
-			this.lastRun = lastRun;
+			this.debounceTimeNanos = debounceTimeNanos;
+			this.scheduledTask = scheduledTask;
 		}
 
-		public ThrottledRunnable(Runnable runnable, Duration throttleDelay) {
+		public DebouncedRunnable(Runnable runnable, Duration debounceTime) {
 			this.runnable = runnable;
-			this.throttleDelayNanos = throttleDelay.toNanos();
+			this.debounceTimeNanos = debounceTime.toNanos();
 		}
 
 		/**
-		 * Runs the underlying {@link Runnable} if and only if the time elapsed since the last
-		 * run is bigger than the throttling delay.
-		 *
-		 * @return true if it has run, false it it's been throttled
+		 * Runs the underlying {@link Runnable} after the debounce time has elapsed,
+		 * if {@code run} is not called again before its execution.
 		 */
-		public boolean run() {
-			Instant now = Instant.now();
-			if (lastRun.until(now, ChronoUnit.NANOS) >= throttleDelayNanos) {
-				lastRun = now;
-				runnable.run();
-				return true;
+		public void run(ScheduledExecutorService executor) {
+			if (scheduledTask != null) {
+				// cancel the previously scheduled execution (it's ok it it has already been completed or cancelled)
+				scheduledTask.cancel(false);
 			}
-			return false;
+			// schedule the new execution after the debouncing delay
+			scheduledTask = executor.schedule(runnable, debounceTimeNanos, TimeUnit.NANOSECONDS);
 		}
 
-		/** Combine this runnable with another one, while keeping the `lastRun` information. */
-		public ThrottledRunnable andThen(Runnable then) {
+		/** Combine this runnable with another one, while keeping the debouncing state. */
+		public DebouncedRunnable andThen(Runnable then) {
 			Runnable combined = () -> {
 				runnable.run();
 				then.run();
 			};
-			return new ThrottledRunnable(combined, throttleDelayNanos, lastRun);
+			return new DebouncedRunnable(combined, debounceTimeNanos, scheduledTask);
 		}
 	}
 
