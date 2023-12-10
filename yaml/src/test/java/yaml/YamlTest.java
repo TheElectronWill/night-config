@@ -57,6 +57,6 @@ public class YamlTest {
 		assertEquals(12, parsed.<List<Integer>>get("list").get(1));
 		assertEquals(Boolean.TRUE, parsed.<List<UnmodifiableConfig>>get("objectList").get(1).get("baz"));
 		assertEquals("works", parsed.<String>get(Arrays.asList("not.a.subconfig")));
-		Assertions.assertEquals(config, parsed, "written != parsed");
+		assertEquals(config, parsed, "written != parsed");
 	}
 }
