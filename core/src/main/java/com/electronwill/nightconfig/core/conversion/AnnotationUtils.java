@@ -107,41 +107,34 @@ final class AnnotationUtils {
 		SpecNotNull specNotNull = field.getDeclaredAnnotation(SpecNotNull.class);
 		if (specNotNull != null) {
 			checkNotNull(field, value);
-			return;
 		}
 		SpecClassInArray specClassInArray = field.getDeclaredAnnotation(SpecClassInArray.class);
 		if (specClassInArray != null) {
 			checkFieldSpec(field, value, specClassInArray);
-			return;
 		}
 
 		//--- String checks ---
 		SpecStringInArray specStringInArray = field.getDeclaredAnnotation(SpecStringInArray.class);
 		if (specStringInArray != null) {
 			checkFieldSpec(field, value, specStringInArray);
-			return;
 		}
 		SpecStringInRange specStringInRange = field.getDeclaredAnnotation(SpecStringInRange.class);
 		if (specStringInRange != null) {
 			checkFieldSpec(field, value, specStringInRange);
-			return;
 		}
 
 		//--- Primitive checks ---
 		SpecDoubleInRange specDoubleInRange = field.getDeclaredAnnotation(SpecDoubleInRange.class);
 		if (specDoubleInRange != null) {
 			checkFieldSpec(field, value, specDoubleInRange);
-			return;
 		}
 		SpecFloatInRange specFloatInRange = field.getDeclaredAnnotation(SpecFloatInRange.class);
 		if (specFloatInRange != null) {
 			checkFieldSpec(field, value, specFloatInRange);
-			return;
 		}
 		SpecLongInRange specLongInRange = field.getDeclaredAnnotation(SpecLongInRange.class);
 		if (specLongInRange != null) {
 			checkFieldSpec(field, value, specLongInRange);
-			return;
 		}
 		SpecIntInRange specIntInRange = field.getDeclaredAnnotation(SpecIntInRange.class);
 		if (specIntInRange != null) {
