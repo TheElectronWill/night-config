@@ -50,7 +50,7 @@ final class AnnotationUtils {
 		Conversion conversion = field.getAnnotation(Conversion.class);
 		if (conversion != null) {
 			try {
-				Constructor<? extends Converter> constructor = conversion.value()
+				Constructor<? extends Converter<?,?>> constructor = conversion.value()
 																		 .getDeclaredConstructor();
 				if (!constructor.isAccessible()) {
 					constructor.setAccessible(true);

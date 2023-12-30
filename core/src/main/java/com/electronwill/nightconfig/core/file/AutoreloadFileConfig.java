@@ -3,22 +3,18 @@ package com.electronwill.nightconfig.core.file;
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 
 /**
  * @author TheElectronWill
  */
 final class AutoreloadFileConfig<C extends FileConfig> extends ConfigWrapper<C> implements FileConfig {
-	private final FileWatcher watcher = FileWatcher.defaultInstance();
+	private final FileWatcher watcher;
 
-	AutoreloadFileConfig(C config) {
+	AutoreloadFileConfig(C config, FileWatcher watcher) {
 		super(config);
-		try {
-			watcher.addWatch(config.getFile(), config::load);
-		} catch (IOException e) {
-			throw new RuntimeException("Unable to create the autoreloaded config", e);
-		}
+		this.watcher = watcher;
+		watcher.addWatch(config.getNioPath(), config::load);
 	}
 
 	@Override
@@ -43,7 +39,7 @@ final class AutoreloadFileConfig<C extends FileConfig> extends ConfigWrapper<C> 
 
 	@Override
 	public void close() {
-		watcher.removeWatch(config.getFile());
+		watcher.removeWatch(config.getNioPath());
 		config.close();
 	}
 }

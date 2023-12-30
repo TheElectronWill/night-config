@@ -1,13 +1,29 @@
 package com.electronwill.nightconfig.core.file;
 
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
-import java.util.Iterator;
+import java.nio.file.FileSystem;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 
 /**
@@ -21,95 +37,175 @@ import java.util.function.Consumer;
  * @author TheElectronWill
  */
 public final class FileWatcher {
-	private static final long SLEEP_TIME_NANOS = 1000;
-	private static volatile FileWatcher DEFAULT_INSTANCE;
+	private static final AtomicInteger instanceCount = new AtomicInteger(0);
+	private static volatile FileWatcher DEFAULT_INSTANCE = null; // created on demand
 
 	/**
 	 * Gets the default, global instance of FileWatcher.
+	 * If the previous global instance has been stopped, create and start a new instance.
 	 *
 	 * @return the default FileWatcher
 	 */
 	public static synchronized FileWatcher defaultInstance() {
-		if (DEFAULT_INSTANCE == null || !DEFAULT_INSTANCE.run) {// null or stopped FileWatcher
+		if (DEFAULT_INSTANCE == null || !DEFAULT_INSTANCE.running) {// null or stopped FileWatcher
 			DEFAULT_INSTANCE = new FileWatcher();
 		}
 		return DEFAULT_INSTANCE;
 	}
 
-	private final Map<Path, WatchedDir> watchedDirs = new ConcurrentHashMap<>();//dir -> watchService & infos
-	private final Map<Path, WatchedFile> watchedFiles = new ConcurrentHashMap<>();//file -> watchKey & handler
-	private final Thread thread = new WatcherThread();
-	private final Consumer<Exception> exceptionHandler;
-	private volatile boolean run = true;
+	public static class WatchingException extends RuntimeException {
+		public WatchingException(String message, Throwable cause) {
+			super(message, cause);
+		}
+
+		public WatchingException(Throwable cause) {
+			super(cause);
+		}
+
+		public WatchingException(String message) {
+			super(message);
+		}
+	}
+
+	/** The timeout for {@link WatchService#poll(long, TimeUnit)}.
+	 * If there's no filesystem event, commands sent to the watcher thread will be taken into account after the expiration of this timeout.
+	 * Therefore, it should not be too high.
+	 */
+	private static final Duration DEFAULT_SERVICE_POLL_TIMEOUT = Duration.ofMillis(200);
+
+	/** When a file is modified, wait for the debounce time to expire before triggering the change handler.
+	 * Any modification resets the countdown, there needs to be a period of "calm" before the handler is triggered.
+	 */
+	private static final Duration DEFAULT_DEBOUNCE_TIME = Duration.ofMillis(500);
+
+	private final ThreadGroup threadGroup;
+	private final AtomicInteger threadCount = new AtomicInteger(0);
+	private final ConcurrentMap<FileSystem, FsWatcher> watchers = new ConcurrentHashMap<>();
+	private final Consumer<Throwable> exceptionHandler;
+	private final Duration debounceTime;
+	private final long servicePollTimeoutNanos;
+	private final int instanceId;
+	private volatile boolean running = true;
 
 	/**
-	 * Creates a new FileWatcher. The watcher is immediately functional, there is no need (and no
-	 * way, actually) to start it manually.
+	 * Creates a new FileWatcher with a default exception handler and a default debounce time.
+	 *
+	 * The default exception handler is simply:
+	 * <code>
+	 * (e) -> e.printStackTrace();
+	 * </code>
+	 *
+	 * The default debounce time is unspecified and may change in the future, but is typically
+	 * around 1 second or less.
 	 */
 	public FileWatcher() {
-		this(Throwable::printStackTrace);
+		this(DEFAULT_DEBOUNCE_TIME);
 	}
 
 	/**
-	 * Creates a new FileWatcher. The watcher is immediately functional, there is no need (and no
-	 * way, actually) to start it manually.
+	 * Creates a new FileWatcher with a default exception handler.
+	 *
+	 * The default exception handler is simply:
+	 * <code>
+	 * (e) -> e.printStackTrace();
+	 * </code>
+	 *
+	 * @param debounceTime hwo much time to wait after each modification of a file before triggering the change handler
 	 */
-	public FileWatcher(Consumer<Exception> exceptionHandler) {
+	public FileWatcher(Duration debounceTime) {
+		this(debounceTime, Throwable::printStackTrace);
+	}
+
+	/**
+	 * Creates a new FileWatcher with the given exception handler.
+	 *
+	 * @param debounceTime delay between each call of the file's changeHandler.
+	 * @param exceptionHandler called when an exception occurs during the handling of file events
+	 */
+	public FileWatcher(Duration debounceTime, Consumer<Throwable> exceptionHandler) {
+		this(debounceTime, DEFAULT_SERVICE_POLL_TIMEOUT, exceptionHandler);
+	}
+
+	// Full constructor that allows to specify the service poll timeout, not part of the public API yet
+	// because this is an implementation detail (could be opened in the future if the users need it).
+	FileWatcher(Duration debounceTime, Duration servicePollTimeout, Consumer<Throwable> exceptionHandler) {
+		this.instanceId = instanceCount.getAndIncrement();
+		this.debounceTime = debounceTime;
+		this.servicePollTimeoutNanos = servicePollTimeout.toNanos();
 		this.exceptionHandler = exceptionHandler;
-		thread.start();
+		this.threadGroup = new ThreadGroup("watchers-" + instanceId);
 	}
 
 	/**
 	 * Watches a file, if not already watched by this FileWatcher.
+	 * The file's parent directory must exist.
 	 *
 	 * @param file          the file to watch
 	 * @param changeHandler the handler to call when the file is modified
 	 */
-	public void addWatch(File file, Runnable changeHandler) throws IOException {
+	public void addWatch(File file, Runnable changeHandler) {
 		addWatch(file.toPath(), changeHandler);
 	}
 
 	/**
 	 * Watches a file, if not already watched by this FileWatcher.
+	 * The file's parent directory must exist.
 	 *
 	 * @param file          the file to watch
 	 * @param changeHandler the handler to call when the file is modified
 	 */
-	public void addWatch(Path file, Runnable changeHandler) throws IOException {
-		file = file.toAbsolutePath();// Ensures that the Path is absolute
-		Path dir = file.getParent();
-		WatchedDir watchedDir = watchedDirs.computeIfAbsent(dir, k -> new WatchedDir(dir));
-		WatchKey watchKey = dir.register(watchedDir.watchService,
-										 StandardWatchEventKinds.ENTRY_MODIFY);
-		watchedFiles.computeIfAbsent(file,
-									 k -> new WatchedFile(watchedDir, watchKey, changeHandler));
+	public void addWatch(Path file, Runnable changeHandler) {
+		addOrPutWatch(file, changeHandler, ControlMessageKind.ADD);
 	}
 
 	/**
 	 * Watches a file. If the file is already watched by this FileWatcher, its changeHandler is
 	 * replaced.
+	 * The file's parent directory must exist.
 	 *
 	 * @param file          the file to watch
 	 * @param changeHandler the handler to call when the file is modified
 	 */
-	public void setWatch(File file, Runnable changeHandler) throws IOException {
+	public void setWatch(File file, Runnable changeHandler) {
 		setWatch(file.toPath(), changeHandler);
 	}
 
 	/**
 	 * Watches a file. If the file is already watched by this FileWatcher, its changeHandler is
 	 * replaced.
+	 * The file's parent directory must exist.
 	 *
 	 * @param file          the file to watch
 	 * @param changeHandler the handler to call when the file is modified
 	 */
-	public void setWatch(Path file, Runnable changeHandler) throws IOException {
-		file = file.toAbsolutePath();// Ensures that the Path is absolute
-		WatchedFile watchedFile = watchedFiles.get(file);
-		if (watchedFile == null) {
-			addWatch(file, changeHandler);
-		} else {
-			watchedFile.changeHandler = changeHandler;
+	public void setWatch(Path file, Runnable changeHandler) {
+		addOrPutWatch(file, changeHandler, ControlMessageKind.PUT);
+	}
+
+	private void addOrPutWatch(Path file, Runnable changeHandler, ControlMessageKind kind) {
+		failIfStopped();
+		CanonicalPath canon = CanonicalPath.from(file);
+		FileSystem fs = canon.parentDirectory.getFileSystem();
+		try {
+			FsWatcher watcher = watchers.computeIfAbsent(fs, k -> {
+				// start a new watcher for this filesystem
+				try {
+					WatchService service = fs.newWatchService();
+					FsWatcher w = new FsWatcher(exceptionHandler, debounceTime, servicePollTimeoutNanos, service);
+					threadGroup.activeCount();
+					String threadName = "config-file-watcher-" + instanceId + "-" + threadCount.getAndIncrement();
+					Thread t = new Thread(threadGroup, w, threadName);
+					t.setDaemon(true);
+					t.start();
+					return w;
+				} catch (IOException ex) {
+					throw new WatchingException("Failed to start a new watcher thread for directory " + canon.parentDirectory, ex);
+				}
+			});
+			// tell the watcher thread to watch the file
+			watcher.send(ControlMessage.addOrPut(kind, canon, changeHandler));
+		} catch (Exception ex) {
+			throw new WatchingException("Failed to watch path '" + file + "', canonical path '" + canon + "'", ex);
 		}
 	}
 
@@ -128,16 +224,12 @@ public final class FileWatcher {
 	 * @param file the file to stop watching
 	 */
 	public void removeWatch(Path file) {
-		file = file.toAbsolutePath();// Ensures that the Path is absolute
-		Path dir = file.getParent();
-		WatchedDir watchedDir = watchedDirs.get(dir);
-		int remainingChildCount = watchedDir.watchedFileCount.decrementAndGet();
-		if (remainingChildCount == 0) {
-			watchedDirs.remove(dir);
-		}
-		WatchedFile watchedFile = watchedFiles.remove(file);
-		if (watchedFile != null) {
-			watchedFile.watchKey.cancel();
+		failIfStopped();
+		CanonicalPath canon = CanonicalPath.from(file);
+		FileSystem fs = canon.parentDirectory.getFileSystem();
+		FsWatcher watcher = watchers.get(fs);
+		if (watcher != null) {
+			watcher.send(ControlMessage.remove(canon));
 		}
 	}
 
@@ -145,94 +237,292 @@ public final class FileWatcher {
 	 * Stops this FileWatcher. The underlying ressources (ie the WatchServices) are closed, and
 	 * the file modification handlers won't be called anymore.
 	 */
-	public void stop() throws IOException {
-		run = false;
+	public void stop() {
+		// prevent further use of the FileWatcher
+		running = false;
+
+		// stop each watcher thread
+		for (FsWatcher watcher : watchers.values()) {
+			watcher.send(ControlMessage.poison());
+		}
+		// interrupt each watcher thread so that they handle the "poison" asap
+		threadGroup.interrupt();
 	}
 
-	private final class WatcherThread extends Thread {
-		{
-			setDaemon(true);
+	private void failIfStopped() {
+		if (!running) {
+			throw new IllegalStateException("FileWatcher " + instanceId + " has been stopped and cannot be used anymore.");
+		}
+	}
+
+	/** A directory watcher for one filesystem.
+	 * The watcher runs in its own thread, and is controlled via asynchronous messages of type {@link ControlMessage}.
+	 */
+	private static final class FsWatcher implements Runnable {
+		private final Consumer<Throwable> exceptionHandler;
+		private final Duration debounceTime;
+		private final long servicePollTimeoutNanos;
+
+		private final WatchService watchService;
+		private final Map<Path, WatchedDirectory> watchedDirectories = new HashMap<>();
+		private final ConcurrentLinkedQueue<ControlMessage> controlMessages = new ConcurrentLinkedQueue<>();
+
+		FsWatcher(Consumer<Throwable> exceptionHandler, Duration debounceTime, long servicePollTimeoutNanos, WatchService watchService) {
+			this.exceptionHandler = exceptionHandler;
+			this.debounceTime = debounceTime;
+			this.servicePollTimeoutNanos = servicePollTimeoutNanos;
+			this.watchService = watchService;
+		}
+
+		void send(ControlMessage msg) {
+			controlMessages.add(msg);
+		}
+
+		private WatchedDirectory watchDirectory(Path dir) {
+			return watchedDirectories.computeIfAbsent(dir, k -> {
+				// the file's parent directory isn't monitored yet, register it
+				WatchKey key;
+				try {
+					key = dir.register(watchService, ENTRY_MODIFY, ENTRY_CREATE);
+					return new WatchedDirectory(key, new HashMap<>(8));
+				} catch (IOException e) {
+					exceptionHandler.accept(e);
+					return null;
+				}
+			});
 		}
 
 		@Override
 		public void run() {
-			while (run) {
-				boolean allNull = true;
-				dirsIter:
-				for (Iterator<WatchedDir> it = watchedDirs.values().iterator(); it.hasNext() && run; ) {
-					WatchedDir watchedDir = it.next();
-					WatchKey key = watchedDir.watchService.poll();
-					if (key == null) {
-						continue;
+			ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+
+			mainLoop:
+			while (true) {
+				// handle control messages coming from other threads (modification of the watch list)
+				ControlMessage msg;
+				while ((msg = controlMessages.poll()) != null) {
+					CanonicalPath path = msg.path;
+					switch (msg.kind) {
+						case ADD: {
+							// Combine the handlers if there's already one, otherwise set it
+							Path dir = msg.path.parentDirectory;
+							Path fileName = msg.path.fileName;
+							WatchedDirectory w = watchDirectory(dir);
+							if (w != null) {
+								DebouncedRunnable newHandler;
+								DebouncedRunnable existingHandler = w.fileChangeHandlers.get(fileName);
+								if (existingHandler != null) {
+									newHandler = existingHandler.andThen(msg.handler);
+								} else {
+									newHandler = new DebouncedRunnable(msg.handler, debounceTime);
+								}
+								w.fileChangeHandlers.put(fileName, newHandler);
+							}
+							break;
+						}
+						case PUT: {
+							// Set the handler, replacing any existing handler
+							Path dir = msg.path.parentDirectory;
+							Path fileName = msg.path.fileName;
+							WatchedDirectory w = watchDirectory(dir);
+							if (w != null) {
+								DebouncedRunnable newHandler = new DebouncedRunnable(msg.handler, debounceTime);
+								w.fileChangeHandlers.put(fileName, newHandler);
+							}
+							break;
+						}
+						case REMOVE: {
+							// Stop watching a file
+							Path dir = msg.path.parentDirectory;
+							Path fileName = msg.path.fileName;
+							WatchedDirectory w = watchedDirectories.get(dir);
+							if (w != null) {
+								w.fileChangeHandlers.remove(fileName);
+								if (w.fileChangeHandlers.isEmpty()) {
+									// no more file to watch in this directory
+									w.key.cancel();
+									// this will be done in the event loop below: watchedDirectories.remove(dir);
+								}
+							}
+							break;
+						}
+						case POISON: {
+							// Kill the thread
+							break mainLoop;
+						}
 					}
-					allNull = false;
-					for (WatchEvent<?> event : key.pollEvents()) {
-						if (!run) {
-							break dirsIter;
-						}
-						if (event.kind() != StandardWatchEventKinds.ENTRY_MODIFY || event.count() > 1) {
-							continue;
-						}
-						Path childPath = ((WatchEvent<Path>)event).context();
-						Path filePath = watchedDir.dir.resolve(childPath);
-						WatchedFile watchedFile = watchedFiles.get(filePath);
-						if (watchedFile != null) {
-							try {
-								watchedFile.changeHandler.run();
-							} catch (Exception e) {
-								exceptionHandler.accept(e);
+				}
+
+				// poll the events from the filesystem (monitoring of the files)
+				WatchKey key = null;
+				try {
+					key = watchService.poll(servicePollTimeoutNanos, TimeUnit.NANOSECONDS);
+				} catch (InterruptedException e) {
+					// loop back to the handling of control messages
+					continue;
+				}
+
+				if (key != null) {
+					// a key has been polled
+					Path dir = (Path) key.watchable();
+					WatchedDirectory w = watchedDirectories.get(dir);
+					for (WatchEvent<?> evt : key.pollEvents()) {
+						WatchEvent.Kind<?> kind = evt.kind();
+						if (kind == StandardWatchEventKinds.OVERFLOW) {
+							// The probability of this happening is very low, and what to do is not obvious, especially from the pov of our library.
+							// We could add a specific handler so that we can optionnaly notify the user and reload all files if they want to.
+							exceptionHandler.accept(new WatchingException("Got watch event OVERFLOW"));
+						} else {
+							Path file = (Path)evt.context();
+							DebouncedRunnable changeHandler = w.fileChangeHandlers.get(file);
+							// The handler is null if the file that has changed is not in the list of monitored files
+							// (there exist a sibling file in the same directory that we want to monitor).
+							// A WatchService monitors directories, not files, that's why we need to do a check here.
+							if (changeHandler != null) {
+								try {
+									changeHandler.run(executor);
+								} catch (Exception ex) {
+									exceptionHandler.accept(ex);
+									// TODO: change the API to pass more information to the exception handler and the change handler
+								}
 							}
 						}
+						if (Thread.interrupted()) {
+							continue mainLoop; // early stop
+						}
 					}
-					key.reset();
-				}
-				if (allNull) {
-					LockSupport.parkNanos(SLEEP_TIME_NANOS);
-				}
-			}
-			// Closes the WatchServices
-			for (WatchedDir watchedDir : watchedDirs.values()) {
-				try {
-					watchedDir.watchService.close();
-				} catch (IOException e) {
-					exceptionHandler.accept(e);
+					boolean valid = key.reset();
+					if (!valid) {
+						// key cancelled explicitely, or WatchService closed, or directory no longer accessible
+						// To account for the latter case (dir no longer accessible), we need to remove the dir from our map.
+						watchedDirectories.remove(dir);
+						break;
+					}
 				}
 			}
-			// Clears the maps
-			watchedDirs.clear();
-			watchedFiles.clear();
-		}
-	}
-
-	/**
-	 * Informations about a watched directory, ie a directory that contains watched files.
-	 */
-	private static final class WatchedDir {
-		final Path dir;
-		final WatchService watchService;
-		final AtomicInteger watchedFileCount = new AtomicInteger();
-
-		private WatchedDir(Path dir) {
-			this.dir = dir;
 			try {
-				this.watchService = dir.getFileSystem().newWatchService();
+				executor.shutdown();
+				watchService.close();
+				watchedDirectories.clear();
 			} catch (IOException e) {
-				throw new RuntimeException(e);
+				exceptionHandler.accept(e);
 			}
 		}
 	}
 
-	/**
-	 * Informations about a watched file, with an associated handler.
-	 */
-	private static final class WatchedFile {
-		final WatchKey watchKey;
-		volatile Runnable changeHandler;
+	private static final class WatchedDirectory {
+		private final WatchKey key;
+		private final Map<Path, DebouncedRunnable> fileChangeHandlers;
 
-		private WatchedFile(WatchedDir watchedDir, WatchKey watchKey, Runnable changeHandler) {
-			this.watchKey = watchKey;
-			this.changeHandler = changeHandler;
-			watchedDir.watchedFileCount.getAndIncrement();
+		WatchedDirectory(WatchKey key, Map<Path, DebouncedRunnable> fileChangeHandlers) {
+			this.key = Objects.requireNonNull(key);
+			this.fileChangeHandlers = Objects.requireNonNull(fileChangeHandlers);
 		}
 	}
+
+	static final class DebouncedRunnable {
+		private final Runnable runnable;
+		private final long debounceTimeNanos;
+		private ScheduledFuture<?> scheduledTask;
+
+		private DebouncedRunnable(Runnable runnable, long debounceTimeNanos, ScheduledFuture<?> scheduledTask) {
+			this.runnable = runnable;
+			this.debounceTimeNanos = debounceTimeNanos;
+			this.scheduledTask = scheduledTask;
+		}
+
+		public DebouncedRunnable(Runnable runnable, Duration debounceTime) {
+			this.runnable = runnable;
+			this.debounceTimeNanos = debounceTime.toNanos();
+		}
+
+		/**
+		 * Runs the underlying {@link Runnable} after the debounce time has elapsed,
+		 * if {@code run} is not called again before its execution.
+		 */
+		public void run(ScheduledExecutorService executor) {
+			if (scheduledTask != null) {
+				// cancel the previously scheduled execution (it's ok if it has already been completed or cancelled)
+				scheduledTask.cancel(false);
+			}
+			// schedule the new execution after the debouncing delay
+			scheduledTask = executor.schedule(runnable, debounceTimeNanos, TimeUnit.NANOSECONDS);
+		}
+
+		/** Combine this runnable with another one, while keeping the debouncing state. */
+		public DebouncedRunnable andThen(Runnable then) {
+			Runnable combined = () -> {
+				runnable.run();
+				then.run();
+			};
+			return new DebouncedRunnable(combined, debounceTimeNanos, scheduledTask);
+		}
+	}
+
+	/** Control message that can be send to a watcher thread. */
+	private static final class ControlMessage {
+		private final ControlMessageKind kind;
+		private final CanonicalPath path; // null for poison
+		private final Runnable handler; // null for some poison and remove
+
+		private ControlMessage(ControlMessageKind kind, CanonicalPath path, Runnable handler) {
+			this.path = path;
+			this.kind = kind;
+			this.handler = handler;
+		}
+
+		static ControlMessage addOrPut(ControlMessageKind kind, CanonicalPath path, Runnable handler) {
+			if (kind != ControlMessageKind.ADD && kind != ControlMessageKind.PUT) {
+				throw new IllegalArgumentException("Unexpected message kind " + kind);
+			}
+			return new ControlMessage(kind, path, handler);
+		}
+
+		static ControlMessage remove(CanonicalPath path) {
+			return new ControlMessage(ControlMessageKind.REMOVE, path, null);
+		}
+
+		static ControlMessage poison() {
+			return new ControlMessage(ControlMessageKind.POISON, null, null);
+		}
+	}
+
+	private static class CanonicalPath {
+		public final Path parentDirectory, fileName;
+
+		private CanonicalPath(Path parentDirectory, Path fileName) {
+			this.parentDirectory = parentDirectory;
+			this.fileName = fileName;
+		}
+
+		public static CanonicalPath from(Path fullFilePath) {
+			try {
+			// To avoid duplicate entries in the map of dirs, make the path absolute and resolve links and special names like ".."
+			// toRealPath() only works if the file exists, so we call `toRealPath` on its parent if it doesn't
+			Path dir, fileName;
+			try {
+				Path realFile = fullFilePath.toRealPath();
+				dir = realFile.getParent();
+				fileName = realFile.getFileName();
+			} catch (NoSuchFileException e) {
+				dir = fullFilePath.getParent().toRealPath();
+				fileName = fullFilePath.getFileName();
+			}
+			return new CanonicalPath(dir, fileName);
+			} catch (IOException ex) {
+				throw new WatchingException("Failed to determine the canonical path of: " + fullFilePath + "\nHint: make sure that all parent directories exist.", ex);
+			}
+		}
+
+		@Override
+		public String toString() {
+			return parentDirectory + "/" + fileName;
+		}
+
+	}
+
+	private static enum ControlMessageKind {
+		PUT, ADD, REMOVE, POISON
+	}
+
 }
