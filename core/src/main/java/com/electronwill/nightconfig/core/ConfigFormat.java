@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 /**
  * A configuration format, that can parse, create and write some types of configurations.
  *
- * @param <C>the type of configurations created by this format
+ * @param <C> the type of configurations created by this format
  * @author TheElectronWill
  */
 public interface ConfigFormat<C extends Config> {

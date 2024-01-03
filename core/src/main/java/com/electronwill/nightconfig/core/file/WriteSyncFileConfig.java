@@ -1,20 +1,21 @@
 package com.electronwill.nightconfig.core.file;
 
+import java.io.File;
+import java.nio.charset.Charset;
+import java.nio.file.Path;
+
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.ParsingMode;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 
-import java.io.File;
-import java.nio.charset.Charset;
-import java.nio.file.Path;
-
 /**
  * @author TheElectronWill
  */
-final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> implements FileConfig {
+final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<SynchronizedConfig> implements FileConfig {
 	private final Path nioPath;
 	private final Charset charset;
 	private boolean closed;
@@ -26,12 +27,14 @@ final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> imple
 	private final FileNotFoundAction nefAction;
 	private final ParsingMode parsingMode;
 
-	private volatile boolean currentlyWriting = false;
-
 	WriteSyncFileConfig(C config, Path nioPath, Charset charset, ConfigWriter writer,
-						 WritingMode writingMode, ConfigParser<?> parser,
-						 ParsingMode parsingMode, FileNotFoundAction nefAction) {
-		super(config);
+			WritingMode writingMode, ConfigParser<?> parser,
+			ParsingMode parsingMode, FileNotFoundAction nefAction) {
+
+		// Synchronize the reads and writes on the underlying configuration, to make it thread-safe.
+		// Since this is `Write*Sync*FileConfig`, we only allow one read or write at a time.
+		super(SynchronizedConfig.wrap(config));
+
 		this.nioPath = nioPath;
 		this.charset = charset;
 		this.writer = writer;
@@ -40,6 +43,8 @@ final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> imple
 		this.nefAction = nefAction;
 		this.writingMode = writingMode;
 	}
+
+	// ---- FileConfig ----
 
 	@Override
 	public File getFile() {
@@ -53,30 +58,34 @@ final class WriteSyncFileConfig<C extends Config> extends ConfigWrapper<C> imple
 
 	@Override
 	public void save() {
-		synchronized (this) {
+		synchronized (config.rootMonitor) {
 			if (closed) {
 				throw new IllegalStateException("Cannot save a closed FileConfig");
 			}
-			currentlyWriting = true;
 			writer.write(config, nioPath, writingMode, charset);
-			currentlyWriting = false;
 		}
 	}
 
 	@Override
 	public void load() {
-		if (!currentlyWriting) {
-			synchronized (this) {
-				if (closed) {
-					throw new IllegalStateException("Cannot (re)load a closed FileConfig");
-				}
-				parser.parse(nioPath, config, parsingMode, nefAction);
+		synchronized (config.rootMonitor) {
+			if (closed) {
+				throw new IllegalStateException("Cannot (re)load a closed FileConfig");
 			}
+			parser.parse(nioPath, config, parsingMode, nefAction);
 		}
 	}
 
 	@Override
 	public void close() {
-		closed = true;
+		synchronized (config.rootMonitor) {
+			closed = true;
+		}
+	}
+
+	public boolean isClosed() {
+		synchronized (config.rootMonitor) {
+			return closed;
+		}
 	}
 }
