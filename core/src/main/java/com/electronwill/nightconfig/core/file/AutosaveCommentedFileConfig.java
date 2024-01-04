@@ -8,16 +8,14 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author TheElectronWill
  */
-final class AutosaveCommentedFileConfig extends CommentedConfigWrapper<CommentedConfig> implements CommentedFileConfig {
-	private final FileConfig fileConfig;
-
-	AutosaveCommentedFileConfig(CommentedConfig config, FileConfig fileConfig) {
-		super(config);
-		this.fileConfig = fileConfig;
+final class AutosaveCommentedFileConfig extends CommentedConfigWrapper<CommentedFileConfig> implements CommentedFileConfig {
+	AutosaveCommentedFileConfig(CommentedFileConfig fileConfig) {
+		super(fileConfig);
 	}
 
 	@Override
@@ -67,26 +65,33 @@ final class AutosaveCommentedFileConfig extends CommentedConfigWrapper<Commented
 
 	@Override
 	public File getFile() {
-		return fileConfig.getFile();
+		return config.getFile();
 	}
 
 	@Override
 	public Path getNioPath() {
-		return fileConfig.getNioPath();
+		return config.getNioPath();
 	}
 
 	@Override
 	public void save() {
-		fileConfig.save();
+		config.save();
 	}
 
 	@Override
 	public void load() {
-		fileConfig.load();
+		config.load();
 	}
 
 	@Override
 	public void close() {
-		fileConfig.close();
+		config.close();
+	}
+
+	@Override
+	public <R> R bulkCommentedUpdate(Function<? super CommentedConfig, R> action) {
+		R result = config.bulkCommentedUpdate(action);
+		save();
+		return result;
 	}
 }

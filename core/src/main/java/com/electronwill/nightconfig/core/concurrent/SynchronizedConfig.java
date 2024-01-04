@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.electronwill.nightconfig.core.AbstractConfig;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
@@ -292,7 +293,8 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
         }
     }
 
-    private static final class SynchronizedSet<E> extends SynchronizedCollection<E> implements Set<E> {
+    private static final class SynchronizedSet<E> extends SynchronizedCollection<E>
+            implements Set<E> {
         SynchronizedSet(Set<E> coll, Object rootMonitor) {
             super(coll, rootMonitor);
         }
@@ -301,15 +303,46 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
     public static SynchronizedConfig wrap(Config c) {
         if (c instanceof SynchronizedConfig) {
             return (SynchronizedConfig) c;
-        } else if (c instanceof CommentedConfig) {
-            return new SynchronizedConfig((CommentedConfig) c);
         } else {
-            return new SynchronizedConfig(CommentedConfig.fake(c));
+            CommentedConfig cc = CommentedConfig.fake(c);
+            convertSubConfigs(cc);
+            return new SynchronizedConfig(cc);
+        }
+    }
+
+    /** Convert all sub-configurations to SynchronizedConfigs. */
+    private static void convertSubConfigs(Config c) {
+        if (c instanceof AbstractConfig) {
+            AbstractConfig conf = (AbstractConfig)c;
+            conf.valueMap().replaceAll((k, v) -> convertValue(v));
+        } else {
+            for (Config.Entry entry : c.entrySet()) {
+                Object value = entry.getRawValue();
+                Object converted = convertValue(value);
+                if (value != converted) {
+                    entry.setValue(converted);
+                }
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Object convertValue(Object v) {
+        if (v instanceof Config) {
+            Config subConfig = wrap((Config) v);
+            convertSubConfigs(subConfig);
+            return subConfig;
+        } else if (v instanceof List) {
+            List<Object> l = (List<Object>) v;
+            l.replaceAll(elem -> convertValue(elem));
+            return l;
+        } else {
+            return v;
         }
     }
 
     /** Underlying configuration. */
-    private final CommentedConfig config;
+    private CommentedConfig config;
 
     /**
      * Root monitor: every operation on this config (including on
@@ -327,9 +360,47 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
         this.rootMonitor = rootMonitor;
     }
 
+    // ----- specific -----
+
+    /**
+     * Atomically replaces the content of this config by the content of the specified config.
+     * The specified config cannot be used anymore after a call to this method.
+     * 
+     * @param newContent the new content (cannot be used anymore after this)
+     */
+    public void replaceContentBy(SynchronizedConfig newContent) {
+        synchronized (rootMonitor) {
+            synchronized (newContent.rootMonitor) {
+                this.config = newContent.config;
+                newContent.config = null;
+            }
+        }
+    }
+
+    /**
+     * Atomically replaces the content of this config by the content of the specified config.
+     * The specified config cannot be used anymore after a call to this method.
+     * 
+     * @param newContent the new content (cannot be used anymore after this)
+     */
+    public void replaceContentBy(Config newContent) {
+        if (newContent instanceof SynchronizedConfig) {
+            replaceContentBy((SynchronizedConfig) newContent);
+        } else if (newContent instanceof StampedConfig) {
+            throw new UnsupportedOperationException(
+                    "SynchronizedConfig.replaceContentBy(StampedConfig) is illegal (and useless anyway).");
+        } else {
+            synchronized (rootMonitor) {
+                CommentedConfig newConfig = CommentedConfig.fake(newContent);
+                convertSubConfigs(newConfig);
+                this.config = newConfig;
+            }
+        }
+    }
+
     // ----- ConcurrentConfig ----
 
-     @Override
+    @Override
     public <R> R bulkCommentedRead(Function<? super UnmodifiableCommentedConfig, R> action) {
         synchronized (rootMonitor) {
             return action.apply(this.config);
@@ -410,7 +481,7 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
     }
 
     @Override
-    public CommentedConfig createSubConfig() {
+    public SynchronizedConfig createSubConfig() {
         CommentedConfig subConfig;
         synchronized (rootMonitor) {
             subConfig = config.createSubConfig();

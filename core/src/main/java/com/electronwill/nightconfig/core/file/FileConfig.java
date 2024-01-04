@@ -1,11 +1,13 @@
 package com.electronwill.nightconfig.core.file;
 
-import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.ConfigFormat;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.ConfigFormat;
 
 /**
  * @author TheElectronWill
@@ -48,6 +50,33 @@ public interface FileConfig extends Config, AutoCloseable {
 		return new CheckedFileConfig(this);
 	}
 
+	/**
+	 * Performs multiple read/write operations, and do not save the configuration until the end
+	 * (unless {@code save()} is called by {@code action}).
+	 * 
+	 * This is a way of manually grouping config modifications together.
+	 * <p>
+	 * If this configuration automatically saves, it will not do so before the end of the bulkUpdate.
+	 */
+	<R> R bulkUpdate(Function<? super Config, R> action);
+
+	/**
+	 * Performs multiple read/write operations, and do not save the configuration until the end
+	 * (unless {@code save()} is called by {@code action}).
+	 * 
+	 * This is a way of manually grouping config modifications together.
+	 * <p>
+	 * If this configuration automatically saves, it will not do so before the end of the bulkUpdate.
+	 */
+	default void bulkUpdate(Consumer<? super Config> action) {
+		bulkUpdate(config -> {
+			action.accept(config);
+			return null;
+		});
+	}
+
+	// ----- static methods -----
+	// #region static
 	/**
 	 * Creates a new FileConfig based on the specified file. The format is detected automatically.
 	 *
@@ -268,4 +297,6 @@ public interface FileConfig extends Config, AutoCloseable {
 	static FileConfigBuilder builder(String filePath, ConfigFormat<?> format) {
 		return builder(Paths.get(filePath), format);
 	}
+
+	// #endregion static
 }

@@ -21,8 +21,6 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.electronwill.nightconfig.core.file.FileWatcher.DebouncedRunnable;
-
 public class FileWatcherTest {
 
 	@TempDir

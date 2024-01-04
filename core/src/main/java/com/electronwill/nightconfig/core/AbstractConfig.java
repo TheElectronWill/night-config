@@ -20,7 +20,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 
 	protected final Supplier<Map<String, Object>> mapCreator;
 
-	final Map<String, Object> map;
+	protected final Map<String, Object> map;
 
 	/**
 	 * Creates a new AbstractConfig backed by a new {@link Map}.

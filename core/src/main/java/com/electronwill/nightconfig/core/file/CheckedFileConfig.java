@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * @author TheElectronWill
@@ -50,6 +51,11 @@ class CheckedFileConfig extends ConfigWrapper<FileConfig> implements FileConfig 
 	@Override
 	public void close() {
 		config.close();
+	}
+
+	@Override
+	public <R> R bulkUpdate(Function<? super Config, R> action) {
+		return config.bulkUpdate(action);
 	}
 
 	@Override

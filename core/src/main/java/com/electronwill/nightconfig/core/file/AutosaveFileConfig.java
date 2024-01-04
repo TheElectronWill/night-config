@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core.file;
 
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 import com.electronwill.nightconfig.core.utils.ObservedMap;
 
@@ -7,6 +8,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author TheElectronWill
@@ -65,5 +67,12 @@ final class AutosaveFileConfig<C extends FileConfig> extends ConfigWrapper<C> im
 	@Override
 	public void close() {
 		config.close();
+	}
+
+	@Override
+	public <R> R bulkUpdate(Function<? super Config, R> action) {
+		R result = config.bulkUpdate(action);
+		save();
+		return result;
 	}
 }

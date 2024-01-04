@@ -5,14 +5,11 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.EnumSet;
-
 import static java.nio.file.StandardOpenOption.*;
 
 /**
@@ -38,12 +35,10 @@ public interface ConfigWriter {
 	 * @throws WritingException if an error occurs
 	 */
 	default void write(UnmodifiableConfig config, OutputStream output, Charset charset) {
-		Writer writer = new BufferedWriter(new OutputStreamWriter(output, charset));
-		write(config, writer);
-		try {
-			writer.flush();
+		try(Writer writer = new BufferedWriter(new OutputStreamWriter(output, charset))) {
+			write(config, writer);
 		} catch (IOException e) {
-			throw new WritingException("Failed to flush the writer", e);
+			throw new WritingException("An I/O error occured", e);
 		}
 	}
 

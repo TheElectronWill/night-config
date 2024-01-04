@@ -137,4 +137,9 @@ public abstract class JsonFormat<W extends ConfigWriter> implements ConfigFormat
 			writer.write("{}");
 		}
 	}
+
+	@Override
+	public void initEmptyFile(Writer writer) throws IOException {
+		writer.write("{}");
+	}
 }

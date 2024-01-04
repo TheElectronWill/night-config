@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core.conversion;
 
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.file.FileConfig;
 
 import java.io.File;
@@ -45,5 +46,10 @@ public class ConvertedFileConfig extends AbstractConvertedConfig<FileConfig> imp
 	@Override
 	public void close() {
 		config.close();
+	}
+
+	@Override
+	public <R> R bulkUpdate(Function<? super Config, R> action) {
+		return config.bulkUpdate(action);
 	}
 }

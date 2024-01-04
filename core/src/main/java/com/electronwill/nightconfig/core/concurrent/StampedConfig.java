@@ -5,12 +5,15 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.electronwill.nightconfig.core.AbstractCommentedConfig;
+import com.electronwill.nightconfig.core.AbstractConfig;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
@@ -44,10 +47,18 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
         this.comments = (Map) mapSupplier.get();
     }
 
+    StampedConfig(ConfigFormat<?> configFormat, Supplier<Map<String, Object>> mapSupplier,
+            Map<String, Object> values, Map<String, String> comments) {
+        this.configFormat = configFormat;
+        this.mapSupplier = mapSupplier;
+        this.values = values;
+        this.comments = comments;
+    }
+
     // ----- specific -----
     /**
      * Atomically replaces the content of this config by the content of the specified config.
-     * The specified config cannot be used anymore after a call to this method.
+     * The specified config cannot be used anymore after this operation.
      * 
      * @param newContent the new content (cannot be used anymore after this)
      */
@@ -69,6 +80,173 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
         } finally {
             valuesLock.unlockWrite(valuesStamp);
             commentsLock.unlockWrite(commentsStamp);
+        }
+    }
+
+    /**
+     * Atomically replaces the content of this config by the content of the specified accumulator.
+     * The accumulator cannot be used anymore after this operation.
+     * 
+     * @param newContent the new content (cannot be used anymore after this)
+     */
+    public void replaceContentBy(Accumulator newContent) {
+        long commentsStamp = commentsLock.writeLock();
+        long valuesStamp = valuesLock.writeLock();
+        try {
+            newContent.prepareReplacement();
+            this.values = newContent.values();
+            this.comments = newContent.comments();
+            newContent.invalidate();
+        } finally {
+            valuesLock.unlockWrite(valuesStamp);
+            commentsLock.unlockWrite(commentsStamp);
+        }
+    }
+
+    /**
+     * Creates a new accumulator with the same {@code Supplier<Map>} and {@link ConfigFormat} as this config.
+     * See {@link Accumulator} for more information.
+     */
+    public Accumulator newAccumulator() {
+        return new Accumulator(mapSupplier, configFormat);
+    }
+
+    /**
+     * Creates a deep copy of this config into an {@link Accumulator}.
+     * 
+     * @return a deep copy
+     */
+    public Accumulator newAccumulatorCopy() {
+        Accumulator acc = (Accumulator) copyValueInAccumulator(this);
+        return acc;
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private Object copyValueInAccumulator(Object v) {
+        if (v instanceof StampedConfig) {
+            StampedConfig stamped = (StampedConfig) v;
+
+            // lock the config and copy the values and comments
+            long commentsStamp = stamped.commentsLock.readLock();
+            long valuesStamp = stamped.valuesLock.readLock();
+            try {
+                Map<String, Object> valuesCopy = mapSupplier.get();
+                valuesCopy.putAll(stamped.values);
+                valuesCopy.replaceAll((k, w) -> copyValueInAccumulator(w));
+
+                Map<String, String> commentsCopy = (Map) mapSupplier.get();
+                commentsCopy.putAll(stamped.comments);
+                return new Accumulator(valuesCopy, commentsCopy, mapSupplier, configFormat);
+            } finally {
+                stamped.valuesLock.unlockRead(valuesStamp);
+                stamped.commentsLock.unlockRead(commentsStamp);
+            }
+
+        } else if (v instanceof List) {
+            List<Object> l = (List<Object>) v;
+            List<Object> copy = new ArrayList<>(l);
+            copy.replaceAll(elem -> copyValueInAccumulator(elem));
+            return copy;
+        } else {
+            return v;
+        }
+    }
+
+    /**
+     * A CommentedConfig that allows to quickly accumulate values before a {@link replaceContentBy(Accumulator)}.
+     * It is NOT thread-safe.
+     * <p>
+     * Example:
+     * 
+     * <pre>
+     * {@code
+     * StampedConfig config = new StampedConfig(configFormat, mapSupplier);
+     * Accumulator acc = config.newAccumulator();
+     * 
+     * // parse a file into the accumulator, the StampedConfig is not locked
+     * configParser.parse(file, acc);
+     * 
+     * // atomically replace the config's content with the accumulator's
+     * config.replaceContentBy(acc);
+     * }
+     * </pre>
+     */
+    public static final class Accumulator extends AbstractCommentedConfig {
+        // Seamlessly mirrors the values and comments. This StampedConfig is backed by the same maps
+        // as the Accumulator, but access to the maps are unsynchronized to make the Accumulator fast.
+        // When the Accumulator is done, the mirror is used to get the right structure
+        // (all subconfigs of a StampedConfig must be StampedConfig too).
+        private final StampedConfig mirror;
+        private boolean valid = true;
+
+        Accumulator(Map<String, Object> values, Map<String, String> comments,
+                Supplier<Map<String, Object>> mapSupplier, ConfigFormat<?> configFormat) {
+            super(values, comments);
+            this.mirror = new StampedConfig(configFormat, mapSupplier, values, comments);
+        }
+
+        Accumulator(Supplier<Map<String, Object>> mapSupplier, ConfigFormat<?> configFormat) {
+            super(mapSupplier);
+            this.mirror = new StampedConfig(configFormat, mapSupplier, map, commentMap);
+        }
+
+        private void checkValid() {
+            if (!valid) {
+                throw new IllegalStateException(
+                        "This StampedConfig.Accumulator is no longer valid after a call to replaceContentBy().");
+            }
+        }
+
+        void invalidate() {
+            valid = false;
+        }
+
+        Map<String, Object> values() {
+            return map;
+        }
+
+        Map<String, String> comments() {
+            return commentMap;
+        }
+
+        /** Replaces all sub-configurations by their StampedConfig mirrors. */
+        void prepareReplacement() {
+            checkValid();
+            map.replaceAll((k, v) -> replaceValue(v));
+        }
+
+        @SuppressWarnings("unchecked")
+        private Object replaceValue(Object v) {
+            if (v instanceof Accumulator) {
+                Accumulator acc = (Accumulator) v;
+                acc.prepareReplacement();
+                return acc.mirror;
+            } else if (v instanceof List) {
+                List<Object> l = (List<Object>) v;
+                l.replaceAll(elem -> replaceValue(elem));
+                return l;
+            } else {
+                return v;
+            }
+        }
+
+        @Override
+        public AbstractCommentedConfig clone() {
+            Accumulator copy = new Accumulator(mapCreator, configFormat());
+            copy.map.putAll(this.map);
+            copy.commentMap.putAll(this.commentMap);
+            return copy;
+        }
+
+        @Override
+        public CommentedConfig createSubConfig() {
+            return new Accumulator(mapCreator, configFormat());
+        }
+
+        @Override
+        public ConfigFormat<?> configFormat() {
+            checkValid();
+            return mirror.configFormat();
         }
     }
 
@@ -328,6 +506,39 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
         }
     }
 
+    /** Convert all sub-configurations to StampedConfigs. */
+    private void convertSubConfigs(Config c) {
+        if (c instanceof AbstractConfig) {
+            AbstractConfig conf = (AbstractConfig) c;
+            conf.valueMap().replaceAll((k, v) -> convertValue(v));
+        } else {
+            for (Config.Entry entry : c.entrySet()) {
+                Object value = entry.getRawValue();
+                Object converted = convertValue(value);
+                if (value != converted) {
+                    entry.setValue(converted);
+                }
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object convertValue(Object v) {
+        if (v instanceof StampedConfig) {
+            return v;
+        } else if (v instanceof Config) {
+            Config subConfig = createSubConfig();
+            convertSubConfigs(subConfig);
+            return subConfig;
+        } else if (v instanceof List) {
+            List<Object> l = (List<Object>) v;
+            l.replaceAll(elem -> convertValue(elem));
+            return l;
+        } else {
+            return v;
+        }
+    }
+
     @Override
     public void putAll(UnmodifiableConfig other) {
         long stamp = valuesLock.writeLock();
@@ -341,7 +552,8 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                     stamped.valuesLock.unlockRead(stamp2);
                 }
             } else {
-                // TODO: danger, we may insert subconfigs that are not StampedConfig, should we convert them? Error?
+                // Danger: we may insert subconfigs that are not StampedConfig! convert them
+                convertSubConfigs((Config) other);
                 try {
                     Map<String, Object> values = other.valueMap();
                     this.values.putAll(values);

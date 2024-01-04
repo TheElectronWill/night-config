@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -294,6 +293,7 @@ public final class FileWatcher {
 
 		@Override
 		public void run() {
+			// executor (in yet another thread) to schedule debounced actions
 			ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
 			mainLoop:
@@ -305,8 +305,8 @@ public final class FileWatcher {
 					switch (msg.kind) {
 						case ADD: {
 							// Combine the handlers if there's already one, otherwise set it
-							Path dir = msg.path.parentDirectory;
-							Path fileName = msg.path.fileName;
+							Path dir = path.parentDirectory;
+							Path fileName = path.fileName;
 							WatchedDirectory w = watchDirectory(dir);
 							if (w != null) {
 								DebouncedRunnable newHandler;
@@ -322,8 +322,8 @@ public final class FileWatcher {
 						}
 						case PUT: {
 							// Set the handler, replacing any existing handler
-							Path dir = msg.path.parentDirectory;
-							Path fileName = msg.path.fileName;
+							Path dir = path.parentDirectory;
+							Path fileName = path.fileName;
 							WatchedDirectory w = watchDirectory(dir);
 							if (w != null) {
 								DebouncedRunnable newHandler = new DebouncedRunnable(msg.handler, debounceTime);
@@ -333,8 +333,8 @@ public final class FileWatcher {
 						}
 						case REMOVE: {
 							// Stop watching a file
-							Path dir = msg.path.parentDirectory;
-							Path fileName = msg.path.fileName;
+							Path dir = path.parentDirectory;
+							Path fileName = path.fileName;
 							WatchedDirectory w = watchedDirectories.get(dir);
 							if (w != null) {
 								w.fileChangeHandlers.remove(fileName);
@@ -417,45 +417,6 @@ public final class FileWatcher {
 		WatchedDirectory(WatchKey key, Map<Path, DebouncedRunnable> fileChangeHandlers) {
 			this.key = Objects.requireNonNull(key);
 			this.fileChangeHandlers = Objects.requireNonNull(fileChangeHandlers);
-		}
-	}
-
-	static final class DebouncedRunnable {
-		private final Runnable runnable;
-		private final long debounceTimeNanos;
-		private ScheduledFuture<?> scheduledTask;
-
-		private DebouncedRunnable(Runnable runnable, long debounceTimeNanos, ScheduledFuture<?> scheduledTask) {
-			this.runnable = runnable;
-			this.debounceTimeNanos = debounceTimeNanos;
-			this.scheduledTask = scheduledTask;
-		}
-
-		public DebouncedRunnable(Runnable runnable, Duration debounceTime) {
-			this.runnable = runnable;
-			this.debounceTimeNanos = debounceTime.toNanos();
-		}
-
-		/**
-		 * Runs the underlying {@link Runnable} after the debounce time has elapsed,
-		 * if {@code run} is not called again before its execution.
-		 */
-		public void run(ScheduledExecutorService executor) {
-			if (scheduledTask != null) {
-				// cancel the previously scheduled execution (it's ok if it has already been completed or cancelled)
-				scheduledTask.cancel(false);
-			}
-			// schedule the new execution after the debouncing delay
-			scheduledTask = executor.schedule(runnable, debounceTimeNanos, TimeUnit.NANOSECONDS);
-		}
-
-		/** Combine this runnable with another one, while keeping the debouncing state. */
-		public DebouncedRunnable andThen(Runnable then) {
-			Runnable combined = () -> {
-				runnable.run();
-				then.run();
-			};
-			return new DebouncedRunnable(combined, debounceTimeNanos, scheduledTask);
 		}
 	}
 

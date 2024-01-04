@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * @author TheElectronWill
@@ -55,6 +56,11 @@ class CheckedCommentedFileConfig extends CommentedConfigWrapper<CommentedFileCon
 	}
 
 	@Override
+	public <R> R bulkCommentedUpdate(Function<? super CommentedConfig, R> action) {
+		return config.bulkCommentedUpdate(action);
+	}
+
+	@Override
 	public CommentedFileConfig checked() {
 		return this;
 	}
@@ -76,7 +82,8 @@ class CheckedCommentedFileConfig extends CommentedConfigWrapper<CommentedFileCon
 
 	@Override
 	public Set<? extends CommentedConfig.Entry> entrySet() {
-		return new TransformingSet<>((Set<CommentedConfig.Entry>)super.entrySet(), v -> v, this::checkedValue, o -> o);
+		return new TransformingSet<>((Set<CommentedConfig.Entry>) super.entrySet(), v -> v,
+				this::checkedValue, o -> o);
 	}
 
 	@Override
@@ -98,7 +105,7 @@ class CheckedCommentedFileConfig extends CommentedConfigWrapper<CommentedFileCon
 					"Null values aren't supported by this configuration.");
 		}
 		if (value instanceof Config) {
-			((Config)value).valueMap().forEach((k, v) -> checkValue(v));
+			((Config) value).valueMap().forEach((k, v) -> checkValue(v));
 		}
 	}
 

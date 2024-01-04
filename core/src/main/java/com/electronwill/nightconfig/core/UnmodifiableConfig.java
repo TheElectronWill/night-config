@@ -152,6 +152,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getEnum(String, Class, EnumGetMethod)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 * @param <T>      the enum type
 	 */
 	default <T extends Enum<T>> T getEnum(String path, Class<T> enumType) {
 		return getEnum(split(path, '.'), enumType, EnumGetMethod.NAME_IGNORECASE);

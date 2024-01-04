@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
@@ -52,7 +53,7 @@ public class JsonConfigTest {
 			d = Math.random();
 			config.set("double", d);
 			Thread.sleep(20);
-			//System.out.println(i + ":" + d);
+			// System.out.println(i + ":" + d);
 			assertEquals(d, config.<Double>get("double").doubleValue());
 		}
 		for (int i = 0; i < 1000; i++) {
@@ -77,7 +78,8 @@ public class JsonConfigTest {
 
 	@Test
 	public void testWrite() throws IOException {
-		new FancyJsonWriter().setIndent(IndentStyle.SPACES_4).write(config, file, WritingMode.REPLACE);
+		new FancyJsonWriter().setIndent(IndentStyle.SPACES_4).write(config, file,
+				WritingMode.REPLACE);
 	}
 
 	@Test
@@ -98,15 +100,23 @@ public class JsonConfigTest {
 
 	@Test
 	public void testReadEmptyFile() throws IOException {
-		File f = new File("tmp.json");
-		FileConfig config = FileConfig.of(f);
-		config.load();
-		config.close();
-		Config conf = new JsonParser().parse(f, FileNotFoundAction.THROW_ERROR);
-		System.out.println(conf);
-		assertTrue(conf.isEmpty());
-		System.out.println("tmp.json:\n" + Files.readAllLines(f.toPath()).get(0));
-		f.delete();
+		Path f = Path.of("tmp.json");
+		Files.deleteIfExists(f);
+		try {
+			FileConfig config = FileConfig.of(f);
+			config.load();
+			config.close();
+			// At this point, the file should no longer be empty, because the FileConfig applies
+			// FileNotFoundAction.CREATE_EMPTY with the JsonFormat, which write "{}" to the file.
+			String fileContent = Files.readString(f).trim();
+			assertEquals("{}", fileContent);
+			Config conf = new JsonParser().parse(f, FileNotFoundAction.THROW_ERROR);
+			System.out.println(conf);
+			assertTrue(conf.isEmpty());
+		} finally {
+			System.out.println("tmp.json:\n" + Files.readAllLines(f));
+			Files.delete(f);
+		}
 	}
 
 	@Test
@@ -128,7 +138,7 @@ public class JsonConfigTest {
 
 		assertEquals(0, f.length());
 
-		assertThrows(ParsingException.class, ()->new JsonParser().parse(""));
+		assertThrows(ParsingException.class, () -> new JsonParser().parse(""));
 		new JsonParser().setEmptyDataAccepted(true).parse("");
 	}
 
@@ -139,7 +149,7 @@ public class JsonConfigTest {
 
 		Object obj = new JsonParser().parseDocument("[]");
 		assertTrue(obj instanceof List);
-		assertEquals(0, ((List<?>)obj).size());
+		assertEquals(0, ((List<?>) obj).size());
 	}
 
 	@Test
@@ -165,7 +175,8 @@ public class JsonConfigTest {
 
 	@Test
 	public void testNestedObjects() throws IOException {
-		Config a1 = new JsonParser().parse("{\"1\":{\"a\":\"va\"}, \"2\":{\"b\":\"vb\", \"a\":17}}");
+		Config a1 = new JsonParser()
+				.parse("{\"1\":{\"a\":\"va\"}, \"2\":{\"b\":\"vb\", \"a\":17}}");
 		assertEquals("va", a1.get("1.a"));
 		assertEquals("vb", a1.get("2.b"));
 		assertEquals(Integer.valueOf(17), a1.get("2.a"));
@@ -187,7 +198,8 @@ public class JsonConfigTest {
 			System.out.println(o.charAt(0));
 		}
 
-		List<List<Boolean>> nestedBoolList = new JsonParser().parseList("[[true, true], [false, false]]");
+		List<List<Boolean>> nestedBoolList = new JsonParser()
+				.parseList("[[true, true], [false, false]]");
 		for (List<Boolean> booleanList : nestedBoolList) {
 			for (boolean b : booleanList) {
 				System.out.println(!b);
@@ -198,10 +210,10 @@ public class JsonConfigTest {
 	@Test
 	public void testFancyWriter() throws IOException {
 		try (Writer fileWriter = new BufferedWriter(
-			new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
+				new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
 			FancyJsonWriter jsonWriter = new FancyJsonWriter().setIndent(IndentStyle.SPACES_4);
 			jsonWriter.write(config, fileWriter);
-		}// finally closes the writer
+		} // finally closes the writer
 	}
 
 	@Test
