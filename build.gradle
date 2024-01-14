@@ -11,6 +11,7 @@ configure(subprojects.findAll {it.name != "examples"}) {
 	apply plugin: 'signing'
 	apply plugin: 'java-library'
     apply plugin: 'biz.aQute.bnd.builder'
+	apply plugin: 'jacoco'
 
 	archivesBaseName = "nightconfig-$name"
 
@@ -34,6 +35,10 @@ configure(subprojects.findAll {it.name != "examples"}) {
 	compileTestJava {
 		sourceCompatibility = JavaVersion.VERSION_11
 		targetCompatibility = JavaVersion.VERSION_11
+	}
+
+	jacocoTestReport {
+		dependsOn test
 	}
 
 	dependencies {
