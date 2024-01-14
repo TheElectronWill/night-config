@@ -1,5 +1,7 @@
 package com.electronwill.nightconfig.core.concurrent;
 
+import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
+
 import java.util.AbstractCollection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -454,17 +456,18 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
 
     @Override
     public boolean add(List<String> path, Object value) {
+        Object nnValue = (value == null) ? NULL_OBJECT : value;
         switch (path.size()) {
             case 0:
                 throw new IllegalArgumentException("empty entry path");
             case 1:
-                return mapLockPutIfAbsent(values, valuesLock, path.get(0), value) == null;
+                return mapLockPutIfAbsent(values, valuesLock, path.get(0), nnValue) == null;
             default: {
                 int lastIndex = path.size() - 1;
                 List<String> parentPath = path.subList(0, lastIndex);
                 StampedConfig parent = getOrCreateConfig(parentPath);
-                return mapLockPutIfAbsent(parent.values, parent.valuesLock, path.get(lastIndex),
-                        value) == null;
+                Object prev = mapLockPutIfAbsent(parent.values, parent.valuesLock, path.get(lastIndex), nnValue);
+                return prev == null;
             }
         }
     }
@@ -492,16 +495,17 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
     @SuppressWarnings("unchecked")
     @Override
     public <T> T set(List<String> path, Object value) {
+        Object nnValue = (value == null) ? NULL_OBJECT : value;
         switch (path.size()) {
             case 0:
                 throw new IllegalArgumentException("empty entry path");
             case 1:
-                return (T) mapLockPut(values, valuesLock, path.get(0), value);
+                return (T) mapLockPut(values, valuesLock, path.get(0), nnValue);
             default: {
                 int lastIndex = path.size() - 1;
                 List<String> parentPath = path.subList(0, lastIndex);
                 StampedConfig parent = getOrCreateConfig(parentPath);
-                return (T) mapLockPut(parent.values, parent.valuesLock, path.get(lastIndex), value);
+                return (T) mapLockPut(parent.values, parent.valuesLock, path.get(lastIndex), nnValue);
             }
         }
     }
@@ -759,7 +763,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                 for (Map.Entry<String, Object> entry : StampedConfig.this.values.entrySet()) {
                     snapshot[i++] = new LockingLazyEntry(entry.getKey(), this);
                 }
-                return new EntryIterator(snapshot);
+                return new EntryIterator(this, snapshot);
             } finally {
                 lockedFlag = false;
                 StampedConfig.this.valuesLock.unlockRead(valuesStamp);
@@ -847,11 +851,13 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
     }
 
     private class EntryIterator implements Iterator<LazyEntry> {
+        private final EntrySet set;
         private final LazyEntry[] entries;
         private int nextPosition;
         private boolean removed;
 
-        EntryIterator(LazyEntry[] entries) {
+        EntryIterator(EntrySet set, LazyEntry[] entries) {
+            this.set = set;
             this.entries = entries;
         }
 
@@ -880,6 +886,32 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
             StampedConfig.this.remove(Collections.singletonList(entry.key));
         }
 
+        public void forEachRemaining(java.util.function.Consumer<? super LazyEntry> action) {
+            // Write lock is used because the entry provides methods that modify the StampedConfig.
+            long commentsStamp = StampedConfig.this.commentsLock.writeLock();
+            long valuesStamp = StampedConfig.this.valuesLock.writeLock();
+            set.lockedFlag = true;
+            try {
+                for (int i = nextPosition; i < entries.length; i++) {
+                    LazyEntry entry = entries[i];
+                    InLockLazyEntry inLockEntry;
+                    if (entry instanceof InLockLazyEntry) {
+                        inLockEntry = (InLockLazyEntry)entry;
+                    } else {
+                        inLockEntry = new InLockLazyEntry(entry.key);
+                    }
+                    try {
+                        action.accept(inLockEntry);
+                    } finally {
+                        inLockEntry.invalidate();
+                    }
+                }
+            } finally {
+                set.lockedFlag = false;
+                StampedConfig.this.valuesLock.unlockWrite(valuesStamp);
+                StampedConfig.this.commentsLock.unlockWrite(commentsStamp);
+            }
+        };
     }
 
     /** A "lazy" entry: its value is always determined on demand by querying the StampedConfig. */

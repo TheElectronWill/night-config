@@ -8,7 +8,9 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
+import com.electronwill.nightconfig.core.AbstractCommentedConfig;
 import com.electronwill.nightconfig.core.AbstractConfig;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
@@ -24,6 +26,428 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
  * and write on sub-configurations, iterator operations, etc.
  */
 public final class SynchronizedConfig implements ConcurrentCommentedConfig {
+
+    public static SynchronizedConfig convert(Config c) {
+        return convert(c, null);
+    }
+
+    private static SynchronizedConfig convert(Config c, SynchronizedConfig parent) {
+        if (c instanceof SynchronizedConfig) {
+            return (SynchronizedConfig) c;
+        } else {
+            SynchronizedConfig result = new SynchronizedConfig(c.configFormat(), Config.getDefaultMapCreator(false), parent);
+        
+            CommentedConfig cc = CommentedConfig.fake(c);
+            convertSubConfigs(cc, result);
+
+            result.putAll(cc);
+            result.putAllComments(cc);
+            return result;
+        }
+    }
+
+    /** Convert all sub-configurations to SynchronizedConfigs. */
+    private static void convertSubConfigs(Config c, SynchronizedConfig parent) {
+        if (c instanceof AbstractConfig) {
+            AbstractConfig conf = (AbstractConfig)c;
+            conf.valueMap().replaceAll((k, v) -> convertValue(v, parent));
+        } else {
+            for (Config.Entry entry : c.entrySet()) {
+                Object value = entry.getRawValue();
+                Object converted = convertValue(value, parent);
+                if (value != converted) {
+                    entry.setValue(converted);
+                }
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Object convertValue(Object v, SynchronizedConfig parent) {
+        if (v instanceof Config) {
+            SynchronizedConfig subConfig = convert((Config) v, parent);
+            convertSubConfigs(subConfig, subConfig);
+            return subConfig;
+        } else if (v instanceof List) {
+            List<Object> l = (List<Object>) v;
+            l.replaceAll(elem -> convertValue(elem, parent));
+            return l;
+        } else {
+            return v;
+        }
+    }
+
+    /** Underlying configuration. */
+    private DataHolder dataHolder;
+
+    /**
+     * Root monitor: every operation on this config (including on
+     * sub-configurations) is synchronized with this object.
+     */
+    final Object rootMonitor;
+
+    /** Config format. */
+    // private final ConfigFormat configFormat;
+
+    public SynchronizedConfig(ConfigFormat<?> configFormat, Supplier<Map<String, Object>> mapSupplier) {
+        this.dataHolder = new DataHolder(this, configFormat, mapSupplier);
+        this.rootMonitor = this;
+    }
+
+    public SynchronizedConfig(ConfigFormat<?> configFormat, Supplier<Map<String, Object>> mapSupplier, SynchronizedConfig parent) {
+        this.dataHolder = new DataHolder(parent == null ? this : parent, configFormat, mapSupplier);
+        this.rootMonitor = (parent == null) ? this : parent.rootMonitor;
+    }
+
+    SynchronizedConfig(DataHolder subConfig, Object rootMonitor) {
+        this.dataHolder = subConfig;
+        this.rootMonitor = rootMonitor;
+    }
+
+    // ----- specific -----
+
+    /**
+     * Atomically replaces the content of this config by the content of the specified config.
+     * The specified config cannot be used anymore after a call to this method.
+     * 
+     * @param newContent the new content (cannot be used anymore after this)
+     */
+    public void replaceContentBy(SynchronizedConfig newContent) {
+        synchronized (rootMonitor) {
+            synchronized (newContent.rootMonitor) {
+                this.dataHolder = newContent.dataHolder;
+                newContent.dataHolder = null;
+            }
+        }
+    }
+
+    /**
+     * Atomically replaces the content of this config by the content of the specified config.
+     * The specified config cannot be used anymore after a call to this method.
+     * 
+     * @param newContent the new content (cannot be used anymore after this)
+     */
+    public void replaceContentBy(Config newContent) {
+        if (newContent instanceof SynchronizedConfig) {
+            replaceContentBy((SynchronizedConfig) newContent);
+        } else if (newContent instanceof StampedConfig) {
+            throw new UnsupportedOperationException(
+                    "SynchronizedConfig.replaceContentBy(StampedConfig) is illegal (and useless anyway).");
+        } else {
+            CommentedConfig cc = CommentedConfig.fake(newContent);
+            synchronized (rootMonitor) {
+                DataHolder dataHolder = new DataHolder(this, newContent.configFormat(), Config.getDefaultMapCreator(false));
+                dataHolder.putAll(cc);
+                dataHolder.putAllComments(cc);
+                convertSubConfigs(dataHolder, this);
+                this.dataHolder = dataHolder;
+            }
+        }
+    }
+
+    // ----- ConcurrentConfig ----
+
+    @Override
+    public <R> R bulkCommentedRead(Function<? super UnmodifiableCommentedConfig, R> action) {
+        synchronized (rootMonitor) {
+            return action.apply(this.dataHolder);
+        }
+    }
+
+    @Override
+    public <R> R bulkCommentedUpdate(Function<? super CommentedConfig, R> action) {
+        synchronized (rootMonitor) {
+            return action.apply(this.dataHolder);
+        }
+    }
+
+    // ----- Config -----
+
+    @Override
+    public boolean add(List<String> path, Object value) {
+        synchronized (rootMonitor) {
+            return dataHolder.add(path, value);
+        }
+    }
+
+    @Override
+    public void clearComments() {
+        synchronized (rootMonitor) {
+            dataHolder.clearComments();
+        }
+
+    }
+
+    @Override
+    public Map<String, String> commentMap() {
+        synchronized (rootMonitor) {
+            return new SynchronizedMap<>(dataHolder.commentMap(), rootMonitor);
+        }
+    }
+
+    @Override
+    public String removeComment(List<String> path) {
+        synchronized (rootMonitor) {
+            return dataHolder.removeComment(path);
+        }
+    }
+
+    @Override
+    public String setComment(List<String> path, String comment) {
+        synchronized (rootMonitor) {
+            return dataHolder.setComment(path, comment);
+        }
+    }
+
+    @Override
+    public boolean containsComment(List<String> path) {
+        synchronized (rootMonitor) {
+            return dataHolder.containsComment(path);
+        }
+    }
+
+    @Override
+    public String getComment(List<String> path) {
+        synchronized (rootMonitor) {
+            return dataHolder.getComment(path);
+        }
+    }
+
+    @Override
+    public ConfigFormat<?> configFormat() {
+        synchronized (rootMonitor) {
+            return dataHolder.configFormat();
+        }
+    }
+
+    @Override
+    public void clear() {
+        synchronized (rootMonitor) {
+            dataHolder.clear();
+        }
+    }
+
+    @Override
+    public SynchronizedConfig createSubConfig() {
+        return dataHolder.createSubConfig();
+    }
+
+    @Override
+    public Set<? extends CommentedConfig.Entry> entrySet() {
+        synchronized (rootMonitor) {
+            return new SynchronizedSet<>(dataHolder.entrySet(), rootMonitor);
+        }
+    }
+
+    @Override
+    public <T> T remove(List<String> path) {
+        synchronized (rootMonitor) {
+            return dataHolder.remove(path);
+        }
+    }
+
+    @Override
+    public <T> T set(List<String> path, Object value) {
+        synchronized (rootMonitor) {
+            return dataHolder.set(path, value);
+        }
+    }
+
+    @Override
+    public String toString() {
+        synchronized (rootMonitor) {
+            return dataHolder.toString();
+        }
+    }
+
+    @Override
+    public boolean contains(List<String> path) {
+        synchronized (rootMonitor) {
+            return dataHolder.contains(path);
+        }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        synchronized (rootMonitor) {
+            return dataHolder.equals(obj);
+        }
+    }
+
+    @Override
+    public <T> T getRaw(List<String> path) {
+        synchronized (rootMonitor) {
+            return dataHolder.getRaw(path);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        synchronized (rootMonitor) {
+            return dataHolder.hashCode();
+        }
+    }
+
+    @Override
+    public boolean isEmpty() {
+        synchronized (rootMonitor) {
+            return dataHolder.isEmpty();
+        }
+    }
+
+    @Override
+    public int size() {
+        synchronized (rootMonitor) {
+            return dataHolder.size();
+        }
+    }
+
+    @Override
+    public Map<String, Object> valueMap() {
+        synchronized (rootMonitor) {
+            return new SynchronizedMap<>(dataHolder.valueMap(), rootMonitor);
+        }
+    }
+
+    @Override
+    public boolean add(String path, Object value) {
+        synchronized (rootMonitor) {
+            return dataHolder.add(path, value);
+        }
+    }
+
+    @Override
+    public void addAll(UnmodifiableConfig other) {
+        synchronized (rootMonitor) {
+            dataHolder.addAll(other);
+        }
+    }
+
+    @Override
+    public void putAll(UnmodifiableConfig other) {
+        synchronized (rootMonitor) {
+            dataHolder.putAll(other);
+        }
+    }
+
+    @Override
+    public <T> T remove(String path) {
+        synchronized (rootMonitor) {
+            return dataHolder.remove(path);
+        }
+    }
+
+    @Override
+    public void removeAll(UnmodifiableConfig toRemove) {
+        synchronized (rootMonitor) {
+            dataHolder.removeAll(toRemove);
+        }
+    }
+
+    @Override
+    public <T> T set(String path, Object value) {
+        synchronized (rootMonitor) {
+            return dataHolder.set(path, value);
+        }
+    }
+
+    @Override
+    public UnmodifiableCommentedConfig unmodifiable() {
+        return dataHolder.unmodifiable();
+    }
+
+    @Override
+    public void update(List<String> path, Object value) {
+        synchronized (rootMonitor) {
+            dataHolder.update(path, value);
+        }
+    }
+
+    @Override
+    public <T> T apply(List<String> path) {
+        synchronized (rootMonitor) {
+            return dataHolder.apply(path);
+        }
+    }
+
+    @Override
+    public <T> T get(List<String> path) {
+        synchronized (rootMonitor) {
+            return dataHolder.get(path);
+        }
+    }
+
+    @Override
+    public boolean isNull(List<String> path) {
+        synchronized (rootMonitor) {
+            return dataHolder.isNull(path);
+        }
+    }
+
+    @Override
+    public Map<String, CommentNode> getComments() {
+        synchronized (rootMonitor) {
+            return dataHolder.getComments(); // this is a deep copy, no need for synchronizedmap
+        }
+    }
+
+    @Override
+    public void getComments(Map<String, CommentNode> destination) {
+        synchronized (rootMonitor) {
+            dataHolder.getComments(destination);
+        }
+    }
+
+    @Override
+    public void putAllComments(Map<String, CommentNode> comments) {
+        synchronized (rootMonitor) {
+            dataHolder.putAllComments(comments);
+        }
+    }
+
+    @Override
+    public void putAllComments(UnmodifiableCommentedConfig commentedConfig) {
+        synchronized (rootMonitor) {
+            dataHolder.putAllComments(commentedConfig);
+        }
+    }
+
+    private static final class DataHolder extends AbstractCommentedConfig {
+
+        private SynchronizedConfig syncConfig;
+        private final ConfigFormat<?> format;
+
+        DataHolder(SynchronizedConfig parent) {
+            super(parent.dataHolder.mapCreator);
+            this.format = parent.configFormat();
+            this.syncConfig = parent;
+        }
+        DataHolder(SynchronizedConfig syncConfig, ConfigFormat<?> configFormat, Supplier<Map<String, Object>> mapCreator) {
+            super(mapCreator);
+            this.format = configFormat;
+            this.syncConfig = syncConfig;
+        }
+
+        @Override
+        public AbstractCommentedConfig clone() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public SynchronizedConfig createSubConfig() {
+            synchronized (syncConfig.rootMonitor) {
+                DataHolder sub = new DataHolder(syncConfig, format, mapCreator);
+                return new SynchronizedConfig(sub, syncConfig.rootMonitor);
+            }
+        }
+
+        @Override
+        public ConfigFormat<?> configFormat() {
+            return format;
+        }
+        
+    }
+
     private static final class SynchronizedMap<K, V> implements Map<K, V> {
         private final Map<K, V> map;
         private final Object rootMonitor;
@@ -297,376 +721,6 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
             implements Set<E> {
         SynchronizedSet(Set<E> coll, Object rootMonitor) {
             super(coll, rootMonitor);
-        }
-    }
-
-    public static SynchronizedConfig wrap(Config c) {
-        if (c instanceof SynchronizedConfig) {
-            return (SynchronizedConfig) c;
-        } else {
-            CommentedConfig cc = CommentedConfig.fake(c);
-            convertSubConfigs(cc);
-            return new SynchronizedConfig(cc);
-        }
-    }
-
-    /** Convert all sub-configurations to SynchronizedConfigs. */
-    private static void convertSubConfigs(Config c) {
-        if (c instanceof AbstractConfig) {
-            AbstractConfig conf = (AbstractConfig)c;
-            conf.valueMap().replaceAll((k, v) -> convertValue(v));
-        } else {
-            for (Config.Entry entry : c.entrySet()) {
-                Object value = entry.getRawValue();
-                Object converted = convertValue(value);
-                if (value != converted) {
-                    entry.setValue(converted);
-                }
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Object convertValue(Object v) {
-        if (v instanceof Config) {
-            Config subConfig = wrap((Config) v);
-            convertSubConfigs(subConfig);
-            return subConfig;
-        } else if (v instanceof List) {
-            List<Object> l = (List<Object>) v;
-            l.replaceAll(elem -> convertValue(elem));
-            return l;
-        } else {
-            return v;
-        }
-    }
-
-    /** Underlying configuration. */
-    private CommentedConfig config;
-
-    /**
-     * Root monitor: every operation on this config (including on
-     * sub-configurations) is synchronized with this object.
-     */
-    final Object rootMonitor;
-
-    SynchronizedConfig(CommentedConfig rootConfig) {
-        this.config = rootConfig;
-        this.rootMonitor = this;
-    }
-
-    SynchronizedConfig(CommentedConfig dataHolder, Object rootMonitor) {
-        this.config = dataHolder;
-        this.rootMonitor = rootMonitor;
-    }
-
-    // ----- specific -----
-
-    /**
-     * Atomically replaces the content of this config by the content of the specified config.
-     * The specified config cannot be used anymore after a call to this method.
-     * 
-     * @param newContent the new content (cannot be used anymore after this)
-     */
-    public void replaceContentBy(SynchronizedConfig newContent) {
-        synchronized (rootMonitor) {
-            synchronized (newContent.rootMonitor) {
-                this.config = newContent.config;
-                newContent.config = null;
-            }
-        }
-    }
-
-    /**
-     * Atomically replaces the content of this config by the content of the specified config.
-     * The specified config cannot be used anymore after a call to this method.
-     * 
-     * @param newContent the new content (cannot be used anymore after this)
-     */
-    public void replaceContentBy(Config newContent) {
-        if (newContent instanceof SynchronizedConfig) {
-            replaceContentBy((SynchronizedConfig) newContent);
-        } else if (newContent instanceof StampedConfig) {
-            throw new UnsupportedOperationException(
-                    "SynchronizedConfig.replaceContentBy(StampedConfig) is illegal (and useless anyway).");
-        } else {
-            synchronized (rootMonitor) {
-                CommentedConfig newConfig = CommentedConfig.fake(newContent);
-                convertSubConfigs(newConfig);
-                this.config = newConfig;
-            }
-        }
-    }
-
-    // ----- ConcurrentConfig ----
-
-    @Override
-    public <R> R bulkCommentedRead(Function<? super UnmodifiableCommentedConfig, R> action) {
-        synchronized (rootMonitor) {
-            return action.apply(this.config);
-        }
-    }
-
-    @Override
-    public <R> R bulkCommentedUpdate(Function<? super CommentedConfig, R> action) {
-        synchronized (rootMonitor) {
-            return action.apply(this.config);
-        }
-    }
-
-    // ----- Config -----
-
-    @Override
-    public boolean add(List<String> path, Object value) {
-        synchronized (rootMonitor) {
-            return config.add(path, value);
-        }
-    }
-
-    @Override
-    public void clearComments() {
-        synchronized (rootMonitor) {
-            config.clearComments();
-        }
-
-    }
-
-    @Override
-    public Map<String, String> commentMap() {
-        synchronized (rootMonitor) {
-            return new SynchronizedMap<>(config.commentMap(), rootMonitor);
-        }
-    }
-
-    @Override
-    public String removeComment(List<String> path) {
-        synchronized (rootMonitor) {
-            return config.removeComment(path);
-        }
-    }
-
-    @Override
-    public String setComment(List<String> path, String comment) {
-        synchronized (rootMonitor) {
-            return config.setComment(path, comment);
-        }
-    }
-
-    @Override
-    public boolean containsComment(List<String> path) {
-        synchronized (rootMonitor) {
-            return config.containsComment(path);
-        }
-    }
-
-    @Override
-    public String getComment(List<String> path) {
-        synchronized (rootMonitor) {
-            return config.getComment(path);
-        }
-    }
-
-    @Override
-    public ConfigFormat<?> configFormat() {
-        synchronized (rootMonitor) {
-            return config.configFormat();
-        }
-    }
-
-    @Override
-    public void clear() {
-        synchronized (rootMonitor) {
-            config.clear();
-        }
-    }
-
-    @Override
-    public SynchronizedConfig createSubConfig() {
-        CommentedConfig subConfig;
-        synchronized (rootMonitor) {
-            subConfig = config.createSubConfig();
-        }
-        // every read or write to a subconfig must be synchronized too
-        return new SynchronizedConfig(subConfig, rootMonitor);
-    }
-
-    @Override
-    public Set<? extends CommentedConfig.Entry> entrySet() {
-        synchronized (rootMonitor) {
-            return new SynchronizedSet<>(config.entrySet(), rootMonitor);
-        }
-    }
-
-    @Override
-    public <T> T remove(List<String> path) {
-        synchronized (rootMonitor) {
-            return config.remove(path);
-        }
-    }
-
-    @Override
-    public <T> T set(List<String> path, Object value) {
-        synchronized (rootMonitor) {
-            return config.set(path, value);
-        }
-    }
-
-    @Override
-    public String toString() {
-        synchronized (rootMonitor) {
-            return config.toString();
-        }
-    }
-
-    @Override
-    public boolean contains(List<String> path) {
-        synchronized (rootMonitor) {
-            return config.contains(path);
-        }
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        synchronized (rootMonitor) {
-            return config.equals(obj);
-        }
-    }
-
-    @Override
-    public <T> T getRaw(List<String> path) {
-        synchronized (rootMonitor) {
-            return config.getRaw(path);
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        synchronized (rootMonitor) {
-            return config.hashCode();
-        }
-    }
-
-    @Override
-    public boolean isEmpty() {
-        synchronized (rootMonitor) {
-            return config.isEmpty();
-        }
-    }
-
-    @Override
-    public int size() {
-        synchronized (rootMonitor) {
-            return config.size();
-        }
-    }
-
-    @Override
-    public Map<String, Object> valueMap() {
-        synchronized (rootMonitor) {
-            return new SynchronizedMap<>(config.valueMap(), rootMonitor);
-        }
-    }
-
-    @Override
-    public boolean add(String path, Object value) {
-        synchronized (rootMonitor) {
-            return config.add(path, value);
-        }
-    }
-
-    @Override
-    public void addAll(UnmodifiableConfig other) {
-        synchronized (rootMonitor) {
-            config.addAll(other);
-        }
-    }
-
-    @Override
-    public void putAll(UnmodifiableConfig other) {
-        synchronized (rootMonitor) {
-            config.putAll(other);
-        }
-    }
-
-    @Override
-    public <T> T remove(String path) {
-        synchronized (rootMonitor) {
-            return config.remove(path);
-        }
-    }
-
-    @Override
-    public void removeAll(UnmodifiableConfig toRemove) {
-        synchronized (rootMonitor) {
-            config.removeAll(toRemove);
-        }
-    }
-
-    @Override
-    public <T> T set(String path, Object value) {
-        synchronized (rootMonitor) {
-            return config.set(path, value);
-        }
-    }
-
-    @Override
-    public UnmodifiableCommentedConfig unmodifiable() {
-        return config.unmodifiable();
-    }
-
-    @Override
-    public void update(List<String> path, Object value) {
-        synchronized (rootMonitor) {
-            config.update(path, value);
-        }
-    }
-
-    @Override
-    public <T> T apply(List<String> path) {
-        synchronized (rootMonitor) {
-            return config.apply(path);
-        }
-    }
-
-    @Override
-    public <T> T get(List<String> path) {
-        synchronized (rootMonitor) {
-            return config.get(path);
-        }
-    }
-
-    @Override
-    public boolean isNull(List<String> path) {
-        synchronized (rootMonitor) {
-            return config.isNull(path);
-        }
-    }
-
-    @Override
-    public Map<String, CommentNode> getComments() {
-        synchronized (rootMonitor) {
-            return config.getComments(); // this is a deep copy, no need for synchronizedmap
-        }
-    }
-
-    @Override
-    public void getComments(Map<String, CommentNode> destination) {
-        synchronized (rootMonitor) {
-            config.getComments(destination);
-        }
-    }
-
-    @Override
-    public void putAllComments(Map<String, CommentNode> comments) {
-        synchronized (rootMonitor) {
-            config.putAllComments(comments);
-        }
-    }
-
-    @Override
-    public void putAllComments(UnmodifiableCommentedConfig commentedConfig) {
-        synchronized (rootMonitor) {
-            config.putAllComments(commentedConfig);
         }
     }
 

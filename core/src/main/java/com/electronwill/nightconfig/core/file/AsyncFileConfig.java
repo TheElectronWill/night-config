@@ -54,7 +54,7 @@ final class AsyncFileConfig extends CommentedConfigWrapper<StampedConfig>
 	 * When a config is modified, wait for the debounce time to expire before saving it to the file.
 	 * Any modification resets the countdown, there needs to be a period of "calm" before the save is triggered.
 	 */
-	private static final Duration DEFAULT_WRITE_DEBOUNCE_TIME = Duration.ofSeconds(1);
+	static final Duration DEFAULT_WRITE_DEBOUNCE_TIME = Duration.ofSeconds(1);
 
 	/** True to make load() asynchronous (false by default). */
 	private final boolean asyncLoad;

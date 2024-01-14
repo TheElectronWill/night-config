@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core.file;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.concurrent.StampedConfig;
+import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
 import com.electronwill.nightconfig.core.io.*;
 
 import java.io.File;
@@ -242,8 +243,8 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 
 		// build writing facilities
 		if (sync) {
-			Config config = format.createConfig(mapCreator);
-			fileConfig = new SyncFileConfig<>(config, file, charset, writer, writingMode,
+			SynchronizedConfig config = new SynchronizedConfig(format, mapCreator);
+			fileConfig = new SyncFileConfig(config, file, charset, writer, writingMode,
 					parser, parsingMode, nefAction);
 		} else {
 			StampedConfig config = new StampedConfig(format, mapCreator);

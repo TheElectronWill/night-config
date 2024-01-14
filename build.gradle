@@ -20,6 +20,7 @@ configure(subprojects.findAll {it.name != "examples"}) {
 
 	java {
 		sourceCompatibility = JavaVersion.VERSION_1_8
+		targetCompatibility = JavaVersion.VERSION_1_8
 	}
 
 	test {
@@ -28,6 +29,11 @@ configure(subprojects.findAll {it.name != "examples"}) {
 			showStackTraces true
 			showStandardStreams true
 		}
+	}
+
+	compileTestJava {
+		sourceCompatibility = JavaVersion.VERSION_11
+		targetCompatibility = JavaVersion.VERSION_11
 	}
 
 	dependencies {

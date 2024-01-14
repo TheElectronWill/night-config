@@ -7,7 +7,7 @@ import java.util.function.Function;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
+import com.electronwill.nightconfig.core.concurrent.ConcurrentCommentedConfig;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.ParsingMode;
@@ -17,7 +17,7 @@ import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
 /**
  * @author TheElectronWill
  */
-final class SyncFileConfig<C extends Config> extends CommentedConfigWrapper<SynchronizedConfig>
+final class SyncFileConfig extends CommentedConfigWrapper<ConcurrentCommentedConfig>
 		implements CommentedFileConfig {
 	private final Path nioPath;
 	private final Charset charset;
@@ -30,13 +30,13 @@ final class SyncFileConfig<C extends Config> extends CommentedConfigWrapper<Sync
 	private final FileNotFoundAction nefAction;
 	private final ParsingMode parsingMode;
 
-	SyncFileConfig(C config, Path nioPath, Charset charset, ConfigWriter writer,
+	SyncFileConfig(ConcurrentCommentedConfig config, Path nioPath, Charset charset, ConfigWriter writer,
 			WritingMode writingMode, ConfigParser<?> parser,
 			ParsingMode parsingMode, FileNotFoundAction nefAction) {
 
 		// Synchronize the reads and writes on the underlying configuration, to make it thread-safe.
 		// Since this is `Write*Sync*FileConfig`, we only allow one read or write at a time.
-		super(SynchronizedConfig.wrap(config));
+		super(config);
 
 		this.nioPath = nioPath;
 		this.charset = charset;
