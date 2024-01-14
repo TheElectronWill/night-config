@@ -31,7 +31,7 @@ public class FileConfigBuilder extends GenericBuilder<Config, FileConfig> {
 	}
 
 	protected FileConfig buildAutosave(CommentedFileConfig chain) {
-		return new AutosaveFileConfig<>(chain);
+		return new AutosaveCommentedFileConfig(chain);
 	}
 
 	protected FileConfig buildNormal(CommentedFileConfig chain) {
