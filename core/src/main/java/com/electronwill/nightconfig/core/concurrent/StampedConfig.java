@@ -466,7 +466,8 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                 int lastIndex = path.size() - 1;
                 List<String> parentPath = path.subList(0, lastIndex);
                 StampedConfig parent = getOrCreateConfig(parentPath);
-                Object prev = mapLockPutIfAbsent(parent.values, parent.valuesLock, path.get(lastIndex), nnValue);
+                Object prev = mapLockPutIfAbsent(parent.values, parent.valuesLock,
+                        path.get(lastIndex), nnValue);
                 return prev == null;
             }
         }
@@ -505,7 +506,8 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                 int lastIndex = path.size() - 1;
                 List<String> parentPath = path.subList(0, lastIndex);
                 StampedConfig parent = getOrCreateConfig(parentPath);
-                return (T) mapLockPut(parent.values, parent.valuesLock, path.get(lastIndex), nnValue);
+                return (T) mapLockPut(parent.values, parent.valuesLock, path.get(lastIndex),
+                        nnValue);
             }
         }
     }
@@ -603,11 +605,22 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
 
     @Override
     public void clearComments() {
-        long stamp = commentsLock.writeLock();
+        long commentsStamp = commentsLock.writeLock();
         try {
             comments.clear();
+            // recursively clear comments
+            long valuesStamp = valuesLock.readLock();
+            try {
+                for (Object o : values.values()) {
+                    if (o instanceof StampedConfig) {
+                        ((StampedConfig) o).clearComments();
+                    }
+                }
+            } finally {
+                valuesLock.unlockRead(valuesStamp);
+            }
         } finally {
-            commentsLock.unlockWrite(stamp);
+            commentsLock.unlockWrite(commentsStamp);
         }
     }
 
@@ -896,7 +909,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                     LazyEntry entry = entries[i];
                     InLockLazyEntry inLockEntry;
                     if (entry instanceof InLockLazyEntry) {
-                        inLockEntry = (InLockLazyEntry)entry;
+                        inLockEntry = (InLockLazyEntry) entry;
                     } else {
                         inLockEntry = new InLockLazyEntry(entry.key);
                     }

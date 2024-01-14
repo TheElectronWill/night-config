@@ -16,6 +16,16 @@ public class SynchronizedConfigTest {
     }
 
     @Test
+    public void comments() {
+        CommonTests.testComments(newConfig());
+    }
+
+    @Test
+    public void errors() {
+        CommonTests.testErrors(newConfig());
+    }
+
+    @Test
     public void iterators() {
         CommonTests.testIterators(newConfig());
     }

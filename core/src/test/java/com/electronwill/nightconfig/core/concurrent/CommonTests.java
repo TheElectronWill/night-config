@@ -22,6 +22,7 @@ class CommonTests {
             "", "a", "true", "false", "0", "null", "3.1415926535", "!?-*/€\\²"
     };
     static Set<String> setTestKeys = Set.of(testKeys);
+    static Set<String> setTestComments = setTestKeys.stream().map(k -> k + "-comment").collect(Collectors.toSet());
 
     static Object[] testValues = {
             new Object(), "", "some string", 0, Integer.MIN_VALUE, Integer.MAX_VALUE,
@@ -109,6 +110,59 @@ class CommonTests {
         for (var key : testKeys) {
             assertNull(config.get(Collections.singletonList(key)));
         }
+
+        // more subconfigs test
+        assertNull(config.set("a.b.c", "test"));
+        assertEquals("test", config.set("a.b.c", 123));
+        assertEquals(123, config.<Integer>get("a.b.c"));
+        assertTrue(config.contains("a.b.c"));
+        assertEquals(123, config.<Integer>remove("a.b.c"));
+    }
+
+    public static void testErrors(ConcurrentCommentedConfig config) {
+        // empty path for values
+        assertThrows(Exception.class, () -> {
+            config.set(Collections.emptyList(), "???");
+        });
+        assertThrows(Exception.class, () -> {
+            config.get(Collections.emptyList());
+        });
+        assertThrows(Exception.class, () -> {
+            config.remove(Collections.emptyList());
+        });
+        assertThrows(Exception.class, () -> {
+            config.add(Collections.emptyList(), "???");
+        });
+        assertThrows(Exception.class, () -> {
+            config.contains(Collections.emptyList());
+        });
+
+        // empty path for comments
+        assertThrows(Exception.class, () -> {
+            config.setComment(Collections.emptyList(), "???");
+        });
+        assertThrows(Exception.class, () -> {
+            config.getComment(Collections.emptyList());
+        });
+        assertThrows(Exception.class, () -> {
+            config.removeComment(Collections.emptyList());
+        });
+        assertThrows(Exception.class, () -> {
+            config.containsComment(Collections.emptyList());
+        });
+
+        // invalid subconfig
+        assertThrows(IllegalArgumentException.class, () -> {
+            config.set("a", "test");
+            config.set("a.b.c", "wrong");
+        });
+
+        // invalid subconfig
+        assertThrows(IllegalArgumentException.class, () -> {
+            config.set("a", "test");
+            config.setComment("a", "test-comment");
+            config.setComment("a.b.c", "wrong");
+        });
     }
 
     public static void testIterators(ConcurrentConfig config) {
@@ -192,5 +246,63 @@ class CommonTests {
         counters.forEach((path, counter) -> {
             assertEquals(counter.get(), config.<Integer>get(path));
         }); 
+    }
+
+    public static void testComments(ConcurrentCommentedConfig config) {
+        assertTrue(config.isEmpty());
+
+        // insert and remove comments into the config
+        for (var key : testKeys) {
+            var path = Collections.singletonList(key);
+            var comment = key + "-comment";
+            config.set(path, "value");
+            config.setComment(path, comment);
+            assertEquals(comment, config.getComment(path));
+            assertTrue(config.containsComment(path));
+            assertEquals(comment, config.removeComment(path));
+            assertNull(config.getComment(path));
+            config.setComment(path, comment);
+            assertEquals(comment, config.getComment(path));
+        }
+
+        // check the comments
+        {
+            var entries = config.entrySet();
+            Set<String> comments = entries.stream().map(e -> e.getComment()).collect(Collectors.toSet());
+            assertEquals(setTestComments, comments);
+        }
+
+        // clear comments
+        config.clearComments();
+        {
+            var entries = config.entrySet();
+            Set<String> comments = entries.stream().map(e -> e.getComment()).collect(Collectors.toSet());
+            assertTrue(comments.stream().allMatch(c -> c == null));
+
+            for (var key : testKeys) {
+                var path = Collections.singletonList(key);
+                assertFalse(config.containsComment(path));
+            }
+        }
+
+        // insert some more
+        for (var key : testKeys) {
+            var path = Collections.singletonList(key);
+            config.setComment(path, "abcd");
+        }
+        config.setComment("z.z.c.d.e.f.g", "\n\n\n\n");
+        assertEquals("\n\n\n\n", config.getComment("z.z.c.d.e.f.g"));
+        assertEquals("\n\n\n\n", config.removeComment("z.z.c.d.e.f.g"));
+        assertNull(config.setComment("z.z.c.d.e.f.g", "comment!"));
+        assertEquals("comment!", config.setComment("z.z.c.d.e.f.g", "new-comment"));
+
+        // clear again
+        config.clearComments();
+        for (var key : testKeys) {
+            var path = Collections.singletonList(key);
+            assertFalse(config.containsComment(path));
+        }
+        assertNull(config.getComment("z.z.c.d.e.f.g"));
+        assertFalse(config.containsComment("z.z.c.d.e.f.g"));
     }
 }

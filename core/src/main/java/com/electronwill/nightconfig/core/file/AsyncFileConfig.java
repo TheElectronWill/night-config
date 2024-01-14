@@ -103,6 +103,12 @@ final class AsyncFileConfig extends CommentedConfigWrapper<StampedConfig>
 	}
 
 	// ----- internal -----
+	/**
+	 * Saves the configuration now (blocking IO).
+	 * It avoids locking the StampedConfig during the IO operation:
+	 * - copy the config into a new config (lock!)
+	 * - write the copy to the file (no lock)
+	 */
 	private void saveNow() {
 		UnmodifiableConfig copy = config.newAccumulatorCopy();
 		synchronized (this) {
@@ -133,6 +139,13 @@ final class AsyncFileConfig extends CommentedConfigWrapper<StampedConfig>
 		}
 	}
 
+	/**
+	 * Loads the configuration now (blocking IO).
+	 * It locks the StampedConfig for a minimal amount of time:
+	 * - parse the file into a new config (no lock)
+	 * - convert the config entries to be compatible with StampedConfig (make the subconfigs all StampedConfigs - no lock)
+	 * - atomically replace the old config by the new config (lock!)
+	 */
 	private void loadNow() {
 		Config newConfig = configParser.parse(nioPath, notFoundAction, charset);
 		CommentedConfig newCC = CommentedConfig.fake(newConfig);
