@@ -112,6 +112,7 @@ final class TableWriter {
 				writeNormal(table, configPath, output, writer);
 			}
 			configPath.remove(configPath.size() - 1);// path level --
+			writer.writeNewline(output); // separates each written ArrayList Table
 		}
 		writer.decreaseIndentLevel();// Indent--
 	}
