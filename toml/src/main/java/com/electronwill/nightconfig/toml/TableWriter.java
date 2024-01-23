@@ -95,6 +95,7 @@ final class TableWriter {
 			// Writes the table's content
 			writeNormal(entry.<UnmodifiableConfig>getValue(), configPath, output, writer);
 			configPath.remove(configPath.size() - 1);// path level --
+			writer.writeNewline(output); // separates Tables without effecting ArrayList
 		}
 
 		// Writes the arrays of tables:
