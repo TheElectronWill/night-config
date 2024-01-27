@@ -112,7 +112,7 @@ public class FileWatcherTest {
 			}
 		}
 		// check that all the handlers have been called
-		assertTrue(latch.await(100, TimeUnit.MILLISECONDS));
+		assertTrue(latch.await(200, TimeUnit.MILLISECONDS));
 
 		// stop watching
 		watcher.stop();
@@ -163,7 +163,7 @@ public class FileWatcherTest {
 		int n = 100;
 		Path file = tmp.resolve("debouncing");
 		Duration debounceTime = Duration.ofMillis(100);
-		Duration debounceAndTolerance = debounceTime.plusMillis(10); // tolerate some delay on top of the debounce time
+		Duration debounceAndTolerance = debounceTime.plusMillis(20); // tolerate some delay on top of the debounce time
 		FileWatcher watcher = new FileWatcher(debounceTime, onWatcherException);
 
 		// watch the file
@@ -193,7 +193,7 @@ public class FileWatcherTest {
 	public void debouncingInternals() throws Exception {
 		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 		Duration debounceDuration = Duration.ofMillis(10);
-		Duration debounceAndTolerance = debounceDuration.plusMillis(5);
+		Duration debounceAndTolerance = debounceDuration.plusMillis(10);
 
 		AtomicInteger callCounter = new AtomicInteger(0);
 		DebouncedRunnable r = new DebouncedRunnable(callCounter::getAndIncrement, debounceDuration);

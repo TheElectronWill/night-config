@@ -76,7 +76,9 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 			Map<String, CommentNode> children = node.getChildren();
 			if (children != null) {
 				CommentedConfig config = getRaw(Collections.singletonList(key));
-				config.putAllComments(children);
+				if (config != null) {
+					config.putAllComments(children);
+				}
 			}
 		}
 	}
@@ -84,6 +86,8 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	/**
 	 * Puts the comments in the given config to this config. Existing comments are replaced, missing
 	 * comments are created.
+	 * <p>
+	 * The comments are copied recursively, but missing sub-configurations are NOT created.
 	 *
 	 * @param commentedConfig the config to copy its comments
 	 */
@@ -97,7 +101,9 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 			Object value = entry.getValue();
 			if (value instanceof UnmodifiableCommentedConfig) {
 				CommentedConfig config = getRaw(Collections.singletonList(key));
-				config.putAllComments((UnmodifiableCommentedConfig)value);
+				if (config != null) {
+					config.putAllComments((UnmodifiableCommentedConfig)value);
+				}
 			}
 
 		}

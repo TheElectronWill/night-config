@@ -2,18 +2,23 @@ package com.electronwill.nightconfig.core.concurrent;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig.CommentNode;
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.Config.Entry;
 
 class CommonTests {
@@ -30,7 +35,11 @@ class CommonTests {
             Arrays.asList("heterogeneous", true, false, null, 123, 123.456)
     };
 
-    public static void testBasicSanity(ConcurrentConfig config) {
+    public static void testBasicSanity(ConcurrentCommentedConfig config) {
+        testBasicSanity(config, true);
+    }
+
+    public static void testBasicSanity(Config config, boolean checkSubconfigClass) {
         assertTrue(config.isEmpty());
         // insert values into the config
         for (var key : testKeys) {
@@ -87,10 +96,14 @@ class CommonTests {
             assertTrue(config.contains(path));
             assertTrue(config.contains(Arrays.asList("sub", "config")));
             assertTrue(config.contains(Arrays.asList("sub")));
+            assertFalse(config.contains(Arrays.asList("sub", "sub")));
+            assertFalse(config.contains(Arrays.asList("config")));
         }
-        assertInstanceOf(config.getClass(), config.get("sub"));
-        assertInstanceOf(config.getClass(), config.get("sub.config"));
-        assertInstanceOf(config.getClass(), config.remove("sub"));
+        if (checkSubconfigClass) {
+            assertInstanceOf(config.getClass(), config.get("sub"));
+            assertInstanceOf(config.getClass(), config.get("sub.config"));
+            assertInstanceOf(config.getClass(), config.remove("sub"));
+        }
 
         // add some subconfigs manually
         {
@@ -119,7 +132,7 @@ class CommonTests {
         assertEquals(123, config.<Integer>remove("a.b.c"));
     }
 
-    public static void testErrors(ConcurrentCommentedConfig config) {
+    public static void testErrors(CommentedConfig config) {
         // empty path for values
         assertThrows(Exception.class, () -> {
             config.set(Collections.emptyList(), "???");
@@ -165,11 +178,11 @@ class CommonTests {
         });
     }
 
-    public static void testIterators(ConcurrentConfig config) {
+    public static void testIterators(CommentedConfig config) {
         config.set("key1", "value1");
         config.set("key2", "value2");
         config.set("key3", "value3");
-        
+
         var entries = config.entrySet();
         // test forEach
         entries.forEach(e -> {
@@ -191,7 +204,7 @@ class CommonTests {
         // test Spliterator
         var keys = entries.stream().map(e -> e.getKey()).collect(Collectors.toList());
         assertEquals(config.size(), keys.size());
-        System.err.println(keys);
+        // System.err.println(keys);
 
         // test Iterator.remove
         var iter = entries.iterator();
@@ -245,10 +258,10 @@ class CommonTests {
         // check the counters
         counters.forEach((path, counter) -> {
             assertEquals(counter.get(), config.<Integer>get(path));
-        }); 
+        });
     }
 
-    public static void testComments(ConcurrentCommentedConfig config) {
+    public static void testComments(CommentedConfig config) {
         assertTrue(config.isEmpty());
 
         // insert and remove comments into the config
@@ -305,4 +318,244 @@ class CommonTests {
         assertNull(config.getComment("z.z.c.d.e.f.g"));
         assertFalse(config.containsComment("z.z.c.d.e.f.g"));
     }
+
+    public static void testPutAll(Config a, Config b) {
+        // fill B
+        assertTrue(b.isEmpty());
+        for (var key : testKeys) {
+            var path = Collections.singletonList(key);
+            b.set(path, testValues[0]);
+
+            var listPath = Collections.singletonList("list-"+key);
+            var sub = b.createSubConfig();
+            sub.set(path, testValues[0]);
+            b.set(listPath, Arrays.asList(testValues[0], sub));
+
+            var nested1 = Arrays.asList("sub", key);
+            b.set(nested1, testValues[1]);
+
+            var nested2 = Arrays.asList("deeply","nested", key);
+            b.set(nested2, testValues[2]);
+        }
+
+        // A.putAll(B)
+        assertTrue(a.isEmpty());
+        a.putAll(b);
+        assertEquals(b.size(), a.size());
+
+        // check A
+        for (var key : testKeys) {
+            var path = Collections.singletonList(key);
+            assertTrue(a.contains(path));
+            assertSame(testValues[0], a.get(path));
+
+            var listPath = Collections.singletonList("list-"+key);
+            assertTrue(a.contains(listPath));
+            assertInstanceOf(List.class, a.get(listPath));
+            var configInList = a.<List<Object>>get(listPath).get(1);
+            assertInstanceOf(Config.class, configInList);
+            assertEquals(testValues[0], ((Config)configInList).get(path));
+
+            var nested1 = Arrays.asList("sub", key);
+            assertTrue(a.contains(nested1));
+            assertSame(testValues[1], a.get(nested1));
+
+            var nested2 = Arrays.asList("deeply","nested", key);
+            assertTrue(a.contains(nested2));
+            assertSame(testValues[2], a.get(nested2));
+        }
+    }
+
+    public static void testRemoveAll(Config a, Config b) {
+        // fill A with some entries that will be removed, some that will not
+        assertTrue(a.isEmpty());
+        a.set(Collections.singletonList(testKeys[0]), "to-remove");
+        a.set(Collections.singletonList(testKeys[1]), "to-remove");
+        a.set(Arrays.asList("sub", testKeys[0]), "to-remove");
+        a.set(Arrays.asList("sub", testKeys[1]), "to-remove");
+        a.set(Arrays.asList("deeply", "nested", testKeys[0]), "to-remove");
+        a.set(Arrays.asList("deeply", "nested", testKeys[1]), "to-remove");
+        a.set("key-to-keep", "do-not-remove");
+        a.set("other key to keep", "keep me!");
+        a.set(Arrays.asList("sub", "I will be removed too, actually"), "Goodbye, world!");
+
+        // fill B
+        assertTrue(b.isEmpty());
+        for (var key : testKeys) {
+            var path = Collections.singletonList(key);
+            b.set(path, testValues[0]);
+
+            var nested1 = Arrays.asList("sub", key);
+            b.set(nested1, testValues[2]);
+
+            var nested2 = Arrays.asList("deeply","nested", key);
+            b.set(nested2, testValues[2]);
+        }
+
+        // A.removeAll(B)
+        var initialSize = a.size();
+        a.removeAll(b);
+        assertTrue(a.size() < initialSize);
+
+        // check removed entries
+        for (var key : testKeys) {
+            var path = Collections.singletonList(key);
+            assertFalse(a.contains(path));
+            assertNull(a.get(path));
+
+            var nested1 = Arrays.asList("sub", key);
+            assertFalse(a.contains(nested1));
+            assertNull(a.get(nested1));
+
+            var nested2 = Arrays.asList("deeply","nested", key);
+            assertFalse(a.contains(nested2));
+            assertNull(a.get(nested2));
+        }
+        // check kept entries
+        assertTrue(a.contains("key-to-keep"));
+        assertEquals("do-not-remove", a.get("key-to-keep"));
+        assertTrue(a.contains("other key to keep"));
+        assertFalse(a.contains(Arrays.asList("sub", "keep me please")));
+    }
+
+    public static void testPutAllComments(CommentedConfig a, CommentedConfig b) {
+        // fill B
+        assertTrue(b.isEmpty());
+        for (var key : testKeys) {
+            var path = Collections.singletonList(key);
+            b.set(path, testValues[0]);
+            b.setComment(path, "simple comment");
+
+            var nested1 = Arrays.asList("sub", key);
+            b.set(nested1, testValues[1]);
+            b.setComment(nested1, "sub comment");
+        }
+
+        // A.putAllComments(B)
+        assertTrue(a.isEmpty());
+        a.putAllComments(b);
+        assertTrue(a.isEmpty());
+
+        // Because we didn't call putAll, only the top-level comments are copied, no subconfig is created!
+        for (var key : testKeys) {
+            var path = Collections.singletonList(key);
+            assertTrue(a.containsComment(path));
+            assertEquals("simple comment", a.getComment(path));
+
+            var nested1 = Arrays.asList("sub", key);
+            assertFalse(a.containsComment(nested1));
+            assertNull( a.getComment(nested1));
+        }
+
+        // Create the subconfigs
+        for (var key : testKeys) {
+            var nested1 = Arrays.asList("sub", key);
+            a.set(nested1, "arbitrary value");
+        }
+        assertFalse(a.isEmpty());
+        a.putAllComments(b);
+        assertFalse(a.isEmpty());
+
+        // Now, all the entries exist, all the comments will be copied.
+        for (var key : testKeys) {
+            var path = Collections.singletonList(key);
+            assertTrue(a.containsComment(path));
+            assertEquals("simple comment", a.getComment(path));
+
+            var nested1 = Arrays.asList("sub", key);
+            assertTrue(a.containsComment(nested1));
+            assertEquals("sub comment", a.getComment(nested1));
+        }
+
+        // Test putAllComments(Map<String, CommentNode>)
+        a.clear();
+        b.clear();
+        var comments = new HashMap<String, CommentNode>();
+        var commentsNested = new HashMap<String, CommentNode>();
+        commentsNested.put("nested", new CommentNode("nestedComm", null));
+        comments.put("a", new CommentNode("aComm", commentsNested));
+        a.putAllComments(comments);
+        assertEquals("aComm", a.getComment("a"));
+        assertNull( a.getComment("a.nested"));
+    }
+
+    public static void testBulkOperations(ConcurrentCommentedConfig config) {
+        config.set("a", "val-a");
+        config.set("sub.nested.deep.more", "amazing");
+        assertEquals("val-a", config.get("a"));
+        assertEquals("amazing", config.get("sub.nested.deep.more"));
+        config.bulkCommentedRead(view -> {
+            var valueA = view.get("a");
+            var valueB = view.get("sub.nested.deep.more");
+            assertEquals("val-a", valueA, "unexpected value: " + valueA + ",\nwhole view: " + view);
+            assertEquals("amazing", valueB, "unexpected value: " + valueB + ",\nwhole view: " + view);
+            assertEquals(config.size(), view.size());
+            assertEquals(config.size(), view.entrySet().size());
+            for (var entry : view.entrySet()) {
+                var key = entry.getKey();
+                assertTrue(key.equals("a") || key.equals("sub"));
+                if (key == "a") {
+                    assertEquals("val-a", entry.getValue());
+                    assertEquals("val-a", entry.getRawValue());
+                } else {
+                    assertInstanceOf(Config.class, entry.getValue());
+                }
+            }
+            assertTrue(view.entrySet().iterator().hasNext());
+        });
+        config.clear();
+        config.clearComments();
+        config.bulkUpdate(view -> {
+            testBasicSanity(view, false);
+        });
+        config.bulkCommentedUpdate(view -> {
+            view.clear();
+            view.clearComments();
+            testBasicSanity(view, false);
+            view.clear();
+            view.clearComments();
+            testComments(view);
+        });
+    }
+
+    /**
+     * From multiple threads, check that the integrity of the config is respected, i.e.
+     * that we only see either the old version or the new version, not a mix of the two.
+     *
+     * @param keys
+     * @param oldValues
+     * @param newValues
+     */
+    public static void checkConcurrentConfigIntegrity(ExecutorService executor, int nThreads, Config config, List<String> keys, List<?> oldValues, List<?> newValues) {
+        var reverseKeys = reversed(keys);
+        var reverseOldValues = reversed(oldValues);
+        var reverseNewValues = reversed(newValues);
+        for (int i = 0; i < nThreads/2; i++) {
+            executor.execute(() -> {
+                var isOld = true;
+                while (isOld) {
+                    var currentValues = keys.stream().map(k -> config.get(k)).collect(Collectors.toList());
+                    isOld = currentValues.equals(oldValues);
+                    var isNew = currentValues.equals(newValues);
+                    assertTrue(isOld || isNew, "Corrupted config values: " + currentValues + "\n full config (may have changed): " + config);
+                }
+            });
+            executor.execute(() -> {
+                var isOld = true;
+                while (isOld) {
+                    var currentValues = reverseKeys.stream().map(k -> config.get(k)).collect(Collectors.toList());
+                    isOld = currentValues.equals(reverseOldValues);
+                    var isNew = currentValues.equals(reverseNewValues);
+                    assertTrue(isOld || isNew, "Corrupted config values: " + currentValues + "\n full config (may have changed): " + config);
+                }
+            });
+        }
+    }
+
+    private static <T> List<T> reversed(List<T> list) {
+        var c = new ArrayList<>(list);
+        Collections.reverse(c);
+        return c;
+    }
+
 }

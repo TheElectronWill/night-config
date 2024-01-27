@@ -110,7 +110,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
      * See {@link Accumulator} for more information.
      */
     public Accumulator newAccumulator() {
-        return new Accumulator(mapSupplier, configFormat);
+        return new Accumulator(configFormat, mapSupplier);
     }
 
     /**
@@ -187,7 +187,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
             this.mirror = new StampedConfig(configFormat, mapSupplier, values, comments);
         }
 
-        Accumulator(Supplier<Map<String, Object>> mapSupplier, ConfigFormat<?> configFormat) {
+        Accumulator(ConfigFormat<?> configFormat, Supplier<Map<String, Object>> mapSupplier) {
             super(mapSupplier);
             this.mirror = new StampedConfig(configFormat, mapSupplier, map, commentMap);
         }
@@ -234,7 +234,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
 
         @Override
         public AbstractCommentedConfig clone() {
-            Accumulator copy = new Accumulator(mapCreator, configFormat());
+            Accumulator copy = new Accumulator(configFormat(), mapCreator);
             copy.map.putAll(this.map);
             copy.commentMap.putAll(this.commentMap);
             return copy;
@@ -242,7 +242,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
 
         @Override
         public CommentedConfig createSubConfig() {
-            return new Accumulator(mapCreator, configFormat());
+            return new Accumulator(configFormat(), mapCreator);
         }
 
         @Override
@@ -533,9 +533,11 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
         if (v instanceof StampedConfig) {
             return v;
         } else if (v instanceof Config) {
-            Config subConfig = createSubConfig();
-            convertSubConfigs(subConfig);
-            return subConfig;
+            Config c = (Config)v;
+            Config converted = createSubConfig();
+            convertSubConfigs(c);
+            converted.putAll(c);
+            return converted;
         } else if (v instanceof List) {
             List<Object> l = (List<Object>) v;
             l.replaceAll(elem -> convertValue(elem));
@@ -565,7 +567,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                     this.values.putAll(values);
                 } catch (UnsupportedOperationException ex) {
                     other.entrySet().forEach(entry -> {
-                        values.put(entry.getKey(), entry.getValue());
+                        values.put(entry.getKey(), entry.getRawValue());
                     });
                 }
             }
@@ -706,17 +708,51 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                 StampedConfig stamped = (StampedConfig) other;
                 long stamp2 = stamped.commentsLock.readLock();
                 try {
+                    // put all top-level comments
                     this.comments.putAll(stamped.comments);
+
+                    // recursively copies the comments of the subconfigs
+                    for (CommentedConfig.Entry entry : stamped.entrySet()) {
+                        Object value = entry.getRawValue();
+                        if (value instanceof StampedConfig) {
+                            // all subconfigs are StampedConfig
+                            StampedConfig config = getRaw(Collections.singletonList(entry.getKey()));
+                            if (config != null) {
+                                config.putAllComments((StampedConfig)value);
+                            }
+                        }
+                    }
                 } finally {
                     stamped.commentsLock.unlockRead(stamp2);
                 }
             } else {
                 try {
+                    // put all top-level comments
                     Map<String, String> comments = other.commentMap();
                     this.comments.putAll(comments);
+
+                    // recursively copies the comments of the subconfigs
+                    for (UnmodifiableCommentedConfig.Entry entry : other.entrySet()) {
+                        Object value = entry.getRawValue();
+                        if (value instanceof UnmodifiableCommentedConfig) {
+                            // all subconfigs are StampedConfig
+                            StampedConfig config = getRaw(Collections.singletonList(entry.getKey()));
+                            if (config != null) {
+                                config.putAllComments((UnmodifiableCommentedConfig)value);
+                            }
+                        }
+                    }
                 } catch (UnsupportedOperationException ex) {
                     other.entrySet().forEach(entry -> {
-                        comments.put(entry.getKey(), entry.getValue());
+                        comments.put(entry.getKey(), entry.getComment());
+                        Object value = entry.getRawValue();
+                        // copy comments recursively if the value is a config
+                        if (value instanceof UnmodifiableCommentedConfig) {
+                            StampedConfig config = getRaw(Collections.singletonList(entry.getKey()));
+                            if (config != null) {
+                                config.putAllComments((UnmodifiableCommentedConfig)value);
+                            }
+                        }
                     });
                 }
             }
@@ -734,12 +770,28 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                 Map<String, CommentNode> children = node.getChildren();
                 if (children != null) {
                     StampedConfig config = getRaw(Collections.singletonList(key));
-                    config.putAllComments(children);
+                    if (config != null) {
+                        config.putAllComments(children);
+                    }
                 }
             });
         } finally {
             commentsLock.unlockWrite(stamp);
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("StampedConfig{");
+        for (CommentedConfig.Entry entry : entrySet()) {
+            builder.append(entry.getKey());
+            builder.append('=');
+            builder.append(String.valueOf((Object)entry.getRawValue()));
+            builder.append(", ");
+        }
+        builder.append('}');
+        return builder.toString();
     }
 
     // ----- entrySet -----
@@ -1188,7 +1240,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                     Object maybeParent = values.get(path.get(0));
                     if (maybeParent instanceof StampedConfig) {
                         StampedConfig parent = (StampedConfig) maybeParent;
-                        return parent.containsComment(path.subList(1, path.size() - 1));
+                        return parent.containsComment(path.subList(1, path.size()));
                         // it is OK to acquire a read lock on sub-configurations
                     } else {
                         return false;
@@ -1211,7 +1263,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                     Object maybeParent = values.get(path.get(0));
                     if (maybeParent instanceof StampedConfig) {
                         StampedConfig parent = (StampedConfig) maybeParent;
-                        return parent.getComment(path.subList(1, path.size() - 1));
+                        return parent.getComment(path.subList(1, path.size()));
                     } else {
                         return null;
                     }
@@ -1239,7 +1291,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                     Object maybeParent = values.get(path.get(0));
                     if (maybeParent instanceof StampedConfig) {
                         StampedConfig parent = (StampedConfig) maybeParent;
-                        return parent.contains(path.subList(1, path.size() - 1));
+                        return parent.contains(path.subList(1, path.size()));
                     } else {
                         return false;
                     }
@@ -1258,11 +1310,11 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                     String key = path.get(0);
                     return (T) values.get(key);
                 }
-                default: {
+                default: { 
                     Object maybeParent = values.get(path.get(0));
                     if (maybeParent instanceof StampedConfig) {
                         StampedConfig parent = (StampedConfig) maybeParent;
-                        return parent.getRaw(path.subList(1, path.size() - 1));
+                        return parent.getRaw(path.subList(1, path.size()));
                     } else {
                         return null;
                     }
@@ -1280,6 +1332,20 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
         public Map<String, Object> valueMap() {
             throw new UnsupportedOperationException(
                     "The view provided by bulk operations on StampedConfig does not support valueMap()");
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("StampedConfig#LockedView{");
+            for (UnmodifiableCommentedConfig.Entry entry : entrySet()) {
+                builder.append(entry.getKey());
+                builder.append('=');
+                builder.append(String.valueOf((Object)entry.getRawValue()));
+                builder.append(", ");
+            }
+            builder.append("}");
+            return builder.toString();    
         }
     }
 
@@ -1315,9 +1381,20 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
         }
 
         @Override
+        public void clear() {
+            checkValid();
+            StampedConfig.this.values.clear();
+        }
+
+        @Override
         public void clearComments() {
             checkValid();
             StampedConfig.this.comments.clear();
+            for (Object o : values.values()) {
+                if (o instanceof StampedConfig) {
+                    ((StampedConfig) o).clearComments();
+                }
+            }
         }
 
         @Override
@@ -1391,15 +1468,15 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
             checkValid();
             switch (path.size()) {
                 case 0:
-                    throw new IllegalArgumentException("empty entry path");
+                throw new IllegalArgumentException("empty entry path");
                 case 1: {
                     String key = path.get(0);
-                    return (T) values.put(key, value);
+                    Object nnValue = (value == null) ? NULL_OBJECT : value;
+                    return (T) values.put(key, nnValue);
                 }
                 default: {
                     String key = path.get(0);
-                    int lastIndex = path.size() - 1;
-                    List<String> subPath = path.subList(0, lastIndex);
+                    List<String> subPath = path.subList(1, path.size());
                     Object currentParent = values.get(key);
                     if (currentParent == null) {
                         // create intermediary config
@@ -1431,8 +1508,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                 }
                 default: {
                     String key = path.get(0);
-                    int lastIndex = path.size() - 1;
-                    List<String> subPath = path.subList(0, lastIndex);
+                    List<String> subPath = path.subList(1, path.size());
                     Object currentParent = values.get(key);
                     if (currentParent == null) {
                         // create intermediary config
@@ -1457,25 +1533,25 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
             checkValid();
             switch (path.size()) {
                 case 0:
-                    throw new IllegalArgumentException("empty entry path");
+                throw new IllegalArgumentException("empty entry path");
                 case 1: {
                     String key = path.get(0);
-                    return values.putIfAbsent(key, value) == null;
+                    Object nnValue = (value == null) ? NULL_OBJECT : value;
+                    return values.putIfAbsent(key, nnValue) == null;
                 }
                 default: {
                     String key = path.get(0);
-                    int lastIndex = path.size() - 1;
-                    List<String> subPath = path.subList(0, lastIndex);
+                    List<String> subPath = path.subList(1, path.size());
                     Object currentParent = values.get(key);
                     if (currentParent == null) {
                         // create intermediary config
                         StampedConfig subConfig = createSubConfig();
                         values.put(key, subConfig);
                         // set value in intermediary level
-                        return subConfig.set(subPath, value);
+                        return subConfig.add(subPath, value);
                     } else if (currentParent instanceof StampedConfig) {
                         // intermediary config exists, use it
-                        return ((StampedConfig) currentParent).set(subPath, value);
+                        return ((StampedConfig) currentParent).add(subPath, value);
                     } else {
                         throw new IllegalArgumentException(
                                 "Cannot add an element to an intermediary value of type: "
@@ -1483,12 +1559,6 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                     }
                 }
             }
-        }
-
-        @Override
-        public void clear() {
-            checkValid();
-            StampedConfig.this.values.clear();
         }
     }
 }
