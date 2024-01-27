@@ -1,7 +1,9 @@
 package com.electronwill.nightconfig.toml;
 
+import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
+import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig.Entry;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.CharacterOutput;
 import com.electronwill.nightconfig.core.io.WritingException;
@@ -15,12 +17,12 @@ import java.util.Map;
  */
 final class TableWriter {
 
-	private static final char[] KEY_VALUE_SEPARATOR = {' ', '=', ' '},
-								INLINE_ENTRY_SEPARATOR = ArrayWriter.ELEMENT_SEPARATOR,
-								ARRAY_OF_TABLES_NAME_BEGIN = {'[', '['},
-								ARRAY_OF_TABLES_NAME_END = {']', ']'},
-								TABLE_NAME_BEGIN = {'['},
-								TABLE_NAME_END = {']'};
+	private static final char[] KEY_VALUE_SEPARATOR = { ' ', '=', ' ' },
+			INLINE_ENTRY_SEPARATOR = ArrayWriter.ELEMENT_SEPARATOR,
+			ARRAY_OF_TABLES_NAME_BEGIN = { '[', '[' },
+			ARRAY_OF_TABLES_NAME_END = { ']', ']' },
+			TABLE_NAME_BEGIN = { '[' },
+			TABLE_NAME_END = { ']' };
 
 	static void writeInline(UnmodifiableConfig config, CharacterOutput output, TomlWriter writer) {
 		output.write('{');
@@ -40,108 +42,167 @@ final class TableWriter {
 		output.write('}');
 	}
 
-	static void writeNormal(UnmodifiableConfig config, List<String> configPath,
-							CharacterOutput output, TomlWriter writer) {
+	static void writeTopLevel(UnmodifiableConfig config, List<String> configPath,
+			CharacterOutput output, TomlWriter writer) {
+
 		UnmodifiableCommentedConfig commentedConfig = UnmodifiableCommentedConfig.fake(config);
-		writeNormal(commentedConfig, configPath, output, writer);
+
+		writeWithHeader(commentedConfig, null, false, false, configPath, output, writer);
 	}
 
-	private static void writeNormal(UnmodifiableCommentedConfig config, List<String> configPath,
-									CharacterOutput output, TomlWriter writer) {
+	static class OrganizedTable {
+		List<UnmodifiableCommentedConfig.Entry> simples, subTables, arraysOfTables;
+		String comment; // comment on the table itself
+
+		OrganizedTable(String comment, List<Entry> simpleEntries, List<Entry> tablesEntries,
+				List<Entry> tableArraysEntries) {
+			this.comment = (comment == null) ? "" : comment;
+			this.simples = simpleEntries;
+			this.subTables = tablesEntries;
+			this.arraysOfTables = tableArraysEntries;
+		}
+
+		boolean canBeSkipped() {
+			return (comment.isEmpty() || !arraysOfTables.isEmpty()) // we can write the comment before the first array of tables
+					&& simples.isEmpty()
+					&& (!subTables.isEmpty() || !arraysOfTables.isEmpty());
+		}
+
+	}
+
+	/** Separate the table in three groups: simple values, sub-configurations, and arrays of tables. */
+	static OrganizedTable prepareTable(UnmodifiableCommentedConfig config, String comment,
+			TomlWriter writer) {
+		List<UnmodifiableCommentedConfig.Entry> simpleEntries = new ArrayList<>();
 		List<UnmodifiableCommentedConfig.Entry> tablesEntries = new ArrayList<>();
 		List<UnmodifiableCommentedConfig.Entry> tableArraysEntries = new ArrayList<>();
 
-		// Writes the "simple" values:
-		writer.increaseIndentLevel();// Indent++
 		for (UnmodifiableCommentedConfig.Entry entry : config.entrySet()) {
-			final String key = entry.getKey();
-			final Object value = entry.getValue();
-			final String comment = entry.getComment();
-			if (value instanceof UnmodifiableConfig &&
-				!writer.writesInline((UnmodifiableConfig)value)) {
-				tablesEntries.add(entry);
-				continue;
-			} else if (value instanceof List) {
-				List<?> list = (List<?>)value;
-				if (!list.isEmpty() && list.stream().allMatch(UnmodifiableConfig.class::isInstance)) {
-					tableArraysEntries.add(entry);
-					continue;
+			Object value = entry.getValue();
+			if (value instanceof UnmodifiableCommentedConfig) {
+				UnmodifiableConfig sub = (UnmodifiableConfig) value;
+				if (writer.writesInline(sub)) {
+					simpleEntries.add(entry);
+				} else {
+					tablesEntries.add(entry);
 				}
-			}
-			writer.writeComment(comment, output);// Writes the comment above the key
-			writer.writeIndent(output);// Indents the line.
-			writer.writeKey(key, output);
-			output.write(KEY_VALUE_SEPARATOR);
-			ValueWriter.write(value, output, writer);
-			writer.writeNewline(output);
-		}
-
-		int arraysOfTablesCount = tableArraysEntries.size();
-		int nonSimpleValuesCount = tablesEntries.size() + arraysOfTablesCount;
-		int simpleValuesCount = config.size() - nonSimpleValuesCount;
-		if (simpleValuesCount > 0 && nonSimpleValuesCount > 0) {
-			writer.writeNewline(output);
-		}
-
-		// Writes the tables:
-		for (Iterator<UnmodifiableCommentedConfig.Entry> it = tablesEntries.iterator(); it.hasNext();) {
-			UnmodifiableCommentedConfig.Entry entry = it.next();
-
-			// Writes the comment, if there is one
-			writer.writeComment(entry.getComment(), output);
-
-			// Writes the table declaration
-			configPath.add(entry.getKey());// path level ++
-			writeTableName(configPath, output, writer);
-			writer.writeNewline(output);
-
-			// Writes the table's content
-			writeNormal(entry.<UnmodifiableConfig>getValue(), configPath, output, writer);
-			configPath.remove(configPath.size() - 1);// path level --
-
-			// separate tables
-			if (it.hasNext() || arraysOfTablesCount > 0) {
-				writer.writeNewline(output);
+			} else if (value instanceof List) {
+				List<?> list = (List<?>) value;
+				if (!list.isEmpty()
+						&& list.stream().allMatch(UnmodifiableConfig.class::isInstance)) {
+					tableArraysEntries.add(entry);
+				} else {
+					simpleEntries.add(entry);
+				}
+			} else {
+				simpleEntries.add(entry);
 			}
 		}
 
-		// Writes the arrays of tables:
-		for (Iterator<UnmodifiableCommentedConfig.Entry> it = tableArraysEntries.iterator(); it.hasNext();) {
-			UnmodifiableCommentedConfig.Entry entry = it.next();
+		return new OrganizedTable(comment, simpleEntries, tablesEntries, tableArraysEntries);
+	}
 
-			// Writes the comment, if there is one
-			writer.writeComment(entry.getComment(), output);
+	private static void writeWithHeader(
+			UnmodifiableCommentedConfig config,
+			String tableComment,
+			boolean inArrayOfTables,
+			boolean tableHeader,
+			List<String> configPath,
+			CharacterOutput output, TomlWriter writer) {
 
-			// Writes the tables
-			configPath.add(entry.getKey());// path level ++
-			List<Config> tableArray = entry.getValue();
-			for (UnmodifiableConfig table : tableArray) {
+		// First, analyze the table so that we can skip useless intermediate levels and create a nice result
+		OrganizedTable table = prepareTable(config, tableComment, writer);
+		boolean hasSubTables = !table.subTables.isEmpty();
+
+		if (table.canBeSkipped() && writer.isHidingRedundantLevels()) {
+			writer.increaseIndentLevel();
+
+			// subtables
+			writeSubTables(table, configPath, output, writer);
+
+			// sub arrays of tables, if there is a comment we write it before them
+			if (!table.comment.isEmpty()) {
+				writer.writeIndentedComment(tableComment, output);
+			}
+			writeArraysOfTables(table, configPath, output, writer);
+			writer.decreaseIndentLevel();
+		} else {
+			// header
+			if (inArrayOfTables) {
 				writeTableArrayName(configPath, output, writer);
 				writer.writeNewline(output);
-				writeNormal(table, configPath, output, writer);
+			} else if (tableHeader) {
+				writeTableName(configPath, output, writer);
+				writer.writeNewline(output);
 			}
-			configPath.remove(configPath.size() - 1);// path level --
 
-			// separate arrays
+			// body
+			writer.increaseIndentLevel();
+			for (Entry entry : table.simples) {
+				writer.writeIndentedComment(entry.getComment(), output);
+				writer.writeIndentedKey(entry.getKey(), output);
+				output.write(KEY_VALUE_SEPARATOR);
+				ValueWriter.write(entry.getValue(), output, writer);
+				writer.writeNewline(output);
+			}
+
+			if (hasSubTables) {
+				writer.writeNewline(output);
+			}
+			writeSubTables(table, configPath, output, writer);
+			writeArraysOfTables(table, configPath, output, writer);
+			writer.decreaseIndentLevel();
+			// end of body
+		}
+	}
+
+	private static void writeSubTables(OrganizedTable table, List<String> configPath, CharacterOutput output, TomlWriter writer) {
+		boolean hasArraysOfTables = !table.arraysOfTables.isEmpty();
+		for (Iterator<Entry> it = table.subTables.iterator(); it.hasNext();) {
+			Entry entry = it.next();
+			UnmodifiableCommentedConfig sub = UnmodifiableCommentedConfig
+					.fake((UnmodifiableConfig) entry.getRawValue());
+			configPath.add(entry.getKey());
+			writeWithHeader(sub, entry.getComment(), false, true, configPath, output, writer);
+			configPath.remove(configPath.size() - 1);
+
+			// separate the tables
+			if (hasArraysOfTables || it.hasNext()) {
+				writer.writeNewline(output);
+			}
+		}
+	}
+
+	private static void writeArraysOfTables(OrganizedTable table, List<String> configPath, CharacterOutput output, TomlWriter writer) {
+		for (Iterator<Entry> it = table.arraysOfTables.iterator(); it.hasNext();) {
+			Entry entry = it.next();
+			configPath.add(entry.getKey());
+			List<? extends UnmodifiableConfig> array = (List) entry.getRawValue();
+			for (UnmodifiableConfig sub : array) {
+				writeWithHeader(UnmodifiableCommentedConfig.fake(sub), entry.getComment(), true,
+						true, configPath, output, writer);
+			}
+			configPath.remove(configPath.size() - 1);
+
+			// separate the arrays of tables
 			if (it.hasNext()) {
 				writer.writeNewline(output);
 			}
 		}
-		writer.decreaseIndentLevel();// Indent--
 	}
 
 	private static void writeTableArrayName(List<String> name, CharacterOutput output,
-											TomlWriter writer) {
+			TomlWriter writer) {
 		writeTableName(name, output, writer, ARRAY_OF_TABLES_NAME_BEGIN, ARRAY_OF_TABLES_NAME_END);
 	}
 
 	private static void writeTableName(List<String> name, CharacterOutput output,
-									   TomlWriter writer) {
+			TomlWriter writer) {
 		writeTableName(name, output, writer, TABLE_NAME_BEGIN, TABLE_NAME_END);
 	}
 
 	private static void writeTableName(List<String> name, CharacterOutput output, TomlWriter writer,
-									   char[] begin, char[] end) {
+			char[] begin, char[] end) {
 		if (name.isEmpty()) {
 			throw new WritingException("Invalid empty table name.");
 		}
@@ -156,5 +217,6 @@ final class TableWriter {
 		output.write(end);
 	}
 
-	private TableWriter() {}
+	private TableWriter() {
+	}
 }
