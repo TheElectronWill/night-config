@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
 import com.electronwill.nightconfig.core.utils.ObservedMap;
 
@@ -91,6 +92,13 @@ final class AutosaveCommentedFileConfig extends CommentedConfigWrapper<Commented
 	@Override
 	public <R> R bulkCommentedUpdate(Function<? super CommentedConfig, R> action) {
 		R result = config.bulkCommentedUpdate(action);
+		save();
+		return result;
+	}
+
+	@Override
+	public <R> R bulkUpdate(Function<? super Config, R> action) {
+		R result = CommentedFileConfig.super.bulkUpdate(action);
 		save();
 		return result;
 	}
