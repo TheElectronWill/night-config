@@ -43,6 +43,7 @@ public class TomlWriterTest {
 		config.set("bool_array", Arrays.asList(true, false, true, false));
 		config.set("config", subConfig);
 		config.set("table_array", tableArray);
+		config.set("table_array2", tableArray);
 		config.set("enum", TestEnum.A);
 
 		StringWriter stringWriter = new StringWriter();
@@ -108,6 +109,44 @@ public class TomlWriterTest {
 		System.out.println(written);
 		assertLinesMatch(Arrays.asList("simple = 123", "", "[table]", "\tkey = \"value\"", ""),
 				StringUtils.splitLines(written));
+	}
+
+	@Test
+	public void correctTableSeparation() {
+		Config config = TomlFormat.instance().createConfig();
+		Config subConfig = config.createSubConfig();
+
+		config.set("first", subConfig);
+		config.set("second", subConfig);
+		subConfig.set("key", "value");
+
+		TomlWriter writer = new TomlWriter();
+		String written = writer.writeToString(config);
+		System.out.println(written);
+		assertLinesMatch(Arrays.asList("[first]", "\tkey = \"value\"", "", "[second]", "\tkey = \"value\"", ""),
+			StringUtils.splitLines(written));
+	}
+
+	@Test
+	public void correctTableArraySeparation() {
+		Config subConfig = TomlFormat.instance().createConfig();
+		subConfig.set("key", "value");
+
+		List<Config> tableArray = new ArrayList<>();
+		tableArray.add(subConfig);
+		tableArray.add(subConfig);
+
+		Config config = TomlFormat.instance().createConfig();
+		config.set("firstArray", tableArray);
+		config.set("secondArray", tableArray);
+
+		TomlWriter writer = new TomlWriter();
+		String written = writer.writeToString(config);
+		System.out.println(written);
+
+		assertLinesMatch(Arrays.asList("[[firstArray]]", "\tkey = \"value\"", "[[firstArray]]", "\tkey = \"value\"", "",
+			"[[secondArray]]", "\tkey = \"value\"", "[[secondArray]]", "\tkey = \"value\"", ""),
+			StringUtils.splitLines(written));
 	}
 
 	@Test
