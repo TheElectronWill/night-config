@@ -75,31 +75,41 @@ final class AsyncFileConfig extends CommentedConfigWrapper<StampedConfig>
 	private final ConfigWriter configWriter;
 	private final WritingMode writingMode;
 
-	// Parsing machinery
+	// Parsing
 	private final ConfigParser<?> configParser;
 	private final ParsingMode parsingMode;
 	private final FileNotFoundAction notFoundAction;
 	private final Charset charset;
+	
+	// Listeners
+	private final ConfigLoadFilter reloadFilter;
+	private final Runnable saveListener, loadListener;
 
 	AsyncFileConfig(StampedConfig config, Path nioPath, Charset charset, ConfigWriter writer,
 			WritingMode writingMode, ConfigParser<?> parser,
 			ParsingMode parsingMode, FileNotFoundAction notFoundAction,
-			boolean asyncLoad) {
+			boolean asyncLoad, ConfigLoadFilter reloadFilter,
+			Runnable saveListener, Runnable loadListener) {
 
 		super(config);
 		this.asyncLoad = asyncLoad;
 		this.nioPath = nioPath;
+
+		// writing
+		this.writingMode = writingMode;
+		this.configWriter = writer;
+		this.saveTask = new DebouncedRunnable(this::saveNow, DEFAULT_WRITE_DEBOUNCE_TIME);
 
 		// parsing
 		this.configParser = parser;
 		this.parsingMode = parsingMode;
 		this.notFoundAction = notFoundAction;
 		this.charset = charset;
-
-		// writing
-		this.writingMode = writingMode;
-		this.configWriter = writer;
-		this.saveTask = new DebouncedRunnable(this::saveNow, DEFAULT_WRITE_DEBOUNCE_TIME);
+		
+		// listeners
+		this.reloadFilter = reloadFilter;
+		this.saveListener = saveListener;
+		this.loadListener = loadListener;
 	}
 
 	// ----- internal -----
@@ -137,6 +147,7 @@ final class AsyncFileConfig extends CommentedConfigWrapper<StampedConfig>
 						"Buffer flush failed during asynchronous FileConfig saving.", e);
 			}
 		}
+		saveListener.run();
 	}
 
 	/**
@@ -149,6 +160,10 @@ final class AsyncFileConfig extends CommentedConfigWrapper<StampedConfig>
 	private void loadNow() {
 		Config newConfig = configParser.parse(nioPath, notFoundAction, charset);
 		CommentedConfig newCC = CommentedConfig.fake(newConfig);
+
+		if (reloadFilter != null && !reloadFilter.acceptNewVersion(newCC)) {
+			return; // reload cancelled
+		}
 
 		// We cannot choose the type of the config returned by the parser.
 		// Even configParser.parse(nioPath, conf) is flawed because it creates subconfigs whose type
@@ -185,6 +200,7 @@ final class AsyncFileConfig extends CommentedConfigWrapper<StampedConfig>
 			default:
 				break;
 		}
+		loadListener.run();
 	}
 
 	// ---- FileConfig ----

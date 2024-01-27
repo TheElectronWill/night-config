@@ -8,6 +8,8 @@ import java.util.function.Function;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.concurrent.ConcurrentCommentedConfig;
+import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
+import com.electronwill.nightconfig.core.concurrent.StampedConfig.Accumulator;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.ParsingMode;
@@ -17,22 +19,30 @@ import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
 /**
  * @author TheElectronWill
  */
-final class SyncFileConfig extends CommentedConfigWrapper<ConcurrentCommentedConfig>
+final class SyncFileConfig extends CommentedConfigWrapper<SynchronizedConfig>
 		implements CommentedFileConfig {
 	private final Path nioPath;
 	private final Charset charset;
 	private volatile boolean closed;
 
+	// Serializing
 	private final ConfigWriter writer;
 	private final WritingMode writingMode;
 
+	// Parsing
 	private final ConfigParser<?> parser;
 	private final FileNotFoundAction nefAction;
 	private final ParsingMode parsingMode;
 
-	SyncFileConfig(ConcurrentCommentedConfig config, Path nioPath, Charset charset, ConfigWriter writer,
+	// Listeners
+	private final ConfigLoadFilter reloadFilter;
+	private final Runnable saveListener, loadListener;
+
+	SyncFileConfig(SynchronizedConfig config, Path nioPath, Charset charset, ConfigWriter writer,
 			WritingMode writingMode, ConfigParser<?> parser,
-			ParsingMode parsingMode, FileNotFoundAction nefAction) {
+			ParsingMode parsingMode, FileNotFoundAction nefAction,
+			ConfigLoadFilter reloadFilter,
+			Runnable saveListener, Runnable loadListener) {
 
 		// Synchronize the reads and writes on the underlying configuration, to make it thread-safe.
 		// Since this is `Write*Sync*FileConfig`, we only allow one read or write at a time.
@@ -45,6 +55,9 @@ final class SyncFileConfig extends CommentedConfigWrapper<ConcurrentCommentedCon
 		this.parsingMode = parsingMode;
 		this.nefAction = nefAction;
 		this.writingMode = writingMode;
+		this.reloadFilter = reloadFilter;
+		this.saveListener = saveListener;
+		this.loadListener = loadListener;
 	}
 
 	// ---- FileConfig ----
@@ -67,6 +80,7 @@ final class SyncFileConfig extends CommentedConfigWrapper<ConcurrentCommentedCon
 		config.bulkCommentedRead(config -> {
 			writer.write(config, nioPath, writingMode, charset);
 		});
+		saveListener.run();
 	}
 
 	@Override
@@ -74,9 +88,23 @@ final class SyncFileConfig extends CommentedConfigWrapper<ConcurrentCommentedCon
 		if (closed) {
 			throw new IllegalStateException("This FileConfig is closed, cannot load().");
 		}
-		config.bulkCommentedUpdate(config -> {
-			parser.parse(nioPath, config, parsingMode, nefAction);
-		});
+		// It would be logical to do this:
+		// config.bulkCommentedUpdate(config -> {
+		//     parser.parse(nioPath, config, parsingMode, nefAction, charset);
+		// });
+		// BUT it cannot work properly, because configParser.parse(nioPath, conf) creates subconfigs that depend on the parser, not on conf.createSubConfig()
+		if (reloadFilter == null) {
+			config.bulkCommentedUpdate(config -> {
+				parser.parse(nioPath, config, parsingMode, nefAction, charset);
+			});
+		} else {
+			Config newConfig = parser.parse(nioPath, nefAction, charset);
+			CommentedConfig newCC = CommentedConfig.fake(newConfig);
+			if (reloadFilter.acceptNewVersion(newCC)) {
+				config.replaceContentBy(newCC);
+			} // else: reload cancelled
+		}
+		loadListener.run();
 	}
 
 	@Override

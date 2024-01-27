@@ -15,11 +15,18 @@ final class AutoreloadFileConfig<C extends CommentedFileConfig> extends Commente
 		implements CommentedFileConfig {
 
 	private final FileWatcher watcher;
+	private final Runnable autoListener; // called on automatic reload
 
-	AutoreloadFileConfig(C config, FileWatcher watcher) {
+	AutoreloadFileConfig(C config, FileWatcher watcher, Runnable autoreloadListener) {
 		super(config);
 		this.watcher = watcher;
-		watcher.addWatch(config.getNioPath(), config::load);
+		this.autoListener = autoreloadListener;
+		watcher.addWatch(config.getNioPath(), this::autoReload);
+	}
+
+	private void autoReload() {
+		load();
+		autoListener.run();
 	}
 
 	@Override

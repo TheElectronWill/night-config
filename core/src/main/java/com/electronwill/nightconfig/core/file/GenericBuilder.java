@@ -45,8 +45,12 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	protected FileNotFoundAction nefAction = FileNotFoundAction.CREATE_EMPTY;
 	protected boolean sync = false, autosave = false, concurrent = false;
 	protected FileWatcher autoreloadFileWatcher = null;
-	protected boolean insertionOrder = Config.isInsertionOrderPreserved();
+	protected boolean preserveInsertionOrder = Config.isInsertionOrderPreserved();
 	protected Supplier<Map<String, Object>> mapCreator = null;
+
+	private ConfigLoadFilter loadFilter;
+	protected Runnable loadListener, saveListener;
+	protected Runnable autoLoadListener, autoSaveListener;
 
 	GenericBuilder(Path file, ConfigFormat<? extends Base> format) {
 		this.file = file;
@@ -182,10 +186,106 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	}
 
 	/**
-	 * Makes the configuration concurrent, that is, thread-safe.
-	 *
+	 * When the configuration is <b>automatically (re)loaded</b>, calls the given listener.
+	 * Only one listener can be set, calling {@code onAutoReload} multiple times will replace the listener.
+	 * <p>
+	 * The listener is called once the loading operation is complete.
+	 * If a {@link ConfigLoadFilter} is set and rejects the operation, the listener is not called.
+	 * <p>
+	 * If {@link FileConfig#load()} is called manually rather than automatically, the listener is not called.
+	 * Use {@link #onLoad(Runnable))} to be notified of every call to {@link FileConfig#load()}, including manual
+	 * ones.
+	 * <p>
+	 * If {@link #autoreload()} is not called, setting a listener has no effect.
+	 * 
+	 * @param listener the listener to call when the FileConfig is automatically reloaded
 	 * @return this builder
 	 */
+	public GenericBuilder<Base, Result> onAutoReload(Runnable listener) {
+		autoLoadListener = listener;
+		return this;
+	}
+
+	/**
+	 * When the configuration is <b>automatically saved</b>, calls the given listener.
+	 * Only one listener can be set, calling {@code onAutoSave} multiple times will replace the listener.
+	 * <p>
+	 * The listener is called once the saving operation is complete.
+	 * If a {@link ConfigLoadFilter} is set and rejects the operation, the listener is not called.
+	 * <p>
+	 * If {@link FileConfig#save()} is called manually rather than automatically, the listener is not called.
+	 * Use {@link #onSave(Runnable))} to be notified of every call to {@link FileConfig#save()}, including manual
+	 * ones.
+	 * <p>
+	 * If {@link #autosave()} is not called, setting a listener has no effect.
+	 * 
+	 * @param listener the listener to call when the FileConfig is automatically saved
+	 * @return this builder
+	 */
+	public GenericBuilder<Base, Result> onAutoSave(Runnable listener) {
+		autoSaveListener = listener;
+		return this;
+	}
+
+	/**
+	 * When the configuration is (re)loaded, calls the given listener.
+	 * Only one listener can be set, calling {@code onLoad} multiple times will replace the listener.
+	 * It is possible to set both an "auto-load" listener and a "load" listener at the same time.
+	 * <p>
+	 * The listener is called once the loading operation is complete.
+	 * If a {@link ConfigLoadFilter} is set and rejects the operation, the listener is not called.
+	 * <p>
+	 * If {@link #autoreload()} is not called, setting a listener has no effect.
+	 * 
+	 * @param listener the listener to call when the FileConfig is automatically reloaded
+	 * @return this builder
+	 */
+	public GenericBuilder<Base, Result> onLoad(Runnable listener) {
+		loadListener = listener;
+		return this;
+	}
+
+	/**
+	 * When the configuration is saved, calls the given listener.
+	 * Only one listener can be set, calling {@code onSave} multiple times will replace the listener.
+	 * It is possible to set both an "auto-save" listener and a "save" listener at the same time.
+	 * <p>
+	 * The listener is called once the saving operation is complete.
+	 * If a {@link ConfigLoadFilter} is set and rejects the operation, the listener is not called.
+	 * <p>
+	 * If {@link #autosave()} is not called, setting a listener has no effect.
+	 * 
+	 * @param listener the listener to call when the FileConfig is automatically saved
+	 * @return this builder
+	 */
+	public GenericBuilder<Base, Result> onSave(Runnable listener) {
+		saveListener = listener;
+		return this;
+	}
+
+	/**
+	 * When the configuration is (re)loaded, applies the given filter first.
+	 * The filter can either accept or reject the (re)load. If the operation is rejected, the configuration is not
+	 * modified.
+	 * <p>
+	 * If a listener is set and the filter accepts the operation, the listener is called after the filter.
+	 * If a listener is set and the filter rejects the operation, the listener is not called.
+	 * 
+	 * @param filter the filter to call on {@link FileConfig#load()}
+	 * @return this builder
+	 */
+	public GenericBuilder<Base, Result> onLoadFilter(ConfigLoadFilter filter) {
+		loadFilter = filter;
+		return this;
+	}
+
+	/**
+	 * Makes the configuration concurrent, that is, thread-safe.
+	 *
+	 * @deprecated Since NightConfig v3.7, this method has no effect because all FileConfig are thread-safe
+	 * @return this builder
+	 */
+	@Deprecated
 	public GenericBuilder<Base, Result> concurrent() {
 		// no-op
 		return this;
@@ -197,7 +297,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 * @return this builder
 	 */
 	public GenericBuilder<Base, Result> preserveInsertionOrder() {
-		insertionOrder = true;
+		preserveInsertionOrder = true;
 		return this;
 	}
 
@@ -227,7 +327,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 		CommentedFileConfig fileConfig;
 		// complete missing fields
 		if (mapCreator == null) {
-			mapCreator = Config.getDefaultMapCreator(concurrent, insertionOrder);
+			mapCreator = Config.getDefaultMapCreator(concurrent, preserveInsertionOrder);
 		}
 
 		// initialize file if needed
@@ -245,15 +345,16 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 		if (sync) {
 			SynchronizedConfig config = new SynchronizedConfig(format, mapCreator);
 			fileConfig = new SyncFileConfig(config, file, charset, writer, writingMode,
-					parser, parsingMode, nefAction);
+					parser, parsingMode, nefAction, loadFilter, saveListener, loadListener);
 		} else {
 			StampedConfig config = new StampedConfig(format, mapCreator);
 			fileConfig = new AsyncFileConfig(config, file, charset, writer, writingMode,
-					parser, parsingMode, nefAction, false);
+					parser, parsingMode, nefAction, false, loadFilter, saveListener, loadListener);
 		}
 		// add automatic reloading
 		if (autoreloadFileWatcher != null) {
-			fileConfig = new AutoreloadFileConfig<>(fileConfig, autoreloadFileWatcher);
+			fileConfig = new AutoreloadFileConfig<>(fileConfig, autoreloadFileWatcher,
+					autoLoadListener);
 		}
 		// add automatic saving
 		if (autosave) {

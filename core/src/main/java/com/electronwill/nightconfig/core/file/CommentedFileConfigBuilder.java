@@ -31,7 +31,7 @@ public final class CommentedFileConfigBuilder extends GenericBuilder<CommentedCo
 
 	@Override
 	protected CommentedFileConfig buildAutosave(CommentedFileConfig chain) {
-		return new AutosaveCommentedFileConfig(chain);
+		return new AutosaveCommentedFileConfig(chain, autoSaveListener);
 	}
 
 	@Override

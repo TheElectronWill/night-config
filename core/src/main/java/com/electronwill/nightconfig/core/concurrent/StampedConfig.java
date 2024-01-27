@@ -19,6 +19,7 @@ import com.electronwill.nightconfig.core.AbstractConfig;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.InMemoryCommentedFormat;
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
@@ -191,6 +192,10 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
             super(mapSupplier);
             this.mirror = new StampedConfig(configFormat, mapSupplier, map, commentMap);
         }
+
+        // public static Accumulator inMemoryUniversal() {
+        //     return new Accumulator(InMemoryCommentedFormat.defaultInstance(), Config.getDefaultMapCreator(false));
+        // }
 
         private void checkValid() {
             if (!valid) {
