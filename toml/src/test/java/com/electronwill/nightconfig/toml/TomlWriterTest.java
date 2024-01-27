@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.StringWriter;
+import java.sql.Array;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +44,7 @@ public class TomlWriterTest {
 		config.set("bool_array", Arrays.asList(true, false, true, false));
 		config.set("config", subConfig);
 		config.set("table_array", tableArray);
+		config.set("table_array2", tableArray);
 		config.set("enum", TestEnum.A);
 
 		StringWriter stringWriter = new StringWriter();
@@ -56,7 +58,7 @@ public class TomlWriterTest {
 	}
 
 	@Test
-	public void correctNewlinesSub() {
+	public void correctNewlinesSub() { // Test fails, because of additional empty line at the end
 		Config conf = TomlFormat.instance().createConfig();
 		Config sub = conf.createSubConfig();
 		conf.set("table", sub);
@@ -65,11 +67,12 @@ public class TomlWriterTest {
 		TomlWriter tWriter = new TomlWriter();
 		String written = tWriter.writeToString(conf);
 		System.out.println(written);
+		// Fixable by adding "" at the end, because it only appears at the end of the file
 		assertLinesMatch(Arrays.asList("[table]", "\tkey = \"value\"", ""), StringUtils.splitLines(written));
 	}
 
 	@Test
-	public void correctNewlinesArrayOfTables() {
+	public void correctNewlinesArrayOfTables() {  // Test fails, because of additional empty line at the end
 		Config conf = TomlFormat.instance().createConfig();
 
 		Config sub = conf.createSubConfig();
@@ -81,6 +84,7 @@ public class TomlWriterTest {
 		TomlWriter tWriter = new TomlWriter();
 		String written = tWriter.writeToString(conf);
 		System.out.println(written);
+		// Fixable by adding "" at the end, because it only appears at the end of the file
 		assertLinesMatch(Arrays.asList("[[aot]]", "\tkey = \"value\"", ""), StringUtils.splitLines(written));
 	}
 
@@ -96,7 +100,7 @@ public class TomlWriterTest {
 	}
 
 	@Test
-	public void correctNewlinesMixed() {
+	public void correctNewlinesMixed() {  // Test fails, because of additional empty line at the end
 		Config conf = TomlFormat.instance().createConfig();
 		Config sub = conf.createSubConfig();
 		conf.set("simple", 123);
@@ -106,9 +110,28 @@ public class TomlWriterTest {
 		TomlWriter tWriter = new TomlWriter();
 		String written = tWriter.writeToString(conf);
 		System.out.println(written);
+		// Fixable by adding "" at the end, because it only appears at the end of the file
 		assertLinesMatch(Arrays.asList("simple = 123", "", "[table]", "\tkey = \"value\"", ""),
 				StringUtils.splitLines(written));
 	}
+
+	@Test
+	public void correctTableSeparation() {
+		Config conf = TomlFormat.instance().createConfig();
+		Config sub = conf.createSubConfig();
+
+		conf.set("first", sub);
+		conf.set("second", sub);
+		sub.set("key", "value");
+
+		TomlWriter writer = new TomlWriter();
+		String written = writer.writeToString(conf);
+		System.out.println(written);
+		assertLinesMatch(Arrays.asList("[first]", "\tkey = \"value\"", "", "[second]", "\tkey = \"value\"", "", ""),
+			StringUtils.splitLines(written));
+	}
+
+
 
 	@Test
 	public void noNulls() {
