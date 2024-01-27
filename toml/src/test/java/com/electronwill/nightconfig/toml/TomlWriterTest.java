@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.StringWriter;
-import java.sql.Array;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,7 +66,7 @@ public class TomlWriterTest {
 		TomlWriter tWriter = new TomlWriter();
 		String written = tWriter.writeToString(conf);
 		System.out.println(written);
-		assertLinesMatch(Arrays.asList("[table]", "\tkey = \"value\"", "", ""), StringUtils.splitLines(written));
+		assertLinesMatch(Arrays.asList("[table]", "\tkey = \"value\"", ""), StringUtils.splitLines(written));
 	}
 
 	@Test
@@ -83,7 +82,7 @@ public class TomlWriterTest {
 		TomlWriter tWriter = new TomlWriter();
 		String written = tWriter.writeToString(conf);
 		System.out.println(written);
-		assertLinesMatch(Arrays.asList("[[aot]]", "\tkey = \"value\"", "", ""), StringUtils.splitLines(written));
+		assertLinesMatch(Arrays.asList("[[aot]]", "\tkey = \"value\"", ""), StringUtils.splitLines(written));
 	}
 
 	@Test
@@ -108,7 +107,7 @@ public class TomlWriterTest {
 		TomlWriter tWriter = new TomlWriter();
 		String written = tWriter.writeToString(conf);
 		System.out.println(written);
-		assertLinesMatch(Arrays.asList("simple = 123", "", "[table]", "\tkey = \"value\"", "", ""),
+		assertLinesMatch(Arrays.asList("simple = 123", "", "[table]", "\tkey = \"value\"", ""),
 				StringUtils.splitLines(written));
 	}
 
@@ -124,7 +123,7 @@ public class TomlWriterTest {
 		TomlWriter writer = new TomlWriter();
 		String written = writer.writeToString(config);
 		System.out.println(written);
-		assertLinesMatch(Arrays.asList("[first]", "\tkey = \"value\"", "", "[second]", "\tkey = \"value\"", "", ""),
+		assertLinesMatch(Arrays.asList("[first]", "\tkey = \"value\"", "", "[second]", "\tkey = \"value\"", ""),
 			StringUtils.splitLines(written));
 	}
 
@@ -146,7 +145,7 @@ public class TomlWriterTest {
 		System.out.println(written);
 
 		assertLinesMatch(Arrays.asList("[[firstArray]]", "\tkey = \"value\"", "[[firstArray]]", "\tkey = \"value\"", "",
-			"[[secondArray]]", "\tkey = \"value\"", "[[secondArray]]", "\tkey = \"value\"", "", ""),
+			"[[secondArray]]", "\tkey = \"value\"", "[[secondArray]]", "\tkey = \"value\"", ""),
 			StringUtils.splitLines(written));
 	}
 
