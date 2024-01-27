@@ -95,7 +95,7 @@ final class TableWriter {
 			// Writes the table's content
 			writeNormal(entry.<UnmodifiableConfig>getValue(), configPath, output, writer);
 			configPath.remove(configPath.size() - 1);// path level --
-			writer.writeNewline(output); // separates Tables without effecting ArrayList
+			if (!configPath.isEmpty()) writer.writeNewline(output); // separates Tables
 		}
 
 		// Writes the arrays of tables:
@@ -112,7 +112,7 @@ final class TableWriter {
 				writeNormal(table, configPath, output, writer);
 			}
 			configPath.remove(configPath.size() - 1);// path level --
-			writer.writeNewline(output); // separates each written ArrayList Table
+			if (!configPath.isEmpty()) writer.writeNewline(output); // separates each written ArrayList Table
 		}
 		writer.decreaseIndentLevel();// Indent--
 	}
