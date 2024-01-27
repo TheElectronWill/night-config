@@ -58,7 +58,7 @@ public class TomlWriterTest {
 	}
 
 	@Test
-	public void correctNewlinesSub() { // Test fails, because of additional empty line at the end
+	public void correctNewlinesSub() {
 		Config conf = TomlFormat.instance().createConfig();
 		Config sub = conf.createSubConfig();
 		conf.set("table", sub);
@@ -67,12 +67,11 @@ public class TomlWriterTest {
 		TomlWriter tWriter = new TomlWriter();
 		String written = tWriter.writeToString(conf);
 		System.out.println(written);
-		// Fixable by adding "" at the end, because it only appears at the end of the file
-		assertLinesMatch(Arrays.asList("[table]", "\tkey = \"value\"", ""), StringUtils.splitLines(written));
+		assertLinesMatch(Arrays.asList("[table]", "\tkey = \"value\"", "", ""), StringUtils.splitLines(written));
 	}
 
 	@Test
-	public void correctNewlinesArrayOfTables() {  // Test fails, because of additional empty line at the end
+	public void correctNewlinesArrayOfTables() {
 		Config conf = TomlFormat.instance().createConfig();
 
 		Config sub = conf.createSubConfig();
@@ -84,8 +83,7 @@ public class TomlWriterTest {
 		TomlWriter tWriter = new TomlWriter();
 		String written = tWriter.writeToString(conf);
 		System.out.println(written);
-		// Fixable by adding "" at the end, because it only appears at the end of the file
-		assertLinesMatch(Arrays.asList("[[aot]]", "\tkey = \"value\"", ""), StringUtils.splitLines(written));
+		assertLinesMatch(Arrays.asList("[[aot]]", "\tkey = \"value\"", "", ""), StringUtils.splitLines(written));
 	}
 
 	@Test
@@ -100,7 +98,7 @@ public class TomlWriterTest {
 	}
 
 	@Test
-	public void correctNewlinesMixed() {  // Test fails, because of additional empty line at the end
+	public void correctNewlinesMixed() {
 		Config conf = TomlFormat.instance().createConfig();
 		Config sub = conf.createSubConfig();
 		conf.set("simple", 123);
@@ -110,8 +108,7 @@ public class TomlWriterTest {
 		TomlWriter tWriter = new TomlWriter();
 		String written = tWriter.writeToString(conf);
 		System.out.println(written);
-		// Fixable by adding "" at the end, because it only appears at the end of the file
-		assertLinesMatch(Arrays.asList("simple = 123", "", "[table]", "\tkey = \"value\"", ""),
+		assertLinesMatch(Arrays.asList("simple = 123", "", "[table]", "\tkey = \"value\"", "", ""),
 				StringUtils.splitLines(written));
 	}
 
