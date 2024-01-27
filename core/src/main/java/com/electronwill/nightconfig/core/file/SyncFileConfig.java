@@ -89,21 +89,18 @@ final class SyncFileConfig extends CommentedConfigWrapper<SynchronizedConfig>
 			throw new IllegalStateException("This FileConfig is closed, cannot load().");
 		}
 		// It would be logical to do this:
+		// if (reloadFilter == null) {
 		// config.bulkCommentedUpdate(config -> {
 		//     parser.parse(nioPath, config, parsingMode, nefAction, charset);
 		// });
+		// }
 		// BUT it cannot work properly, because configParser.parse(nioPath, conf) creates subconfigs that depend on the parser, not on conf.createSubConfig()
-		if (reloadFilter == null) {
-			config.bulkCommentedUpdate(config -> {
-				parser.parse(nioPath, config, parsingMode, nefAction, charset);
-			});
-		} else {
-			Config newConfig = parser.parse(nioPath, nefAction, charset);
-			CommentedConfig newCC = CommentedConfig.fake(newConfig);
-			if (reloadFilter.acceptNewVersion(newCC)) {
-				config.replaceContentBy(newCC);
-			} // else: reload cancelled
+		Config newConfig = parser.parse(nioPath, nefAction, charset);
+		CommentedConfig newCC = CommentedConfig.fake(newConfig);
+		if (reloadFilter != null && !reloadFilter.acceptNewVersion(newCC)) {
+			return; // reload cancelled
 		}
+		config.replaceContentBy(newCC);
 		loadListener.run();
 	}
 
