@@ -13,6 +13,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -43,7 +45,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	protected WritingMode writingMode = WritingMode.REPLACE;
 	protected ParsingMode parsingMode = ParsingMode.REPLACE;
 	protected FileNotFoundAction nefAction = FileNotFoundAction.CREATE_EMPTY;
-	protected boolean sync = false, autosave = false, concurrent = false;
+	protected boolean sync = false, autosave = false;
 	protected FileWatcher autoreloadFileWatcher = null;
 	protected boolean preserveInsertionOrder = Config.isInsertionOrderPreserved();
 	protected Supplier<Map<String, Object>> mapCreator = null;
@@ -318,6 +320,10 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 		return this;
 	}
 
+	private Runnable runnableOrNothing(Runnable r) {
+		return (r == null) ? () -> {} : r;
+	}
+
 	/**
 	 * Creates a new FileConfig with the chosen settings.
 	 *
@@ -325,10 +331,15 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 */
 	public Result build() {
 		CommentedFileConfig fileConfig;
+
 		// complete missing fields
 		if (mapCreator == null) {
-			mapCreator = Config.getDefaultMapCreator(concurrent, preserveInsertionOrder);
+			mapCreator = preserveInsertionOrder ? LinkedHashMap::new : HashMap::new;
 		}
+		saveListener = runnableOrNothing(saveListener);
+		loadListener = runnableOrNothing(loadListener);
+		autoSaveListener = runnableOrNothing(autoSaveListener);
+		autoLoadListener = runnableOrNothing(autoLoadListener);
 
 		// initialize file if needed
 		if (autoreloadFileWatcher != null && Files.notExists(file)) {
