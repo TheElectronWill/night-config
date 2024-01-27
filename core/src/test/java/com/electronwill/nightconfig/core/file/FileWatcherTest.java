@@ -3,9 +3,15 @@ package com.electronwill.nightconfig.core.file;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,7 +26,12 @@ import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.Isolated;
 
+// other threads can slow down the threads in this test, which will make the "awaits" time out
+@Isolated
+@Execution(SAME_THREAD)
 public class FileWatcherTest {
 
 	@TempDir
@@ -108,7 +119,8 @@ public class FileWatcherTest {
 			for (int j = 0; j < nFiles; j++) {
 				Path dir = tmp.resolve("sub-" + i);
 				Path file = dir.resolve("multipleFilesNotifications-" + j);
-				Files.createFile(file);
+				writeAndSync(file, Arrays.asList("test"));
+				assertTrue(Files.exists(file));
 			}
 		}
 		// check that all the handlers have been called
@@ -138,7 +150,7 @@ public class FileWatcherTest {
 			adder.join(50);
 		}
 		// write to the file (generates an event)
-		Files.write(tmpFile, Arrays.asList("test"));
+		writeAndSync(tmpFile, Arrays.asList("test"));
 
 		// check that all the handlers have been called
 		latch.await(200, TimeUnit.MILLISECONDS);
@@ -163,7 +175,7 @@ public class FileWatcherTest {
 		int n = 100;
 		Path file = tmp.resolve("debouncing");
 		Duration debounceTime = Duration.ofMillis(100);
-		Duration debounceAndTolerance = debounceTime.plusMillis(20); // tolerate some delay on top of the debounce time
+		Duration debounceAndTolerance = debounceTime.plusMillis(11); // tolerate some delay on top of the debounce time
 		FileWatcher watcher = new FileWatcher(debounceTime, onWatcherException);
 
 		// watch the file
@@ -173,7 +185,7 @@ public class FileWatcherTest {
 		// generate plenty of events, they should be debounced to only one
 		Files.createFile(file);
 		for (int i = 0; i < n; i++) {
-			Files.write(file, Arrays.asList("a" + i));
+			writeAndSync(file, Arrays.asList("a" + i));
 		}
 		assertEquals(0, callCounter.get());
 		Thread.sleep(debounceAndTolerance.toMillis());
@@ -181,7 +193,7 @@ public class FileWatcherTest {
 
 		// modify the file again
 		for (int j = 0; j < n; j++) {
-			Files.write(file, Arrays.asList("b" + j));
+			writeAndSync(file, Arrays.asList("b" + j, "second line"));
 		}
 		Thread.sleep(debounceAndTolerance.toMillis());
 		assertEquals(2, callCounter.get());
@@ -193,7 +205,7 @@ public class FileWatcherTest {
 	public void debouncingInternals() throws Exception {
 		ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 		Duration debounceDuration = Duration.ofMillis(10);
-		Duration debounceAndTolerance = debounceDuration.plusMillis(10);
+		Duration debounceAndTolerance = debounceDuration.plusMillis(11);
 
 		AtomicInteger callCounter = new AtomicInteger(0);
 		DebouncedRunnable r = new DebouncedRunnable(callCounter::getAndIncrement, debounceDuration);
@@ -212,5 +224,14 @@ public class FileWatcherTest {
 		assertEquals(1, callCounter.get());
 		Thread.sleep(debounceAndTolerance.toMillis());
 		assertEquals(2, callCounter.get());
+	}
+
+	private void writeAndSync(Path file, List<String> lines) throws IOException {
+		try(FileChannel chan = FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
+			for (String line : lines) {
+				chan.write(ByteBuffer.wrap(line.getBytes(StandardCharsets.UTF_8)));
+			}
+			chan.force(true);
+		}
 	}
 }
