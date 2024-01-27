@@ -95,7 +95,6 @@ final class TableWriter {
 			// Writes the table's content
 			writeNormal(entry.<UnmodifiableConfig>getValue(), configPath, output, writer);
 			configPath.remove(configPath.size() - 1);// path level --
-			System.out.println("Config Path Size: " + configPath.size());
 			writer.writeNewline(output); // separates Tables
 		}
 
