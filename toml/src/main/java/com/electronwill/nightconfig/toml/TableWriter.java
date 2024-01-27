@@ -76,14 +76,17 @@ final class TableWriter {
 			writer.writeNewline(output);
 		}
 
-		int nonSimpleValuesCount = tablesEntries.size() + tableArraysEntries.size();
+		int arraysOfTablesCount = tableArraysEntries.size();
+		int nonSimpleValuesCount = tablesEntries.size() + arraysOfTablesCount;
 		int simpleValuesCount = config.size() - nonSimpleValuesCount;
 		if (simpleValuesCount > 0 && nonSimpleValuesCount > 0) {
 			writer.writeNewline(output);
 		}
 
 		// Writes the tables:
-		for (UnmodifiableCommentedConfig.Entry entry : tablesEntries) {
+		for (Iterator<UnmodifiableCommentedConfig.Entry> it = tablesEntries.iterator(); it.hasNext();) {
+			UnmodifiableCommentedConfig.Entry entry = it.next();
+
 			// Writes the comment, if there is one
 			writer.writeComment(entry.getComment(), output);
 
@@ -95,11 +98,17 @@ final class TableWriter {
 			// Writes the table's content
 			writeNormal(entry.<UnmodifiableConfig>getValue(), configPath, output, writer);
 			configPath.remove(configPath.size() - 1);// path level --
-			writer.writeNewline(output); // separates Tables
+
+			// separate tables
+			if (it.hasNext() || arraysOfTablesCount > 0) {
+				writer.writeNewline(output);
+			}
 		}
 
 		// Writes the arrays of tables:
-		for (UnmodifiableCommentedConfig.Entry entry : tableArraysEntries) {
+		for (Iterator<UnmodifiableCommentedConfig.Entry> it = tableArraysEntries.iterator(); it.hasNext();) {
+			UnmodifiableCommentedConfig.Entry entry = it.next();
+
 			// Writes the comment, if there is one
 			writer.writeComment(entry.getComment(), output);
 
@@ -112,7 +121,11 @@ final class TableWriter {
 				writeNormal(table, configPath, output, writer);
 			}
 			configPath.remove(configPath.size() - 1);// path level --
-			writer.writeNewline(output); // separates each written ArrayList Table
+
+			// separate arrays
+			if (it.hasNext()) {
+				writer.writeNewline(output);
+			}
 		}
 		writer.decreaseIndentLevel();// Indent--
 	}
