@@ -3,6 +3,9 @@ package com.electronwill.nightconfig.toml;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.concurrent.StampedConfig;
+import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
+import com.electronwill.nightconfig.core.concurrent.StampedConfig.Accumulator;
 import com.electronwill.nightconfig.core.io.*;
 
 import java.io.Reader;
@@ -53,6 +56,21 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 	}
 
 	private <T extends Config> T parse(CharacterInput input, T destination, ParsingMode parsingMode) {
+		if (destination instanceof StampedConfig) {
+			// StampedConfig does not support valueMap(), parse in Accumulator instead
+			StampedConfig sc = (StampedConfig)destination;
+			Accumulator acc = sc.newAccumulator();
+			parse(input, acc, parsingMode);
+			sc.replaceContentBy(acc);
+			return destination;
+		} else if (destination instanceof SynchronizedConfig) {
+			// SynchronizedConfig supports valueMap() but it's dangerous to use it without synchronization
+			((SynchronizedConfig)destination).bulkCommentedUpdate(view -> {
+				parse(input, view, parsingMode);
+			});
+			return destination;
+		}
+
 		this.parsingMode = parsingMode;
 		parsingMode.prepareParsing(destination);
 		CommentedConfig commentedConfig = CommentedConfig.fake(destination);
@@ -84,7 +102,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 											   + " because of an invalid "
 											   + "parent that isn't a table.");
 				}
-				CommentedConfig table = TableParser.parseNormal(input, this);
+				CommentedConfig table = TableParser.parseNormal(commentedConfig, input, this);
 				List<CommentedConfig> arrayOfTables = (List)parentMap.get(lastKey);
 				if (arrayOfTables == null) {
 					arrayOfTables = createList();
@@ -100,7 +118,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 				}
 				Object alreadyDeclared = parentMap.get(lastKey);
 				if (alreadyDeclared == null) {
-					CommentedConfig table = TableParser.parseNormal(input, this);
+					CommentedConfig table = TableParser.parseNormal(commentedConfig, input, this);
 					parentMap.put(lastKey, table);
 				} else {
 					if (alreadyDeclared instanceof Config) {
@@ -126,7 +144,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 		for (String key : path) {
 			Object value = currentConfig.valueMap().get(key);
 			if (value == null) {
-				Config sub = TomlFormat.instance().createConfig();
+				Config sub = parentTable.createSubConfig();
 				currentConfig.valueMap().put(key, sub);
 				currentConfig = sub;
 			} else if (value instanceof Config) {

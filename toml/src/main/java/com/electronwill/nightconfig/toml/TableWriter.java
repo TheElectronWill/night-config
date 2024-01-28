@@ -1,16 +1,14 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.Config;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig.Entry;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.CharacterOutput;
 import com.electronwill.nightconfig.core.io.WritingException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author TheElectronWill
@@ -26,11 +24,11 @@ final class TableWriter {
 
 	static void writeInline(UnmodifiableConfig config, CharacterOutput output, TomlWriter writer) {
 		output.write('{');
-		Iterator<Map.Entry<String, Object>> iterator = config.valueMap().entrySet().iterator();
+		Iterator<? extends UnmodifiableConfig.Entry> iterator = config.entrySet().iterator();
 		while (iterator.hasNext()) {
-			final Map.Entry<String, Object> entry = iterator.next();
-			final String key = entry.getKey();
-			final Object value = entry.getValue();
+			UnmodifiableConfig.Entry entry = iterator.next();
+			String key = entry.getKey();
+			Object value = entry.getValue();
 			// Comments aren't written in an inline table
 			writer.writeKey(key, output);
 			output.write(KEY_VALUE_SEPARATOR);
@@ -73,11 +71,11 @@ final class TableWriter {
 	/** Separate the table in three groups: simple values, sub-configurations, and arrays of tables. */
 	static OrganizedTable prepareTable(UnmodifiableCommentedConfig config, String comment,
 			TomlWriter writer) {
-		List<UnmodifiableCommentedConfig.Entry> simpleEntries = new ArrayList<>();
-		List<UnmodifiableCommentedConfig.Entry> tablesEntries = new ArrayList<>();
-		List<UnmodifiableCommentedConfig.Entry> tableArraysEntries = new ArrayList<>();
+		List<Entry> simpleEntries = new ArrayList<>();
+		List<Entry> tablesEntries = new ArrayList<>();
+		List<Entry> tableArraysEntries = new ArrayList<>();
 
-		for (UnmodifiableCommentedConfig.Entry entry : config.entrySet()) {
+		for (Entry entry : config.entrySet()) {
 			Object value = entry.getValue();
 			if (value instanceof UnmodifiableCommentedConfig) {
 				UnmodifiableConfig sub = (UnmodifiableConfig) value;

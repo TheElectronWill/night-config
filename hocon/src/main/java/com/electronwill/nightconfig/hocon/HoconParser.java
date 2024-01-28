@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.hocon;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.concurrent.ConcurrentCommentedConfig;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.ParsingMode;
@@ -41,10 +42,18 @@ public final class HoconParser implements ConfigParser<CommentedConfig> {
 	public void parse(Reader reader, Config destination, ParsingMode parsingMode) {
 		try {
 			ConfigObject parsed = ConfigFactory.parseReader(reader, OPTIONS).resolve().root();
-			parsingMode.prepareParsing(destination);
-			if (destination instanceof CommentedConfig) {
+			
+			if (destination instanceof ConcurrentCommentedConfig) {
+				ConcurrentCommentedConfig conf = (ConcurrentCommentedConfig)destination;
+				conf.bulkCommentedUpdate(view -> {
+					parsingMode.prepareParsing(view);
+					put(parsed, view, parsingMode);
+				});
+			} else if (destination instanceof CommentedConfig) {
+				parsingMode.prepareParsing(destination);
 				put(parsed, (CommentedConfig)destination, parsingMode);
 			} else {
+				parsingMode.prepareParsing(destination);
 				put(parsed, destination, parsingMode);
 			}
 		} catch (Exception e) {

@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
 import com.electronwill.nightconfig.core.io.*;
 import com.electronwill.nightconfig.core.utils.FastStringReader;
 
@@ -133,8 +134,15 @@ public final class JsonParser implements ConfigParser<Config> {
 		if (firstChar != '{') {
 			throw new ParsingException("Invalid first character for a json object: " + firstChar);
 		}
-		parsingMode.prepareParsing(destination);
-		parseObject(input, destination, parsingMode);
+		if (destination instanceof ConcurrentConfig) {
+			((ConcurrentConfig)destination).bulkUpdate(view -> {
+				parsingMode.prepareParsing(view);
+				parseObject(input, view, parsingMode);
+			});
+		} else {
+			parsingMode.prepareParsing(destination);
+			parseObject(input, destination, parsingMode);
+		}
 	}
 
 	/**

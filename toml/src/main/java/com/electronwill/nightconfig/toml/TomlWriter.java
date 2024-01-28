@@ -35,7 +35,8 @@ public final class TomlWriter implements ConfigWriter {
 
 	// --- Getters/setters for the settings ---
 	/**
-	 * Gets the "hide redundant levels" policy.
+	 * Gets the "hide redundant levels" policy. It is enabled by default.
+	 * <p>
 	 * If set to false, a possible output would be:
 	 * <pre>
 	 * {@literal
@@ -45,6 +46,7 @@ public final class TomlWriter implements ConfigWriter {
 	 * value = 1
 	 * }
 	 * </pre>
+	 * <p>
 	 * If set to true, the same config will be written as:
 	 * <pre>
 	 * {@literal

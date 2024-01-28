@@ -9,10 +9,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -526,36 +529,97 @@ class CommonTests {
      * @param oldValues
      * @param newValues
      */
-    public static void checkConcurrentConfigIntegrity(ExecutorService executor, int nThreads, Config config, List<String> keys, List<?> oldValues, List<?> newValues) {
+    public static List<Future<?>> checkConcurrentConfigIntegrity(ExecutorService executor, int nThreads, ConcurrentConfig config, List<String> keys, List<?> oldValues, List<?> newValues) {
         var reverseKeys = reversed(keys);
         var reverseOldValues = reversed(oldValues);
         var reverseNewValues = reversed(newValues);
+        var futures = new ArrayList<Future<?>>();
         for (int i = 0; i < nThreads/2; i++) {
-            executor.execute(() -> {
+            var fut1 = executor.submit(() -> {
                 var isOld = true;
                 while (isOld) {
-                    var currentValues = keys.stream().map(k -> config.get(k)).collect(Collectors.toList());
+                    // It is important to use bulkRead, otherwise the call to `replaceContentBy` could occur between two `get`
+                    var currentValues = config.bulkRead(view -> {
+                        return keys.stream().map(k -> view.get(k)).collect(Collectors.toList());
+                    });
                     isOld = currentValues.equals(oldValues);
                     var isNew = currentValues.equals(newValues);
                     assertTrue(isOld || isNew, "Corrupted config values: " + currentValues + "\n full config (may have changed): " + config);
+                    Thread.yield();
                 }
             });
-            executor.execute(() -> {
+            var fut2 = executor.submit(() -> {
                 var isOld = true;
                 while (isOld) {
-                    var currentValues = reverseKeys.stream().map(k -> config.get(k)).collect(Collectors.toList());
+                    var currentValues = config.bulkRead(view -> {
+                        return reverseKeys.stream().map(k -> view.get(k)).collect(Collectors.toList());
+                    });
                     isOld = currentValues.equals(reverseOldValues);
                     var isNew = currentValues.equals(reverseNewValues);
-                    assertTrue(isOld || isNew, "Corrupted config values: " + currentValues + "\n full config (may have changed): " + config);
+                    assertTrue(isOld || isNew, "Corrupted config values (r): " + currentValues + "\n full config (may have changed): " + config);
+                    Thread.yield();
                 }
             });
+            futures.add(fut1);
+            futures.add(fut2);
         }
+        return futures;
     }
 
     private static <T> List<T> reversed(List<T> list) {
         var c = new ArrayList<>(list);
         Collections.reverse(c);
         return c;
+    }
+
+    public static <A extends ConcurrentCommentedConfig, B extends Config> void testReplaceContent(
+        int nThreads, A config, B replacement, BiConsumer<A,B> replaceContentBy) {
+
+        assertTrue(config.isEmpty());
+        assertTrue(replacement.isEmpty());
+
+        var executor = Executors.newFixedThreadPool(nThreads);
+        var keys = Arrays.asList("a", "b", "c", "e", "sub.a", "sub.b", "sub.nested.a",
+                "sub.nested.b");
+        var oldValues = keys.stream().map(k -> "old value of " + k).collect(Collectors.toList());
+        var newValues = keys.stream().map(k -> {
+            var value = "new value of " + k;
+            if (k.equals("c")) {
+                // write an array of configs to test this specific case
+                var sub = replacement.createSubConfig();
+                sub.set(k + "-sub", value);
+                return Arrays.asList(sub);
+            } else {
+                return value;
+            }
+        }).collect(Collectors.toList());
+
+        // fill config
+        for (int i = 0; i < keys.size(); i++) {
+            var key = keys.get(i);
+            var val = oldValues.get(i);
+            config.set(key, val);
+        }
+
+        // From multiple threads, check the integrity of the config: either full old version, or full new version.
+        var futures = checkConcurrentConfigIntegrity(executor, nThreads, config, keys, oldValues,
+                newValues);
+
+        // fill replacement config/accumulator/whatever
+        for (int i = 0; i < keys.size(); i++) {
+            var key = keys.get(i);
+            var val = newValues.get(i);
+            replacement.set(key, val);
+        }
+
+        // replace the config's content, the tasks submitted to the executor should stop when they see the new content
+        replaceContentBy.accept(config, replacement);
+
+        // wait for the tasks to finish
+        for (var fut : futures) {
+            assertDoesNotThrow(() -> fut.get(1, TimeUnit.SECONDS));
+        }
+        executor.shutdown();
     }
 
 }

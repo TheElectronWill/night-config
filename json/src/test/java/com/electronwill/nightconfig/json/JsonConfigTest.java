@@ -83,12 +83,6 @@ public class JsonConfigTest {
 	}
 
 	@Test
-	public void testRead() throws IOException {
-		new JsonParser().parse(file, FileNotFoundAction.READ_NOTHING);
-		System.out.println(config);
-	}
-
-	@Test
 	public void testReadEmptyObject() throws IOException {
 		Config conf = new JsonParser().parse("{}");
 		System.out.println(conf);

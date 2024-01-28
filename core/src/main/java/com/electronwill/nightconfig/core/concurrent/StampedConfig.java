@@ -19,7 +19,6 @@ import com.electronwill.nightconfig.core.AbstractConfig;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.InMemoryCommentedFormat;
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
@@ -222,16 +221,18 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
             map.replaceAll((k, v) -> replaceValue(v));
         }
 
-        @SuppressWarnings("unchecked")
         private Object replaceValue(Object v) {
             if (v instanceof Accumulator) {
                 Accumulator acc = (Accumulator) v;
                 acc.prepareReplacement();
                 return acc.mirror;
+            } else if (v instanceof UnmodifiableConfig) {
+                throw new IllegalStateException("Invalid sub-configuration of type " + v.getClass().getSimpleName() + " in the Accumulator. Sub-configurations must always be created with createSubConfig().");
             } else if (v instanceof List) {
-                List<Object> l = (List<Object>) v;
-                l.replaceAll(elem -> replaceValue(elem));
-                return l;
+                List<?> l = (List<?>) v;
+                List<Object> newList = new ArrayList<>(l);
+                newList.replaceAll(elem -> replaceValue(elem));
+                return newList;
             } else {
                 return v;
             }
@@ -368,7 +369,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                     current = (StampedConfig) level;
                 } else {
                     // Impossible to go further: what should have been a subconfig is another type of value.
-                    throw new IllegalArgumentException("Cannot add/set entry with parent path "
+                    throw new IllegalArgumentException("Cannot get/create entry with parent path "
                             + configPath
                             + " because of an incompatible intermediary value of type: "
                             + level.getClass());
@@ -786,17 +787,37 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
     }
 
     @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("StampedConfig{");
-        for (CommentedConfig.Entry entry : entrySet()) {
-            builder.append(entry.getKey());
-            builder.append('=');
-            builder.append(String.valueOf((Object)entry.getRawValue()));
-            builder.append(", ");
+    public boolean equals(Object obj) {
+        if (obj == this) { return true; }
+        if (obj instanceof StampedConfig) {
+            return bulkCommentedRead(view -> {
+                return ((StampedConfig)obj).bulkCommentedRead(objView -> {
+                    return view.equals(objView);
+                });
+            });
+        } else if (obj instanceof UnmodifiableConfig) {
+            return bulkRead(view -> {
+                return view.equals(obj);
+            });
+        } else {
+            return false;
         }
-        builder.append('}');
-        return builder.toString();
+    }
+
+    @Override
+    public String toString() {
+        return bulkRead(view -> {
+            StringBuilder builder = new StringBuilder();
+            builder.append("StampedConfig{");
+            for (UnmodifiableConfig.Entry entry : view.entrySet()) {
+                builder.append(entry.getKey());
+                builder.append('=');
+                builder.append(String.valueOf((Object)entry.getRawValue()));
+                builder.append(", ");
+            }
+            builder.append('}');
+            return builder.toString();
+        });
     }
 
     // ----- entrySet -----
@@ -1351,6 +1372,30 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
             }
             builder.append("}");
             return builder.toString();    
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) { return true; }
+            else if (!(obj instanceof UnmodifiableConfig)) { return false; }
+            else {
+                UnmodifiableConfig conf = (UnmodifiableConfig)obj;
+                if (conf.size() != size()) {
+                    return false;
+                }
+                for (UnmodifiableConfig.Entry entry : entrySet()) {
+                    Object value = entry.getValue();
+                    Object otherEntry = conf.get(Collections.singletonList(entry.getKey()));
+                    if (value == null) {
+                        if (otherEntry != null) {
+                            return false;
+                        }
+                    } else {
+                        return value.equals(otherEntry);
+                    }
+                }
+                return true;
+            }
         }
     }
 

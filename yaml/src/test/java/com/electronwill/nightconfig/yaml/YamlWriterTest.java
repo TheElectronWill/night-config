@@ -1,47 +1,41 @@
-package com.electronwill.nightconfig.hocon;
+package com.electronwill.nightconfig.yaml;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 import org.junit.jupiter.api.Test;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.InMemoryCommentedFormat;
 import com.electronwill.nightconfig.core.concurrent.StampedConfig;
 import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
 
-/**
- * @author TheElectronWill
- */
-public class HoconWriterTest {
+public class YamlWriterTest {
 	@Test
-	public void write() throws IOException {
-		CommentedConfig config = CommentedConfig.inMemory();
+	public void write() {
+		Config config = YamlFormat.defaultInstance().createConfig();
 		Util.populateTest(config);
-
-		var result = new HoconWriter().writeToString(config);
+		var result = new YamlWriter().writeToString(config);
 		assertEquals(Util.EXPECTED_SERIALIZED, result);
 	}
 
 	@Test
 	public void writeSynchronizedConfig() {
-		CommentedConfig config = new SynchronizedConfig(InMemoryCommentedFormat.defaultInstance(),
+		Config config = new SynchronizedConfig(InMemoryCommentedFormat.defaultInstance(),
 				HashMap::new);
 		Util.populateTest(config);
-		var result = new HoconWriter().writeToString(config);
+		var result = new YamlWriter().writeToString(config);
 		assertEquals(Util.EXPECTED_SERIALIZED, result);
 	}
 
 	@Test
 	public void writeStampedConfig() {
-		CommentedConfig config = new StampedConfig(InMemoryCommentedFormat.defaultInstance(),
+		StampedConfig config = new StampedConfig(InMemoryCommentedFormat.defaultInstance(),
 				HashMap::new);
 		Util.populateTest(config);
-		var result = new HoconWriter().writeToString(config);
+		var result = new YamlWriter().writeToString(config);
 		assertEquals(Util.EXPECTED_SERIALIZED, result);
 	}
-
 }

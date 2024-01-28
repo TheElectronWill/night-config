@@ -1,4 +1,4 @@
-package yaml;
+package com.electronwill.nightconfig.yaml;
 
 import com.electronwill.nightconfig.core.BasicTestEnum;
 import com.electronwill.nightconfig.core.Config;

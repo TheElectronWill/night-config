@@ -97,8 +97,8 @@ final class TableParser {
 		}
 	}
 
-	static CommentedConfig parseNormal(CharacterInput input, TomlParser parser) {
-		return parseNormal(input, parser, TomlFormat.instance().createConfig());
+	static CommentedConfig parseNormal(CommentedConfig parentConfig, CharacterInput input, TomlParser parser) {
+		return parseNormal(input, parser, parentConfig.createSubConfig());
 	}
 
 	static List<String> parseTableName(CharacterInput input, TomlParser parser, boolean array) {

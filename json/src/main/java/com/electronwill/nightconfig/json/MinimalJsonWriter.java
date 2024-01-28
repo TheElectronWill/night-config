@@ -56,12 +56,12 @@ public final class MinimalJsonWriter implements ConfigWriter {
 			output.write(EMPTY_OBJECT);
 			return;
 		}
-		Iterator<Map.Entry<String, Object>> it = config.valueMap().entrySet().iterator();
+		Iterator<? extends UnmodifiableConfig.Entry> it = config.entrySet().iterator();
 		output.write('{');
 		while (true) {
-			final Map.Entry<String, Object> entry = it.next();
-			final String key = entry.getKey();
-			final Object value = entry.getValue();
+			UnmodifiableConfig.Entry entry = it.next();
+			String key = entry.getKey();
+			Object value = entry.getValue();
 			writeString(key, output);// key
 			output.write(':');// separator
 			writeValue(value, output);// value

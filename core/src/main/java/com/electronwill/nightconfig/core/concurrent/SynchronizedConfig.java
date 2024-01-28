@@ -5,6 +5,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -17,6 +20,7 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.utils.TransformingMap;
 
 /**
  * A configuration that is synchronized, and therefore thread-safe (reads and
@@ -35,8 +39,9 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
         if (c instanceof SynchronizedConfig) {
             return (SynchronizedConfig) c;
         } else {
-            SynchronizedConfig result = new SynchronizedConfig(c.configFormat(), Config.getDefaultMapCreator(false), parent);
-        
+            SynchronizedConfig result = new SynchronizedConfig(c.configFormat(),
+                    Config.getDefaultMapCreator(false), parent);
+
             CommentedConfig cc = CommentedConfig.fake(c);
             convertSubConfigs(cc, result);
 
@@ -49,7 +54,7 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
     /** Convert all sub-configurations to SynchronizedConfigs. */
     private static void convertSubConfigs(Config c, SynchronizedConfig parent) {
         if (c instanceof AbstractConfig) {
-            AbstractConfig conf = (AbstractConfig)c;
+            AbstractConfig conf = (AbstractConfig) c;
             conf.valueMap().replaceAll((k, v) -> convertValue(v, parent));
         } else {
             for (Config.Entry entry : c.entrySet()) {
@@ -62,16 +67,16 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private static Object convertValue(Object v, SynchronizedConfig parent) {
         if (v instanceof Config) {
             SynchronizedConfig subConfig = convert((Config) v, parent);
             convertSubConfigs(subConfig, subConfig);
             return subConfig;
         } else if (v instanceof List) {
-            List<Object> l = (List<Object>) v;
-            l.replaceAll(elem -> convertValue(elem, parent));
-            return l;
+            List<?> l = (List<?>) v;
+            List<Object> newList = new ArrayList<>(l);
+            newList.replaceAll(elem -> convertValue(elem, parent));
+            return newList;
         } else {
             return v;
         }
@@ -89,20 +94,22 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
     /** Config format. */
     // private final ConfigFormat configFormat;
 
-    public SynchronizedConfig(ConfigFormat<?> configFormat, Supplier<Map<String, Object>> mapSupplier) {
+    public SynchronizedConfig(ConfigFormat<?> configFormat,
+            Supplier<Map<String, Object>> mapSupplier) {
+        this.rootMonitor = new Object();
         this.dataHolder = new DataHolder(this, configFormat, mapSupplier);
-        this.rootMonitor = this;
     }
 
-    public SynchronizedConfig(ConfigFormat<?> configFormat, Supplier<Map<String, Object>> mapSupplier, SynchronizedConfig parent) {
+    public SynchronizedConfig(ConfigFormat<?> configFormat,
+            Supplier<Map<String, Object>> mapSupplier, SynchronizedConfig parent) {
+        this.rootMonitor = (parent == null) ? new Object() : parent.rootMonitor;
         this.dataHolder = new DataHolder(parent == null ? this : parent, configFormat, mapSupplier);
-        this.rootMonitor = (parent == null) ? this : parent.rootMonitor;
     }
 
-    SynchronizedConfig(DataHolder subConfig, Object rootMonitor) {
-        this.dataHolder = subConfig;
-        this.rootMonitor = rootMonitor;
-    }
+    // SynchronizedConfig(DataHolder subConfig, Object rootMonitor) {
+    //     this.dataHolder = subConfig;
+    //     this.rootMonitor = rootMonitor;
+    // }
 
     // ----- specific -----
 
@@ -135,8 +142,22 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
                     "SynchronizedConfig.replaceContentBy(StampedConfig) is illegal (and useless anyway).");
         } else {
             CommentedConfig cc = CommentedConfig.fake(newContent);
+
+            // try to use the same Map supplier as the new content
+            Supplier<Map<String, Object>> mapSupplier = null;
+            if (newContent instanceof AbstractConfig) {
+                Map<String,Object> map = ((AbstractConfig)newContent).valueMap();
+                if (map instanceof HashMap) {
+                    mapSupplier = HashMap::new;
+                } else if (map instanceof LinkedHashMap) {
+                    mapSupplier = LinkedHashMap::new;
+                }
+            }
+            if (mapSupplier == null) {
+                mapSupplier = Config.getDefaultMapCreator(false);
+            }
             synchronized (rootMonitor) {
-                DataHolder dataHolder = new DataHolder(this, newContent.configFormat(), Config.getDefaultMapCreator(false));
+                DataHolder dataHolder = new DataHolder(this, newContent.configFormat(), mapSupplier);
                 dataHolder.putAll(cc);
                 dataHolder.putAllComments(cc);
                 convertSubConfigs(dataHolder, this);
@@ -256,7 +277,7 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
     @Override
     public String toString() {
         synchronized (rootMonitor) {
-            return dataHolder.toString();
+            return "SynchronizedConfig{" + dataHolder.toString() + "}";
         }
     }
 
@@ -305,7 +326,10 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
     @Override
     public Map<String, Object> valueMap() {
         synchronized (rootMonitor) {
-            return new SynchronizedMap<>(dataHolder.valueMap(), rootMonitor);
+            Map<String, Object> transformingMap = new TransformingMap<>(dataHolder.valueMap(),
+                    o -> o,
+                    toWrite -> convertValue(toWrite, this), o -> o);
+            return new SynchronizedMap<>(transformingMap, rootMonitor);
         }
     }
 
@@ -422,7 +446,9 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
             this.format = parent.configFormat();
             this.syncConfig = parent;
         }
-        DataHolder(SynchronizedConfig syncConfig, ConfigFormat<?> configFormat, Supplier<Map<String, Object>> mapCreator) {
+
+        DataHolder(SynchronizedConfig syncConfig, ConfigFormat<?> configFormat,
+                Supplier<Map<String, Object>> mapCreator) {
             super(mapCreator);
             this.format = configFormat;
             this.syncConfig = syncConfig;
@@ -436,8 +462,7 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
         @Override
         public SynchronizedConfig createSubConfig() {
             synchronized (syncConfig.rootMonitor) {
-                DataHolder sub = new DataHolder(syncConfig, format, mapCreator);
-                return new SynchronizedConfig(sub, syncConfig.rootMonitor);
+                return new SynchronizedConfig(format, mapCreator, syncConfig);
             }
         }
 
@@ -445,7 +470,7 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
         public ConfigFormat<?> configFormat() {
             return format;
         }
-        
+
     }
 
     private static final class SynchronizedMap<K, V> implements Map<K, V> {

@@ -1,15 +1,25 @@
 package com.electronwill.nightconfig.json;
 
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import com.electronwill.nightconfig.core.io.*;
+import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
+import static com.electronwill.nightconfig.json.MinimalJsonWriter.*;
 
 import java.io.Writer;
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.Predicate;
 
-import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
-import static com.electronwill.nightconfig.json.MinimalJsonWriter.*;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.io.CharacterOutput;
+import com.electronwill.nightconfig.core.io.ConfigWriter;
+import com.electronwill.nightconfig.core.io.IndentStyle;
+import com.electronwill.nightconfig.core.io.NewlineStyle;
+import com.electronwill.nightconfig.core.io.Utils;
+import com.electronwill.nightconfig.core.io.WriterOutput;
+import com.electronwill.nightconfig.core.io.WritingException;
 
 /**
  * A configurable <a href="http://www.json.org/">JSON</a> writer.
@@ -39,7 +49,7 @@ public final class FancyJsonWriter implements ConfigWriter {
 			output.write(EMPTY_OBJECT);
 			return;
 		}
-		Iterator<Map.Entry<String, Object>> it = config.valueMap().entrySet().iterator();
+		Iterator<? extends UnmodifiableConfig.Entry> it = config.entrySet().iterator();
 		output.write('{');
 		if (newlineAfterObjectStart) {
 			output.write(newline);
@@ -50,9 +60,9 @@ public final class FancyJsonWriter implements ConfigWriter {
 			increaseIndentLevel();
 		}
 		while (true) {
-			final Map.Entry<String, Object> entry = it.next();
-			final String key = entry.getKey();
-			final Object value = entry.getValue();
+			UnmodifiableConfig.Entry entry = it.next();
+			String key = entry.getKey();
+			Object value = entry.getValue();
 
 			if (indentElements) {
 				writeIndent(output);// Indents the line
