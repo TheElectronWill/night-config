@@ -102,6 +102,23 @@ public final class FileWatcher {
 	}
 
 	/**
+	 * Creates a new FileWatcher with the default debounce time and the given exception handler.
+	 * <p>
+	 * The default debounce time is unspecified and may change in the future, but is typically
+	 * around 1 second or less.
+	 */
+	public FileWatcher(Consumer<Exception> exceptionHandler) {
+		// This constructor accepts a Consumer<Exception> for backward-compatibility reasons.
+		this(DEFAULT_DEBOUNCE_TIME, t -> {
+			if (t instanceof Exception) {
+				exceptionHandler.accept((Exception)t);
+			} else {
+				exceptionHandler.accept(new RuntimeException(t));
+			}
+		});
+	}
+
+	/**
 	 * Creates a new FileWatcher with a default exception handler.
 	 *
 	 * The default exception handler is simply:

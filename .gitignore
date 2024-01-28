@@ -24,3 +24,6 @@ nbproject
 
 # Working directory of code examples
 examples/working_dir/
+
+# previous version of the library JAR files
+tests-all/previous-version/
