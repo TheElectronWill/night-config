@@ -16,8 +16,17 @@ public final class TomlWriter implements ConfigWriter {
 	// --- Writer's settings ---
 	private boolean lenientBareKeys = false;
 	private Predicate<UnmodifiableConfig> writeTableInlinePredicate = UnmodifiableConfig::isEmpty;
-	private Predicate<String> writeStringLiteralPredicate = c -> false;
-	private Predicate<List<?>> indentArrayElementsPredicate = c -> false;
+	private Predicate<String> writeStringLiteralPredicate = str -> false;
+	private Predicate<String> writeStringMultilinePredicate = str -> {
+		int i0 = str.indexOf('\n'); // index of first newline
+		int i1 = str.indexOf('\n', i0+1);
+		int i2 = str.indexOf('\n', i1+1);
+		System.err.println("writeStringMultiline ? " + str);
+		System.err.println("i0: " + i0 + ", i1: " + i1 + ", i2: " + i2);
+		return (i0 >= 0 && i1 > 0 && i2 > 0) // at least 3 newlines
+			|| (i0 > 0 && i0 < str.length()-1); // at least one newline in the middle
+	};
+	private Predicate<List<?>> indentArrayElementsPredicate = elem -> false;
 	private char[] indent = IndentStyle.TABS.chars;
 	private char[] newline = NewlineStyle.system().chars;
 	private boolean hideRedundantLevels = true;
@@ -90,16 +99,20 @@ public final class TomlWriter implements ConfigWriter {
 		this.lenientBareKeys = lenientBareKeys;
 	}
 
-	public void setWriteTableInlinePredicate(Predicate<UnmodifiableConfig> writeTableInlinePredicate) {
-		this.writeTableInlinePredicate = writeTableInlinePredicate;
+	public void setWriteTableInlinePredicate(Predicate<UnmodifiableConfig> predicate) {
+		this.writeTableInlinePredicate = predicate;
 	}
 
-	public void setWriteStringLiteralPredicate(Predicate<String> writeStringLiteralPredicate) {
-		this.writeStringLiteralPredicate = writeStringLiteralPredicate;
+	public void setWriteStringLiteralPredicate(Predicate<String> predicate) {
+		this.writeStringLiteralPredicate = predicate;
 	}
 
-	public void setIndentArrayElementsPredicate(Predicate<List<?>> indentArrayElementsPredicate) {
-		this.indentArrayElementsPredicate = indentArrayElementsPredicate;
+	public void setWriteStringMultilinePredicate(Predicate<String> predicate) {
+		this.writeStringMultilinePredicate = predicate;
+	}
+
+	public void setIndentArrayElementsPredicate(Predicate<List<?>> predicate) {
+		this.indentArrayElementsPredicate = predicate;
 	}
 
 	/**
@@ -180,6 +193,10 @@ public final class TomlWriter implements ConfigWriter {
 
 	boolean writesLiteral(String string) {
 		return writeStringLiteralPredicate.test(string);
+	}
+
+	boolean writesMultiline(String string) {
+		return writeStringMultilinePredicate.test(string);
 	}
 
 	boolean writesIndented(List<?> list) {

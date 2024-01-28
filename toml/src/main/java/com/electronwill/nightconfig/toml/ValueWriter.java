@@ -16,9 +16,17 @@ import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 final class ValueWriter {
 	private static void writeString(String string, CharacterOutput output, TomlWriter writer) {
 		if (writer.writesLiteral(string)) {
-			StringWriter.writeLiteral(string, output);
+			if (writer.writesMultiline(string)) {
+				StringWriter.writeLiteralMultiline(string, output);
+			} else {
+				StringWriter.writeLiteral(string, output);
+			}
 		} else {
-			StringWriter.writeBasic(string, output);
+			if (writer.writesMultiline(string)) {
+				StringWriter.writeBasicMultiline(string, output, writer);
+			} else {
+				StringWriter.writeBasic(string, output);
+			}
 		}
 	}
 	/**

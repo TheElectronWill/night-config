@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -28,8 +29,48 @@ import com.electronwill.nightconfig.core.utils.StringUtils;
 public class TomlWriterTest {
 
 	@Test
+	public void multilineStrings1() {
+		var config = TomlFormat.newConfig(LinkedHashMap::new);
+		config.set("basic", "normal string");
+		config.set("multiline", "first line\nsecond line\n\tthird line (indented)\nfourth line!");
+
+		var result = writerWithoutIndentation().writeToString(config);
+		var expected = "basic = \"normal string\"\n" +
+			"multiline = \"\"\"\n" +
+			"first line\n" +
+			"second line\n" +
+			"\tthird line (indented)\n" +
+			"fourth line!\"\"\"\n" + 
+			"";
+		assertEquals(expected, result);
+
+		var reparsed = TomlFormat.instance().createParser().parse(expected);
+		assertEquals(config, reparsed);
+	}
+
+	@Test
+	public void multilineStrings2() {
+		var config = TomlFormat.newConfig(LinkedHashMap::new);
+		config.set("basic", "normal string");
+		config.set("multiline", "a\nb\t\f\n\\_\\_\\ \"\"in double quotes\"\"\nbad triplet\"\"\"");
+		var result = writerWithoutIndentation().writeToString(config);
+		var expected = join("basic = \"normal string\"",
+			"multiline = \"\"\"",
+			"a",
+			"b\t\\f",
+			"\\\\_\\\\_\\\\ \"\"in double quotes\"\"",
+			"bad triplet\"\"\\\"" + "\"\"\"",
+			""
+		);
+		assertEquals(expected, result);
+
+		var reparsed = TomlFormat.instance().createParser().parse(expected);
+		assertEquals(config, reparsed);
+	}
+
+	@Test
 	public void writeToString() {
-		CommentedConfig config = TomlFormat.instance().createConfig();
+		CommentedConfig config = TomlFormat.newConfig(LinkedHashMap::new);
 		Util.populateTest(config);
 
 		var writer = writerWithIndentation();
@@ -57,7 +98,7 @@ public class TomlWriterTest {
 
 	@Test
 	public void correctNewlinesSub() {
-		Config conf = TomlFormat.instance().createConfig();
+		Config conf = TomlFormat.newConfig(LinkedHashMap::new);
 		Config sub = conf.createSubConfig();
 		conf.set("table", sub);
 		sub.set("key", "value");
@@ -71,7 +112,7 @@ public class TomlWriterTest {
 
 	@Test
 	public void correctNewlinesArrayOfTables() {
-		Config conf = TomlFormat.instance().createConfig();
+		Config conf = TomlFormat.newConfig(LinkedHashMap::new);
 
 		Config sub = conf.createSubConfig();
 		sub.set("key", "value");
@@ -88,7 +129,7 @@ public class TomlWriterTest {
 
 	@Test
 	public void correctNewlinesSimple() {
-		Config conf = TomlFormat.instance().createConfig();
+		Config conf = TomlFormat.newConfig(LinkedHashMap::new);
 		conf.set("simple", 123);
 
 		TomlWriter tWriter = new TomlWriter();
@@ -99,7 +140,7 @@ public class TomlWriterTest {
 
 	@Test
 	public void correctNewlinesMixed() {
-		Config conf = TomlFormat.instance().createConfig();
+		Config conf = TomlFormat.newConfig(LinkedHashMap::new);
 		Config sub = conf.createSubConfig();
 		conf.set("simple", 123);
 		conf.set("table", sub);
@@ -114,7 +155,7 @@ public class TomlWriterTest {
 
 	@Test
 	public void correctTableSeparation() {
-		Config config = TomlFormat.instance().createConfig();
+		Config config = TomlFormat.newConfig(LinkedHashMap::new);
 		Config subConfig = config.createSubConfig();
 
 		config.set("first", subConfig);
@@ -132,7 +173,7 @@ public class TomlWriterTest {
 
 	@Test
 	public void correctTableArraySeparation() {
-		Config subConfig = TomlFormat.instance().createConfig();
+		Config subConfig = TomlFormat.newConfig(LinkedHashMap::new);
 		subConfig.set("key", "value");
 
 		List<Config> tableArray = new ArrayList<>();
@@ -162,7 +203,7 @@ public class TomlWriterTest {
 
 	@Test
 	public void noNulls() {
-		Config config = TomlFormat.newConfig();
+		Config config = TomlFormat.newConfig(LinkedHashMap::new);
 		Executable tryToWrite = () -> TomlFormat.instance().createWriter().writeToString(config);
 
 		config.set("null", null);
@@ -174,7 +215,7 @@ public class TomlWriterTest {
 
 	@Test
 	public void foldUselessIntermediateLevels() {
-		var config = TomlFormat.instance().createConfig();
+		var config = TomlFormat.newConfig(LinkedHashMap::new);
 		config.set("top.sub.a", 1);
 		config.set("top.sub.b", 2);
 		assertEquals(join(

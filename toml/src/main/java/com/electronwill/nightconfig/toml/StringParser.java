@@ -50,7 +50,9 @@ final class StringParser {
 	static String parseMultiBasic(CharacterInput input, TomlParser parser) {
 		CharsWrapper.Builder builder = parser.createBuilder();
 		char c;
+		System.err.println("parseMultiBasic: " + (char)input.peek() + ""+(char)input.peek(1) +""+ (char)input.peek(2));
 		while ((c = input.readChar()) != '\"' || input.peek() != '\"' || input.peek(1) != '\"') {
+			System.err.println("parseMultiBasic: " + (char)c + ""+(char)input.peek() +""+ (char)input.peek(1));
 			if (c == '\\') {
 				final char next = input.readChar();
 				if (next == '\n'

@@ -49,22 +49,22 @@ public class Util {
 
     static void populateTest(CommentedConfig config) {
         Config subConfig = config.createSubConfig();
-        subConfig.set("string", "test");
         subConfig.set("dateTime",
-                ZonedDateTime.of(2024, 05, 02, 13, 17, 38, 777, ZoneOffset.ofHours(+1)));
+            ZonedDateTime.of(2024, 05, 02, 13, 17, 38, 777, ZoneOffset.ofHours(+1)));
         subConfig.set("sub", config.createSubConfig());
+        subConfig.set("string", "test");
 
         List<Config> arrayOfTables = List.of(subConfig, subConfig, subConfig);
 
+        config.set("bool_array", List.of(true, false, true, false));
         config.set("string", "\"value\"");
+        config.set("double", 3.1415926535);
         config.set("integer", 2);
         config.set("long", 123456789L);
-        config.set("double", 3.1415926535);
-        config.set("bool_array", List.of(true, false, true, false));
-        config.set("config", subConfig);
-        config.set("table_array", arrayOfTables);
-        config.set("table_array2", arrayOfTables);
         config.set("enum", TestEnum.A);
+        config.set("config", subConfig);
+        config.set("table_array2", arrayOfTables);
+        config.set("table_array", arrayOfTables);
     }
 
     static final String EXPECTED_SERIALIZED = "bool_array = [\n" + //
