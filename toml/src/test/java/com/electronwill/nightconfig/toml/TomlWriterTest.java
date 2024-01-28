@@ -164,7 +164,7 @@ public class TomlWriterTest {
 
 		TomlWriter writer = new TomlWriter();
 		String written = writer.writeToString(config);
-		System.err.println(written);
+		// System.err.println(written);
 		assertEquals(
 				join("[first]", "\tkey = \"value\"", "", "[second]", "\tkey = \"value\"",
 						""),

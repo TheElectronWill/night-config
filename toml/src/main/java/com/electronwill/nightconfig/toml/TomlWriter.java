@@ -21,8 +21,6 @@ public final class TomlWriter implements ConfigWriter {
 		int i0 = str.indexOf('\n'); // index of first newline
 		int i1 = str.indexOf('\n', i0+1);
 		int i2 = str.indexOf('\n', i1+1);
-		System.err.println("writeStringMultiline ? " + str);
-		System.err.println("i0: " + i0 + ", i1: " + i1 + ", i2: " + i2);
 		return (i0 >= 0 && i1 > 0 && i2 > 0) // at least 3 newlines
 			|| (i0 > 0 && i0 < str.length()-1); // at least one newline in the middle
 	};

@@ -134,7 +134,6 @@ final class Util {
 
         @Override
         public CommentedConfig parse(Reader reader) {
-            System.err.println("TestParser.parse(reader)");
             CommentedConfig config = CommentedConfig.inMemory();
             parseInto(config, ParsingMode.REPLACE);
             return config;
@@ -152,7 +151,6 @@ final class Util {
         }
 
         private void parseInto(Config config, ParsingMode parsingMode) {
-            System.err.println("TestParser.parseInto(config, " + parsingMode + ")");
             parsingMode.prepareParsing(config);
             parsingMode.put(config, "a", "new A");
             parsingMode.put(config, "b", "new B");
