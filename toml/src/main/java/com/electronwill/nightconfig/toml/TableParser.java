@@ -17,8 +17,7 @@ final class TableParser {
 
 	private static final char[] KEY_END = {'\t', ' ', '=', '.', '\n', '\r', ']', ':'};
 
-	static CommentedConfig parseInline(CharacterInput input, TomlParser parser) {
-		CommentedConfig config = TomlFormat.instance().createConfig();
+	static <T extends CommentedConfig> T parseInline(CharacterInput input, TomlParser parser, T config) {
 		parser.registerInlineTable(config);
 		while (true) {
 			char keyFirst = Toml.readNonSpaceChar(input, false);
@@ -29,7 +28,7 @@ final class TableParser {
 			char sep = Toml.readNonSpaceChar(input, false);
 			checkInvalidSeparator(sep, key, parser);
 
-			Object value = ValueParser.parse(input, parser);
+			Object value = ValueParser.parse(input, parser, config);
 			Object previous = parser.getParsingMode().put(config.valueMap(), key, value);
 			checkDuplicateKey(key, previous, true);
 
@@ -55,7 +54,7 @@ final class TableParser {
 			}
 			List<String> key = parseDottedKey(input, (char)keyFirst, parser);
 
-			Object value = ValueParser.parse(input, parser);
+			Object value = ValueParser.parse(input, parser, config);
 			Object previous = parser.getParsingMode().put(config, key, value);
 			checkDuplicateKey(key, previous, parser.configWasEmpty());
 
@@ -98,8 +97,8 @@ final class TableParser {
 		}
 	}
 
-	static CommentedConfig parseNormal(CharacterInput input, TomlParser parser) {
-		return parseNormal(input, parser, TomlFormat.instance().createConfig());
+	static CommentedConfig parseNormal(CommentedConfig parentConfig, CharacterInput input, TomlParser parser) {
+		return parseNormal(input, parser, parentConfig.createSubConfig());
 	}
 
 	static List<String> parseTableName(CharacterInput input, TomlParser parser, boolean array) {

@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
 import com.electronwill.nightconfig.core.io.*;
 import com.electronwill.nightconfig.core.utils.FastStringReader;
 
@@ -75,21 +76,32 @@ public final class JsonParser implements ConfigParser<Config> {
 	 * @return either a JsonConfig or a List, depending on the document's type
 	 */
 	public Object parseDocument(Reader reader) {
+		return parseDocument(reader, configFormat.createConfig());
+	}
+
+	/**
+	 * Parses a JSON document, either a JSON object (parsed to a JsonConfig) or a JSON array
+	 * (parsed to a List).
+	 *
+	 * @param reader the Reader to parse
+	 * @return either a JsonConfig or a List, depending on the document's type
+	 */
+	public Object parseDocument(Reader reader, Config configModel) {
 		CharacterInput input = new ReaderInput(reader);
 		if (input.peek() == -1) {
 			if (emptyDataAccepted) {
 				// If data is empty && we accept empty data => return empty config
-				return configFormat.createConfig();
+				return configModel.createSubConfig();
 			} else {
 				throw new ParsingException("No json data: input is empty");
 			}
 		}
 		char firstChar = input.readCharAndSkip(SPACES);
 		if (firstChar == '{') {
-			return parseObject(input, configFormat.createConfig(), ParsingMode.MERGE);
+			return parseObject(input, configModel.createSubConfig(), ParsingMode.MERGE);
 		}
 		if (firstChar == '[') {
-			return parseArray(input, new ArrayList<>(), ParsingMode.MERGE);
+			return parseArray(input, new ArrayList<>(), ParsingMode.MERGE, configModel.createSubConfig());
 		}
 		throw new ParsingException("Invalid first character for a json document: " + firstChar);
 	}
@@ -99,7 +111,7 @@ public final class JsonParser implements ConfigParser<Config> {
 	 */
 	@Override
 	public Config parse(Reader reader) {
-		Config config = JsonFormat.minimalInstance().createConfig();
+		Config config = configFormat.createConfig();
 		parse(reader, config, ParsingMode.MERGE);
 		return config;
 	}
@@ -122,8 +134,15 @@ public final class JsonParser implements ConfigParser<Config> {
 		if (firstChar != '{') {
 			throw new ParsingException("Invalid first character for a json object: " + firstChar);
 		}
-		parsingMode.prepareParsing(destination);
-		parseObject(input, destination, parsingMode);
+		if (destination instanceof ConcurrentConfig) {
+			((ConcurrentConfig)destination).bulkUpdate(view -> {
+				parsingMode.prepareParsing(view);
+				parseObject(input, view, parsingMode);
+			});
+		} else {
+			parsingMode.prepareParsing(destination);
+			parseObject(input, destination, parsingMode);
+		}
 	}
 
 	/**
@@ -144,7 +163,7 @@ public final class JsonParser implements ConfigParser<Config> {
 	 */
 	public <T> List<T> parseList(Reader reader) {
 		List<Object> list = new ArrayList<>();
-		parseList(reader, list, ParsingMode.MERGE);
+		parseList(reader, list, ParsingMode.MERGE, configFormat.createConfig());
 		return (List<T>)list;
 	}
 
@@ -155,6 +174,16 @@ public final class JsonParser implements ConfigParser<Config> {
 	 * @param destination the List where to put the data
 	 */
 	public void parseList(Reader reader, List<?> destination, ParsingMode parsingMode) {
+		parseList(reader, destination, parsingMode, configFormat.createConfig());
+	}
+
+	/**
+	 * Parses a JSON array to a List, with a model for the configurations (JSON objects) contained in the list.
+	 *
+	 * @param reader      the Reader to parse
+	 * @param destination the List where to put the data
+	 */
+	public void parseList(Reader reader, List<?> destination, ParsingMode parsingMode, Config configModel) {
 		CharacterInput input = new ReaderInput(reader);
 		if (input.peek() == -1) {
 			if (emptyDataAccepted) {
@@ -168,7 +197,7 @@ public final class JsonParser implements ConfigParser<Config> {
 		if (firstChar != '[') {
 			throw new ParsingException("Invalid first character for a json array: " + firstChar);
 		}
-		parseArray(input, destination, parsingMode);
+		parseArray(input, destination, parsingMode, configModel);
 	}
 
 	private <T extends Config> T parseObject(CharacterInput input, T config, ParsingMode parsingMode) {
@@ -202,11 +231,11 @@ public final class JsonParser implements ConfigParser<Config> {
 		}
 
 		char vfirst = input.readCharAndSkip(SPACES);
-		Object value = parseValue(input, vfirst, parsingMode);
+		Object value = parseValue(input, vfirst, parsingMode, config);
 		parsingMode.put(config, key, value);
 	}
 
-	private <T> List<T> parseArray(CharacterInput input, List<T> list, ParsingMode parsingMode) {
+	private <T> List<T> parseArray(CharacterInput input, List<T> list, ParsingMode parsingMode, Config parentConfig) {
 		boolean first = true;
 		while (true) {
 			char valueFirst = input.readCharAndSkip(SPACES);// the first character of the value
@@ -214,7 +243,7 @@ public final class JsonParser implements ConfigParser<Config> {
 				return list;
 			}
 			first = false;
-			T value = (T)parseValue(input, valueFirst, parsingMode);
+			T value = (T)parseValue(input, valueFirst, parsingMode, parentConfig);
 			list.add(value);
 			char next = input.readCharAndSkip(SPACES);// the next character, should be ']' or ','
 			if (next == ']') {// end of the array
@@ -225,14 +254,14 @@ public final class JsonParser implements ConfigParser<Config> {
 		}
 	}
 
-	private Object parseValue(CharacterInput input, char firstChar, ParsingMode parsingMode) {
+	private Object parseValue(CharacterInput input, char firstChar, ParsingMode parsingMode, Config parentConfig) {
 		switch (firstChar) {
 			case '"':
 				return parseString(input);
 			case '{':
-				return parseObject(input, configFormat.createConfig(), parsingMode);
+				return parseObject(input, parentConfig.createSubConfig(), parsingMode);
 			case '[':
-				return parseArray(input, new ArrayList<>(), parsingMode);
+				return parseArray(input, new ArrayList<>(), parsingMode, parentConfig);
 			case 't':
 				return parseTrue(input);
 			case 'f':

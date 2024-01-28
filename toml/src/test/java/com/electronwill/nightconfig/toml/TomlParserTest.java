@@ -1,14 +1,20 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.InMemoryCommentedFormat;
 import com.electronwill.nightconfig.core.TestEnum;
+import com.electronwill.nightconfig.core.concurrent.StampedConfig;
+import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.io.ParsingException;
+import com.electronwill.nightconfig.core.io.ParsingMode;
+
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -27,7 +33,23 @@ public class TomlParserTest {
 	public void readOfficialExample() {
 		File f = new File("example.toml");
 		CommentedConfig parsed = new TomlParser().parse(f, FileNotFoundAction.THROW_ERROR);
-		System.out.println("--- parsed --- \n" + parsed);
+		Util.checkExample(parsed);
+	}
+
+	@Test
+	public void readToSynchronizedConfig() {
+		File f = new File("example.toml");
+		SynchronizedConfig config = new SynchronizedConfig(InMemoryCommentedFormat.defaultInstance(), HashMap::new);
+		new TomlParser().parse(f, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
+		Util.checkExample(config);
+	}
+
+	@Test
+	public void readToStampedConfig() {
+		File f = new File("example.toml");
+		StampedConfig config = new StampedConfig(InMemoryCommentedFormat.defaultInstance(), HashMap::new);
+		new TomlParser().parse(f, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
+		Util.checkExample(config);
 	}
 
 	@Test

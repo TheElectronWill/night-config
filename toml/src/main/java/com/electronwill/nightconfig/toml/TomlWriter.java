@@ -20,6 +20,9 @@ public final class TomlWriter implements ConfigWriter {
 	private Predicate<List<?>> indentArrayElementsPredicate = c -> false;
 	private char[] indent = IndentStyle.TABS.chars;
 	private char[] newline = NewlineStyle.system().chars;
+	private boolean hideRedundantLevels = true;
+
+	// state
 	private int currentIndentLevel;
 
 	// --- Writer's methods ---
@@ -27,10 +30,58 @@ public final class TomlWriter implements ConfigWriter {
 	public void write(UnmodifiableConfig config, Writer writer) {
 		currentIndentLevel = -1;//-1 to make the root entries not indented
 		CharacterOutput output = new WriterOutput(writer);
-		TableWriter.writeNormal(config, new ArrayList<>(), output, this);
+		TableWriter.writeTopLevel(config, new ArrayList<>(), output, this);
 	}
 
 	// --- Getters/setters for the settings ---
+	/**
+	 * Gets the "hide redundant levels" policy. It is enabled by default.
+	 * <p>
+	 * If set to false, a possible output would be:
+	 * <pre>
+	 * {@literal
+	 * [table]
+	 * [table.sub]
+	 * [table.sub.nested]
+	 * value = 1
+	 * }
+	 * </pre>
+	 * <p>
+	 * If set to true, the same config will be written as:
+	 * <pre>
+	 * {@literal
+	 * [table.sub.nested]
+	 * value = 1
+	 * }
+	 * </pre>
+	 * @return true if this writer hides the redundant intermediate levels.
+	 */
+	public boolean isHidingRedundantLevels() {
+		return hideRedundantLevels;
+	}
+
+	/**
+	 * Sets whether redundant intermediate levels should be hidden or written to the TOML output.
+	 * @see {@link #isHidingRedundantLevels()}
+	 */
+	public void setHideRedundantLevels(boolean hideRedundantLevels) {
+		this.hideRedundantLevels = hideRedundantLevels;
+	}
+
+	/**
+	 * @see {@link #isHidingRedundantLevels()}
+	 */
+	public boolean isOmitIntermediateLevels() {
+		return hideRedundantLevels;
+	}
+
+	/**
+	 * @see {@link #setHideRedundantLevels(boolean)}
+	 */
+	public void setOmitIntermediateLevels(boolean omitIntermediateLevels) {
+		setHideRedundantLevels(omitIntermediateLevels);
+	}
+
 	public boolean isLenientWithBareKeys() {
 		return lenientBareKeys;
 	}
@@ -51,10 +102,18 @@ public final class TomlWriter implements ConfigWriter {
 		this.indentArrayElementsPredicate = indentArrayElementsPredicate;
 	}
 
+	/**
+	 * Changes the indentation style using a predefined style.
+	 * For example, to indent with four spaces, call {@code setIndent(IndentStyle.SPACES_4)}.
+	 */
 	public void setIndent(IndentStyle indentStyle) {
 		this.indent = indentStyle.chars;
 	}
 
+	/**
+	 * Changes the indentation style using a custom string.
+	 * For example, to indent with tabs, call {@code setIndent("\t")}.
+	 */
 	public void setIndent(String indentString) {
 		this.indent = indentString.toCharArray();
 	}
@@ -63,6 +122,10 @@ public final class TomlWriter implements ConfigWriter {
 		this.newline = newlineStyle.chars;
 	}
 
+	/**
+	 * Changes the string to write for newlines.
+	 * By default, the system's line separator is used.
+	 */
 	public void setNewline(String newlineString) {
 		this.newline = newlineString.toCharArray();
 	}
@@ -86,7 +149,7 @@ public final class TomlWriter implements ConfigWriter {
 		output.write(newline);
 	}
 
-	void writeComment(String commentString, CharacterOutput output) {
+	void writeIndentedComment(String commentString, CharacterOutput output) {
 		List<String> comments = StringUtils.splitLines(commentString);
 		for (String comment : comments) {
 			writeIndent(output);
@@ -94,6 +157,11 @@ public final class TomlWriter implements ConfigWriter {
 			output.write(comment);
 			output.write(newline);
 		}
+	}
+
+	void writeIndentedKey(String key, CharacterOutput output) {
+		writeIndent(output);
+		writeKey(key, output);
 	}
 
 	void writeKey(String key, CharacterOutput output) {

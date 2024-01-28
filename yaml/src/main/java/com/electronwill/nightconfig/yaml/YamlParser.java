@@ -1,7 +1,13 @@
 package com.electronwill.nightconfig.yaml;
 
+import com.electronwill.nightconfig.core.AbstractConfig;
+import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
+import com.electronwill.nightconfig.core.concurrent.StampedConfig;
+import com.electronwill.nightconfig.core.concurrent.StampedConfig.Accumulator;
+import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.ParsingMode;
@@ -13,6 +19,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.Reader;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 
@@ -24,6 +31,10 @@ import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 public final class YamlParser implements ConfigParser<Config> {
 	private final Yaml yaml;
 	private final ConfigFormat<Config> configFormat;
+
+	public YamlParser() {
+		this(YamlFormat.defaultInstance());
+	}
 
 	public YamlParser(YamlFormat configFormat) {
 		this.yaml = configFormat.yaml;
@@ -53,40 +64,39 @@ public final class YamlParser implements ConfigParser<Config> {
 
 	@Override
 	public void parse(Reader reader, Config destination, ParsingMode parsingMode) {
+		if (destination instanceof ConcurrentConfig) {
+			((ConcurrentConfig)destination).bulkUpdate(view -> {
+				parse(reader, view, parsingMode);
+			});
+			return;
+		}
+
 		try {
-			Map<String, Object> wrappedMap = wrap(yaml.loadAs(reader, Map.class));
+			Map<String, Object> map = yaml.loadAs(reader, Map.class);
 			parsingMode.prepareParsing(destination);
-			if (parsingMode == ParsingMode.ADD) {
-				for (Map.Entry<String, Object> entry : wrappedMap.entrySet()) {
-					destination.valueMap().putIfAbsent(entry.getKey(), entry.getValue());
-				}
-			} else {
-				destination.valueMap().putAll(wrappedMap);
+			for (Map.Entry<String, Object> entry : map.entrySet()) {
+				parsingMode.put(destination, Collections.singletonList(entry.getKey()), convertValue(entry.getValue(), destination));
 			}
 		} catch (Exception e) {
 			throw new ParsingException("YAML parsing failed", e);
 		}
 	}
 
-	private Map<String, Object> wrap(Map<String, Object> map) {
-		return new TransformingMap<>(map, this::wrap, v -> v, v -> v);
-	}
-
-	private List<Object> wrapList(List<Object> list) {
-		return new TransformingList<>(list, this::wrap, v -> v, v -> v);
-	}
-
-	private Object wrap(Object value) {
-		if (value instanceof Map) {
-			Map<String, Object> map = wrap((Map)value);
-			return Config.wrap(map, configFormat);
+	@SuppressWarnings("unchecked")
+	private static Object convertValue(Object v, Config parentConfig) {
+		if (v instanceof Map) {
+			Map<String, Object> map = (Map<String, Object>)v;
+			Config sub = parentConfig.createSubConfig();
+			for (Map.Entry<String, Object> entry : map.entrySet()) {
+				sub.set(Collections.singletonList(entry.getKey()), convertValue(entry.getValue(), sub));
+			}
+			return sub;
+		} else if (v instanceof List) {
+			List<Object> list = (List<Object>)v;
+			list.replaceAll(e -> convertValue(e, parentConfig));
+			return list;
+		} else {
+			return v;
 		}
-		if (value instanceof List) {
-			return (List<Object>) wrapList((List)value);
-		}
-		if (value == null) {
-			return NULL_OBJECT;
-		}
-		return value;
 	}
 }

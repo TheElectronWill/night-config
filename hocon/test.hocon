@@ -1,5 +1,5 @@
 # Comment associated to the boolean array
-# With multiples lines
+# With multiple lines
 bool_array: [
 	true,
 	false,

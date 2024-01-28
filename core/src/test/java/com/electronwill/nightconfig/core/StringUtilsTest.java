@@ -21,9 +21,22 @@ public class StringUtilsTest {
 		List<String> split2 = new LinkedList<>();
 		StringUtils.split("some spaces here but no separator!", '.', split2);
 		assertEquals(Collections.singletonList("some spaces here but no separator!"), split2);
+
+		assertEquals(Arrays.asList("a", ""), StringUtils.split("a.", '.'));
+		assertEquals(Arrays.asList("", "a"), StringUtils.split(".a", '.'));
+		assertEquals(Arrays.asList("", "", "a"), StringUtils.split("..a", '.'));
 	}
 
 	@Test
+	public void splitLines() throws Exception {
+		String str = "a\nb\nc\nlooooooooooooooooooooooong line";
+		assertEquals(Arrays.asList("a", "b", "c", "looooooooooooooooooooooong line"), StringUtils.splitLines(str));
+
+		str = "\naa\nbb\n";
+		assertEquals(Arrays.asList("", "aa", "bb", ""), StringUtils.splitLines(str));
+	}
+
+	// @Test
 	public void compareWithJreSplit() {
 		//Split with '.' separator
 		printSplitted("a.b.c", '.');

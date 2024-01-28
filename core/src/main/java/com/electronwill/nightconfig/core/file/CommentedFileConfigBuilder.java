@@ -5,8 +5,6 @@ import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.io.ParsingMode;
 import com.electronwill.nightconfig.core.io.WritingMode;
 
-import java.io.File;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 
@@ -32,12 +30,12 @@ public final class CommentedFileConfigBuilder extends GenericBuilder<CommentedCo
 	}
 
 	@Override
-	protected CommentedFileConfig buildAutosave(FileConfig chain) {
-		return new AutosaveCommentedFileConfig(getConfig(), chain);
+	protected CommentedFileConfig buildAutosave(CommentedFileConfig chain) {
+		return new AutosaveCommentedFileConfig(chain, autoSaveListener);
 	}
 
 	@Override
-	protected CommentedFileConfig buildNormal(FileConfig chain) {
-		return new SimpleCommentedFileConfig(getConfig(), chain);
+	protected CommentedFileConfig buildNormal(CommentedFileConfig chain) {
+		return new SimpleCommentedFileConfig(chain);
 	}
 }

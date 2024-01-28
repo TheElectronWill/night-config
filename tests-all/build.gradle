@@ -1,0 +1,62 @@
+plugins {
+    id 'java'
+    id 'jacoco-report-aggregation'
+    id 'me.champeau.gradle.japicmp' version '0.4.2'
+}
+
+dependencies {
+    implementation project(':core')
+    implementation project(':hocon')
+    implementation project(':json')
+    implementation project(':toml')
+    implementation project(':yaml')
+}
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('testCodeCoverageReport', JacocoReport) 
+}
+
+
+// Configure japicmp plugin
+tasks.register('japicmp', me.champeau.gradle.japicmp.JapicmpTask) {
+    var previousJars = fileTree("${rootProject.projectDir}/tests-all/previous-version").matching {
+        include "*.jar"
+    }
+    var newJars = files(
+        project(':core').tasks.named('jar'),
+        project(':hocon').tasks.named('jar'),
+        project(':json').tasks.named('jar'),
+        project(':toml').tasks.named('jar'),
+        project(':yaml').tasks.named('jar'),
+    )
+    oldClasspath.from(previousJars)
+    newClasspath.from(newJars)
+    htmlOutputFile = layout.buildDirectory.file('reports/japicmp.html')
+    onlyBinaryIncompatibleModified = true
+    failOnSourceIncompatibility = true
+
+    // Backward-compatible changes are OK.
+    // See https://github.com/siom79/japicmp/blob/master/japicmp/src/main/java/japicmp/model/JApiCompatibilityChange.java
+    var excludedChanges = japicmp.model.JApiCompatibilityChange.values().findAll {
+        it.isSourceCompatible() && it.isBinaryCompatible()
+    }.collect {
+        it.name()
+    } + ["METHOD_NEW_DEFAULT"]
+    var excludedClasses = [
+        "com.electronwill.nightconfig.core.file.FileConfigBuilder",
+        "com.electronwill.nightconfig.core.file.CommentedFileConfigBuilder",
+    ]
+    logger.info("excluded changes: ${excludedChanges}")
+    logger.info("excluded classes: ${excludedClasses}")
+    compatibilityChangeExcludes = excludedChanges
+    classExcludes = excludedClasses
+}

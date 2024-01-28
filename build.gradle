@@ -1,8 +1,9 @@
 plugins {
     id 'biz.aQute.bnd.builder' version '6.4.0' apply false
+	
 }
 
-configure(subprojects.findAll {it.name != "examples"}) {
+configure(subprojects.findAll {it.name != "examples" && it.name != "tests-all"}) {
 	group projectGroup
 	version projectVersion
 	description "$projectDescription - $name module"
@@ -11,6 +12,7 @@ configure(subprojects.findAll {it.name != "examples"}) {
 	apply plugin: 'signing'
 	apply plugin: 'java-library'
     apply plugin: 'biz.aQute.bnd.builder'
+	apply plugin: 'jacoco'
 
 	archivesBaseName = "nightconfig-$name"
 
@@ -20,6 +22,7 @@ configure(subprojects.findAll {it.name != "examples"}) {
 
 	java {
 		sourceCompatibility = JavaVersion.VERSION_1_8
+		targetCompatibility = JavaVersion.VERSION_1_8
 	}
 
 	test {
@@ -30,16 +33,25 @@ configure(subprojects.findAll {it.name != "examples"}) {
 		}
 	}
 
+	compileTestJava {
+		sourceCompatibility = JavaVersion.VERSION_11
+		targetCompatibility = JavaVersion.VERSION_11
+	}
+
+	jacocoTestReport {
+		dependsOn test
+	}
+
 	dependencies {
 		testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
 	}
 
 	jar {
 		manifest {
-			attributes "Automatic-Module-Name": "com.electronwill.nightconfig.$project.name"
+			attributes "Automatic-Module-Name": "com.electronwill.nightconfig.${project.name}"
 		}
         bundle {
-            bnd("Bundle-SymbolicName": "com.electronwill.nightconfig.$project.name",
+            bnd("Bundle-SymbolicName": "com.electronwill.nightconfig.${project.name}",
                 "-exportcontents": "com.electronwill.nightconfig.*",
                 "-sources": false) // We don't want a OSGI-OPT directory in the non-sources jar
         }
@@ -108,7 +120,7 @@ configure(subprojects.findAll {it.name != "examples"}) {
 	}
 }
 
-configure(subprojects.findAll {!it.name.contains("core") && it.name != "examples"}) {
+configure(subprojects.findAll {!it.name.contains("core") && it.name != "examples" && it.name != "tests-all"}) {
 	task fatJar(type: Jar) {
 		archiveBaseName = archivesBaseName + '-fat'
 		from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }

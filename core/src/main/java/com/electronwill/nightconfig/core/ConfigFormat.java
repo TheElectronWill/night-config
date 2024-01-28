@@ -5,6 +5,7 @@ import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.utils.WriterSupplier;
 
 import java.io.File;
+import java.io.Writer;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,7 +15,7 @@ import java.util.function.Supplier;
 /**
  * A configuration format, that can parse, create and write some types of configurations.
  *
- * @param <C>the type of configurations created by this format
+ * @param <C> the type of configurations created by this format
  * @author TheElectronWill
  */
 public interface ConfigFormat<C extends Config> {
@@ -105,7 +106,17 @@ public interface ConfigFormat<C extends Config> {
 	 * Initializes an empty configuration file so that it can be parsed to an empty configuration.
 	 * Does nothing by default.
 	 *
-	 * @param ws an objet that provides a Writer to the file.
+	 * @param ws an objet that provides a Writer to the file (the Writer will be closed by this method)
 	 */
-	default void initEmptyFile(WriterSupplier ws) throws IOException {}
+	default void initEmptyFile(WriterSupplier ws) throws IOException {
+		initEmptyFile(ws.get());
+	}
+
+	/**
+	 * Initializes an empty configuration file so that it can be parsed to an empty configuration.
+	 * Does nothing by default.
+	 *
+	 * @param writer a Writer to use to write to the file (will not be closed)
+	 */
+	default void initEmptyFile(Writer writer) throws IOException {}
 }

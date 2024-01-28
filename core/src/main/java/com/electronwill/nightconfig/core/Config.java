@@ -42,7 +42,7 @@ public interface Config extends UnmodifiableConfig {
 	 * @param path  the value's path, each element of the list is a different part of the path.
 	 * @param value the value to set
 	 * @return true if the value has been added, false if a value is already associated with the
-	 * given path
+	 *         given path
 	 */
 	boolean add(List<String> path, Object value);
 
@@ -52,7 +52,7 @@ public interface Config extends UnmodifiableConfig {
 	 * @param path  the value's path, each part separated by a dot. Example "a.b.c"
 	 * @param value the value to set
 	 * @return true if the value has been added, false if a value is already associated with the
-	 * given path
+	 *         given path
 	 */
 	default boolean add(String path, Object value) {
 		return add(split(path, '.'), value);
@@ -207,7 +207,7 @@ public interface Config extends UnmodifiableConfig {
 	 */
 	Config createSubConfig();
 
-	//--- Scala convenience methods ---
+	// --- Scala convenience methods ---
 
 	/**
 	 * For scala: sets a config value.
@@ -231,7 +231,7 @@ public interface Config extends UnmodifiableConfig {
 		set(path, value);
 	}
 
-	//--- Static methods ---
+	// --- Static methods ---
 
 	/**
 	 * Creates a Config of the given format.
@@ -249,8 +249,9 @@ public interface Config extends UnmodifiableConfig {
 	 * If you wish all your configs to preserve insertion order, please have a look at the more
 	 * practical setting {@link #setInsertionOrderPreserved(boolean)}.
 	 *
-	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
-	 * @param format the config's format
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including
+	 *                   sub-configs)
+	 * @param format     the config's format
 	 * @return a new config backed by the map
 	 */
 	static Config of(Supplier<Map<String, Object>> mapCreator, ConfigFormat<?> format) {
@@ -338,8 +339,9 @@ public interface Config extends UnmodifiableConfig {
 	 *
 	 * @see #of(Supplier, ConfigFormat)
 	 *
-	 * @param config the config to copy
-	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
+	 * @param config     the config to copy
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including
+	 *                   sub-configs)
 	 * @return a copy of the config
 	 */
 	static Config copy(UnmodifiableConfig config, Supplier<Map<String, Object>> mapCreator) {
@@ -366,12 +368,14 @@ public interface Config extends UnmodifiableConfig {
 	 *
 	 * @see #of(Supplier, ConfigFormat)
 	 *
-	 * @param config the config to copy
-	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
-	 * @param format the config's format
+	 * @param config     the config to copy
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including
+	 *                   sub-configs)
+	 * @param format     the config's format
 	 * @return a copy of the config
 	 */
-	static Config copy(UnmodifiableConfig config, Supplier<Map<String, Object>> mapCreator, ConfigFormat<?> format) {
+	static Config copy(UnmodifiableConfig config, Supplier<Map<String, Object>> mapCreator,
+			ConfigFormat<?> format) {
 		return new SimpleConfig(config, mapCreator, format);
 	}
 
@@ -409,7 +413,7 @@ public interface Config extends UnmodifiableConfig {
 	 *         give no guarantee about the values ordering.
 	 */
 	static boolean isInsertionOrderPreserved() {
-		String prop =  System.getProperty("nightconfig.preserveInsertionOrder");
+		String prop = System.getProperty("nightconfig.preserveInsertionOrder");
 		return (prop != null) && (prop.equals("true") || prop.equals("1"));
 	}
 
@@ -431,13 +435,18 @@ public interface Config extends UnmodifiableConfig {
 	/**
 	 * Returns a map supplier that fulfills the given requirements.
 	 *
-	 * @param concurrent true to make the maps thread-safe
+	 * @param concurrent              true to make the maps thread-safe
 	 * @param insertionOrderPreserved true to make the maps preserve the insertion order of values
 	 * @return a map supplier corresponding to the given settings
+	 * @deprecated A concurrent HashMap is not enough to make the whole configuration robust to multi-threaded
+	 *             use. Prefer to use a {@link com.electronwill.nightconfig.core.concurrent.ConcurrentConfig}
+	 *             instead.
 	 */
-	static <T> Supplier<Map<String, T>> getDefaultMapCreator(boolean concurrent, boolean insertionOrderPreserved) {
+	static <T> Supplier<Map<String, T>> getDefaultMapCreator(boolean concurrent,
+			boolean insertionOrderPreserved) {
 		if (insertionOrderPreserved) {
-			return concurrent ? ()->Collections.synchronizedMap(new LinkedHashMap<>()) : LinkedHashMap::new;
+			return concurrent ? () -> Collections.synchronizedMap(new LinkedHashMap<>())
+					: LinkedHashMap::new;
 			// TODO find or make a ConcurrentMap that preserves the insertion order
 		}
 		return concurrent ? ConcurrentHashMap::new : HashMap::new;
@@ -450,7 +459,11 @@ public interface Config extends UnmodifiableConfig {
 	 *
 	 * @param concurrent true to make the maps thread-safe
 	 * @return a map supplier corresponding to the given settings
+	 * @deprecated A concurrent HashMap is not enough to make the whole configuration robust to multi-threaded
+	 *             use. Prefer to use a {@link com.electronwill.nightconfig.core.concurrent.ConcurrentConfig}
+	 *             instead.
 	 */
+	@Deprecated
 	static <T> Supplier<Map<String, T>> getDefaultMapCreator(boolean concurrent) {
 		return getDefaultMapCreator(concurrent, Config.isInsertionOrderPreserved());
 	}

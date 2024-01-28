@@ -1,20 +1,24 @@
 package com.electronwill.nightconfig.toml;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.io.StringWriter;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
+import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.InMemoryCommentedFormat;
 import com.electronwill.nightconfig.core.NullObject;
-import com.electronwill.nightconfig.core.TestEnum;
+import com.electronwill.nightconfig.core.concurrent.StampedConfig;
+import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
+import com.electronwill.nightconfig.core.io.IndentStyle;
 import com.electronwill.nightconfig.core.io.WritingException;
 import com.electronwill.nightconfig.core.utils.StringUtils;
 
@@ -25,35 +29,30 @@ public class TomlWriterTest {
 
 	@Test
 	public void writeToString() {
-		Config subConfig = TomlFormat.instance().createConfig();
-		subConfig.set("string", "test");
-		subConfig.set("dateTime", ZonedDateTime.now());
-		subConfig.set("sub", TomlFormat.instance().createConfig());
+		CommentedConfig config = TomlFormat.instance().createConfig();
+		Util.populateTest(config);
 
-		List<Config> tableArray = new ArrayList<>();
-		tableArray.add(subConfig);
-		tableArray.add(subConfig);
-		tableArray.add(subConfig);
+		var writer = writerWithIndentation();
+		var result = writer.writeToString(config);
+		assertEquals(Util.EXPECTED_SERIALIZED, result);
+	}
 
-		Config config = TomlFormat.instance().createConfig();
-		config.set("string", "\"value\"");
-		config.set("integer", 2);
-		config.set("long", 123456789L);
-		config.set("double", 3.1415926535);
-		config.set("bool_array", Arrays.asList(true, false, true, false));
-		config.set("config", subConfig);
-		config.set("table_array", tableArray);
-		config.set("table_array2", tableArray);
-		config.set("enum", TestEnum.A);
+	@Test
+	public void writeSynchronizedConfig() {
+		CommentedConfig config = new SynchronizedConfig(InMemoryCommentedFormat.defaultInstance(),
+				HashMap::new);
+		Util.populateTest(config);
+		var result = writerWithIndentation().writeToString(config);
+		assertEquals(Util.EXPECTED_SERIALIZED, result);
+	}
 
-		StringWriter stringWriter = new StringWriter();
-		TomlWriter writer = new TomlWriter();
-		writer.setIndentArrayElementsPredicate(array -> array.size() > 3);
-		writer.setWriteTableInlinePredicate(table -> table.size() <= 2);
-		writer.write(config, stringWriter);
-
-		System.out.println("Written:");
-		System.out.println(stringWriter);
+	@Test
+	public void writeStampedConfig() {
+		CommentedConfig config = new StampedConfig(InMemoryCommentedFormat.defaultInstance(),
+				HashMap::new);
+		Util.populateTest(config);
+		var result = writerWithIndentation().writeToString(config);
+		assertEquals(Util.EXPECTED_SERIALIZED, result);
 	}
 
 	@Test
@@ -66,7 +65,8 @@ public class TomlWriterTest {
 		TomlWriter tWriter = new TomlWriter();
 		String written = tWriter.writeToString(conf);
 		System.out.println(written);
-		assertLinesMatch(Arrays.asList("[table]", "\tkey = \"value\"", ""), StringUtils.splitLines(written));
+		assertLinesMatch(Arrays.asList("[table]", "\tkey = \"value\"", ""),
+				StringUtils.splitLines(written));
 	}
 
 	@Test
@@ -82,7 +82,8 @@ public class TomlWriterTest {
 		TomlWriter tWriter = new TomlWriter();
 		String written = tWriter.writeToString(conf);
 		System.out.println(written);
-		assertLinesMatch(Arrays.asList("[[aot]]", "\tkey = \"value\"", ""), StringUtils.splitLines(written));
+		assertLinesMatch(Arrays.asList("[[aot]]", "\tkey = \"value\"", ""),
+				StringUtils.splitLines(written));
 	}
 
 	@Test
@@ -122,9 +123,11 @@ public class TomlWriterTest {
 
 		TomlWriter writer = new TomlWriter();
 		String written = writer.writeToString(config);
-		System.out.println(written);
-		assertLinesMatch(Arrays.asList("[first]", "\tkey = \"value\"", "", "[second]", "\tkey = \"value\"", ""),
-			StringUtils.splitLines(written));
+		System.err.println(written);
+		assertEquals(
+				join("[first]", "\tkey = \"value\"", "", "[second]", "\tkey = \"value\"",
+						""),
+				written);
 	}
 
 	@Test
@@ -144,9 +147,17 @@ public class TomlWriterTest {
 		String written = writer.writeToString(config);
 		System.out.println(written);
 
-		assertLinesMatch(Arrays.asList("[[firstArray]]", "\tkey = \"value\"", "[[firstArray]]", "\tkey = \"value\"", "",
-			"[[secondArray]]", "\tkey = \"value\"", "[[secondArray]]", "\tkey = \"value\"", ""),
-			StringUtils.splitLines(written));
+		assertEquals(join(
+				"[[firstArray]]",
+				"\tkey = \"value\"",
+				"[[firstArray]]",
+				"\tkey = \"value\"",
+				"",
+				"[[secondArray]]",
+				"\tkey = \"value\"",
+				"[[secondArray]]",
+				"\tkey = \"value\"",
+				""), written);
 	}
 
 	@Test
@@ -159,5 +170,72 @@ public class TomlWriterTest {
 
 		config.set("null", NullObject.NULL_OBJECT);
 		assertThrows(WritingException.class, tryToWrite);
+	}
+
+	@Test
+	public void foldUselessIntermediateLevels() {
+		var config = TomlFormat.instance().createConfig();
+		config.set("top.sub.a", 1);
+		config.set("top.sub.b", 2);
+		assertEquals(join(
+				"[top.sub]",
+				"a = 1",
+				"b = 2",
+				""), writerWithoutIndentation().writeToString(config));
+
+		config.clear();
+		config.set("top.a", 1);
+		config.set("top.intermediate.c.d", 2);
+
+		assertEquals(join(
+				"[top]",
+				"a = 1",
+				"",
+				"[top.intermediate.c]",
+				"d = 2",
+				""), writerWithoutIndentation().writeToString(config));
+
+		config.clear();
+		var sub = config.createSubConfig();
+		sub.set("a", 1);
+		sub.set("b", 2);
+		config.set("top.sub", Arrays.asList(sub, sub));
+		assertEquals(join(
+				"[[top.sub]]",
+				"a = 1",
+				"b = 2",
+				"[[top.sub]]",
+				"a = 1",
+				"b = 2",
+				""), writerWithoutIndentation().writeToString(config));
+
+		config.set("simple", true);
+		assertEquals(join(
+				"simple = true",
+				"",
+				"[[top.sub]]",
+				"a = 1",
+				"b = 2",
+				"[[top.sub]]",
+				"a = 1",
+				"b = 2",
+				""), writerWithoutIndentation().writeToString(config));
+	}
+
+	private String join(String... lines) {
+		return String.join(System.lineSeparator(), lines);
+	}
+
+	private TomlWriter writerWithoutIndentation() {
+		var w = new TomlWriter();
+		w.setIndent(IndentStyle.NONE);
+		return w;
+	}
+
+	private TomlWriter writerWithIndentation() {
+		var w = new TomlWriter();
+		w.setIndentArrayElementsPredicate(array -> array.size() > 3);
+		w.setWriteTableInlinePredicate(table -> table.size() <= 2);
+		return w;
 	}
 }

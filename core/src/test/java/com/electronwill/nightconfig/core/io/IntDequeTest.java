@@ -28,14 +28,18 @@ public class IntDequeTest {
 		}
 		deque.clear(); // Removes all the elements
 		assertTrue(deque.isEmpty());
-		deque.compact(); // Compacts the deque
+		assertEquals(0, deque.size());
+
+		deque.compact(); // Compacts the empty deque
 		assertTrue(deque.isEmpty());
+		assertEquals(0, deque.size());
 
 		//ADD, REMOVE AND COMPACT
 		for (int i = 0; i <= n; i++) {
 			deque.addLast(i);
-			System.out.println(i + " => " + deque.size());
+			// System.out.println(i + " => " + deque.size());
 		}
+		assertEquals(n+1, deque.size());
 
 		deque.removeFirst(); // Removes 1 element
 		assertFalse(deque.isEmpty(), "The dequeue should NOT be empty!");
@@ -63,24 +67,20 @@ public class IntDequeTest {
 
 		//GETFIRST
 		int first = deque.getFirst();
-		System.out.println("got first " + first);
 		assertEquals(0, first);
 
 		//GETLAST
 		int last = deque.getLast();
-		System.out.println("got last " + last);
 		assertEquals(n, last);
 
 		//GET
 		for (int i = 0; i <= n; i++) {
 			int e = deque.get(i);
-			System.out.println("got " + e);
 			assertEquals(i, e);
 		}
 		//REMOVE
 		for (int i = 0; i <= n; i++) {
 			int e = deque.removeFirst();
-			System.out.println("removed " + e);
 			assertEquals(i, e);
 		}
 	}
@@ -98,24 +98,20 @@ public class IntDequeTest {
 
 		//GETFIRST
 		int first = deque.getFirst();
-		System.out.println("got first " + first);
 		assertEquals(n, first);
 
 		//GETLAST
 		int last = deque.getLast();
-		System.out.println("got last " + last);
 		assertEquals(0, last);
 
 		//GET
 		for (int i = 0; i < n; i++) {
 			int e = deque.get(i);
-			System.out.println("got " + e);
 			assertEquals(n-i, e);
 		}
 		//REMOVE
 		for (int i = 0; i < n; i++) {
 			int e = deque.removeFirst();
-			System.out.println("removed " + e);
 			assertEquals(n-i, e);
 		}
 	}

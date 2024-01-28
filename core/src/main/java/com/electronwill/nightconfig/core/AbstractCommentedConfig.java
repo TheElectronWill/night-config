@@ -13,7 +13,7 @@ import java.util.function.Supplier;
  * @author TheElectronWill
  */
 public abstract class AbstractCommentedConfig extends AbstractConfig implements CommentedConfig {
-	private final Map<String, String> commentMap;
+	protected final Map<String, String> commentMap;
 
 	public AbstractCommentedConfig(boolean concurrent) {
 		super(concurrent);
@@ -33,6 +33,17 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	public AbstractCommentedConfig(Map<String, Object> valuesMap) {
 		super(valuesMap);
 		this.commentMap = getDefaultCommentMap(valuesMap instanceof ConcurrentMap);
+	}
+
+	/**
+	 * Creates an AbstractCommentedConfig backed by the specified map
+	 *
+	 * @param valuesMap the map containing the config's values
+	 * @param commentMap the map containing the config's comments
+	 */
+	public AbstractCommentedConfig(Map<String, Object> valuesMap, Map<String, String> commentMap) {
+		super(valuesMap);
+		this.commentMap = commentMap;
 	}
 
 	/**

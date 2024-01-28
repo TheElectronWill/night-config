@@ -20,7 +20,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 
 	protected final Supplier<Map<String, Object>> mapCreator;
 
-	final Map<String, Object> map;
+	protected final Map<String, Object> map;
 
 	/**
 	 * Creates a new AbstractConfig backed by a new {@link Map}.
@@ -228,9 +228,28 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) { return true; }
-		if (!(obj instanceof AbstractConfig)) { return false; }
-		AbstractConfig other = (AbstractConfig)obj;
-		return map.equals(other.map);
+		if (obj instanceof AbstractConfig) {
+			return map.equals(((AbstractConfig)obj).map);
+		} else if (obj instanceof UnmodifiableConfig) {
+			UnmodifiableConfig conf = (UnmodifiableConfig)obj;
+			if (conf.size() != size()) {
+				return false;
+			}
+			for (UnmodifiableConfig.Entry entry : entrySet()) {
+				Object value = entry.getValue();
+				Object otherEntry = conf.get(Collections.singletonList(entry.getKey()));
+				if (value == null) {
+					if (otherEntry != null) {
+						return false;
+					}
+				} else {
+					return value.equals(otherEntry);
+				}
+			}
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	@Override

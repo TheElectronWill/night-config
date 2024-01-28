@@ -30,11 +30,11 @@ public class FileConfigBuilder extends GenericBuilder<Config, FileConfig> {
 		super(file, format);
 	}
 
-	protected FileConfig buildAutosave(FileConfig chain) {
-		return new AutosaveFileConfig<>(chain);
+	protected FileConfig buildAutosave(CommentedFileConfig chain) {
+		return new AutosaveCommentedFileConfig(chain, autoSaveListener);
 	}
 
-	protected FileConfig buildNormal(FileConfig chain) {
+	protected FileConfig buildNormal(CommentedFileConfig chain) {
 		return chain;
 	}
 }

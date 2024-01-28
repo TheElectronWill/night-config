@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.yaml;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.concurrent.StampedConfig;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.WritingException;
 import com.electronwill.nightconfig.core.utils.TransformingList;
@@ -36,6 +37,10 @@ public final class YamlWriter implements ConfigWriter {
 
 	@Override
 	public void write(UnmodifiableConfig config, Writer writer) {
+		if (config instanceof StampedConfig) {
+			// StampedConfig does not support valueMap(), use the accumulator
+			config = ((StampedConfig)config).newAccumulatorCopy();
+		}
 		try {
 			Map<String, Object> unwrappedMap = unwrap(config);
 			yaml.dump(unwrappedMap, writer);
