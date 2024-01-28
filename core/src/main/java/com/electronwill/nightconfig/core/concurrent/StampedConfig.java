@@ -19,6 +19,7 @@ import com.electronwill.nightconfig.core.AbstractConfig;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.IncompatibleIntermediaryLevelException;
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
@@ -330,7 +331,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                 current = (StampedConfig) level;
             } else {
                 // impossible to go further: what should have been a subconfig is another type of value
-                throw new IllegalArgumentException("Cannot get entry with parent path " + configPath
+                throw new IncompatibleIntermediaryLevelException("Cannot get entry with parent path " + configPath
                         + " because of an incompatible intermediary value of type: "
                         + level.getClass());
             }
@@ -369,7 +370,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                     current = (StampedConfig) level;
                 } else {
                     // Impossible to go further: what should have been a subconfig is another type of value.
-                    throw new IllegalArgumentException("Cannot get/create entry with parent path "
+                    throw new IncompatibleIntermediaryLevelException("Cannot get/create entry with parent path "
                             + configPath
                             + " because of an incompatible intermediary value of type: "
                             + level.getClass());
@@ -1538,7 +1539,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                         // intermediary config exists, use it
                         return ((StampedConfig) currentParent).set(subPath, value);
                     } else {
-                        throw new IllegalArgumentException(
+                        throw new IncompatibleIntermediaryLevelException(
                                 "Cannot add an element to an intermediary value of type: "
                                         + currentParent.getClass());
                     }
@@ -1570,7 +1571,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                         // intermediary config exists, use it
                         return ((StampedConfig) currentParent).setComment(subPath, value);
                     } else {
-                        throw new IllegalArgumentException(
+                        throw new IncompatibleIntermediaryLevelException(
                                 "Cannot add a comment to an intermediary value of type: "
                                         + currentParent.getClass());
                     }
@@ -1603,7 +1604,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                         // intermediary config exists, use it
                         return ((StampedConfig) currentParent).add(subPath, value);
                     } else {
-                        throw new IllegalArgumentException(
+                        throw new IncompatibleIntermediaryLevelException(
                                 "Cannot add an element to an intermediary value of type: "
                                         + currentParent.getClass());
                     }

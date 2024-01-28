@@ -161,7 +161,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 				config = createSubConfig();
 				currentMap.put(currentKey, config);
 			} else if (!(currentValue instanceof Config)) {// incompatible intermediary level
-				throw new IllegalArgumentException(
+				throw new IncompatibleIntermediaryLevelException(
 						"Cannot add an element to an intermediary value of type: "
 						+ currentValue.getClass());
 			} else {//existing intermediary level

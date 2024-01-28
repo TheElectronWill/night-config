@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig.CommentNode;
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.IncompatibleIntermediaryLevelException;
 import com.electronwill.nightconfig.core.Config.Entry;
 
 class CommonTests {
@@ -168,13 +169,13 @@ class CommonTests {
         });
 
         // invalid subconfig
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(IncompatibleIntermediaryLevelException.class, () -> {
             config.set("a", "test");
             config.set("a.b.c", "wrong");
         });
 
         // invalid subconfig
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(IncompatibleIntermediaryLevelException.class, () -> {
             config.set("a", "test");
             config.setComment("a", "test-comment");
             config.setComment("a.b.c", "wrong");

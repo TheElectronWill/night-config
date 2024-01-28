@@ -7,9 +7,7 @@ import java.util.function.Function;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.concurrent.ConcurrentCommentedConfig;
 import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
-import com.electronwill.nightconfig.core.concurrent.StampedConfig.Accumulator;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.ParsingMode;
@@ -88,19 +86,25 @@ final class SyncFileConfig extends CommentedConfigWrapper<SynchronizedConfig>
 		if (closed) {
 			throw new IllegalStateException("This FileConfig is closed, cannot load().");
 		}
-		// It would be logical to do this:
-		// if (reloadFilter == null) {
-		// config.bulkCommentedUpdate(config -> {
-		//     parser.parse(nioPath, config, parsingMode, nefAction, charset);
-		// });
-		// }
-		// BUT it cannot work properly, because configParser.parse(nioPath, conf) creates subconfigs that depend on the parser, not on conf.createSubConfig()
-		Config newConfig = parser.parse(nioPath, nefAction, charset);
-		CommentedConfig newCC = CommentedConfig.fake(newConfig);
-		if (reloadFilter != null && !reloadFilter.acceptNewVersion(newCC)) {
-			return; // reload cancelled
+		if (reloadFilter == null) {
+			config.bulkCommentedUpdate(view -> {
+				parser.parse(nioPath, view, parsingMode, nefAction, charset);
+			});
+		} else {
+			Config newConfig = parser.parse(nioPath, nefAction, charset);
+			CommentedConfig newCC = CommentedConfig.fake(newConfig);
+			if (!reloadFilter.acceptNewVersion(newCC)) {
+				return; // reload cancelled
+			}
+			switch (parsingMode) {
+				case REPLACE:
+					config.replaceContentBy(newCC);
+					break;
+				default:
+					AsyncFileConfig.putWithParsingMode(parsingMode, newCC, config);
+					break;
+			}
 		}
-		config.replaceContentBy(newCC);
 		loadListener.run();
 	}
 

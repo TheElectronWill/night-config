@@ -9,6 +9,7 @@ import java.util.function.Function;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
 
 /**
  * @author TheElectronWill
@@ -58,7 +59,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 *
 	 * @param file the file to use to save and load the config
 	 * @return a new FileConfig associated to the specified file
-	 *
+	 * @see {@link #builder(File)}
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
 	static CommentedFileConfig of(File file) {
@@ -71,6 +72,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new FileConfig associated to the specified file
+	 * @see {@link #builder(File, ConfigFormat)}
 	 */
 	static CommentedFileConfig of(File file, ConfigFormat<? extends CommentedConfig> format) {
 		return of(file.toPath(), format);
@@ -82,7 +84,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 *
 	 * @param file the file to use to save and load the config
 	 * @return a new FileConfig associated to the specified file
-	 *
+	 * @see {@link #builder(Path)}
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
 	@SuppressWarnings("rawtypes")
@@ -100,6 +102,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new FileConfig associated to the specified file
+	 * @see {@link #builder(Path, ConfigFormat)}
 	 */
 	static CommentedFileConfig of(Path file, ConfigFormat<? extends CommentedConfig> format) {
 		return builder(file, format).build();
@@ -111,7 +114,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 *
 	 * @param filePath the file's path
 	 * @return a new FileConfig associated to the specified file
-	 *
+	 * @see {@link #builder(String)}
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
 	static CommentedFileConfig of(String filePath) {
@@ -124,6 +127,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @param filePath the file's path
 	 * @param format   the config's format
 	 * @return a new FileConfig associated to the specified file
+	 * @see {@link #builder(String, ConfigFormat)}
 	 */
 	static CommentedFileConfig of(String filePath, ConfigFormat<? extends CommentedConfig> format) {
 		return of(Paths.get(filePath), format);
@@ -135,9 +139,10 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 *
 	 * @param file the file to use to save and load the config
 	 * @return a new thread-safe CommentedFileConfig associated to the specified file
-	 *
 	 * @throws NoFormatFoundException if the format detection fails
+	 * @deprecated All FileConfig are now thread-safe by default, backed by a {@link ConcurrentConfig}
 	 */
+	@Deprecated
 	static CommentedFileConfig ofConcurrent(File file) {
 		return ofConcurrent(file.toPath());
 	}
@@ -148,7 +153,9 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new thread-safe CommentedFileConfig associated to the specified file
+	 * @deprecated All FileConfig are now thread-safe by default, backed by a {@link ConcurrentConfig}
 	 */
+	@Deprecated
 	static CommentedFileConfig ofConcurrent(File file,
 			ConfigFormat<? extends CommentedConfig> format) {
 		return ofConcurrent(file.toPath(), format);
@@ -162,7 +169,9 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @return a new thread-safe CommentedFileConfig associated to the specified file
 	 *
 	 * @throws NoFormatFoundException if the format detection fails
+	 * @deprecated All FileConfig are now thread-safe by default, backed by a {@link ConcurrentConfig}
 	 */
+	@Deprecated
 	static CommentedFileConfig ofConcurrent(Path file) {
 		return builder(file).concurrent().build();
 	}
@@ -173,7 +182,9 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new thread-safe CommentedFileConfig associated to the specified file
+	 * @deprecated All FileConfig are now thread-safe by default, backed by a {@link ConcurrentConfig}
 	 */
+	@Deprecated
 	static CommentedFileConfig ofConcurrent(Path file,
 			ConfigFormat<? extends CommentedConfig> format) {
 		return builder(file, format).concurrent().build();
@@ -185,7 +196,9 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @param filePath the file's path
 	 * @param format   the config's format
 	 * @return a new thread-safe CommentedFileConfig associated to the specified file
+	 * @deprecated All FileConfig are now thread-safe by default, backed by a {@link ConcurrentConfig}
 	 */
+	@Deprecated
 	static CommentedFileConfig ofConcurrent(String filePath,
 			ConfigFormat<? extends CommentedConfig> format) {
 		return ofConcurrent(Paths.get(filePath), format);
@@ -199,7 +212,9 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @return a new thread-safe CommentedFileConfig associated to the specified file
 	 *
 	 * @throws NoFormatFoundException if the format detection fails
+	 * @deprecated All FileConfig are now thread-safe by default, backed by a {@link ConcurrentConfig}
 	 */
+	@Deprecated
 	static CommentedFileConfig ofConcurrent(String filePath) {
 		return ofConcurrent(Paths.get(filePath));
 	}

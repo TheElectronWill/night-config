@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
 import com.electronwill.nightconfig.core.concurrent.StampedConfig;
 import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
 import com.electronwill.nightconfig.core.io.*;
@@ -13,6 +14,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,7 +31,6 @@ import java.util.function.Supplier;
  * change it with {@link #sync()}</li>
  * <li>Not autosaved - change it with {@link #autosave()}</li>
  * <li>Not autoreloaded - change it with {@link #autoreload()}</li>
- * <li>Not thread-safe - change it with {@link #concurrent()}</li>
  * <li>Values' insertion order preserved if {@link Config#isInsertionOrderPreserved()}
  * returns true when the builder is constructed.</li>
  * </ul>
@@ -45,7 +46,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	protected WritingMode writingMode = WritingMode.REPLACE;
 	protected ParsingMode parsingMode = ParsingMode.REPLACE;
 	protected FileNotFoundAction nefAction = FileNotFoundAction.CREATE_EMPTY;
-	protected boolean sync = false, autosave = false;
+	protected boolean sync = false, autosave = false, atomicMove = false;
 	protected FileWatcher autoreloadFileWatcher = null;
 	protected boolean preserveInsertionOrder = Config.isInsertionOrderPreserved();
 	protected Supplier<Map<String, Object>> mapCreator = null;
@@ -53,6 +54,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	private ConfigLoadFilter loadFilter;
 	protected Runnable loadListener, saveListener;
 	protected Runnable autoLoadListener, autoSaveListener;
+	private Duration debounceTime = AsyncFileConfig.DEFAULT_WRITE_DEBOUNCE_TIME;
 
 	GenericBuilder(Path file, ConfigFormat<? extends Base> format) {
 		this.file = file;
@@ -72,7 +74,14 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	}
 
 	/**
-	 * Sets the WritingMode used for {@link FileConfig#save()}
+	 * Sets the WritingMode used for {@link FileConfig#save()}.
+	 * <p>
+	 * Example:
+	 * <pre>
+	 * {@code
+	 * FileConfig config = FileConfig.builder(file).writingMode(WritingMode.REPLACE_ATOMIC).build();
+	 * }
+	 * </pre>
 	 *
 	 * @return this builder
 	 */
@@ -82,7 +91,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	}
 
 	/**
-	 * Sets the ParsingMode used for {@link FileConfig#load()}
+	 * Sets the ParsingMode used for {@link FileConfig#load()}.
 	 *
 	 * @return this builder
 	 */
@@ -146,13 +155,41 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	}
 
 	/**
-	 * Makes the configuration "write-synchronized", that is, its {@link FileConfig#save()}
+	 * Makes the configuration "write-synchronous", that is, its {@link FileConfig#save()}
 	 * method blocks until the write operation completes.
 	 *
 	 * @return this builder
 	 */
 	public GenericBuilder<Base, Result> sync() {
 		sync = true;
+		return this;
+	}
+
+	/**
+	 * Makes the configuration "write-asynchronous", that is, its {@link FileConfig#save()}
+	 * method does not wait for the write operation to complete.
+	 * <p>
+	 * An automatic debouncing of unspecified duration is applied.
+	 * 
+	 * @return this builder
+	 */
+	public GenericBuilder<Base, Result> async() {
+		sync = false;
+		return this;
+	}
+
+	/**
+	 * Makes the configuration "write-asynchronous" and specifies its debouncing time.
+	 * <p>
+	 * The config's {@link FileConfig#save()} method will not wait for the write operation to complete,
+	 * and perform a debouncing of the given duration. Calling {@link FileConfig#save()} twice with
+	 * less than {@code debounceTime} in between will cancel the first save and only perform the second.
+	 * 
+	 * @return this builder
+	 */
+	public GenericBuilder<Base, Result> asyncWithDebouncing(Duration debounceTime) {
+		sync = false;
+		this.debounceTime = debounceTime;
 		return this;
 	}
 
@@ -195,7 +232,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 * If a {@link ConfigLoadFilter} is set and rejects the operation, the listener is not called.
 	 * <p>
 	 * If {@link FileConfig#load()} is called manually rather than automatically, the listener is not called.
-	 * Use {@link #onLoad(Runnable))} to be notified of every call to {@link FileConfig#load()}, including manual
+	 * Use {@link #onLoad(Runnable)} to be notified of every call to {@link FileConfig#load()}, including manual
 	 * ones.
 	 * <p>
 	 * If {@link #autoreload()} is not called, setting a listener has no effect.
@@ -209,17 +246,18 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	}
 
 	/**
-	 * When the configuration is <b>automatically saved</b>, calls the given listener.
+	 * When the configuration triggers an <b>automatic save</b>, calls the given listener.
 	 * Only one listener can be set, calling {@code onAutoSave} multiple times will replace the listener.
 	 * <p>
-	 * The listener is called once the saving operation is complete.
-	 * If a {@link ConfigLoadFilter} is set and rejects the operation, the listener is not called.
+	 * If the FileConfig is asynchronous and a debouncing occurs, the listener can be called without an actual saving operation being executed
+	 * (due to the debouncing, the actual save will occur later).
+	 * Otherwise, the listener is called once the saving operation is complete.
 	 * <p>
 	 * If {@link FileConfig#save()} is called manually rather than automatically, the listener is not called.
-	 * Use {@link #onSave(Runnable))} to be notified of every call to {@link FileConfig#save()}, including manual
+	 * Use {@link #onSave(Runnable)} to be notified of every call to {@link FileConfig#save()}, including manual
 	 * ones.
 	 * <p>
-	 * If {@link #autosave()} is not called, setting a listener has no effect.
+	 * If {@link #autosave()} is not called on the builder, setting a listener has no effect.
 	 * 
 	 * @param listener the listener to call when the FileConfig is automatically saved
 	 * @return this builder
@@ -237,7 +275,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 * The listener is called once the loading operation is complete.
 	 * If a {@link ConfigLoadFilter} is set and rejects the operation, the listener is not called.
 	 * <p>
-	 * If {@link #autoreload()} is not called, setting a listener has no effect.
+	 * If {@link #autoreload()} is not called on the builder, setting a listener has no effect.
 	 * 
 	 * @param listener the listener to call when the FileConfig is automatically reloaded
 	 * @return this builder
@@ -284,7 +322,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	/**
 	 * Makes the configuration concurrent, that is, thread-safe.
 	 *
-	 * @deprecated Since NightConfig v3.7, this method has no effect because all FileConfig are thread-safe
+	 * @deprecated Since NightConfig v3.7, this method has no effect because all FileConfig are thread-safe, backed by {@link ConcurrentConfig}.
 	 * @return this builder
 	 */
 	@Deprecated
@@ -295,6 +333,8 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 
 	/**
 	 * Makes the configuration preserve the insertion order of its values.
+	 * <p>
+	 * If this method is not called, the default value of {@link Config#isInsertionOrderPreserved()} is applied.
 	 *
 	 * @return this builder
 	 */
@@ -306,11 +346,6 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	/**
 	 * Uses a specific Supplier to create the backing maps (one for the top level
 	 * and one for each sub-configuration) of the configuration.
-	 * <p>
-	 * <br>
-	 * <b>Warning :</b> if {@link #autoreload()} is called, the map creator
-	 * must return thread-safe maps, because the autoreloading system will modify
-	 * the configuration from another thread.
 	 *
 	 * @param s the map supplier to use
 	 * @return this builder
@@ -360,7 +395,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 		} else {
 			StampedConfig config = new StampedConfig(format, mapCreator);
 			fileConfig = new AsyncFileConfig(config, file, charset, writer, writingMode,
-					parser, parsingMode, nefAction, false, loadFilter, saveListener, loadListener);
+					parser, parsingMode, nefAction, false, loadFilter, saveListener, loadListener, debounceTime);
 		}
 		// add automatic reloading
 		if (autoreloadFileWatcher != null) {
@@ -375,7 +410,13 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 		}
 	}
 
-	protected abstract Result buildAutosave(CommentedFileConfig chain);
+	@SuppressWarnings("unchecked")
+	protected Result buildAutosave(CommentedFileConfig chain) {
+		return (Result) new AutosaveCommentedFileConfig(chain, autoSaveListener);
+	}
 
-	protected abstract Result buildNormal(CommentedFileConfig chain);
+	@SuppressWarnings("unchecked")
+	protected Result buildNormal(CommentedFileConfig chain) {
+		return (Result) chain;
+	}
 }

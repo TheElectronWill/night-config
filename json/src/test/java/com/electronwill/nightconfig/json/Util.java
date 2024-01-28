@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 import java.util.Arrays;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.TestEnum;
 
@@ -30,7 +29,7 @@ public class Util {
         assertEquals("A", config.get("enum"));
     }
 
-    static void populateTest(CommentedConfig config) {
+    static void populateTest(Config config) {
         Config subConfig = config.createSubConfig();
         subConfig.set("string", "test");
         subConfig.set("null value", null);

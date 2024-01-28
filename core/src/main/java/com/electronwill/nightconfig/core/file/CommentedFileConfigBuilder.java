@@ -19,7 +19,6 @@ import java.nio.file.Path;
  * change it with {@link #sync()}</li>
  * <li>Not autosaved - change it with {@link #autosave()}</li>
  * <li>Not autoreloaded - change it with {@link #autoreload()}</li>
- * <li>Not thread-safe - change it with {@link #concurrent()}</li>
  * </ul>
  *
  * @author TheElectronWill
@@ -27,15 +26,5 @@ import java.nio.file.Path;
 public final class CommentedFileConfigBuilder extends GenericBuilder<CommentedConfig, CommentedFileConfig> {
 	CommentedFileConfigBuilder(Path file, ConfigFormat<? extends CommentedConfig> format) {
 		super(file, format);
-	}
-
-	@Override
-	protected CommentedFileConfig buildAutosave(CommentedFileConfig chain) {
-		return new AutosaveCommentedFileConfig(chain, autoSaveListener);
-	}
-
-	@Override
-	protected CommentedFileConfig buildNormal(CommentedFileConfig chain) {
-		return new SimpleCommentedFileConfig(chain);
 	}
 }

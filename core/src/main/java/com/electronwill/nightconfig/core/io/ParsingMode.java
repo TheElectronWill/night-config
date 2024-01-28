@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.IncompatibleIntermediaryLevelException;
 import com.electronwill.nightconfig.core.utils.StringUtils;
 
 import java.util.List;
@@ -18,16 +19,37 @@ public enum ParsingMode {
 
 	/**
 	 * Merges the parsed config with the existing one: the parsed values are prioritary.
-	 * This mode performs a shallow merge, not a deep one.
+	 * When used with a parser, it performs a shallow merge, not a deep one.
 	 */
-	MERGE(c -> {}, Config::set, Map::put),
+	MERGE(c -> {}, (cfg, path, value) -> {
+		try {
+			return cfg.set(path, value);
+		} catch (IncompatibleIntermediaryLevelException ex) {
+			// remove intermediary levels until it works
+			for (int i = path.size(); i > 0; i--) {
+				List<String> prefix = path.subList(0, i);
+				cfg.remove(prefix);
+				try {
+					return cfg.set(path, value);
+				} catch (IncompatibleIntermediaryLevelException again) {
+					// ignore and continue to remove intermediary levels
+				}
+			}
+			return null;
+		}
+	}, Map::put),
 
 	/**
 	 * Adds the parsed values to the config: the existing values are prioritary and will not be
 	 * replaced.
+	 * When used with a parser, it performs a shallow add, not a deep one.
 	 */
 	ADD(c -> {}, (cfg, path, value) -> {
-		cfg.add(path, value);
+		try {
+			cfg.add(path, value);
+		} catch (IncompatibleIntermediaryLevelException ex) {
+			// ignore: we keep the existing value
+		}
 		return null;
 	}, Map::putIfAbsent);
 

@@ -116,7 +116,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 			set(parentPath, commentedParent);
 			return commentedParent.setComment(lastPath, comment);
 		}
-		throw new IllegalArgumentException("Cannot set a comment to path "
+		throw new IncompatibleIntermediaryLevelException("Cannot set a comment to path "
 										   + path
 										   + " because the parent entry is of incompatible type "
 										   + parent.getClass());
