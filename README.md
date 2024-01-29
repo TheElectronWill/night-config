@@ -1,8 +1,8 @@
 ![Night Config](logo.png)
 
-[![Maven Central](https://img.shields.io/maven-central/v/com.electronwill.night-config/core.svg)](https://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.electronwill.night-config%22)
-[![Javadocs](https://javadoc.io/badge/com.electronwill.night-config/core.svg)](https://javadoc.io/doc/com.electronwill.night-config/core)
-[![Build Status](https://travis-ci.com/TheElectronWill/Night-Config.svg?branch=master)](https://travis-ci.com/TheElectronWill/Night-Config)
+[![Maven Central](https://img.shields.io/maven-central/v/com.electronwill.night-config/core.svg)](https://central.sonatype.com/search?q=g%3Acom.electronwill.night-config)
+[![javadoc](https://javadoc.io/badge2/com.electronwill.night-config/core/javadoc.svg)](https://javadoc.io/doc/com.electronwill.night-config/core)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/TheElectronWill/night-config/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/TheElectronWill/night-config/tree/master)
 
 # Introduction
 
