@@ -44,6 +44,7 @@ final class ArrayWriter {
 			writer.decreaseIndentLevel();
 			writer.writeNewline(output);
 		}
+		writer.writeIndent(output);
 		output.write(']');
 	}
 
