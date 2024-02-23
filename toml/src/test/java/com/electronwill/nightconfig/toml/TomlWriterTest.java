@@ -276,12 +276,12 @@ public class TomlWriterTest {
 
 		System.out.println(written);
 		assertEquals(join("[Test]",
-								"\tList = [",
-								"\t\t\"value1\",",
-								"\t\t\"value2\",",
-								"\t\t\"value3\"",
-								"\t]",
-								""), written);
+							"\tList = [",
+							"\t\t\"value1\",",
+							"\t\t\"value2\",",
+							"\t\t\"value3\"",
+							"\t]",
+							""), written);
 	}
 
 	private String join(String... lines) {
