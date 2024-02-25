@@ -18,6 +18,7 @@ import com.electronwill.nightconfig.core.AbstractConfig;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.InMemoryCommentedFormat;
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
@@ -91,8 +92,9 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
      */
     final Object rootMonitor;
 
-    /** Config format. */
-    // private final ConfigFormat configFormat;
+    public SynchronizedConfig() {
+        this(InMemoryCommentedFormat.defaultInstance(), Config.getDefaultMapCreator(false));
+    }
 
     public SynchronizedConfig(ConfigFormat<?> configFormat,
             Supplier<Map<String, Object>> mapSupplier) {
@@ -145,12 +147,18 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
 
             // try to use the same Map supplier as the new content
             Supplier<Map<String, Object>> mapSupplier = null;
-            if (newContent instanceof AbstractConfig) {
-                Map<String,Object> map = ((AbstractConfig)newContent).valueMap();
-                if (map instanceof HashMap) {
-                    mapSupplier = HashMap::new;
-                } else if (map instanceof LinkedHashMap) {
-                    mapSupplier = LinkedHashMap::new;
+            if (newContent instanceof StampedConfig.Accumulator) {
+                mapSupplier = ((StampedConfig.Accumulator)newContent).mapSupplier();
+            } else if (newContent instanceof AbstractConfig) {
+                try {
+                    Map<String,Object> map = ((AbstractConfig)newContent).valueMap();
+                    if (map instanceof HashMap) {
+                        mapSupplier = HashMap::new;
+                    } else if (map instanceof LinkedHashMap) {
+                        mapSupplier = LinkedHashMap::new;
+                    }
+                } catch (UnsupportedOperationException ex) {
+                    mapSupplier = null;
                 }
             }
             if (mapSupplier == null) {
