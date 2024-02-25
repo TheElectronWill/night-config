@@ -83,7 +83,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 *
 	 * @param file the file to use to save and load the config
 	 * @return a new FileConfig associated to the specified file
-	 * @see {@link #builder(File)}
+	 * @see #builder(File)
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
 	static FileConfig of(File file) {
@@ -96,7 +96,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new FileConfig associated to the specified file
-	 * @see {@link #builder(File, ConfigFormat)}
+	 * @see #builder(File, ConfigFormat)
 	 */
 	static FileConfig of(File file, ConfigFormat<? extends Config> format) {
 		return of(file.toPath(), format);
@@ -107,7 +107,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 *
 	 * @param file the file to use to save and load the config
 	 * @return a new FileConfig associated to the specified file
-	 * @see {@link #builder(Path)}
+	 * @see #builder(Path)
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
 	static FileConfig of(Path file) {
@@ -124,7 +124,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new FileConfig associated to the specified file
-	 * @see {@link #builder(Path, ConfigFormat)}
+	 * @see #builder(Path, ConfigFormat)
 	 */
 	static FileConfig of(Path file, ConfigFormat<? extends Config> format) {
 		return builder(file, format).build();
@@ -135,7 +135,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 *
 	 * @param filePath the file's path
 	 * @return a new FileConfig associated to the specified file
-	 * @see {@link #builder(String)}
+	 * @see #builder(String)
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
 	static FileConfig of(String filePath) {
@@ -148,7 +148,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param filePath the file's path
 	 * @param format   the config's format
 	 * @return a new FileConfig associated to the specified file
-	 * @see {@link #builder(String, ConfigFormat)}
+	 * @see #builder(String, ConfigFormat)
 	 */
 	static FileConfig of(String filePath, ConfigFormat<?> format) {
 		return of(Paths.get(filePath), format);
@@ -244,7 +244,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 *
 	 * @param file the file to use to save and load the config
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
-	 * @see {@link FileConfigBuilder}
+	 * @see FileConfigBuilder
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
 	static FileConfigBuilder builder(File file) {
@@ -257,7 +257,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
-	 * @see {@link FileConfigBuilder}
+	 * @see FileConfigBuilder
 	 */
 	static FileConfigBuilder builder(File file, ConfigFormat<?> format) {
 		return builder(file.toPath(), format);
@@ -269,7 +269,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 *
 	 * @param file the file to use to save and load the config
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
-	 * @see {@link FileConfigBuilder}
+	 * @see FileConfigBuilder
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
 	static FileConfigBuilder builder(Path file) {
@@ -286,7 +286,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
-	 * @see {@link FileConfigBuilder}
+	 * @see FileConfigBuilder
 	 */
 	static FileConfigBuilder builder(Path file, ConfigFormat<?> format) {
 		return new FileConfigBuilder(file, format);
@@ -298,7 +298,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 *
 	 * @param filePath the file's path
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
-	 * @see {@link FileConfigBuilder}
+	 * @see FileConfigBuilder
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
 	static FileConfigBuilder builder(String filePath) {
@@ -311,7 +311,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * @param filePath the file's path
 	 * @param format   the config's format
 	 * @return a new FileConfigBuilder that will build a FileConfig associated to the specified file
-	 * @see {@link FileConfigBuilder}
+	 * @see FileConfigBuilder
 	 */
 	static FileConfigBuilder builder(String filePath, ConfigFormat<?> format) {
 		return builder(Paths.get(filePath), format);

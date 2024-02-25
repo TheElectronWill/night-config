@@ -40,6 +40,7 @@ public interface ConfigParser<C extends Config> {
 	 *
 	 * @param reader      the reader to parse
 	 * @param destination the config where to put the data
+	 * @param parsingMode how to handle conflicts with the entries that already are in the destination
 	 */
 	void parse(Reader reader, Config destination, ParsingMode parsingMode);
 
@@ -60,6 +61,7 @@ public interface ConfigParser<C extends Config> {
 	 *
 	 * @param input       the input to parse
 	 * @param destination the config where to put the data
+	 * @param parsingMode how to handle conflicts with the entries that already are in the destination
 	 * @throws ParsingException if an error occurs
 	 */
 	default void parse(String input, Config destination, ParsingMode parsingMode) {
@@ -81,7 +83,8 @@ public interface ConfigParser<C extends Config> {
 	/**
 	 * Parses a configuration.
 	 *
-	 * @param input the input to parse
+	 * @param input   the input to parse
+	 * @param charset the charset to use to decode the input
 	 * @return a Config
 	 *
 	 * @throws ParsingException if an error occurs
@@ -95,6 +98,7 @@ public interface ConfigParser<C extends Config> {
 	 *
 	 * @param input       the input to parse
 	 * @param destination the config where to put the data
+	 * @param parsingMode how to handle conflicts with the entries that already are in the destination
 	 * @throws ParsingException if an error occurs
 	 */
 	default void parse(InputStream input, Config destination, ParsingMode parsingMode) {
@@ -106,9 +110,12 @@ public interface ConfigParser<C extends Config> {
 	 *
 	 * @param input       the input to parse
 	 * @param destination the config where to put the data
+	 * @param parsingMode how to handle conflicts with the entries that already are in the destination
+	 * @param charset     the charset to use to decode the input
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(InputStream input, Config destination, ParsingMode parsingMode, Charset charset) {
+	default void parse(InputStream input, Config destination, ParsingMode parsingMode,
+			Charset charset) {
 		Reader reader = new BufferedReader(new InputStreamReader(input, charset));
 		parse(reader, destination, parsingMode);
 	}
@@ -116,71 +123,83 @@ public interface ConfigParser<C extends Config> {
 	/**
 	 * Parses a configuration with the UTF-8 charset.
 	 *
-	 * @param file the file to parse
+	 * @param file           the file to parse
+	 * @param notFoundAction what to do when the file does not exist
 	 * @return a Config
 	 *
 	 * @throws ParsingException if an error occurs
 	 */
-	default C parse(File file, FileNotFoundAction nefAction) {
-		return parse(file, nefAction, StandardCharsets.UTF_8);
+	default C parse(File file, FileNotFoundAction notFoundAction) {
+		return parse(file, notFoundAction, StandardCharsets.UTF_8);
 	}
 
 	/**
 	 * Parses a configuration.
 	 *
-	 * @param file the file to parse
+	 * @param file           the file to parse
+	 * @param notFoundAction what to do when the file does not exist
+	 * @param charset        the charset of the file's content
 	 * @return a Config
 	 *
 	 * @throws ParsingException if an error occurs
 	 */
-	default C parse(File file, FileNotFoundAction nefAction, Charset charset) {
-		return parse(file.toPath(), nefAction, charset);
+	default C parse(File file, FileNotFoundAction notFoundAction, Charset charset) {
+		return parse(file.toPath(), notFoundAction, charset);
 	}
 
 	/**
 	 * Parses a configuration with the UTF-8 charset.
 	 *
-	 * @param file        the file to parse
-	 * @param destination the config where to put the data
-	 * @throws ParsingException if an error occurs
-	 */
-	default void parse(File file, Config destination, ParsingMode parsingMode, FileNotFoundAction nefAction) {
-		parse(file, destination, parsingMode, nefAction, StandardCharsets.UTF_8);
-	}
-
-	/**
-	 * Parses a configuration.
-	 *
-	 * @param file        the file to parse
-	 * @param destination the config where to put the data
+	 * @param file           the file to parse
+	 * @param destination    the config where to put the data
+	 * @param parsingMode    how to handle conflicts with the entries that already are in the destination
+	 * @param notFoundAction what to do when the file does not exist
 	 * @throws ParsingException if an error occurs
 	 */
 	default void parse(File file, Config destination, ParsingMode parsingMode,
-					   FileNotFoundAction nefAction, Charset charset) {
-		parse(file.toPath(), destination, parsingMode, nefAction, charset);
-	}
-
-	/**
-	 * Parses a configuration with the UTF-8 charset.
-	 *
-	 * @param file the nio Path to parse
-	 * @return a Config
-	 * @throws ParsingException if an error occurs
-	 */
-	default C parse(Path file, FileNotFoundAction nefAction) {
-		return parse(file, nefAction, StandardCharsets.UTF_8);
+			FileNotFoundAction notFoundAction) {
+		parse(file, destination, parsingMode, notFoundAction, StandardCharsets.UTF_8);
 	}
 
 	/**
 	 * Parses a configuration.
 	 *
-	 * @param file the nio Path to parse
+	 * @param file           the file to parse
+	 * @param destination    the config where to put the data
+	 * @param parsingMode    how to handle conflicts with the entries that already are in the destination
+	 * @param notFoundAction what to do when the file does not exist
+	 * @param charset        the charset to use to decode the input
+	 * @throws ParsingException if an error occurs
+	 */
+	default void parse(File file, Config destination, ParsingMode parsingMode,
+			FileNotFoundAction notFoundAction, Charset charset) {
+		parse(file.toPath(), destination, parsingMode, notFoundAction, charset);
+	}
+
+	/**
+	 * Parses a configuration with the UTF-8 charset.
+	 *
+	 * @param file           the nio Path to parse
+	 * @param notFoundAction what to do when the file does not exist
 	 * @return a Config
 	 * @throws ParsingException if an error occurs
 	 */
-	default C parse(Path file, FileNotFoundAction nefAction, Charset charset) {
+	default C parse(Path file, FileNotFoundAction notFoundAction) {
+		return parse(file, notFoundAction, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * Parses a configuration.
+	 *
+	 * @param file           the nio Path to parse
+	 * @param notFoundAction what to do when the file does not exist
+	 * @param charset        the charset to use to decode the input
+	 * @return a Config
+	 * @throws ParsingException if an error occurs
+	 */
+	default C parse(Path file, FileNotFoundAction notFoundAction, Charset charset) {
 		try {
-			if(Files.notExists(file) && !nefAction.run(file, getFormat())) {
+			if (Files.notExists(file) && !notFoundAction.run(file, getFormat())) {
 				return getFormat().createConfig();
 			}
 			try (InputStream input = Files.newInputStream(file)) {
@@ -194,25 +213,31 @@ public interface ConfigParser<C extends Config> {
 	/**
 	 * Parses a configuration with the UTF-8 charset.
 	 *
-	 * @param file     the nio Path to parse
-	 * @param destination the config where to put the data
+	 * @param file           the nio Path to parse
+	 * @param destination    the config where to put the data
+	 * @param parsingMode    how to handle conflicts with the entries that already are in the destination
+	 * @param notFoundAction what to do when the file does not exist
 	 * @throws ParsingException if an error occurs
 	 */
-	default void parse(Path file, Config destination, ParsingMode parsingMode, FileNotFoundAction nefAction) {
-		parse(file, destination, parsingMode, nefAction, StandardCharsets.UTF_8);
+	default void parse(Path file, Config destination, ParsingMode parsingMode,
+			FileNotFoundAction notFoundAction) {
+		parse(file, destination, parsingMode, notFoundAction, StandardCharsets.UTF_8);
 	}
 
 	/**
 	 * Parses a configuration.
 	 *
-	 * @param file     the nio Path to parse
-	 * @param destination the config where to put the data
+	 * @param file           the nio Path to parse
+	 * @param destination    the config where to put the data
+	 * @param parsingMode    how to handle conflicts with the entries that already are in the destination
+	 * @param notFoundAction what to do when the file does not exist
+	 * @param charset        the charset to use to decode the input
 	 * @throws ParsingException if an error occurs
 	 */
 	default void parse(Path file, Config destination, ParsingMode parsingMode,
-					   FileNotFoundAction nefAction, Charset charset) {
+			FileNotFoundAction notFoundAction, Charset charset) {
 		try {
-			if (Files.notExists(file) && !nefAction.run(file, getFormat())) {
+			if (Files.notExists(file) && !notFoundAction.run(file, getFormat())) {
 				return;
 			}
 			try (InputStream input = Files.newInputStream(file)) {
@@ -252,6 +277,7 @@ public interface ConfigParser<C extends Config> {
 	 *
 	 * @param url         the url to parse
 	 * @param destination the config where to put the data
+	 * @param parsingMode how to handle conflicts with the entries that already are in the destination
 	 * @throws ParsingException if an error occurs
 	 */
 	default void parse(URL url, Config destination, ParsingMode parsingMode) {

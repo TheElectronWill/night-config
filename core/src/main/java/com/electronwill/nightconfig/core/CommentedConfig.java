@@ -102,7 +102,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 			if (value instanceof UnmodifiableCommentedConfig) {
 				CommentedConfig config = getRaw(Collections.singletonList(key));
 				if (config != null) {
-					config.putAllComments((UnmodifiableCommentedConfig)value);
+					config.putAllComments((UnmodifiableCommentedConfig) value);
 				}
 			}
 
@@ -213,15 +213,17 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	static CommentedConfig of(ConfigFormat<? extends CommentedConfig> format) {
 		return new SimpleCommentedConfig(format, false);
 	}
-	
+
 	/**
 	 * Creates a Config backed by a certain kind of map, given by a supplier.
 	 *
-	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
-	 * @param format the config's format
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including
+	 *                   sub-configs)
+	 * @param format     the config's format
 	 * @return a new empty config
 	 */
-	static CommentedConfig of(Supplier<Map<String, Object>> mapCreator, ConfigFormat<? extends CommentedConfig> format) {
+	static CommentedConfig of(Supplier<Map<String, Object>> mapCreator,
+			ConfigFormat<? extends CommentedConfig> format) {
 		return new SimpleCommentedConfig(mapCreator, format);
 	}
 
@@ -230,7 +232,11 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 *
 	 * @param format the config's format
 	 * @return a new empty, thread-safe config
+	 * @deprecated A concurrent HashMap is not enough to make the whole configuration robust to multi-threaded
+	 *             use. Prefer to use a {@link com.electronwill.nightconfig.core.concurrent.ConcurrentConfig}
+	 *             instead.
 	 */
+	@Deprecated
 	static CommentedConfig ofConcurrent(ConfigFormat<? extends CommentedConfig> format) {
 		return new SimpleCommentedConfig(format, false);
 	}
@@ -248,7 +254,11 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * Creates a CommentedConfig with format {@link InMemoryFormat#defaultInstance()}.
 	 *
 	 * @return a new empty config
+	 * @deprecated A concurrent HashMap is not enough to make the whole configuration robust to multi-threaded
+	 *             use. Prefer to use a {@link com.electronwill.nightconfig.core.concurrent.ConcurrentConfig}
+	 *             instead.
 	 */
+	@Deprecated
 	static CommentedConfig inMemoryConcurrent() {
 		return InMemoryCommentedFormat.defaultInstance().createConcurrentConfig();
 	}
@@ -275,18 +285,20 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	static CommentedConfig copy(UnmodifiableConfig config) {
 		return new SimpleCommentedConfig(config, config.configFormat(), false);
 	}
-	
+
 	/**
 	 * Creates a new CommentedConfig with the content of the given config. The returned config will
 	 * have the same format as the copied config, and be backed by the given supplier.
 	 * 
 	 * @see #of(Supplier, ConfigFormat)
 	 *
-	 * @param config the config to copy
-	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
+	 * @param config     the config to copy
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including
+	 *                   sub-configs)
 	 * @return a copy of the config
 	 */
-	static CommentedConfig copy(UnmodifiableConfig config, Supplier<Map<String, Object>> mapCreator) {
+	static CommentedConfig copy(UnmodifiableConfig config,
+			Supplier<Map<String, Object>> mapCreator) {
 		return new SimpleCommentedConfig(config, mapCreator, config.configFormat());
 	}
 
@@ -300,19 +312,21 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	static CommentedConfig copy(UnmodifiableConfig config, ConfigFormat<?> format) {
 		return new SimpleCommentedConfig(config, format, false);
 	}
-	
+
 	/**
 	 * Creates a new CommentedConfig with the content of the given config. The returned config will
 	 * be backed by the given map supplier.
 	 * 
 	 * @see #of(Supplier, ConfigFormat)
 	 *
-	 * @param config the config to copy
-	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
-	 * @param format the config's format
+	 * @param config     the config to copy
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including
+	 *                   sub-configs)
+	 * @param format     the config's format
 	 * @return a copy of the config
 	 */
-	static CommentedConfig copy(UnmodifiableConfig config, Supplier<Map<String, Object>> mapCreator, ConfigFormat<?> format) {
+	static CommentedConfig copy(UnmodifiableConfig config, Supplier<Map<String, Object>> mapCreator,
+			ConfigFormat<?> format) {
 		return new SimpleCommentedConfig(config, mapCreator, format);
 	}
 
@@ -331,14 +345,16 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * Creates a new CommentedConfig with the content of the given config. The returned config will
 	 * have the same format as the copied config.
 	 *
-	 * @param config the config to copy
-	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
+	 * @param config     the config to copy
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including
+	 *                   sub-configs)
 	 * @return a copy of the config
 	 */
-	static CommentedConfig copy(UnmodifiableCommentedConfig config, Supplier<Map<String, Object>> mapCreator) {
+	static CommentedConfig copy(UnmodifiableCommentedConfig config,
+			Supplier<Map<String, Object>> mapCreator) {
 		return new SimpleCommentedConfig(config, mapCreator, config.configFormat());
 	}
-	
+
 	/**
 	 * Creates a new CommentedConfig with the content of the given config.
 	 *
@@ -349,19 +365,22 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	static CommentedConfig copy(UnmodifiableCommentedConfig config, ConfigFormat<?> format) {
 		return new SimpleCommentedConfig(config, format, false);
 	}
-	
+
 	/**
 	 * Creates a new CommentedConfig with the content of the given config. The returned config will
 	 * be backed by the given map supplier.
 	 * 
 	 * @see #of(Supplier, ConfigFormat)
 	 *
-	 * @param config the config to copy
-	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including sub-configs)
-	 * @param format the config's format
+	 * @param config     the config to copy
+	 * @param mapCreator a supplier which will be called to create all backing maps for this config (including
+	 *                   sub-configs)
+	 * @param format     the config's format
 	 * @return a copy of the config
 	 */
-	static CommentedConfig copy(UnmodifiableCommentedConfig config, Supplier<Map<String, Object>> mapCreator, ConfigFormat<? extends CommentedConfig> format) {
+	static CommentedConfig copy(UnmodifiableCommentedConfig config,
+			Supplier<Map<String, Object>> mapCreator,
+			ConfigFormat<? extends CommentedConfig> format) {
 		return new SimpleCommentedConfig(config, mapCreator, format);
 	}
 
@@ -371,7 +390,11 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 *
 	 * @param config the config to copy
 	 * @return a thread-safe copy of the config
+	 * @deprecated A concurrent HashMap is not enough to make the whole configuration robust to multi-threaded
+	 *             use. Prefer to use a {@link com.electronwill.nightconfig.core.concurrent.ConcurrentConfig}
+	 *             instead.
 	 */
+	@Deprecated
 	static CommentedConfig concurrentCopy(UnmodifiableConfig config) {
 		return new SimpleCommentedConfig(config, config.configFormat(), true);
 	}
@@ -382,7 +405,11 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * @param config the config to copy
 	 * @param format the config's format
 	 * @return a thread-safe copy of the config
+	 * @deprecated A concurrent HashMap is not enough to make the whole configuration robust to multi-threaded
+	 *             use. Prefer to use a {@link com.electronwill.nightconfig.core.concurrent.ConcurrentConfig}
+	 *             instead.
 	 */
+	@Deprecated
 	static CommentedConfig concurrentCopy(UnmodifiableConfig config, ConfigFormat<?> format) {
 		return new SimpleCommentedConfig(config, format, true);
 	}
@@ -393,7 +420,11 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 *
 	 * @param config the config to copy
 	 * @return a thread-safe copy of the config
+	 * @deprecated A concurrent HashMap is not enough to make the whole configuration robust to multi-threaded
+	 *             use. Prefer to use a {@link com.electronwill.nightconfig.core.concurrent.ConcurrentConfig}
+	 *             instead.
 	 */
+	@Deprecated
 	static CommentedConfig concurrentCopy(UnmodifiableCommentedConfig config) {
 		return new SimpleCommentedConfig(config, config.configFormat(), true);
 	}
@@ -404,9 +435,13 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * @param config the config to copy
 	 * @param format the config's format
 	 * @return a thread-safe copy of the config
+	 * @deprecated A concurrent HashMap is not enough to make the whole configuration robust to multi-threaded
+	 *             use. Prefer to use a {@link com.electronwill.nightconfig.core.concurrent.ConcurrentConfig}
+	 *             instead.
 	 */
+	@Deprecated
 	static CommentedConfig concurrentCopy(UnmodifiableCommentedConfig config,
-										  ConfigFormat<?> format) {
+			ConfigFormat<?> format) {
 		return new SimpleCommentedConfig(config, format, true);
 	}
 
@@ -421,7 +456,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 */
 	static CommentedConfig fake(Config config) {
 		if (config instanceof CommentedConfig) {
-			return (CommentedConfig)config;
+			return (CommentedConfig) config;
 		}
 		return new FakeCommentedConfig(config);
 	}

@@ -263,7 +263,12 @@ public interface Config extends UnmodifiableConfig {
 	 *
 	 * @param format the config's format
 	 * @return a new empty, thread-safe config
+	 * @deprecated A concurrent HashMap is not enough to make the whole configuration robust to
+	 *             multi-threaded
+	 *             use. Prefer to use a {@link com.electronwill.nightconfig.core.concurrent.ConcurrentConfig}
+	 *             instead.
 	 */
+	@Deprecated
 	static Config ofConcurrent(ConfigFormat<? extends Config> format) {
 		return new SimpleConfig(format, true);
 	}
@@ -290,6 +295,9 @@ public interface Config extends UnmodifiableConfig {
 	 * Creates a thread-safe Config with format {@link InMemoryFormat#defaultInstance()}.
 	 *
 	 * @return a new empty config
+	 * @deprecated A concurrent HashMap is not enough to make the whole configuration robust to multi-threaded
+	 *             use. Prefer to use a {@link com.electronwill.nightconfig.core.concurrent.ConcurrentConfig}
+	 *             instead.
 	 */
 	static Config inMemoryConcurrent() {
 		return InMemoryFormat.defaultInstance().createConcurrentConfig();
@@ -299,7 +307,11 @@ public interface Config extends UnmodifiableConfig {
 	 * Creates a thread-safe Config with format {@link InMemoryFormat#withUniversalSupport()}.
 	 *
 	 * @return a new empty config
+	 * @deprecated A concurrent HashMap is not enough to make the whole configuration robust to multi-threaded
+	 *             use. Prefer to use a {@link com.electronwill.nightconfig.core.concurrent.ConcurrentConfig}
+	 *             instead.
 	 */
+	@Deprecated
 	static Config inMemoryUniversalConcurrent() {
 		return InMemoryFormat.withUniversalSupport().createConcurrentConfig();
 	}
@@ -442,12 +454,12 @@ public interface Config extends UnmodifiableConfig {
 	 *             use. Prefer to use a {@link com.electronwill.nightconfig.core.concurrent.ConcurrentConfig}
 	 *             instead.
 	 */
+	@Deprecated
 	static <T> Supplier<Map<String, T>> getDefaultMapCreator(boolean concurrent,
 			boolean insertionOrderPreserved) {
 		if (insertionOrderPreserved) {
 			return concurrent ? () -> Collections.synchronizedMap(new LinkedHashMap<>())
 					: LinkedHashMap::new;
-			// TODO find or make a ConcurrentMap that preserves the insertion order
 		}
 		return concurrent ? ConcurrentHashMap::new : HashMap::new;
 	}

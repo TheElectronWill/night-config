@@ -66,6 +66,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	/**
 	 * Sets the charset used for {@link FileConfig#save()} and {@link FileConfig#load()}.
 	 *
+	 * @param charset the charset to decode the characters with
 	 * @return this builder
 	 */
 	public GenericBuilder<Base, Result> charset(Charset charset) {
@@ -77,12 +78,14 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 * Sets the WritingMode used for {@link FileConfig#save()}.
 	 * <p>
 	 * Example:
+	 * 
 	 * <pre>
 	 * {@code
 	 * FileConfig config = FileConfig.builder(file).writingMode(WritingMode.REPLACE_ATOMIC).build();
 	 * }
 	 * </pre>
 	 *
+	 * @param writingMode how to write to the file
 	 * @return this builder
 	 */
 	public GenericBuilder<Base, Result> writingMode(WritingMode writingMode) {
@@ -93,6 +96,8 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	/**
 	 * Sets the ParsingMode used for {@link FileConfig#load()}.
 	 *
+	 * @param parsingMode how to handle conflicts between the existing entries and the new entries that are read
+	 *                    from the file
 	 * @return this builder
 	 */
 	public GenericBuilder<Base, Result> parsingMode(ParsingMode parsingMode) {
@@ -103,10 +108,11 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	/**
 	 * Sets the action to execute when the config's file is not found.
 	 *
+	 * @param notFoundAction what to do when the file does not exist
 	 * @return this builder
 	 */
-	public GenericBuilder<Base, Result> onFileNotFound(FileNotFoundAction nefAction) {
-		this.nefAction = nefAction;
+	public GenericBuilder<Base, Result> onFileNotFound(FileNotFoundAction notFoundAction) {
+		this.nefAction = notFoundAction;
 		return this;
 	}
 
@@ -185,6 +191,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 * and perform a debouncing of the given duration. Calling {@link FileConfig#save()} twice with
 	 * less than {@code debounceTime} in between will cancel the first save and only perform the second.
 	 * 
+	 * @param debounceTime the minimal time between two saves
 	 * @return this builder
 	 */
 	public GenericBuilder<Base, Result> asyncWithDebouncing(Duration debounceTime) {
@@ -217,6 +224,8 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	/**
 	 * Makes the configuration "autoreloaded", using the given FileWatcher to monitor the config file.
 	 *
+	 * @param fileWatcher the FileWatcher to register a watch to, in order to reload the config when the file
+	 *                    changes
 	 * @return this builder
 	 */
 	public GenericBuilder<Base, Result> autoreload(FileWatcher fileWatcher) {
@@ -249,7 +258,8 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 * When the configuration triggers an <b>automatic save</b>, calls the given listener.
 	 * Only one listener can be set, calling {@code onAutoSave} multiple times will replace the listener.
 	 * <p>
-	 * If the FileConfig is asynchronous and a debouncing occurs, the listener can be called without an actual saving operation being executed
+	 * If the FileConfig is asynchronous and a debouncing occurs, the listener can be called without an actual
+	 * saving operation being executed
 	 * (due to the debouncing, the actual save will occur later).
 	 * Otherwise, the listener is called once the saving operation is complete.
 	 * <p>
@@ -322,7 +332,8 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	/**
 	 * Makes the configuration concurrent, that is, thread-safe.
 	 *
-	 * @deprecated Since NightConfig v3.7, this method has no effect because all FileConfig are thread-safe, backed by {@link ConcurrentConfig}.
+	 * @deprecated Since NightConfig v3.7, this method has no effect because all FileConfig are thread-safe,
+	 *             backed by {@link ConcurrentConfig}.
 	 * @return this builder
 	 */
 	@Deprecated
@@ -356,7 +367,8 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	}
 
 	private Runnable runnableOrNothing(Runnable r) {
-		return (r == null) ? () -> {} : r;
+		return (r == null) ? () -> {
+		} : r;
 	}
 
 	/**
@@ -395,7 +407,8 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 		} else {
 			StampedConfig config = new StampedConfig(format, mapCreator);
 			fileConfig = new AsyncFileConfig(config, file, charset, writer, writingMode,
-					parser, parsingMode, nefAction, false, loadFilter, saveListener, loadListener, debounceTime);
+					parser, parsingMode, nefAction, false, loadFilter, saveListener, loadListener,
+					debounceTime);
 		}
 		// add automatic reloading
 		if (autoreloadFileWatcher != null) {

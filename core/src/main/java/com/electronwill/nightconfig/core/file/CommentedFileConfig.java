@@ -59,7 +59,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 *
 	 * @param file the file to use to save and load the config
 	 * @return a new FileConfig associated to the specified file
-	 * @see {@link #builder(File)}
+	 * @see #builder(File)
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
 	static CommentedFileConfig of(File file) {
@@ -72,7 +72,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new FileConfig associated to the specified file
-	 * @see {@link #builder(File, ConfigFormat)}
+	 * @see #builder(File, ConfigFormat)
 	 */
 	static CommentedFileConfig of(File file, ConfigFormat<? extends CommentedConfig> format) {
 		return of(file.toPath(), format);
@@ -84,7 +84,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 *
 	 * @param file the file to use to save and load the config
 	 * @return a new FileConfig associated to the specified file
-	 * @see {@link #builder(Path)}
+	 * @see #builder(Path)
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
 	@SuppressWarnings("rawtypes")
@@ -102,7 +102,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @param file   the file to use to save and load the config
 	 * @param format the config's format
 	 * @return a new FileConfig associated to the specified file
-	 * @see {@link #builder(Path, ConfigFormat)}
+	 * @see #builder(Path, ConfigFormat)
 	 */
 	static CommentedFileConfig of(Path file, ConfigFormat<? extends CommentedConfig> format) {
 		return builder(file, format).build();
@@ -114,7 +114,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 *
 	 * @param filePath the file's path
 	 * @return a new FileConfig associated to the specified file
-	 * @see {@link #builder(String)}
+	 * @see #builder(String)
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
 	static CommentedFileConfig of(String filePath) {
@@ -127,7 +127,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @param filePath the file's path
 	 * @param format   the config's format
 	 * @return a new FileConfig associated to the specified file
-	 * @see {@link #builder(String, ConfigFormat)}
+	 * @see #builder(String, ConfigFormat)
 	 */
 	static CommentedFileConfig of(String filePath, ConfigFormat<? extends CommentedConfig> format) {
 		return of(Paths.get(filePath), format);

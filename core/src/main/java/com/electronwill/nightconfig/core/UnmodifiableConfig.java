@@ -139,7 +139,7 @@ public interface UnmodifiableConfig {
 	 * @param enumType the class of the Enum
 	 * @param method   the method to use when converting a non-enum value like a String or an int
 	 * @param <T>      the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
+	 * @return the value at the given path as an enum, or {@code null} if not found.
 	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
 	 *                                  the enum constants, with regards to the given method
 	 * @throws ClassCastException       if the config contains a value that cannot be converted to
@@ -152,7 +152,11 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getEnum(String, Class, EnumGetMethod)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 * 
+	 * @param path     the value's path, each part separated by a dot. Example "a.b.c"
+	 * @param enumType the class of the Enum
 	 * @param <T>      the enum type
+	 * @return the value at the given path as an enum, or {@code null} if not found
 	 */
 	default <T extends Enum<T>> T getEnum(String path, Class<T> enumType) {
 		return getEnum(split(path, '.'), enumType, EnumGetMethod.NAME_IGNORECASE);
@@ -165,7 +169,7 @@ public interface UnmodifiableConfig {
 	 * @param enumType the class of the Enum
 	 * @param method   the method to use when converting a non-enum value like a String or an int
 	 * @param <T>      the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
+	 * @return the value at the given path as an enum, or {@code null} if not found.
 	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
 	 *                                  the enum constants, with regards to the given method
 	 * @throws ClassCastException       if the config contains a value that cannot be converted to
@@ -179,6 +183,10 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getEnum(List, Class, EnumGetMethod)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 * 
+	 * @param path     the value's path, each element of the list is a different part of the path.
+	 * @param enumType the class of the Enum
+	 * @return the value at the given path as an enum, or {@code null} if not found.
 	 */
 	default <T extends Enum<T>> T getEnum(List<String> path, Class<T> enumType) {
 		return getEnum(path, enumType, EnumGetMethod.NAME_IGNORECASE);
@@ -191,7 +199,7 @@ public interface UnmodifiableConfig {
 	 * @param enumType the class of the Enum
 	 * @param method   the method to use when converting a non-enum value like a String or an int
 	 * @param <T>      the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
+	 * @return the value at the given path as an enum, or {@code null} if not found.
 	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
 	 *                                  the enum constants, with regards to the given method
 	 * @throws ClassCastException       if the config contains a value that cannot be converted to
@@ -204,6 +212,10 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getOptionalEnum(String, Class, EnumGetMethod)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 * 
+	 * @param path     the value's path, each part separated by a dot. Example "a.b.c"
+	 * @param enumType the class of the Enum
+	 * @return the value at the given path as an enum, or {@code null} if not found.
 	 */
 	default <T extends Enum<T>> Optional<T> getOptionalEnum(String path, Class<T> enumType) {
 		return getOptionalEnum(path, enumType, EnumGetMethod.NAME_IGNORECASE);
@@ -216,7 +228,7 @@ public interface UnmodifiableConfig {
 	 * @param enumType the class of the Enum
 	 * @param method   the method to use when converting a non-enum value like a String or an int
 	 * @param <T>      the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
+	 * @return the value at the given path as an enum, or {@code null} if not found.
 	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
 	 *                                  the enum constants, with regards to the given method
 	 * @throws ClassCastException       if the config contains a value that cannot be converted to
@@ -229,6 +241,10 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getOptionalEnum(List, Class, EnumGetMethod)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 * 
+	 * @param path the value's path, each element of the list is a different part of the path.
+	 * @param enumType the class of the Enum
+	 * @return the value at the given path as an enum, or {@code null} if not found.
 	 */
 	default <T extends Enum<T>> Optional<T> getOptionalEnum(List<String> path, Class<T> enumType) {
 		return getOptionalEnum(path, enumType, EnumGetMethod.NAME_IGNORECASE);
@@ -241,7 +257,7 @@ public interface UnmodifiableConfig {
 	 * @param defaultValue the default value
 	 * @param method       the method to use when converting a non-enum value like a String or an int
 	 * @param <T>          the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
+	 * @return the value at the given path as an enum, or {@code null} if not found.
 	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
 	 *                                  the enum constants, with regards to the given method
 	 * @throws ClassCastException       if the config contains a value that cannot be converted to
@@ -254,6 +270,10 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getEnumOrElse(String, Enum, EnumGetMethod)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 * 
+	 * @param path         the value's path, each part separated by a dot. Example "a.b.c"
+	 * @param defaultValue the default value
+	 * @return the value at the given path as an enum, or {@code null} if not found.
 	 */
 	default <T extends Enum<T>> T getEnumOrElse(String path, T defaultValue) {
 		return getEnumOrElse(path, defaultValue, EnumGetMethod.NAME_IGNORECASE);
@@ -266,7 +286,7 @@ public interface UnmodifiableConfig {
 	 * @param defaultValue the default value
 	 * @param method       the method to use when converting a non-enum value like a String or an int
 	 * @param <T>          the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
+	 * @return the value at the given path as an enum, or {@code null} if not found.
 	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
 	 *                                  the enum constants, with regards to the given method
 	 * @throws ClassCastException       if the config contains a value that cannot be converted to
@@ -280,6 +300,10 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getEnumOrElse(List, Enum, EnumGetMethod)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 * 
+	 * @param path         the value's path, each element of the list is a different part of the path.
+	 * @param defaultValue the default value
+	 * @return the value at the given path as an enum, or {@code null} if not found.
 	 */
 	default <T extends Enum<T>> T getEnumOrElse(List<String> path, T defaultValue) {
 		return getEnumOrElse(path, defaultValue, EnumGetMethod.NAME_IGNORECASE);
@@ -292,7 +316,7 @@ public interface UnmodifiableConfig {
 	 * @param defaultValueSupplier Supplier of the default value, only used if needed
 	 * @param method               the method to use when converting a non-enum value like a String or an int
 	 * @param <T>                  the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
+	 * @return the value at the given path as an enum, or {@code null} if not found.
 	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
 	 *                                  the enum constants, with regards to the given method
 	 * @throws ClassCastException       if the config contains a value that cannot be converted to
@@ -308,6 +332,10 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getEnumOrElse(String, Class, EnumGetMethod, Supplier)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 * 
+	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
+	 * @param enumType the class of the Enum
+	 * @return the value at the given path as an enum, or {@code null} if not found.
 	 */
 	default <T extends Enum<T>> T getEnumOrElse(String path,
 												Class<T> enumType,
@@ -322,7 +350,7 @@ public interface UnmodifiableConfig {
 	 * @param defaultValueSupplier Supplier of the default value, only used if needed
 	 * @param method               the method to use when converting a non-enum value like a String or an int
 	 * @param <T>                  the value's type
-	 * @return the value at the given path as an enum, or null value if not found.
+	 * @return the value at the given path as an enum, or {@code null} if not found.
 	 * @throws IllegalArgumentException if the config contains a String that doesn't match any of
 	 *                                  the enum constants, with regards to the given method
 	 * @throws ClassCastException       if the config contains a value that cannot be converted to
@@ -340,6 +368,11 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getEnumOrElse(List, Class, EnumGetMethod, Supplier)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
+	 * 
+	 * @param path         the value's path, each element of the list is a different part of the path.
+	 * @param enumType the class of the Enum
+	 * @param defaultValueSupplier Supplier of the default value, only used if needed
+	 * @return the value at the given path as an enum, or {@code null} if not found.
 	 */
 	default <T extends Enum<T>> T getEnumOrElse(List<String> path,
 												Class<T> enumType,
@@ -350,7 +383,10 @@ public interface UnmodifiableConfig {
 	// ---- Primitive getters: int ----
 	/**
 	 * Like {@link #get(String)} but returns a primitive int. The config's value must be a
-	 * {@link Number}.
+	 * {@link Number}. Throws an exception if the value does not exist.
+	 * 
+	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
+	 * @return the value at the given path, as {@link Number#intValue()}.
 	 */
 	default int getInt(String path) {
 		return this.<Number>get(path).intValue();
@@ -358,7 +394,10 @@ public interface UnmodifiableConfig {
 
 	/**
 	 * Like {@link #get(List)} but returns a primitive int. The config's value must be a
-	 * {@link Number}.
+	 * {@link Number}. Throws an exception if the value does not exist.
+	 * 
+	 * @param path         the value's path, each element of the list is a different part of the path.
+	 * @return the value at the given path, as {@link Number#intValue()}.
 	 */
 	default int getInt(List<String> path) {
 		return this.<Number>getRaw(path).intValue();
@@ -367,6 +406,9 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOptional(String)} but returns a primitive int. The config's value must be a
 	 * {@link Number} or null or nonexistant.
+	 * 
+	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
+	 * @return the value at the given path, as {@link Number#intValue()}, or {@link OptionalInt#empty()}.
 	 */
 	default OptionalInt getOptionalInt(String path) {
 		return getOptionalInt(split(path, '.'));
@@ -375,6 +417,9 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOptional(List)} but returns a primitive int. The config's value must be a
 	 * {@link Number} or null or nonexistant.
+	 * 
+	 * @param path         the value's path, each element of the list is a different part of the path.
+	 * @return the value at the given path, as {@link Number#intValue()}, or {@link OptionalInt#empty()}.
 	 */
 	default OptionalInt getOptionalInt(List<String> path) {
 		Number n = get(path);
@@ -384,6 +429,10 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(String, Object)} but returns a primitive int.
 	 * The config's value must be a {@link Number} or null or nonexistant.
+	 * 
+	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
+	 * @param defaultValue the value returned if the config doesn't contain the given path
+	 * @return the value at the given path, as {@link Number#intValue()}, or {@code defaultValue}.
 	 */
 	default int getIntOrElse(String path, int defaultValue) {
 		return getIntOrElse(split(path, '.'), defaultValue);
@@ -392,6 +441,9 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(List, Object)} but returns a primitive int.
 	 * The config's value must be a {@link Number} or null or nonexistant.
+	 * 
+	 * @param path         the value's path, each element of the list is a different part of the path.
+	 * @return the value at the given path, as {@link Number#intValue()}, or {@code defaultValue}.
 	 */
 	default int getIntOrElse(List<String> path, int defaultValue) {
 		Number n = get(path);
@@ -401,6 +453,9 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(String, Supplier)} but returns a primitive int.
 	 * The config's value must be a {@link Number} or null or nonexistant.
+	 * 
+	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
+	 * @return the value at the given path, as {@link Number#intValue()}, or {@code defaultValueSupplier.get()}.
 	 */
 	default int getIntOrElse(String path, IntSupplier defaultValueSupplier) {
 		return getIntOrElse(split(path, '.'), defaultValueSupplier);
@@ -409,6 +464,9 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(List, Supplier)} but returns a primitive int.
 	 * The config's value must be a {@link Number} or null or nonexistant.
+	 * 
+	 * @param path         the value's path, each element of the list is a different part of the path.
+	 * @return the value at the given path, as {@link Number#intValue()}, or {@code defaultValueSupplier.get()}.
 	 */
 	default int getIntOrElse(List<String> path, IntSupplier defaultValueSupplier) {
 		Number n = get(path);
@@ -419,6 +477,8 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #get(String)} but returns a primitive long. The config's value must be a
 	 * {@link Number}.
+	 * 
+	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
 	 */
 	default long getLong(String path) {
 		return this.<Number>getRaw(path).longValue();
@@ -427,6 +487,8 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #get(List)} but returns a primitive long. The config's value must be a
 	 * {@link Number}.
+	 * 
+	 * @param path         the value's path, each element of the list is a different part of the path.
 	 */
 	default long getLong(List<String> path) {
 		return this.<Number>getRaw(path).longValue();
@@ -435,6 +497,8 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOptional(String)} but returns a primitive long. The config's value must be a
 	 * {@link Number} or null or nonexistant.
+	 * 
+	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
 	 */
 	default OptionalLong getOptionalLong(String path) {
 		return getOptionalLong(split(path, '.'));
@@ -443,6 +507,8 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOptional(List)} but returns a primitive long. The config's value must be a
 	 * {@link Number} or null or nonexistant.
+	 * 
+	 * @param path         the value's path, each element of the list is a different part of the path.
 	 */
 	default OptionalLong getOptionalLong(List<String> path) {
 		Number n = get(path);
@@ -452,6 +518,9 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(String, Object)} but returns a primitive long.
 	 * The config's value must be a {@link Number} or null or nonexistant.
+	 * 
+	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
+	 * @param defaultValue the value to return if the config doesn't contain the path
 	 */
 	default long getLongOrElse(String path, long defaultValue) {
 		return getLongOrElse(split(path, '.'), defaultValue);
@@ -460,6 +529,9 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(List, Object)} but returns a primitive long.
 	 * The config's value must be a {@link Number} or null or nonexistant.
+	 * 
+	 * @param path         the value's path, each element of the list is a different part of the path.
+	 * @param defaultValue the value to return if the config doesn't contain the path
 	 */
 	default long getLongOrElse(List<String> path, long defaultValue) {
 		Number n = get(path);
@@ -469,6 +541,9 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(String, Supplier)} but returns a primitive long.
 	 * The config's value must be a {@link Number} or null or nonexistant.
+	 * 
+	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
+	 * @param defaultValueSupplier supplies the value to return if the config doesn't contain the path
 	 */
 	default long getLongOrElse(String path, LongSupplier defaultValueSupplier) {
 		return getLongOrElse(split(path, '.'), defaultValueSupplier);
@@ -477,6 +552,9 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(List, Supplier)} but returns a primitive long.
 	 * The config's value must be a {@link Number} or null or nonexistant.
+	 * 
+	 * @param path         the value's path, each element of the list is a different part of the path.
+	 * @param defaultValueSupplier supplies the value to return if the config doesn't contain the path
 	 */
 	default long getLongOrElse(List<String> path, LongSupplier defaultValueSupplier) {
 		Number n = get(path);

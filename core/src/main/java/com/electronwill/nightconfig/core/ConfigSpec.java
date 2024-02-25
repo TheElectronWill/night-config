@@ -59,6 +59,7 @@ import static com.electronwill.nightconfig.core.utils.StringUtils.split;
  * @author TheElectronWill
  */
 public class ConfigSpec {
+	/** Stores the entries of the spec as {@link ValueSpec} values. */
 	protected final Config storage;
 
 	public ConfigSpec() {
@@ -148,6 +149,7 @@ public class ConfigSpec {
 	 * @param path                 the entry's path
 	 * @param defaultValue         the default entry value
 	 * @param acceptableValueClass the class that a value of this entry must have
+	 * @param <V> the value's type 
 	 */
 	public <V> void defineOfClass(String path, V defaultValue,
 								  Class<? super V> acceptableValueClass) {
@@ -161,6 +163,7 @@ public class ConfigSpec {
 	 * @param path                 the entry's path
 	 * @param defaultValueSupplier the Supplier of the default entry value
 	 * @param acceptableValueClass the class that a value of this entry must have
+	 * @param <V> the value's type 
 	 */
 	public <V> void defineOfClass(String path, Supplier<V> defaultValueSupplier,
 								  Class<? super V> acceptableValueClass) {
@@ -174,6 +177,7 @@ public class ConfigSpec {
 	 * @param path                 the entry's path
 	 * @param defaultValue         the default entry value
 	 * @param acceptableValueClass the class that a value of this entry must have
+	 * @param <V> the value's type 
 	 */
 	public <V> void defineOfClass(List<String> path, V defaultValue,
 								  Class<? super V> acceptableValueClass) {
@@ -187,6 +191,7 @@ public class ConfigSpec {
 	 * @param path                 the entry's path
 	 * @param defaultValueSupplier the Supplier of the default entry value
 	 * @param acceptableValueClass the class that a value of this entry must have
+	 * @param <V> the value's type 
 	 */
 	public <V> void defineOfClass(List<String> path, Supplier<V> defaultValueSupplier,
 								  Class<? super V> acceptableValueClass) {
@@ -253,6 +258,7 @@ public class ConfigSpec {
 	 * @param defaultValue the default entry value
 	 * @param min          the minimum, inclusive
 	 * @param max          the maximum, inclusive
+	 * @param <V> the value's type
 	 */
 	public <V extends Comparable<? super V>> void defineInRange(String path, V defaultValue, V min,
 																V max) {
@@ -267,6 +273,7 @@ public class ConfigSpec {
 	 * @param defaultValueSupplier the Supplier of the default entry value
 	 * @param min                  the minimum, inclusive
 	 * @param max                  the maximum, inclusive
+	 * @param <V> the value's type 
 	 */
 	public <V extends Comparable<? super V>> void defineInRange(String path,
 																Supplier<V> defaultValueSupplier,
@@ -282,6 +289,7 @@ public class ConfigSpec {
 	 * @param defaultValue the default entry value
 	 * @param min          the minimum, inclusive
 	 * @param max          the maximum, inclusive
+	 * @param <V> the value's type 
 	 */
 	public <V extends Comparable<? super V>> void defineInRange(List<String> path, V defaultValue,
 																V min, V max) {
@@ -296,7 +304,9 @@ public class ConfigSpec {
 	 * @param defaultValueSupplier the Supplier of the default entry value
 	 * @param min                  the minimum, inclusive
 	 * @param max                  the maximum, inclusive
+	 * @param <V> the value's type 
 	 */
+	@SuppressWarnings("unchecked")
 	public <V extends Comparable<? super V>> void defineInRange(List<String> path,
 																Supplier<V> defaultValueSupplier,
 																V min, V max) {
@@ -702,6 +712,7 @@ public class ConfigSpec {
 
 	}
 
+	/** What to do when a value is incorrect. */
 	public enum CorrectionAction {
 		/**
 		 * Means that the value was added to the config. In that case, {@code incorrectValue} is

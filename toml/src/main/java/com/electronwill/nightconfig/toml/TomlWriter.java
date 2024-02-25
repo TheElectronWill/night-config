@@ -69,21 +69,21 @@ public final class TomlWriter implements ConfigWriter {
 
 	/**
 	 * Sets whether redundant intermediate levels should be hidden or written to the TOML output.
-	 * @see {@link #isHidingRedundantLevels()}
+	 * @see #isHidingRedundantLevels()
 	 */
 	public void setHideRedundantLevels(boolean hideRedundantLevels) {
 		this.hideRedundantLevels = hideRedundantLevels;
 	}
 
 	/**
-	 * @see {@link #isHidingRedundantLevels()}
+	 * @see #isHidingRedundantLevels()
 	 */
 	public boolean isOmitIntermediateLevels() {
 		return hideRedundantLevels;
 	}
 
 	/**
-	 * @see {@link #setHideRedundantLevels(boolean)}
+	 * @see #setHideRedundantLevels(boolean)
 	 */
 	public void setOmitIntermediateLevels(boolean omitIntermediateLevels) {
 		setHideRedundantLevels(omitIntermediateLevels);
