@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.concurrent.ConcurrentHashMap;
@@ -136,7 +137,14 @@ class CommonTests {
         assertEquals("test", config.set("a.b.c", 123));
         assertEquals(123, config.<Integer>get("a.b.c"));
         assertTrue(config.contains("a.b.c"));
+        assertFalse(config.isNull("a.b.c"));
+        assertNotNull(config.apply("a.b.c"));
         assertEquals(123, config.<Integer>remove("a.b.c"));
+
+        // more simple tests
+        assertNotEquals(0, config.hashCode());
+        assertNotEquals("", config.toString());
+        assertNotNull(config.configFormat());
     }
 
     public static void testErrors(CommentedConfig config) {
@@ -305,8 +313,14 @@ class CommonTests {
         // check the comments
         {
             var entries = config.entrySet();
-            Set<String> comments = entries.stream().map(e -> e.getComment()).collect(Collectors.toSet());
-            assertEquals(setTestComments, comments);
+            Set<String> commentsFromEntries = entries.stream().map(e -> e.getComment()).collect(Collectors.toSet());
+            assertEquals(setTestComments, commentsFromEntries);
+
+            Map<String, CommentNode> commentNodes = config.getComments();
+            var commentsFromNodes = commentNodes.entrySet().stream().map(e -> e.getValue().getComment()).collect(Collectors.toSet());
+            var entriesFromNodes = commentNodes.entrySet().stream().map(e -> e.getKey()).collect(Collectors.toSet());
+            assertEquals(setTestComments, commentsFromNodes);
+            assertEquals(setTestKeys, entriesFromNodes);
         }
 
         // clear comments
