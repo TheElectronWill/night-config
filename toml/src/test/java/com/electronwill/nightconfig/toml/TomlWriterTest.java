@@ -40,7 +40,7 @@ public class TomlWriterTest {
 			"first line\n" +
 			"second line\n" +
 			"\tthird line (indented)\n" +
-			"fourth line!\"\"\"\n" + 
+			"fourth line!\"\"\"\n" +
 			"";
 		assertEquals(expected, result);
 
@@ -261,6 +261,27 @@ public class TomlWriterTest {
 				"a = 1",
 				"b = 2",
 				""), writerWithoutIndentation().writeToString(config));
+	}
+
+	@Test
+	public void writeAlignedList() {
+		CommentedConfig config = CommentedConfig.inMemory();
+		List<String> list = Arrays.asList("value1", "value2", "value3");
+
+		config.set("Test.List", list);
+
+		TomlWriter writer = new TomlWriter();
+		writer.setIndentArrayElementsPredicate(objects -> true);
+		String written = writer.writeToString(config);
+
+		System.out.println(written);
+		assertEquals(join("[Test]",
+							"\tList = [",
+							"\t\t\"value1\",",
+							"\t\t\"value2\",",
+							"\t\t\"value3\"",
+							"\t]",
+							""), written);
 	}
 
 	private String join(String... lines) {
