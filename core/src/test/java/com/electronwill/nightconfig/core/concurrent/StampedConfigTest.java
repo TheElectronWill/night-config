@@ -58,6 +58,7 @@ public class StampedConfigTest {
     }
 
     @Test
+    @Timeout(value = 1, unit = TimeUnit.SECONDS, threadMode = ThreadMode.SEPARATE_THREAD)
     public void putAllComments() {
         CommonTests.testPutAllComments(newConfig(), newConfig());
         CommonTests.testPutAllComments(newConfig(), newAccumulator());
@@ -248,7 +249,7 @@ public class StampedConfigTest {
         });
         System.out.println("249");
 
-        assertThrows(exception, () -> {
+        assertThrows(Exception.class, () -> {
             config.bulkUpdate(view -> {
                 view.putAll(config); // wrong
             });
@@ -262,7 +263,7 @@ public class StampedConfigTest {
         });
         System.out.println("263");
 
-        assertThrows(exception, () -> {
+        assertThrows(Exception.class, () -> {
             config.bulkUpdate(view -> {
                 view.removeAll(config); // wrong
             });
