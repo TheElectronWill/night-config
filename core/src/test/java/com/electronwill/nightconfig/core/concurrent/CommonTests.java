@@ -9,14 +9,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.BiConsumer;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
@@ -101,6 +102,8 @@ class CommonTests {
             assertTrue(config.contains(Arrays.asList("sub", "config")));
             assertTrue(config.contains(Arrays.asList("sub")));
             assertFalse(config.contains(Arrays.asList("sub", "sub")));
+            assertNull(config.get(Arrays.asList("sub", "sub")));
+            assertFalse(config.getOptional(Arrays.asList("sub", "sub")).isPresent());
             assertFalse(config.contains(Arrays.asList("config")));
         }
         if (checkSubconfigClass) {
@@ -241,23 +244,40 @@ class CommonTests {
     public static void testConcurrentCounters(ConcurrentConfig config) throws InterruptedException {
         int nThreads = Runtime.getRuntime().availableProcessors();
         var executor = Executors.newFixedThreadPool(nThreads);
+        var runFlag = new AtomicBoolean(true);
         var counters = new ConcurrentHashMap<List<String>, AtomicInteger>(nThreads);
+
+        var futures = new ArrayList<Future<?>>();
+
         for (int i = 0; i < nThreads; i++) {
             var counter = new AtomicInteger(0);
             var path = Collections.singletonList(String.valueOf(i));
             counters.put(path, counter);
             config.set(path, 0);
-            executor.submit(() -> {
-                while (!Thread.currentThread().isInterrupted()) {
+            var future = executor.submit(() -> {
+                while (runFlag.get()) {
                     var newValue = counter.incrementAndGet();
                     var previousValue = newValue - 1;
                     assertEquals(previousValue, config.<Integer>set(path, newValue));
                 }
             });
+            futures.add(future);
         }
-        Thread.sleep(5_000); // wait for 5 seconds
+        Thread.sleep(4_000); // wait for 4 seconds
+        runFlag.set(false);
         executor.shutdownNow();
         executor.awaitTermination(100, TimeUnit.MILLISECONDS);
+
+        // check the futures
+        for (var f:futures) {
+            try {
+                assertNull(f.get());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                fail("future failed ! " + e);
+            }
+        }
 
         // check the counters
         counters.forEach((path, counter) -> {
