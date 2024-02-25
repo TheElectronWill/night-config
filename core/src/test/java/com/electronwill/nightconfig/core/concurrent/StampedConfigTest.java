@@ -197,27 +197,105 @@ public class StampedConfigTest {
 
         assertThrows(exception, () -> {
             config.bulkUpdate(view -> {
-                config.remove("a.b"); // wrong
+                config.set("x", "value"); // wrong
             });
         });
 
         assertThrows(exception, () -> {
             config.bulkUpdate(view -> {
-                config.clear(); // wrong
+                config.getRaw("x"); // wrong
             });
         });
 
         assertThrows(exception, () -> {
             config.bulkUpdate(view -> {
-                config.clearComments(); // wrong
+                config.add("x", "value"); // wrong
             });
         });
+
+        assertThrows(exception, () -> {
+            config.bulkUpdate(view -> {
+                config.addAll(view); // wrong
+            });
+        });
+        System.out.println("221");
+
+        assertThrows(exception, () -> {
+            config.bulkUpdate(view -> {
+                config.putAll(view); // wrong
+            });
+        });
+        System.out.println("228");
+
+        assertThrows(exception, () -> {
+            config.bulkCommentedUpdate(view -> {
+                config.putAllComments(view); // wrong
+            });
+        });
+        System.out.println("235");
 
         assertThrows(exception, () -> {
             config.bulkUpdate(view -> {
                 config.removeAll(view); // wrong
             });
         });
+        System.out.println("242");
+
+        assertThrows(exception, () -> {
+            config.bulkUpdate(view -> {
+                view.addAll(config); // wrong
+            });
+        });
+        System.out.println("249");
+
+        assertThrows(exception, () -> {
+            config.bulkUpdate(view -> {
+                view.putAll(config); // wrong
+            });
+        });
+        System.out.println("256");
+
+        assertThrows(exception, () -> {
+            config.bulkCommentedUpdate(view -> {
+                view.putAllComments(config); // wrong
+            });
+        });
+        System.out.println("263");
+
+        assertThrows(exception, () -> {
+            config.bulkUpdate(view -> {
+                view.removeAll(config); // wrong
+            });
+        });
+        System.out.println("270");
+
+        assertThrows(exception, () -> {
+            config.bulkUpdate(view -> {
+                config.remove("a.b"); // wrong
+            });
+        });
+        System.out.println("277");
+
+        assertThrows(exception, () -> {
+            config.bulkUpdate(view -> {
+                config.clear(); // wrong
+            });
+        });
+        System.out.println("284");
+
+        assertThrows(exception, () -> {
+            config.bulkUpdate(view -> {
+                config.clearComments(); // wrong
+            });
+        });
+        System.out.println("291");
+
+        assertThrows(exception, () -> {
+            config.bulkUpdate(view -> {
+                config.removeAll(view); // wrong
+            });
+        });
+        System.out.println("298");
     }
 
     @Test

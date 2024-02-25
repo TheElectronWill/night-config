@@ -639,11 +639,15 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
     private void unsafePutAll(UnmodifiableConfig other) {
         if (other instanceof StampedConfig) {
             StampedConfig stamped = (StampedConfig) other;
-            long stamp2 = stamped.valuesLock.readLock();
+            long stamp = stamped.valuesLock.tryReadLock();
+            if (stamp == 0) {
+                stamped.checkStateForNormalOp(); // catch misuse, especially for other == this
+                stamp = stamped.valuesLock.readLock();
+            }
             try {
                 this.values.putAll(stamped.values);
             } finally {
-                stamped.valuesLock.unlockRead(stamp2);
+                stamped.valuesLock.unlockRead(stamp);
             }
         } else {
             // Danger: we may insert subconfigs that are not StampedConfig! convert them
@@ -664,11 +668,15 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
     private void unsafeRemoveAll(UnmodifiableConfig other) {
         if (other instanceof StampedConfig) {
             StampedConfig stamped = (StampedConfig) other;
-            long stamp2 = stamped.valuesLock.readLock();
+            long stamp = stamped.valuesLock.tryReadLock();
+            if (stamp == 0) {
+                stamped.checkStateForNormalOp(); // catch misuse, especially for other == this
+                stamp = stamped.valuesLock.readLock();
+            }
             try {
                 this.values.keySet().removeAll(stamped.values.keySet());
             } finally {
-                stamped.valuesLock.unlockRead(stamp2);
+                stamped.valuesLock.unlockRead(stamp);
             }
         } else {
             try {
