@@ -43,8 +43,8 @@ final class ArrayWriter {
 		if (indent) {
 			writer.decreaseIndentLevel();
 			writer.writeNewline(output);
+			writer.writeIndent(output);
 		}
-		writer.writeIndent(output);
 		output.write(']');
 	}
 
