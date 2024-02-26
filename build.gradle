@@ -38,6 +38,10 @@ configure(subprojects.findAll {it.name != "examples" && it.name != "tests-all"})
 		targetCompatibility = JavaVersion.VERSION_11
 	}
 
+	javadoc {
+    	options.overview = "${project.projectDir}/src/overview.html"
+	}
+
 	jacocoTestReport {
 		dependsOn test
 	}
