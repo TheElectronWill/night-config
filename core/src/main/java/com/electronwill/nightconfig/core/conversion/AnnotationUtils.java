@@ -70,7 +70,7 @@ final class AnnotationUtils {
 	 * @return the annotated path, if any, or the field name
 	 */
 	static List<String> getPath(Field field) {
-		List<String> annotatedPath = getPath((AnnotatedElement)field);
+		List<String> annotatedPath = getPath(field);
 		return (annotatedPath == null) ? Collections.singletonList(field.getName()) : annotatedPath;
 	}
 
