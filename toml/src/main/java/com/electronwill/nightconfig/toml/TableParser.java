@@ -172,7 +172,7 @@ final class TableParser {
 				throw new ParsingException("Empty bare keys aren't allowed.");
 			}
 			if (!Toml.isValidBareKey(bareKey, parser.isLenientWithBareKeys())) {
-				throw new ParsingException("Invalid bare key: " + bareKey);
+				throw new ParsingException("Invalid bare key: \'" + bareKey + "\'");
 			}
 			return bareKey;
 		}

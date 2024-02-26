@@ -6,14 +6,18 @@ import com.electronwill.nightconfig.core.TestEnum;
 import com.electronwill.nightconfig.core.concurrent.StampedConfig;
 import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
+import com.electronwill.nightconfig.core.io.AdditionalCharsets;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.ParsingMode;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,16 +34,83 @@ public class TomlParserTest {
 	}
 
 	@Test
+	public void utf8WithByteOrderMark() {
+		var parser = new TomlParser();
+		byte[] utf8WithBom = { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF, 'k', '=', '1' };
+		byte[] utf8WithoutBom = { 'k', '=', '1' };
+		var config = parseBytes(parser, utf8WithBom, AdditionalCharsets.UTF_8_BOM);
+		assertEquals(1, config.getInt("k"));
+		assertEquals(1, config.size());
+
+		config = parseBytes(parser, utf8WithoutBom, AdditionalCharsets.UTF_8_BOM);
+		assertEquals(1, config.getInt("k"));
+		assertEquals(1, config.size());
+	}
+
+	@Test
+	public void utf8Or16MaybeBOM() {
+		var parser = new TomlParser();
+		byte[] utf16WithBomBe = { (byte) 0xFE, (byte) 0xFF, 0, 'k', 0, '=', 0, '1' };
+		byte[] utf16WithBomLe = { (byte) 0xFF, (byte) 0xFE, 'k', 0, '=', 0, '1', 0 };
+		byte[] utf8WithoutBom = { 'k', '=', '1' }; // UTF-16 without bom is not supported here
+		var config = parseBytes(parser, utf16WithBomBe, AdditionalCharsets.UTF_8_OR_16);
+		assertEquals(1, config.getInt("k"));
+		assertEquals(1, config.size());
+
+		config = parseBytes(parser, utf16WithBomLe, AdditionalCharsets.UTF_8_OR_16);
+		assertEquals(1, config.getInt("k"));
+		assertEquals(1, config.size());
+
+		config = parseBytes(parser, utf8WithoutBom, AdditionalCharsets.UTF_8_OR_16);
+		assertEquals(1, config.getInt("k"));
+		assertEquals(1, config.size());
+	}
+
+	@Test
+	public void utf16WithByteOrderMark() {
+		var parser = new TomlParser();
+		byte[] withBomBe = { (byte) 0xFE, (byte) 0xFF, 0, 'k', 0, '=', 0, '1' };
+		byte[] withBomLe = { (byte) 0xFF, (byte) 0xFE, 'k', 0, '=', 0, '1', 0 };
+		byte[] withoutBom = { 0, 'k', 0, '=', 0, '1' };
+		var config = parseBytes(parser, withBomBe, StandardCharsets.UTF_16);
+		assertEquals(1, config.getInt("k"));
+		assertEquals(1, config.size());
+
+		config = parseBytes(parser, withBomLe, StandardCharsets.UTF_16);
+		assertEquals(1, config.getInt("k"));
+		assertEquals(1, config.size());
+
+		config = parseBytes(parser, withoutBom, StandardCharsets.UTF_16);
+		assertEquals(1, config.getInt("k"));
+		assertEquals(1, config.size());
+	}
+
+	CommentedConfig parseBytes(TomlParser parser, byte[] bytes, Charset charset) {
+		return parser.parse(new ByteArrayInputStream(bytes), charset);
+	}
+
+	@Test
 	public void readOfficialExample() {
 		File f = new File("example.toml");
-		CommentedConfig parsed = new TomlParser().parse(f, FileNotFoundAction.THROW_ERROR);
+		CommentedConfig parsed = new TomlParser().parse(f, FileNotFoundAction.THROW_ERROR, StandardCharsets.UTF_8);
+		Util.checkExample(parsed);
+	}
+
+	@Test
+	public void utf8Or16ReadOfficialExample() {
+		File f = new File("example.toml");
+		var parsed = new TomlParser().parse(f, FileNotFoundAction.THROW_ERROR, AdditionalCharsets.UTF_8_OR_16);
+		Util.checkExample(parsed);
+
+		parsed = new TomlParser().parse(f, FileNotFoundAction.THROW_ERROR, AdditionalCharsets.UTF_8_BOM);
 		Util.checkExample(parsed);
 	}
 
 	@Test
 	public void readToSynchronizedConfig() {
 		File f = new File("example.toml");
-		SynchronizedConfig config = new SynchronizedConfig(InMemoryCommentedFormat.defaultInstance(), HashMap::new);
+		SynchronizedConfig config = new SynchronizedConfig(
+				InMemoryCommentedFormat.defaultInstance(), HashMap::new);
 		new TomlParser().parse(f, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
 		Util.checkExample(config);
 	}
@@ -47,7 +118,8 @@ public class TomlParserTest {
 	@Test
 	public void readToStampedConfig() {
 		File f = new File("example.toml");
-		StampedConfig config = new StampedConfig(InMemoryCommentedFormat.defaultInstance(), HashMap::new);
+		StampedConfig config = new StampedConfig(InMemoryCommentedFormat.defaultInstance(),
+				HashMap::new);
 		new TomlParser().parse(f, config, ParsingMode.REPLACE, FileNotFoundAction.THROW_ERROR);
 		Util.checkExample(config);
 	}
@@ -104,20 +176,20 @@ public class TomlParserTest {
 
 	private void testAlreadyDefinedTable() {
 		String toml = "string = \"value\"\n"
-					  + "[table.subTable.subDefinedFirst]\n"
-					  + "   test = 'success'\n"
-					  + "[table.subTable]\n"
-					  + "    subDefinedFirst = {}"
-					  + "\r\n# 'key' = 0.2";
+				+ "[table.subTable.subDefinedFirst]\n"
+				+ "   test = 'success'\n"
+				+ "[table.subTable]\n"
+				+ "    subDefinedFirst = {}"
+				+ "\r\n# 'key' = 0.2";
 		parseAndPrint(toml);
 	}
 
 	private void testAlreadyDefinedTable2() {
 		String toml = "string = \"value\"\n"
-					  + "[table.subTable]\n"
-					  + "   test = 'success'\n"
-					  + "[table.subTable]\n"
-					  + "   subDefinedFirst = {}";
+				+ "[table.subTable]\n"
+				+ "   test = 'success'\n"
+				+ "[table.subTable]\n"
+				+ "   subDefinedFirst = {}";
 		parseAndPrint(toml);
 	}
 
@@ -128,7 +200,7 @@ public class TomlParserTest {
 
 	private void testAlreadyDefinedKeyInline() {
 		String toml = "string = \"value\"\n"
-					  + "inline = {test = 'success', test = 'already defined!'}";
+				+ "inline = {test = 'success', test = 'already defined!'}";
 		parseAndPrint(toml);
 	}
 
@@ -209,29 +281,29 @@ public class TomlParserTest {
 
 	private void testMixedArraySubtableTable() {
 		String toml = "array = [{}, 42, {}]\n"
-			+ "[array.subtable]\n"
-			+ "   test = 'success'\n";
+				+ "[array.subtable]\n"
+				+ "   test = 'success'\n";
 		parseAndPrint(toml);
 	}
 
 	private void testMixedArraySubtablePrimitive() {
 		String toml = "array = [{}, 42]\n"
-			+ "[array.subtable]\n"
-			+ "   test = 'success'\n";
+				+ "[array.subtable]\n"
+				+ "   test = 'success'\n";
 		parseAndPrint(toml);
 	}
 
 	private void testInlineTableArraySubtable() {
 		String toml = "array_full_inline = [{}, {}]\n"
-			+ "[array_full_inline.subtable]\n"
-			+ "   test = 'success'\n";
+				+ "[array_full_inline.subtable]\n"
+				+ "   test = 'success'\n";
 		parseAndPrint(toml);
 	}
 
 	private void testInlineTableArraySubtable2() {
 		String toml = "array_full_inline = [{}, {}]\n"
-			+ "[array_full_inline.sub2.subtable]\n"
-			+ "   test = 'success'\n";
+				+ "[array_full_inline.sub2.subtable]\n"
+				+ "   test = 'success'\n";
 		parseAndPrint(toml);
 	}
 }
