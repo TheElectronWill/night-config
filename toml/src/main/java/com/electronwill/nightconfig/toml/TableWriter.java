@@ -125,6 +125,10 @@ final class TableWriter {
 			writeArraysOfTables(table, configPath, output, writer);
 			writer.decreaseIndentLevel();
 		} else {
+			// write header Comment
+			if (!table.comment.isEmpty()) {
+				writer.writeIndentedComment(tableComment, output);
+			}
 			// header
 			if (inArrayOfTables) {
 				writeTableArrayName(configPath, output, writer);
