@@ -285,20 +285,20 @@ public class TomlWriterTest {
 	}
 
 	@Test
-	public void writeCategoryAndValueComments() {
+	public void writeHeaderAndValueComments() {
 		CommentedConfig config = CommentedConfig.inMemory();
 
-		config.setComment("Category", "Category Comment");
-		config.setComment("Category.key", "Value Comment");
+		config.setComment("Header", "Header Comment");
+		config.setComment("Header.key", "Value Comment");
 
-		config.set("Category.key", "value");
+		config.set("Header.key", "value");
 
 		TomlWriter writer = new TomlWriter();
 		String written = writer.writeToString(config);
 
 		System.out.println(written);
-		assertEquals(join("#Category Comment",
-							"[Category]",
+		assertEquals(join("#Header Comment",
+							"[Header]",
 							"\t#Value Comment",
 							"\tkey = \"value\"",
 							""), written);
