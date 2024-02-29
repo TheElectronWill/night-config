@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.json5;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.UnmodifiableConfig.Entry;
 import com.electronwill.nightconfig.core.io.*;
 
 import java.io.Writer;
@@ -28,15 +29,15 @@ public class MinimalJson5Writer implements ConfigWriter {
 	}
 
 	public void writeCollection(Collection<?> collection, Writer writer) {
-		writeCollection(collection, writer);
+		writeCollection(collection, new WriterOutput(writer));
 	}
 
 	public void writeString(CharSequence csq, Writer writer) {
-		writeString(csq, writer);
+		writeString(csq, new WriterOutput(writer));
 	}
 
 	public void writeValue(Object value, Writer writer) {
-		writeValue(value, writer);
+		writeValue(value, new WriterOutput(writer));
 	}
 
 	private void writeConfig(UnmodifiableConfig config, CharacterOutput output) {
@@ -44,17 +45,17 @@ public class MinimalJson5Writer implements ConfigWriter {
 			output.write(EMPTY_OBJECT);
 			return;
 		}
-		Iterator<? extends UnmodifiableConfig.Entry> it = config.entrySet().iterator();
+
 		output.write('{');
-		while (true) {
-			UnmodifiableConfig.Entry entry = it.next();
-			String key = entry.getKey();
-			Object value = entry.getValue();
-			writeString(key, output); // key
-			output.write(':'); // separator
-			writeValue(value, output); // value
+
+		for (Iterator<? extends Entry> it = config.entrySet().iterator(); it.hasNext();) {
+			Entry entry = it.next();
+
+			writeString(entry.getKey(), output);
+			output.write(':');
+			writeValue(entry.getValue(), output);
+
 			if (it.hasNext()) output.write(',');
-			else break;
 		}
 		output.write('}');
 	}
@@ -87,23 +88,11 @@ public class MinimalJson5Writer implements ConfigWriter {
 		}
 
 		output.write('[');
-		if (collection instanceof RandomAccess) {
-			List<?> list = (List<?>) collection; // A class implementing RandomAccess should be a List
-			int lastIndex = list.size();
-			for (int i = 0; i < lastIndex; i++) {
-				Object value = list.get(i);
-				writeValue(value, output);
-				output.write(',');
-			}
-			writeValue(list.get(lastIndex), output);
-		} else {
-			Iterator<?> it = collection.iterator();
-			while(true) {
-				Object value = it.next();
-				writeValue(value, output); // Write the Value
-				if (it.hasNext()) output.write(',');
-				else break;
-			}
+
+		for (Iterator<?> it = collection.iterator(); it.hasNext();) {
+			Object value = it.next();
+			writeValue(value, output);
+			if (it.hasNext()) output.write(',');
 		}
 		output.write(']');
 	}
