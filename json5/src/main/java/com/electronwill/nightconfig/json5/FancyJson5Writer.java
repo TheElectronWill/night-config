@@ -61,9 +61,6 @@ public class FancyJson5Writer implements ConfigWriter {
 			if (it.hasNext()) output.write(',');
 			if (writeCommentsInLine) writeInlineComment(entry.getComment(), output);
 			if (indentElements) output.write(newline);
-			if (!it.hasNext()) break;
-
-
 		}
 		if (indentElements) {
 			decreaseIndentLevel();
@@ -106,13 +103,10 @@ public class FancyJson5Writer implements ConfigWriter {
 			if (indentElements) writeIndent(output);
 			writeValue(value, output);
 
-			if (it.hasNext()) {
-				output.write(VALUE_SEPARATOR);
-            }
-            if (indentElements) {
-                output.write(newline);
-            }
+			if (it.hasNext()) output.write(VALUE_SEPARATOR);
+            if (indentElements) output.write(newline);
         }
+		
 		if (indentElements) {
 			decreaseIndentLevel();
 			writeIndent(output);
