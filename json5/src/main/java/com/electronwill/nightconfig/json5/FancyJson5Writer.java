@@ -90,7 +90,7 @@ public class FancyJson5Writer implements ConfigWriter {
 			output.write(EMPTY_ARRAY);
 			return;
 		}
-		Iterator<?> it = collection.iterator();
+
 		output.write('[');
 		if (newlineAfterObjectStart) {
 			output.write(newline);
@@ -100,24 +100,19 @@ public class FancyJson5Writer implements ConfigWriter {
 			output.write(newline);
 			increaseIndentLevel();
 		}
-		while (true) {
+
+		for (Iterator<?> it = collection.iterator(); it.hasNext();) {
 			Object value = it.next();
-			if (indentElements) {
-				writeIndent(output);
-			}
+			if (indentElements) writeIndent(output);
 			writeValue(value, output);
+
 			if (it.hasNext()) {
 				output.write(VALUE_SEPARATOR);
-				if (indentElements) {
-					output.write(newline);
-				}
-			} else {
-				if (indentElements) {
-					output.write(newline);
-				}
-				break;
-			}
-		}
+            }
+            if (indentElements) {
+                output.write(newline);
+            }
+        }
 		if (indentElements) {
 			decreaseIndentLevel();
 			writeIndent(output);
