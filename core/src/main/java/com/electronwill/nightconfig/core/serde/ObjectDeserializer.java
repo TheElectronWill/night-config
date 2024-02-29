@@ -9,13 +9,33 @@ import java.util.function.Supplier;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
 public final class ObjectDeserializer {
+	/**
+	 * Creates a new {@link ObjectDeserializerBuilder} with some standard deserializers already registered.
+	 * 
+	 * @return a new builder
+	 */
+	public static ObjectDeserializerBuilder builder() {
+		return new ObjectDeserializerBuilder(true);
+	}
 
-	final List<ValueDeserializerProvider<?, ?>> generalDeserializers;
+	/**
+	 * Creates a new {@link ObjectDeserializerBuilder} without the standard deserializers already registered.
+	 * 
+	 * @return a new builder
+	 */
+	public static ObjectDeserializerBuilder blankBuilder() {
+		return new ObjectDeserializerBuilder(false);
+	}
+
+	final List<ValueDeserializerProvider<?, ?>> generalProviders;
+	ValueDeserializerProvider<?, ?> defaultProvider;
 	final boolean applyTransientModifier;
 
 	ObjectDeserializer(ObjectDeserializerBuilder builder) {
-		this.generalDeserializers = builder.generalDeserializers;
+		this.generalProviders = builder.deserializerProviders;
+		this.defaultProvider = builder.defaultProvider;
 		this.applyTransientModifier = builder.applyTransientModifier;
+		assert generalProviders != null && defaultProvider != null;
 	}
 
 	// NOTE: it would make no sense to provide a method deserialize(Object) -> Object, because
@@ -89,18 +109,22 @@ public final class ObjectDeserializer {
 		return dest;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	<T, R> ValueDeserializer<T, R> findValueDeserializer(T value, Class<?> resultClass) {
+	@SuppressWarnings("unchecked")
+	<T, R> ValueDeserializer<T, R> findValueDeserializer(T value, TypeConstraint resultType) {
 		Class<?> valueClass = value == null ? null : value.getClass();
-
-		for (ValueDeserializerProvider provider : this.generalDeserializers) {
-			ValueDeserializer<?, ?> maybeDeser = provider.provide(valueClass, resultClass);
-			if (maybeDeser != null) {
-				return (ValueDeserializer<T, R>) maybeDeser;
+		ValueDeserializer<?, ?> maybeDe;
+		for (ValueDeserializerProvider<?, ?> provider : generalProviders) {
+			maybeDe = provider.provide(valueClass, resultType);
+			if (maybeDe != null) {
+				return (ValueDeserializer<T, R>) maybeDe;
 			}
 		}
+		maybeDe = defaultProvider.provide(valueClass, resultType);
+		if (maybeDe != null) {
+			return (ValueDeserializer<T, R>) maybeDe;
+		}
 		String ofTypeStr = valueClass == null ? "" : " of type " + valueClass;
-		throw new DeserializationException(
-				"No suitable deserializer found for value" + ofTypeStr + ":" + value);
+		throw new DeserializationException("No suitable deserializer found for value" + ofTypeStr + ": "
+				+ value + " and result constraint " + resultType);
 	}
 }

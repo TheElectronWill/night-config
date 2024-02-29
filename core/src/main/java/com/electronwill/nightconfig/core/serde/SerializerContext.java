@@ -31,7 +31,7 @@ public final class SerializerContext {
 
     /** Serializes a single value. */
     public Object serializeValue(Object value) {
-        ValueSerializer<Object> serializer = settings.findValueSerializer(value);
+        ValueSerializer<Object, ?> serializer = settings.findValueSerializer(value);
         return serializer.serialize(value, this);
     }
 
@@ -58,7 +58,7 @@ public final class SerializerContext {
                     String comment = settings.getConfigComment(field);
 
                     // find the right serializer
-                    ValueSerializer<Object> serializer = settings.findValueSerializer(value);
+                    ValueSerializer<Object, ?> serializer = settings.findValueSerializer(value);
 
                     // serialize the value and modify the destination
                     try {
@@ -75,8 +75,8 @@ public final class SerializerContext {
                     }
                 }
             }
+            cls = cls.getSuperclass();
         }
-        cls = cls.getSuperclass();
     }
 
     private boolean preCheck(Field field) {

@@ -1,16 +1,13 @@
 package com.electronwill.nightconfig.core.serde;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.EnumGetMethod;
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
@@ -20,10 +17,10 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
  */
 public final class ObjectDeserializerBuilder {
 
-	final List<ValueDeserializerProvider<?, ?>> generalDeserializers = new ArrayList<>();
+	final List<ValueDeserializerProvider<?, ?>> deserializerProviders = new ArrayList<>();
 
-	/** the last-resort serializer, used when no other serializer matches */
-	ValueDeserializer<Object, ?> defaultSerializer;
+	/** the last-resort serializer provider, used when no other provider matches */
+	ValueDeserializerProvider<?, ?> defaultProvider = new NoProvider();
 
 	/** setting: skip transient fields as requested by the modifier */
 	boolean applyTransientModifier = true;
@@ -34,78 +31,119 @@ public final class ObjectDeserializerBuilder {
 		}
 	}
 
+	/**
+	 * Builds the {@link ObjectDeserializer} with the current settings.
+	 * 
+	 * @return a new ObjectDeserializer
+	 */
 	public ObjectDeserializer build() {
 		return new ObjectDeserializer(this);
 	}
 
+	/**
+	 * If enabled, transient fields will be deserialized instead of ignored.
+	 */
 	public void ignoreTransientModifier() {
 		this.applyTransientModifier = false;
 	}
 
-	public <V, R> void withDeserializerProvider(ValueDeserializerProvider<V, R> provider) {
-		generalDeserializers.add(provider);
-	}
+	/**
+	 * Adds a {@link ValueDeserializer} that will be used to deserialize config values
+	 * of type {@code valueClass} to objects of type {@code resultClass}.
+	 * 
+	 * @param <V>          type of the config values to deserialize
+	 * @param <R>          resulting type of the deserialization
+	 * @param valueClass   class of the config values to deserialize
+	 * @param resultClass  class of the deserialization result
+	 * @param deserializer deserializer to register
+	 */
+	public <V, R> void withDeserializerForClass(Class<V> valueClass, Class<R> resultClass,
+			ValueDeserializer<? super V, ? extends R> deserializer) {
 
-	public <R> void withDefaultSerializer(ValueDeserializer<Object, R> serializer) {
-		defaultSerializer = serializer;
-	}
-
-	public void withDefaultSerializer() {
-		PojoDeserializer pojoDe = new PojoDeserializer();
-		defaultSerializer = ((value, resultType, ctx) -> {
-			if (resultType.isEmpty()) {
-				return value;
-			}
-
-			TypeConstraint t = resultType.get();
-			boolean canAssignDirectly = t.getSatisfyingRawType().filter(raw -> {
-				if (value == null) {
-					return !raw.isPrimitive();
-				} else {
-					return raw.isAssignableFrom(value.getClass());
+		withDeserializerProvider(((valueCls, resultType) -> {
+			return resultType.getSatisfyingRawType().map(resultCls -> {
+				if (valueCls.isAssignableFrom(valueClass) && resultCls.isAssignableFrom(resultClass)) {
+					return deserializer;
 				}
-			}).isPresent();
-			if (canAssignDirectly) {
-				return value;
-			} else if (value instanceof UnmodifiableConfig) {
-				return pojoDe.deserialize((UnmodifiableConfig) value, resultType, ctx);
+				return null;
+			}).orElse(null);
+		}));
+	}
+
+	/**
+	 * Adds a {@link ValueDeserializerProvider} that provides {@link ValueDeserializer} to
+	 * deserialize config values.
+	 * 
+	 * @param <V>      type of the config values to deserialize
+	 * @param <R>      resulting type of the deserialization
+	 * @param provider provider to register
+	 */
+	public <V, R> void withDeserializerProvider(ValueDeserializerProvider<V, R> provider) {
+		deserializerProviders.add(provider);
+	}
+
+	/**
+	 * Sets the default serializer provider, which is called when no other {@link ValueDeserializerProvider} is
+	 * able to give a {@link ValueDeserializer} for the incoming value and result type constraint.
+	 * <p>
+	 * This will replace any previously set default provider.
+	 * 
+	 * @param <V>      type of the config values to deserialize
+	 * @param <R>      resulting type of the deserialization
+	 * @param provider the new default serializer
+	 */
+	public <V, R> void withDefaultDeserializerProvider(ValueDeserializerProvider<V, R> provider) {
+		defaultProvider = provider;
+	}
+
+	/**
+	 * Enables the standard default serializer provider.
+	 * <p>
+	 * This will replace any previously set default provider.
+	 * 
+	 * @see #withDefaultSerializer(ValueDeserializerProvider)
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public void withDefaultSerializerProvider() {
+		ValueDeserializer pojoDe = new PojoDeserializer();
+		defaultProvider = (valueClass, resultType) -> {
+			if (UnmodifiableConfig.class.isAssignableFrom(valueClass)) {
+				return pojoDe;
 			} else {
-				String ofTypeStr = value == null ? "" : " of type " + value.getClass();
-				throw new DeserializationException(
-						"The default deserializer cannot handle value" + ofTypeStr + ":" + value
-								+ " with result type constraint " + t
-								+ ". You may want to register additional deserializers to the ObjectDeserializerBuilder.");
+				return null;
 			}
-		});
+		};
 	}
 
 	/** registers the standard serializers */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void registerStandardDeserializers() {
-		withDefaultSerializer();
+		withDefaultSerializerProvider();
 
 		ValueDeserializer trivialDe = new TrivialDeserializer();
 		ValueDeserializer mapDe = new MapDeserializer();
 		ValueDeserializer collDe = new CollectionDeserializer();
 		ValueDeserializer enumDe = new EnumDeserializer();
 
-		withDeserializerProvider(((valueClass, resultClass) -> {
-			if (resultClass.isAssignableFrom(valueClass)) {
-				return trivialDe;
-			}
-			if (Collection.class.isAssignableFrom(valueClass)
-					&& Collection.class.isAssignableFrom(resultClass)) {
-				return collDe;
-			}
-			if (UnmodifiableConfig.class.isAssignableFrom(valueClass)
-					&& Map.class.isAssignableFrom(resultClass)) {
-				return mapDe;
-			}
-			if ((resultClass == String.class || resultClass == Integer.class
-					|| resultClass == int.class) && Enum.class.isAssignableFrom(resultClass)) {
-				return enumDe;
-			}
-			return null;
+		withDeserializerProvider(((valueClass, resultType) -> {
+			return resultType.getSatisfyingRawType().map(resultClass -> {
+				if (Util.canAssign(resultClass, valueClass)) {
+					return trivialDe; // value to value (same type or compatible type)
+				}
+				if (Collection.class.isAssignableFrom(valueClass)
+						&& Collection.class.isAssignableFrom(resultClass)) {
+					return collDe; // collection<value> to collection<T>
+				}
+				if (UnmodifiableConfig.class.isAssignableFrom(valueClass)
+						&& Map.class.isAssignableFrom(resultClass)) {
+					return mapDe; // config to map<K, V>
+				}
+				if ((resultClass == String.class || resultClass == Integer.class
+						|| resultClass == int.class) && Enum.class.isAssignableFrom(resultClass)) {
+					return enumDe; // value to Enum
+				}
+				return null; // no standard deserializer matches this case
+			}).orElse(null);
 		}));
 	}
 
@@ -142,8 +180,8 @@ public final class ObjectDeserializerBuilder {
 				mapKVType = extractMapKVType(mapType);
 			} else {
 				mapKVType = Optional.empty();
-				res = Config.isInsertionOrderPreserved() ? new LinkedHashMap<>(size)
-						: new HashMap<>(size);
+				res = Config.isInsertionOrderPreserved() ? new java.util.LinkedHashMap<>(size)
+						: new java.util.HashMap<>(size);
 			}
 
 			// separate types of Key and Value
@@ -190,7 +228,8 @@ public final class ObjectDeserializerBuilder {
 				return new java.util.IdentityHashMap<>(sizeHint);
 			}
 			if (cls.isAssignableFrom(java.util.HashMap.class)) {
-				// We use isAssignableFrom to cover other superclasses or superinterfaces of HashMap, such as NavigableMap.
+				// We use isAssignableFrom to cover other superclasses or superinterfaces of HashMap,$
+				// such as NavigableMap.
 				if (Config.isInsertionOrderPreserved()
 						&& cls.isAssignableFrom(java.util.LinkedHashMap.class)) {
 					return new java.util.LinkedHashMap<>(sizeHint);
@@ -243,13 +282,13 @@ public final class ObjectDeserializerBuilder {
 		@SuppressWarnings("unchecked")
 		private Collection<Object> createCollectionInstance(Class<?> cls, int sizeHint) {
 			if (cls.isAssignableFrom(java.util.ArrayList.class)) {
-				return new ArrayList<>(sizeHint);
+				return new java.util.ArrayList<>(sizeHint);
 			}
 			if (cls.isAssignableFrom(java.util.LinkedList.class)) {
-				return new LinkedList<>();
+				return new java.util.LinkedList<>();
 			}
 			if (cls.isAssignableFrom(java.util.ArrayDeque.class)) {
-				return new ArrayDeque<>(sizeHint);
+				return new java.util.ArrayDeque<>(sizeHint);
 			}
 
 			// unknown Collection type, try the public parameterless constructor
@@ -330,10 +369,8 @@ public final class ObjectDeserializerBuilder {
 				return value;
 			} else {
 				TypeConstraint t = resultType.get();
-				Class<?> cls = t.getSatisfyingRawType()
-						.orElseThrow(() -> new DeserializationException(
-								"Could not find a concrete type that can satisfy the constraint "
-										+ t));
+				Class<?> cls = t.getSatisfyingRawType().orElseThrow(() -> new DeserializationException(
+						"Could not find a concrete type that can satisfy the constraint " + t));
 				try {
 					Object instance = cls.getDeclaredConstructor().newInstance();
 					ctx.deserializeFields(value, instance);
@@ -341,6 +378,15 @@ public final class ObjectDeserializerBuilder {
 					throw new DeserializationException("Failed to create an instance of " + cls, e);
 				}
 			}
+			return null;
+		}
+	}
+
+	/** A provider that provides nothing, {@code provide} always returns null. */
+	private static final class NoProvider implements ValueDeserializerProvider<Object, Object> {
+		@Override
+		public ValueDeserializer<Object, Object> provide(Class<?> valueClass,
+				TypeConstraint resultType) {
 			return null;
 		}
 	}

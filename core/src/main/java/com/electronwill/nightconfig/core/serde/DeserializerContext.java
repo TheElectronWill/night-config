@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import com.electronwill.nightconfig.core.NullObject;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
 public final class DeserializerContext {
@@ -17,11 +18,7 @@ public final class DeserializerContext {
 
 	public Object deserializeValue(Object value, Optional<TypeConstraint> typeConstraint) {
 		TypeConstraint t = typeConstraint.orElse(new TypeConstraint(Object.class));
-		Class<?> resultClass = t.getSatisfyingRawType()
-				.orElseThrow(() -> new DeserializationException(
-						"Could not find a concrete type that can satisfy the constraint " + t));
-		ValueDeserializer<Object, ?> deserializer = settings.findValueDeserializer(value,
-				resultClass);
+		ValueDeserializer<Object, ?> deserializer = settings.findValueDeserializer(value, t);
 		return deserializer.deserialize(value, typeConstraint, this);
 	}
 
@@ -30,7 +27,7 @@ public final class DeserializerContext {
 	 */
 	public void deserializeFields(UnmodifiableConfig source, Object destination) {
 		// loop through the class hierarchy of the destination type
-		Class<?> cls = source.getClass();
+		Class<?> cls = destination.getClass();
 		while (cls != Object.class) {
 			for (Field field : cls.getDeclaredFields()) {
 				if (preCheck(field)) {
@@ -38,19 +35,26 @@ public final class DeserializerContext {
 
 					// get the config value
 					List<String> path = Collections.singletonList(field.getName());
-					Object value = source.getOptional(path).orElseThrow();
+					Object value = source.getRaw(path);
+					if (value == null) {
+						 // missing value
+						throw new DeserializationException(
+								"Missing configuration entry " + path + " for field " + field
+										+ " declared in " + field.getDeclaringClass());
+					} else if (value == NullObject.NULL_OBJECT) {
+						// null value
+						value = null;
+					}
 
 					// find the right deserializer
-					Class<?> resultClass = field.getType();
+					TypeConstraint resultType = new TypeConstraint(field.getGenericType());
 					ValueDeserializer<Object, ?> deserializer = settings
-							.findValueDeserializer(value, resultClass);
+							.findValueDeserializer(value, resultType);
 
 					// deserialize
-					TypeConstraint resultType = new TypeConstraint(field.getGenericType());
 					try {
-						Object deserialized = deserializer.deserialize(value,
-								Optional.of(resultType),
-								this);
+						Optional<TypeConstraint> type = Optional.of(resultType);
+						Object deserialized = deserializer.deserialize(value, type, this);
 						field.set(destination, deserialized);
 					} catch (Exception ex) {
 						throw new DeserializationException(

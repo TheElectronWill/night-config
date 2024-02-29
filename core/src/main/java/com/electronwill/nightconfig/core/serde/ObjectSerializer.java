@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
@@ -19,31 +18,39 @@ import com.electronwill.nightconfig.core.utils.StringUtils;
  * Implements Object to Config serialization.
  */
 public final class ObjectSerializer {
+    /**
+     * Creates a new {@link ObjectSerializerBuilder} with some standard serializers already registered.
+     * 
+     * @return a new builder
+     */
     public static ObjectSerializerBuilder builder() {
         return new ObjectSerializerBuilder(true);
     }
 
+    /**
+     * Creates a new {@link ObjectSerializerBuilder} with some standard serializers already registered.
+     * 
+     * @return a new builder
+     */
     public static ObjectSerializerBuilder blankBuilder() {
         return new ObjectSerializerBuilder(false);
     }
 
-    /** map of entries (Class<T> of value) -> (ValueSerializer<T> where V is a config value) */
-    private final IdentityHashMap<Class<?>, ValueSerializer<?>> classBasedSerializers;
+    private final IdentityHashMap<Class<?>, ValueSerializer<?, ?>> classBasedSerializers;
+    private final List<ValueSerializerProvider<?, ?>> generalProviders;
 
-    /** list of functions (Class<T> of value) -> (ValueSerializer based on the value, or null) */
-    private final List<Function<Class<?>, ValueSerializer<?>>> generalSerializers;
-
-    /** the last-resort serializer, used when no other serializer matches */
-    private final ValueSerializer<Object> defaultSerializer;
+    /** the last-resort serializer provider, used when no other provider matches */
+    private final ValueSerializerProvider<?, ?> defaultProvider;
 
     /** setting: skip transient fields as requested by the modifier */
     final boolean applyTransientModifier;
 
     ObjectSerializer(ObjectSerializerBuilder builder) {
-        this.classBasedSerializers = builder.exactClassSerializers;
-        this.generalSerializers = builder.generalSerializers;
-        this.defaultSerializer = builder.defaultSerializer;
+        this.classBasedSerializers = builder.classBasedSerializers;
+        this.generalProviders = builder.generalProviders;
+        this.defaultProvider = builder.defaultProvider;
         this.applyTransientModifier = builder.applyTransientModifier;
+        assert classBasedSerializers != null && generalProviders != null && defaultProvider != null;
     }
 
     /**
@@ -72,7 +79,7 @@ public final class ObjectSerializer {
      *
      * @see ObjectSerializerBuilder#withSerializerForClass(Class, ValueSerializer)
      * @see ObjectSerializerBuilder#withSerializerForExactClass(Class, ValueSerializer)
-     * @see ObjectSerializerBuilder#withSerializerProvider(Function)
+     * @see ObjectSerializerBuilder#withSerializerProvider(ValueSerializerProvider)
      *
      * @return the new configuration
      */
@@ -95,13 +102,13 @@ public final class ObjectSerializer {
      * <p>
      * The serialization depends on the registered {@link ValueSerializer value serializers}.
      *
-     * @param source object to serialize
+     * @param source      object to serialize
      * @param destination configuration to store the result in
      * 
      * @see ObjectSerializerBuilder#withSerializerForClass(Class, ValueSerializer)
      * @see ObjectSerializerBuilder#withSerializerForExactClass(Class, ValueSerializer)
-     * @see ObjectSerializerBuilder#withSerializerProvider(Function)
-     *  
+     * @see ObjectSerializerBuilder#withSerializerProvider(ValueSerializerProvider)
+     * 
      * @return the new configuration
      */
     public void serializeFields(Object source, CommentedConfig destination) {
@@ -119,25 +126,26 @@ public final class ObjectSerializer {
      * @throws SerializationException if no converter is found
      */
     @SuppressWarnings("unchecked")
-    <T> ValueSerializer<T> findValueSerializer(Object value) {
-        Class<?> cls = value == null ? null : value.getClass();
-        ValueSerializer<?> c = null;
-        for (Function<Class<?>, ValueSerializer<?>> f : generalSerializers) {
-            c = f.apply(cls);
-            if (c != null) {
-                return (ValueSerializer<T>) c;
+    <T, R> ValueSerializer<T, R> findValueSerializer(Object value) {
+        Class<?> valueClass = value == null ? null : value.getClass();
+        ValueSerializer<?, ?> maybeSe = null;
+        for (ValueSerializerProvider<?, ?> provider : generalProviders) {
+            maybeSe = provider.provide(valueClass);
+            if (maybeSe != null) {
+                return (ValueSerializer<T, R>) maybeSe;
             }
         }
-        c = classBasedSerializers.get(cls);
-        if (c == null) {
-            c = defaultSerializer;
-            if (c == null) {
-                String ofTypeStr = cls == null ? "" : " of type " + cls;
-                throw new SerializationException(
-                        "No suitable serializer found for value" + ofTypeStr + ":" + value);
-            }
+        maybeSe = classBasedSerializers.get(valueClass);
+        if (maybeSe != null) {
+            return (ValueSerializer<T, R>) maybeSe;
         }
-        return (ValueSerializer<T>) c;
+        maybeSe = defaultProvider.provide(valueClass);
+        if (maybeSe != null) {
+            return (ValueSerializer<T, R>) maybeSe;
+        }
+        String ofTypeStr = valueClass == null ? "" : " of type " + valueClass;
+        throw new SerializationException(
+                "No suitable serializer found for value" + ofTypeStr + ": " + value);
     }
 
     List<String> getConfigPath(Field field) {

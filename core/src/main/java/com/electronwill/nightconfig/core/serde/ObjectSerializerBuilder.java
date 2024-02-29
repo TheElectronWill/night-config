@@ -6,7 +6,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.Function;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.ConfigFormat;
@@ -16,15 +15,13 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
  * Implements Object to Config serialization.
  */
 public final class ObjectSerializerBuilder {
-    /** map of entries (Class<T> of value) -> (ValueSerializer<T> where V is a config value) */
-    final IdentityHashMap<Class<?>, ValueSerializer<?>> exactClassSerializers = new IdentityHashMap<>(
-            4);
+    final IdentityHashMap<Class<?>, ValueSerializer<?, ?>> classBasedSerializers = new IdentityHashMap<>(
+            7);
 
-    /** list of functions (Class<T> of value) -> (ValueSerializer based on the value, or null) */
-    final List<Function<Class<?>, ValueSerializer<?>>> generalSerializers = new ArrayList<>();
+    final List<ValueSerializerProvider<?, ?>> generalProviders = new ArrayList<>();
 
-    /** the last-resort serializer, used when no other serializer matches */
-    ValueSerializer<Object> defaultSerializer;
+    /** the last-resort serializer provider, used when no other provider matches */
+    ValueSerializerProvider<?, ?> defaultProvider = new NoProvider();
 
     /** setting: skip transient fields as requested by the modifier */
     boolean applyTransientModifier = true;
@@ -39,34 +36,44 @@ public final class ObjectSerializerBuilder {
         return new ObjectSerializer(this);
     }
 
-    public <T> void withSerializerForExactClass(Class<T> cls, ValueSerializer<? super T> serializer) {
-        exactClassSerializers.put(cls, serializer);
+    public <V, R> void withSerializerForExactClass(Class<V> cls,
+            ValueSerializer<? super V, ? extends R> serializer) {
+        classBasedSerializers.put(cls, serializer);
     }
 
-    public <T> void withSerializerForClass(Class<T> cls, ValueSerializer<? super T> serializer) {
-        generalSerializers.add(valueClass -> cls.isAssignableFrom(valueClass) ? serializer : null);
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public <V, R> void withSerializerForClass(Class<V> cls,
+            ValueSerializer<? super V, ? extends R> serializer) {
+        generalProviders.add(
+                valueClass -> cls.isAssignableFrom(valueClass) ? (ValueSerializer) serializer : null);
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> void withSerializerProvider(Function<Class<T>, ValueSerializer<? super T>> provider) {
-        generalSerializers.add((Function<Class<?>, ValueSerializer<?>>) (Function<?, ?>) provider);
+    public <V, R> void withSerializerProvider(ValueSerializerProvider<V, R> provider) {
+        generalProviders.add((ValueSerializerProvider<?, ?>) provider);
     }
 
-    public void withDefaultSerializer(ValueSerializer<Object> serializer) {
-        defaultSerializer = serializer;
+    public <V, R> void withDefaultSerializerProvider(ValueSerializerProvider<V, R> provider) {
+        defaultProvider = provider;
     }
 
-    public void withDefaultSerializer() {
-        // recurse if the type is not supported by the config's format
-        defaultSerializer = (value, ctx) -> {
-            ConfigFormat<?> format = ctx.configFormat();
-            if (format != null && format.supportsType(value == null ? null : value.getClass())) {
-                return value;
-            } else {
-                CommentedConfig sub = ctx.createConfig();
-                ctx.serializeFields(value, sub);
-                return sub;
-            }
+    public void withDefaultSerializerProvider() {
+        defaultProvider = valueClass -> {
+            // always succeed: returns the basic "value's fields to config" serializer
+            return (value, ctx) -> {
+                ConfigFormat<?> format = ctx.configFormat();
+                if (format != null && format.supportsType(valueClass)) {
+                    // type supported, use as is
+                    return value;
+                } else if (value != null && Util.isPrimitiveOrWrapper(valueClass)) {
+                    // confusing situation, but no conversion is possible anyway
+                    return value;
+                } else {
+                    // type not supported, convert to subconfig with fields
+                    CommentedConfig sub = ctx.createConfig();
+                    ctx.serializeFields(value, sub);
+                    return sub;
+                }
+            };
         };
     }
 
@@ -77,37 +84,47 @@ public final class ObjectSerializerBuilder {
     /** registers the standard serializers */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private void registerStandardSerializers() {
-        withDefaultSerializer();
+        withDefaultSerializerProvider();
 
         ValueSerializer mapSer = new MapSerializer();
         ValueSerializer collSer = new CollectionSerializer();
         ValueSerializer iterSer = new IterableSerializer();
         ValueSerializer enumSer = new EnumSerializer();
 
-        withSerializerProvider(cls -> {
-            if (Map.class.isAssignableFrom(cls)) {
+        withSerializerProvider(valueClass -> {
+            if (valueClass == null) {
+                return (v, ctx) -> {
+                    ConfigFormat format = ctx.configFormat();
+                    if (format == null || format.supportsType(null)) {
+                        return v;
+                    } else {
+                        throw new DeserializationException("Cannot serialize a null value into a configuration that doesn't support null. You could create a blankBuilder() and replace the standard serializers to serialize null values to something else.");
+                    }
+                };
+            }
+            if (Map.class.isAssignableFrom(valueClass)) {
                 return mapSer;
             }
-            if (Collection.class.isAssignableFrom(cls)) {
+            if (Collection.class.isAssignableFrom(valueClass)) {
                 return collSer;
             }
-            if (Iterable.class.isAssignableFrom(cls)) {
+            if (Iterable.class.isAssignableFrom(valueClass)) {
                 return iterSer;
             }
-            if (UnmodifiableConfig.class.isAssignableFrom(cls)) {
+            if (UnmodifiableConfig.class.isAssignableFrom(valueClass)) {
                 return (v, ctx) -> v; // the value is already a config, nothing to serialize
             }
-            if (Enum.class.isAssignableFrom(cls)) {
+            if (Enum.class.isAssignableFrom(valueClass)) {
                 return enumSer;
             }
             return null;
         });
     }
 
-    private static final class MapSerializer implements ValueSerializer<Map<?, ?>> {
+    private static final class MapSerializer implements ValueSerializer<Map<?, ?>, CommentedConfig> {
 
         @Override
-        public Object serialize(Map<?, ?> value, SerializerContext ctx) {
+        public CommentedConfig serialize(Map<?, ?> value, SerializerContext ctx) {
             CommentedConfig sub = ctx.createConfig();
             // serialize each entry as a config entry
             for (Entry<?, ?> entry : value.entrySet()) {
@@ -124,10 +141,10 @@ public final class ObjectSerializerBuilder {
 
     }
 
-    private static final class CollectionSerializer implements ValueSerializer<Collection<?>> {
+    private static final class CollectionSerializer implements ValueSerializer<Collection<?>, List<?>> {
 
         @Override
-        public Object serialize(Collection<?> value, SerializerContext ctx) {
+        public List<?> serialize(Collection<?> value, SerializerContext ctx) {
             List<Object> res = new ArrayList<>(value.size());
             for (Object v : value) {
                 Object serialized = ctx.serializeValue(v);
@@ -137,10 +154,10 @@ public final class ObjectSerializerBuilder {
         }
     }
 
-    private static final class IterableSerializer implements ValueSerializer<Iterable<?>> {
+    private static final class IterableSerializer implements ValueSerializer<Iterable<?>, List<?>> {
 
         @Override
-        public Object serialize(Iterable<?> value, SerializerContext ctx) {
+        public List<?> serialize(Iterable<?> value, SerializerContext ctx) {
             List<Object> res = new ArrayList<>();
             for (Object v : value) {
                 Object serialized = ctx.serializeValue(v);
@@ -150,11 +167,27 @@ public final class ObjectSerializerBuilder {
         }
     }
 
-    private static final class EnumSerializer implements ValueSerializer<Enum<?>> {
+    private static final class EnumSerializer implements ValueSerializer<Enum<?>, String> {
 
         @Override
-        public Object serialize(Enum<?> value, SerializerContext ctx) {
+        public String serialize(Enum<?> value, SerializerContext ctx) {
             return value.name();
+        }
+    }
+
+    private static final class TrivialSerializer implements ValueSerializer<Object, Object> {
+
+        @Override
+        public Object serialize(Object value, SerializerContext ctx) {
+            return value;
+        }
+    }
+
+    /** A provider that provides nothing, {@code provide} always returns null. */
+    private static final class NoProvider implements ValueSerializerProvider<Object, Object> {
+        @Override
+        public ValueSerializer<Object, Object> provide(Class<?> valueClass) {
+            return null;
         }
     }
 }

@@ -6,12 +6,20 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
+/**
+ * Represents a type constraint that must be satisfied by the serialization/deserialization process.
+ */
 public final class TypeConstraint {
 
-	public static TypeConstraint[] mapArray(Type[] t) {
+	// todo later: allow to build nested parameterized types?
+	// such as TypeConstraint.Map(String.class, Map(SubKey.class, SubValue.class))
+	// such as TypeConstraint.List(ofList(SubValue.class))
+
+	static TypeConstraint[] mapArray(Type[] t) {
 		TypeConstraint[] c = new TypeConstraint[t.length];
 		for (int i = 0; i < t.length; i++) {
 			c[i] = new TypeConstraint(t[i]);
@@ -22,14 +30,39 @@ public final class TypeConstraint {
 	private final Type fullType;
 	private Optional<Class<?>> rawClass = null;
 
+	/**
+	 * Creates a new TypeConstraint from a {@link Type}.
+	 * 
+	 * @param fullType the type to match
+	 */
 	public TypeConstraint(Type fullType) {
 		this.fullType = fullType;
 	}
 
+	/**
+	 * Returns a {@link Type} that represents the full type constraint.
+	 * <p>
+	 * For instance, it can return a {@link WildcardType} with lower and/or upper bounds, like
+	 * {@code ? extends Bound},
+	 * or a parameterized type with generic type arguments like {@code Map<String, ? extends Iterable<Object>>}.
+	 * 
+	 * @return the full type constraint
+	 */
 	public Type getFullType() {
 		return fullType;
 	}
 
+	/**
+	 * Returns a {@link Class} that can satisfy the type constraint, if it can be found.
+	 * If no such class can be found, an empty optional is returned.
+	 * <p>
+	 * An empty optional can be returned if the type constraint is a wildcard type or a type variable with
+	 * multiple bounds, such as {@code ? super B1 extends B2} or {@code T extends B1 & B2}, in which case it's not
+	 * enough to select a bound, one must find a satisfying intersection.
+	 * It would be difficult to know every possible class, <em>and</em> there could be multiple solutions anyway.
+	 * 
+	 * @return a class that can satisfy the type constraint, if it can be found
+	 */
 	public Optional<Class<?>> getSatisfyingRawType() {
 		if (rawClass == null) {
 			rawClass = Optional.ofNullable(findSatisfyingRawType(fullType));
@@ -37,13 +70,60 @@ public final class TypeConstraint {
 		return rawClass;
 	}
 
+	/**
+	 * Inspects this type constraint and attempts to resolve the type arguments that have been applied to the
+	 * given class, inside of the constraint. Returns an empty optional if not found.
+	 * <p>
+	 * For instance, given a class like this:
+	 *
+	 * <pre>
+	 * <code>
+	 * class Cls extends {@code MyCollection<String>} {}
+	 * class MyCollection implements {@code Collection<String>} {}
+	 * </code>
+	 * </pre>
+	 *
+	 * You can expect the following result:
+	 *
+	 * <pre>
+	 * <code>
+	 * TypeConstraint t = new TypeConstraint(Cls.class);
+	 * {@code Optional<TypeConstraint[]>} args = t.resolveTypeArgumentsFor(Collection.class);
+	 * Type collectionValueType = args.get()[0].getFullType();
+	 * assertEquals(String.class, collectionValueType);
+	 * </code>
+	 * </pre>
+	 * <p>
+	 * It can also resolve type variables used in field declarations.
+	 *
+	 * <pre>
+	 * <code>
+	 * class {@code Cls<T extends Collection<String> & OtherBound>} {
+	 *     T field;
+	 * }
+	 * </code>
+	 * </pre>
+	 *
+	 * <pre>
+	 * <code>
+	 * Field f = Cls.class.getDeclaredField("field");
+	 * TypeConstraint t = new TypeConstraint(f.getGenericType());
+	 * {@code Optional<TypeConstraint[]>} args = t.resolveTypeArgumentsFor(Collection.class);
+	 * Type collectionValueType = args.get()[0].getFullType();
+	 * assertEquals(String.class, collectionValueType);
+	 * </code>
+	 * </pre>
+	 * 
+	 * @param classToFind the class to find
+	 * @return the actual type arguments provided to the given class, if found
+	 */
 	public Optional<TypeConstraint[]> resolveTypeArgumentsFor(Class<?> classToFind) {
 		return Optional.ofNullable(resolveTypeArgumentsFor(fullType, classToFind, new HashMap<>()));
 	}
 
 	@Override
 	public String toString() {
-		return String.format("TypeConstraint[%s, rawClass=%s]", fullType, getSatisfyingRawType());
+		return String.format("TypeConstraint[%s, rawType=%s]", fullType, getSatisfyingRawType());
 	}
 
 	private static final Class<?> findSatisfyingRawType(Type t) {
@@ -99,42 +179,8 @@ public final class TypeConstraint {
 	/**
 	 * Finds the generic type arguments applied to class {@code classToFind} for the
 	 * type {@code t}.
-	 * <p>
-	 * For instance, given a class like this.
-	 *
-	 * <pre>
-	 * {@code
-	 * class Cls extends MyCollection<String> {
-	 * }
 	 * 
-	 * class MyCollection implements Collection<String> {
-	 * }
-	 * }</pre>
-	 *
-	 * You can expect the following result:
-	 *
-	 * <pre>
-	 * <code>
-	 * TypeConstraint c = resolveTypeArgumentsFor(Cls.class, Collection.class).get()[0];
-	 * assertEquals(String.class, c.getFullType());
-	 * </code>
-	 * </pre>
-	 * <p>
-	 * It can also resolve type variables used in field declarations.
-	 *
-	 * <pre>{@code
-	 * class Cls<T extends Collection<String> & OtherBound> {
-	 * 	T field;
-	 * }
-	 * }</pre>
-	 *
-	 * <pre>
-	 * <code>
-	 * Field f = Cls.class.getDeclaredField("field");
-	 * TypeConstraint c = resolveTypeArgumentsFor(f.getGenericType(), Collection.class).get()[0];
-	 * assertEquals(String.class, c.getFullType());
-	 * </code>
-	 * </pre>
+	 * @see TypeConstraint#resolveTypeArgumentsFor(Class)
 	 */
 	private static TypeConstraint[] resolveTypeArgumentsFor(Type t, Class<?> classToFind,
 			Map<TypeVariable<?>, Type> resolvedVariables) {
@@ -345,11 +391,11 @@ public final class TypeConstraint {
 
 	/** A manually-created instance of ParameterizedType. */
 	static final class ManuallyParameterized implements ParameterizedType {
-		private final Type rawType;		
+		private final Type rawType;
 		private final Type[] arguments;
 
 		public ManuallyParameterized(Type rawType, Type... arguments) {
-			this.rawType = rawType;
+			this.rawType = Objects.requireNonNull(rawType);
 			this.arguments = arguments;
 		}
 
@@ -366,6 +412,17 @@ public final class TypeConstraint {
 		@Override
 		public Type getRawType() {
 			return rawType;
-		}	
+		}
+
+		@Override
+		public String toString() {
+			if (arguments.length == 0) {
+				return rawType.toString();
+			}
+			return rawType + "<" +
+					String.join(", ", Arrays.stream(arguments).map(t -> t.toString())
+							.toArray(size -> new String[size]))
+					+ ">";
+		}
 	}
 }
