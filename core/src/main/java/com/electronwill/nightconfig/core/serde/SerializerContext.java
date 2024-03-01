@@ -6,16 +6,17 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 
 public final class SerializerContext {
     final ObjectSerializer settings;
     final Supplier<? extends ConfigFormat<?>> formatSupplier;
-    final Supplier<? extends CommentedConfig> configSupplier;
+    final Supplier<? extends Config> configSupplier;
 
     SerializerContext(ObjectSerializer settings,
             Supplier<? extends ConfigFormat<?>> formatSupplier,
-            Supplier<? extends CommentedConfig> configSupplier) {
+            Supplier<? extends Config> configSupplier) {
         this.settings = settings;
         this.formatSupplier = formatSupplier;
         this.configSupplier = configSupplier;
@@ -25,13 +26,17 @@ public final class SerializerContext {
         return formatSupplier.get();
     }
 
-    public CommentedConfig createConfig() {
+    public Config createConfig() {
         return configSupplier.get();
+    }
+
+    public CommentedConfig createCommentedConfig() {
+        return CommentedConfig.fake(createConfig());
     }
 
     /** Serializes a single value. */
     public Object serializeValue(Object value) {
-        ValueSerializer<Object, ?> serializer = settings.findValueSerializer(value);
+        ValueSerializer<Object, ?> serializer = settings.findValueSerializer(value, this);
         return serializer.serialize(value, this);
     }
 
@@ -39,7 +44,7 @@ public final class SerializerContext {
      * Serializes an object as a {@code Config} by transforming its fields into configuration entries in
      * {@code destination}.
      */
-    public void serializeFields(Object source, CommentedConfig destination) {
+    public void serializeFields(Object source, Config destination) {
         // loop through the class hierarchy of the source type
         Class<?> cls = source.getClass();
         while (cls != Object.class) {
@@ -50,7 +55,7 @@ public final class SerializerContext {
                     try {
                         value = field.get(source);
                     } catch (IllegalAccessException e) {
-                        throw new SerializationException("Failed to read field: " + field);
+                        throw new SerializationException("Failed to read field `" + field + "`");
                     }
 
                     // read some annotations
@@ -58,19 +63,20 @@ public final class SerializerContext {
                     String comment = settings.getConfigComment(field);
 
                     // find the right serializer
-                    ValueSerializer<Object, ?> serializer = settings.findValueSerializer(value);
+                    ValueSerializer<Object, ?> serializer = settings.findValueSerializer(value, this);
+                    System.out.println("serializer for " + field + " is " + serializer);
 
                     // serialize the value and modify the destination
                     try {
                         Object serialized = serializer.serialize(value, this);
                         destination.set(path, serialized);
-                        if (comment != null) {
-                            destination.setComment(path, comment);
+                        if (comment != null && (destination instanceof CommentedConfig)) {
+                            ((CommentedConfig)destination).setComment(path, comment);
                         }
                     } catch (Exception ex) {
                         throw new SerializationException(
-                                "Error during serialization of field " + field
-                                        + " with serializer " + serializer,
+                                "Error during serialization of field `" + field
+                                        + "` with serializer " + serializer,
                                 ex);
                     }
                 }

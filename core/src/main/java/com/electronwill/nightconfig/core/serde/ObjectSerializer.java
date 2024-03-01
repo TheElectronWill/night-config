@@ -83,17 +83,10 @@ public final class ObjectSerializer {
      *
      * @return the new configuration
      */
-    @SuppressWarnings("unchecked")
     public <C extends Config> C serializeFields(Object source, Supplier<C> configSupplier) {
         C dest = configSupplier.get();
-        if (dest instanceof CommentedConfig) {
-            serializeFields(source, (CommentedConfig) dest);
-            return dest;
-        } else {
-            FakeCommentedConfig cc = new FakeCommentedConfig(dest);
-            serializeFields(source, cc);
-            return (C) cc.unwrap();
-        }
+        serializeFields(source, dest);
+        return dest;
     }
 
     /**
@@ -111,7 +104,7 @@ public final class ObjectSerializer {
      * 
      * @return the new configuration
      */
-    public void serializeFields(Object source, CommentedConfig destination) {
+    public void serializeFields(Object source, Config destination) {
         // the destination exists, convert the fields recursively
         SerializerContext ctx = new SerializerContext(
                 this,
@@ -126,11 +119,11 @@ public final class ObjectSerializer {
      * @throws SerializationException if no converter is found
      */
     @SuppressWarnings("unchecked")
-    <T, R> ValueSerializer<T, R> findValueSerializer(Object value) {
+    <T, R> ValueSerializer<T, R> findValueSerializer(Object value, SerializerContext ctx) { // todo
         Class<?> valueClass = value == null ? null : value.getClass();
         ValueSerializer<?, ?> maybeSe = null;
         for (ValueSerializerProvider<?, ?> provider : generalProviders) {
-            maybeSe = provider.provide(valueClass);
+            maybeSe = provider.provide(valueClass, ctx);
             if (maybeSe != null) {
                 return (ValueSerializer<T, R>) maybeSe;
             }
@@ -139,13 +132,11 @@ public final class ObjectSerializer {
         if (maybeSe != null) {
             return (ValueSerializer<T, R>) maybeSe;
         }
-        maybeSe = defaultProvider.provide(valueClass);
+        maybeSe = defaultProvider.provide(valueClass, ctx);
         if (maybeSe != null) {
             return (ValueSerializer<T, R>) maybeSe;
         }
-        String ofTypeStr = valueClass == null ? "" : " of type " + valueClass;
-        throw new SerializationException(
-                "No suitable serializer found for value" + ofTypeStr + ": " + value);
+        throw SerializationException.noSerializerFound(value, valueClass, ctx);
     }
 
     List<String> getConfigPath(Field field) {

@@ -2,12 +2,14 @@ package com.electronwill.nightconfig.core.serde;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
@@ -45,7 +47,8 @@ public final class ObjectSerializerBuilder {
     public <V, R> void withSerializerForClass(Class<V> cls,
             ValueSerializer<? super V, ? extends R> serializer) {
         generalProviders.add(
-                valueClass -> cls.isAssignableFrom(valueClass) ? (ValueSerializer) serializer : null);
+                (valueClass, ctx) -> Util.canAssign(cls, valueClass) ? (ValueSerializer) serializer
+                        : null);
     }
 
     public <V, R> void withSerializerProvider(ValueSerializerProvider<V, R> provider) {
@@ -56,24 +59,35 @@ public final class ObjectSerializerBuilder {
         defaultProvider = provider;
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public void withDefaultSerializerProvider() {
-        defaultProvider = valueClass -> {
-            // always succeed: returns the basic "value's fields to config" serializer
-            return (value, ctx) -> {
-                ConfigFormat<?> format = ctx.configFormat();
-                if (format != null && format.supportsType(valueClass)) {
-                    // type supported, use as is
-                    return value;
-                } else if (value != null && Util.isPrimitiveOrWrapper(valueClass)) {
-                    // confusing situation, but no conversion is possible anyway
-                    return value;
-                } else {
-                    // type not supported, convert to subconfig with fields
-                    CommentedConfig sub = ctx.createConfig();
-                    ctx.serializeFields(value, sub);
-                    return sub;
+        ValueSerializer trivialSer = new TrivialSerializer();
+        ValueSerializer fieldsSer = new FieldsSerializer();
+        ValueSerializer numberToIntSer = (value, ctx) -> ((Number) value).intValue();
+        ValueSerializer charToIntSer = (value, ctx) -> (int) (Character) value;
+
+        defaultProvider = (valueClass, ctx) -> {
+            ConfigFormat<?> format = ctx.configFormat();
+            if (format == null || format.supportsType(valueClass)) {
+                return trivialSer;
+            } else if (Util.isPrimitiveOrWrapper(valueClass) || valueClass == String.class) {
+                // Cannot access the fields of the value!
+                // try to convert to int, if supported
+                if (format.supportsType(int.class)) {
+                    if (Util.canAssign(int.class, valueClass)) {
+                        if (valueClass == Character.class || valueClass == char.class) {
+                            return charToIntSer;
+                        } else {
+                            return numberToIntSer;
+                        }
+                    }
                 }
-            };
+                // no possible conversion, fail
+                return null;
+            } else {
+                // type not supported, convert to subconfig with fields
+                return fieldsSer;
+            }
         };
     }
 
@@ -90,17 +104,16 @@ public final class ObjectSerializerBuilder {
         ValueSerializer collSer = new CollectionSerializer();
         ValueSerializer iterSer = new IterableSerializer();
         ValueSerializer enumSer = new EnumSerializer();
+        ValueSerializer trivialSer = new TrivialSerializer();
 
-        withSerializerProvider(valueClass -> {
+        withSerializerProvider((valueClass, ctx) -> {
             if (valueClass == null) {
-                return (v, ctx) -> {
-                    ConfigFormat format = ctx.configFormat();
-                    if (format == null || format.supportsType(null)) {
-                        return v;
-                    } else {
-                        throw new DeserializationException("Cannot serialize a null value into a configuration that doesn't support null. You could create a blankBuilder() and replace the standard serializers to serialize null values to something else.");
-                    }
-                };
+                ConfigFormat<?> format = ctx.configFormat();
+                if (format == null || format.supportsType(null)) {
+                    return trivialSer;
+                } else {
+                    return null;
+                }
             }
             if (Map.class.isAssignableFrom(valueClass)) {
                 return mapSer;
@@ -112,7 +125,7 @@ public final class ObjectSerializerBuilder {
                 return iterSer;
             }
             if (UnmodifiableConfig.class.isAssignableFrom(valueClass)) {
-                return (v, ctx) -> v; // the value is already a config, nothing to serialize
+                return trivialSer; // the value is already a config, nothing to serialize
             }
             if (Enum.class.isAssignableFrom(valueClass)) {
                 return enumSer;
@@ -121,22 +134,34 @@ public final class ObjectSerializerBuilder {
         });
     }
 
-    private static final class MapSerializer implements ValueSerializer<Map<?, ?>, CommentedConfig> {
+    /**
+     * Serializes a map to a config by converting each entry of the map into an entry of the config,
+     * converting the entry's value.
+     */
+    private static final class MapSerializer implements ValueSerializer<Map<?, ?>, Config> {
 
         @Override
-        public CommentedConfig serialize(Map<?, ?> value, SerializerContext ctx) {
-            CommentedConfig sub = ctx.createConfig();
+        public Config serialize(Map<?, ?> value, SerializerContext ctx) {
+            Config res = ctx.createConfig();
+
             // serialize each entry as a config entry
             for (Entry<?, ?> entry : value.entrySet()) {
+                // get the path
                 Object key = entry.getKey();
                 if (!(key instanceof String)) {
                     String keyTypeString = key == null ? "null" : key.getClass().toString();
                     throw new SerializationException("Map keys must be strings, invalid key type "
                             + keyTypeString + " in value.");
                 }
-                ctx.serializeFields(entry.getValue(), sub);
+                List<String> path = Collections.singletonList((String) key);
+
+                // convert the value
+                Object serialized = ctx.serializeValue(entry.getValue());
+
+                // add the value to the config
+                res.set(path, serialized);
             }
-            return sub;
+            return res;
         }
 
     }
@@ -183,10 +208,21 @@ public final class ObjectSerializerBuilder {
         }
     }
 
+    /** Converts an object to a config by turning each field into an entry. */
+    private static final class FieldsSerializer implements ValueSerializer<Object, Config> {
+
+        @Override
+        public Config serialize(Object value, SerializerContext ctx) {
+            Config sub = ctx.createConfig();
+            ctx.serializeFields(value, sub);
+            return sub;
+        }
+    }
+
     /** A provider that provides nothing, {@code provide} always returns null. */
     private static final class NoProvider implements ValueSerializerProvider<Object, Object> {
         @Override
-        public ValueSerializer<Object, Object> provide(Class<?> valueClass) {
+        public ValueSerializer<Object, Object> provide(Class<?> valueClass, SerializerContext ctx) {
             return null;
         }
     }

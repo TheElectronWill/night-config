@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.core.serde;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -94,7 +93,7 @@ public class TypeConstraintCollectionTest {
 		}
 	}
 
-	private TypeConstraint extractCollectionValueType(TypeConstraint t) {
+	static TypeConstraint extractCollectionValueType(TypeConstraint t) {
 		return t.resolveTypeArgumentsFor(Collection.class).map(c -> c[0]).orElse(null);
 	}
 

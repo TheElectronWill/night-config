@@ -58,8 +58,8 @@ public final class DeserializerContext {
 						field.set(destination, deserialized);
 					} catch (Exception ex) {
 						throw new DeserializationException(
-								"Error during deserialization of value " + value + " to field "
-										+ field + " with deserializer " + deserializer,
+								"Error during deserialization of value " + value + " to field `"
+										+ field + "` with deserializer " + deserializer,
 								ex);
 					}
 				}

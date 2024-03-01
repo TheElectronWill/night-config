@@ -321,6 +321,7 @@ public final class TypeConstraint {
 	static Type refineWildcard(WildcardType wildcard,
 			TypeVariable<Class<Object>> declaredTypeParam,
 			Map<TypeVariable<?>, Type> resolvedVariables) {
+
 		if (wildcard instanceof RefinedWildcard) {
 			return (RefinedWildcard) wildcard;
 		}

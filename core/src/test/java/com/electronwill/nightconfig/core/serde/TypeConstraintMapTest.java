@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.core.serde;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -91,17 +90,29 @@ public class TypeConstraintMapTest {
 			assertEquals(List.of("? extends java.lang.CharSequence", "? extends java.lang.Number"), fullTypeString(vt));
 			assertEquals(List.of(Optional.of(CharSequence.class), Optional.of(Number.class)), rawType(vt));
 
-			Field raw = Wildcards.class.getDeclaredField("raw");
-			t = new TypeConstraint(raw.getGenericType());
+			Field rawClass = Wildcards.class.getDeclaredField("rawClass");
+			t = new TypeConstraint(rawClass.getGenericType());
 			vt = extractMapValueType(t);
 			assertEquals(List.of("interface java.lang.CharSequence", "V"), fullTypeString(vt));
 			assertEquals(List.of(Optional.of(CharSequence.class), Optional.of(Number.class)), rawType(vt));
 
-			Field unspecified = Wildcards.class.getDeclaredField("unspecified");
-			t = new TypeConstraint(unspecified.getGenericType());
+			// here we have no information on the generic arguments...
+			Field rawInterface = Wildcards.class.getDeclaredField("rawInterface");
+			t = new TypeConstraint(rawInterface.getGenericType());
+			vt = extractMapValueType(t);
+			assertNull(vt); // ... therefore vt is null
+
+			Field unspecifiedClass = Wildcards.class.getDeclaredField("unspecifiedClass");
+			t = new TypeConstraint(unspecifiedClass.getGenericType());
 			vt = extractMapValueType(t);
 			assertEquals(List.of("interface java.lang.CharSequence", "? <: [class java.lang.Number]"), fullTypeString(vt));
 			assertEquals(List.of(Optional.of(CharSequence.class), Optional.of(Number.class)), rawType(vt));
+
+			Field unspecifiedInterface = Wildcards.class.getDeclaredField("unspecifiedInterface");
+			t = new TypeConstraint(unspecifiedInterface.getGenericType());
+			vt = extractMapValueType(t);
+			assertEquals(List.of("?", "?"), fullTypeString(vt));
+			assertEquals(List.of(Optional.of(Object.class), Optional.of(Object.class)), rawType(vt));
 
 			Field subExtend = Wildcards.class.getDeclaredField("subExtend");
 			t = new TypeConstraint(subExtend.getGenericType());
@@ -167,8 +178,10 @@ public class TypeConstraintMapTest {
 	static class Wildcards {
 		Map<? super CharSequence, ? super Number> superMap;
 		Map<? extends CharSequence, ? extends Number> extendMap;
-		MyMap1 raw;
-		MyMap1<?> unspecified;
+		Map rawInterface;
+		MyMap1 rawClass;
+		Map<?,?> unspecifiedInterface;
+		MyMap1<?> unspecifiedClass;
 		MyMap1<? extends Number> subExtend;
 		MyMap1<? super Number> subSuper;
 	}

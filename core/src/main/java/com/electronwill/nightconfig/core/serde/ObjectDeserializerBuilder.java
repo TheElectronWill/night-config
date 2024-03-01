@@ -104,7 +104,7 @@ public final class ObjectDeserializerBuilder {
 	 * @see #withDefaultSerializer(ValueDeserializerProvider)
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void withDefaultSerializerProvider() {
+	public void withDefaultDeserializerProvider() {
 		ValueDeserializer pojoDe = new PojoDeserializer();
 		defaultProvider = (valueClass, resultType) -> {
 			if (UnmodifiableConfig.class.isAssignableFrom(valueClass)) {
@@ -118,7 +118,7 @@ public final class ObjectDeserializerBuilder {
 	/** registers the standard serializers */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void registerStandardDeserializers() {
-		withDefaultSerializerProvider();
+		withDefaultDeserializerProvider();
 
 		ValueDeserializer trivialDe = new TrivialDeserializer();
 		ValueDeserializer mapDe = new MapDeserializer();
@@ -160,10 +160,10 @@ public final class ObjectDeserializerBuilder {
 	 * {@code UnmodifiableCommentedConfig}.
 	 */
 	private static final class MapDeserializer
-			implements ValueDeserializer<UnmodifiableCommentedConfig, Map<String, ?>> {
+			implements ValueDeserializer<UnmodifiableConfig, Map<String, ?>> {
 
 		@Override
-		public Map<String, ?> deserialize(UnmodifiableCommentedConfig configValue,
+		public Map<String, ?> deserialize(UnmodifiableConfig configValue,
 				Optional<TypeConstraint> resultType,
 				DeserializerContext ctx) {
 
@@ -198,7 +198,7 @@ public final class ObjectDeserializerBuilder {
 			}
 
 			// deserialize config entries to map values
-			for (UnmodifiableCommentedConfig.Entry entry : configValue.entrySet()) {
+			for (UnmodifiableConfig.Entry entry : configValue.entrySet()) {
 				String key = entry.getKey();
 				Object value = entry.getValue();
 				Object deserialized = ctx.deserializeValue(value, mapValueType);

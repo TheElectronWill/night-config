@@ -22,5 +22,5 @@ public interface ValueSerializerProvider<V, R> {
      * @return a serializer, or {@code null} to try the next provider
      * @see ValueSerializerProvider
      */
-    ValueSerializer<V, R> provide(Class<?> valueClass);
+    ValueSerializer<V, R> provide(Class<?> valueClass, SerializerContext ctx);
 }

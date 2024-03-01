@@ -4,8 +4,8 @@ import java.util.IdentityHashMap;
 
 final class Util {
     /**
-     * A better version of {@link Class#isAssignableFrom(Class)} that works with widening primitive conversions
-     * and conversions between primitive types and wrapper types.
+     * A better version of {@link Class#isAssignableFrom(Class)} that works with null,
+     * widening primitive conversions and conversions between primitive types and wrapper types.
      * 
      * @param fieldType the type of the field
      * @param valueType the type of the value
