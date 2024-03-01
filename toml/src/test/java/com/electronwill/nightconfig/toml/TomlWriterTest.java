@@ -284,6 +284,26 @@ public class TomlWriterTest {
 							""), written);
 	}
 
+	@Test
+	public void writeCategoryAndValueComments() {
+		CommentedConfig config = CommentedConfig.inMemory();
+
+		config.setComment("Header", "Header Comment");
+		config.setComment("Header.key", "Value Comment");
+
+		config.set("Header.key", "value");
+
+		TomlWriter writer = new TomlWriter();
+		String written = writer.writeToString(config);
+
+		System.out.println(written);
+		assertEquals(join("#Header Comment",
+			"[Header]",
+			"\t#Value Comment",
+			"\tkey = \"value\"",
+			""), written);
+	}
+
 	private String join(String... lines) {
 		return String.join(System.lineSeparator(), lines);
 	}
