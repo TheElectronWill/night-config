@@ -1531,7 +1531,9 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                             return false;
                         }
                     } else {
-                        return value.equals(otherEntry);
+                        if (!value.equals(otherEntry)) {
+                            return false;
+                        }
                     }
                 }
                 return true;

@@ -243,7 +243,9 @@ public abstract class AbstractConfig implements Config, Cloneable {
 						return false;
 					}
 				} else {
-					return value.equals(otherEntry);
+					if (!value.equals(otherEntry)) {
+						return false;
+					}
 				}
 			}
 			return true;
