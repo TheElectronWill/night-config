@@ -1,6 +1,6 @@
 plugins {
-    id 'biz.aQute.bnd.builder' version '6.4.0' apply false
-	
+    id 'biz.aQute.bnd.builder' version '7.0.0' apply false
+	id 'me.champeau.mrjar' version "0.1" apply false
 }
 
 configure(subprojects.findAll {it.name != "examples" && it.name != "tests-all"}) {
@@ -18,11 +18,6 @@ configure(subprojects.findAll {it.name != "examples" && it.name != "tests-all"})
 
 	repositories {
 		mavenCentral()
-	}
-
-	java {
-		sourceCompatibility = JavaVersion.VERSION_1_8
-		targetCompatibility = JavaVersion.VERSION_1_8
 	}
 
 	test {
@@ -138,6 +133,13 @@ configure(subprojects.findAll {!it.name.contains("core") && it.name != "examples
 }
 
 configure(subprojects.findAll {it.name.contains("core")}) {
+	/* We want to apply the multi-release jar plugin */
+	apply plugin: 'me.champeau.mrjar'
+
+	multiRelease {
+		targetVersions 8, 17
+	}
+
 	/* The purpose of this code is allow the other modules
 	   to use the core test classes for their tests. */
 
