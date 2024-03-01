@@ -10,9 +10,9 @@ import com.electronwill.nightconfig.core.NullObject;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
 public final class DeserializerContext {
-	final ObjectDeserializer settings;
+	final AbstractObjectDeserializer settings;
 
-	DeserializerContext(ObjectDeserializer settings) {
+	DeserializerContext(AbstractObjectDeserializer settings) {
 		this.settings = settings;
 	}
 

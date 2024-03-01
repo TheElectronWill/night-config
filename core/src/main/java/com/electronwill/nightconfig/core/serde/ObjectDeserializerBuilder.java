@@ -101,7 +101,7 @@ public final class ObjectDeserializerBuilder {
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void withDefaultDeserializerProvider() {
-		ValueDeserializer pojoDe = new StandardDeserializers.ConfigToPojoDeserializer();
+		ValueDeserializer pojoDe = new ConfigToPojoDeserializer();
 		defaultProvider = (valueClass, resultType) -> {
 			if (UnmodifiableConfig.class.isAssignableFrom(valueClass)) {
 				return pojoDe;

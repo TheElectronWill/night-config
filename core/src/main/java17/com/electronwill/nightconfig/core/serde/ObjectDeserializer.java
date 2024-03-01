@@ -3,12 +3,13 @@ package com.electronwill.nightconfig.core.serde;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.Optional;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
 public final class ObjectDeserializer extends AbstractObjectDeserializer {
-	// This is the Java 8 version of ObjectDeserializer.
-	// Remember to make this version in sync with the version for Java 17+ (methods and comments).
+	// This is the Java 17 version of ObjectDeserializer,
+	// substituted to add methods related to the new Java Records.
 
 	/**
 	 * Creates a new {@link ObjectDeserializerBuilder} with some standard deserializers already registered.
@@ -31,11 +32,6 @@ public final class ObjectDeserializer extends AbstractObjectDeserializer {
 	ObjectDeserializer(ObjectDeserializerBuilder builder) {
 		super(builder);
 	}
-
-	// NOTE: it would make no sense to provide a method deserialize(Object) -> Object, because
-	// the trivial deserialization can always be applied when there is no constraint on the result.
-	// ObjectSerializer.serialize does exist, however, because there is a constraint on the type of
-	// values that the configuration can contain, through its ConfigFormat.
 
 	/**
 	 * Deserializes a value into an instance of the collection {@code C<V>}.
@@ -90,5 +86,28 @@ public final class ObjectDeserializer extends AbstractObjectDeserializer {
 	public <R> R deserializeFields(UnmodifiableConfig source,
 			Supplier<? extends R> destinationSupplier) {
 		return super.deserializeFields(source, destinationSupplier);
+	}
+
+	// ------ Additional methods for Java 17+ ------
+
+	/**
+	 * Deserializes a {@code Config} to a record of type {@code R} by transforming the config entries
+	 * into record's components.
+	 * 
+	 * @param <R>         type of the record
+	 * @param source      config to deserialize
+	 * @param recordClass class of the record
+	 * @return a new, deserialized record
+	 */
+	@SuppressWarnings("unchecked")
+	public <R extends Record> R deserializeToRecord(UnmodifiableConfig source, Class<R> recordClass) {
+		if (!recordClass.isRecord()) {
+			throw new IllegalArgumentException(
+					"Argument recordClass = " + recordClass
+							+ " is not the class of a record! Please don't silence errors about incompatible types :)");
+		}
+		DeserializerContext ctx = new DeserializerContext(this);
+		TypeConstraint t = new TypeConstraint(recordClass);
+		return (R) ctx.deserializeValue(source, Optional.of(t));
 	}
 }

@@ -7,11 +7,9 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.function.Supplier;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.conversion.AdvancedPath;
 import com.electronwill.nightconfig.core.conversion.Path;
-import com.electronwill.nightconfig.core.utils.FakeCommentedConfig;
 import com.electronwill.nightconfig.core.utils.StringUtils;
 
 /**
@@ -63,7 +61,7 @@ public final class ObjectSerializer {
      *
      * @return the object, converted to a config value
      */
-    public Object serialize(Object value, Supplier<? extends CommentedConfig> configSupplier) {
+    public Object serialize(Object value, Supplier<? extends Config> configSupplier) {
         SerializerContext ctx = new SerializerContext(
                 this,
                 () -> configSupplier.get().configFormat(),
