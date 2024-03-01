@@ -395,14 +395,14 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
             Map<String, Object> values = current.values;
             // try optimistic read once
             long stamp = lock.tryOptimisticRead();
-            boolean isLock = false;
+            boolean isLock = false; // this flag is tricky to get right but crucial to avoid bugs
             try {
                 Object level = values.get(key);
                 if (!lock.validate(stamp)) {
                     // Read has been invalidated, acquire the lock and read again.
                     checkStateForNormalOp();
                     stamp = lock.readLock();
-                    isLock = true;
+                    isLock = true; // lock acquired, we need to release it later
                     level = values.get(key);
                 }
 
@@ -414,8 +414,8 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                         // write lock not acquired, need to wait
                         checkStateForNormalOp();
                         stamp = lock.writeLock();
-                        isLock = true;
                     }
+                    isLock = true; // lock acquired, we need to release it later
                     current = createSubConfig();
                     values.put(key, current);
                 } else if (level instanceof StampedConfig) {
