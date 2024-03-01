@@ -76,7 +76,7 @@ public final class DeserializerContext {
 		if (Modifier.isTransient(mods) && settings.applyTransientModifier) {
 			return false;
 		}
-		if (Modifier.isFinal(mods)) {
+		if (Modifier.isFinal(mods) || !Modifier.isPublic(mods)) {
 			field.setAccessible(true);
 		}
 		return true;

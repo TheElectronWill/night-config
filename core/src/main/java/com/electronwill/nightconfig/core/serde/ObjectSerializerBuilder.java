@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core.serde;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -8,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
@@ -47,7 +47,8 @@ public final class ObjectSerializerBuilder {
     public <V, R> void withSerializerForClass(Class<V> cls,
             ValueSerializer<? super V, ? extends R> serializer) {
         generalProviders.add(
-                (valueClass, ctx) -> Util.canAssign(cls, valueClass) ? (ValueSerializer) serializer
+                (valueClass, ctx) -> valueClass != null && Util.canAssign(cls, valueClass)
+                        ? (ValueSerializer) serializer
                         : null);
     }
 
@@ -70,7 +71,8 @@ public final class ObjectSerializerBuilder {
             ConfigFormat<?> format = ctx.configFormat();
             if (format == null || format.supportsType(valueClass)) {
                 return trivialSer;
-            } else if (Util.isPrimitiveOrWrapper(valueClass) || valueClass == String.class) {
+            } else if (valueClass != null && (Util.isPrimitiveOrWrapper(valueClass) || valueClass == String.class
+                    || valueClass.isArray())) {
                 // Cannot access the fields of the value!
                 // try to convert to int, if supported
                 if (format.supportsType(int.class)) {
@@ -103,6 +105,7 @@ public final class ObjectSerializerBuilder {
         ValueSerializer mapSer = new MapSerializer();
         ValueSerializer collSer = new CollectionSerializer();
         ValueSerializer iterSer = new IterableSerializer();
+        ValueSerializer arraySer = new ArraySerializer();
         ValueSerializer enumSer = new EnumSerializer();
         ValueSerializer trivialSer = new TrivialSerializer();
 
@@ -130,12 +133,15 @@ public final class ObjectSerializerBuilder {
             if (Enum.class.isAssignableFrom(valueClass)) {
                 return enumSer;
             }
+            if (valueClass.isArray()) {
+                return arraySer;
+            }
             return null;
         });
     }
 
     /**
-     * Serializes a map to a config by converting each entry of the map into an entry of the config,
+     * Serializes a Map<String, V> to a Config by converting each entry of the map into an entry of the config,
      * converting the entry's value.
      */
     private static final class MapSerializer implements ValueSerializer<Map<?, ?>, Config> {
@@ -186,6 +192,22 @@ public final class ObjectSerializerBuilder {
             List<Object> res = new ArrayList<>();
             for (Object v : value) {
                 Object serialized = ctx.serializeValue(v);
+                res.add(serialized);
+            }
+            return res;
+        }
+    }
+
+    private static final class ArraySerializer implements ValueSerializer<Object, List<?>> {
+
+        @Override
+        public List<?> serialize(Object arrayValue, SerializerContext ctx) {
+            int size = Array.getLength(arrayValue);
+
+            List<Object> res = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                Object element = Array.get(arrayValue, i);
+                Object serialized = ctx.serializeValue(element);
                 res.add(serialized);
             }
             return res;

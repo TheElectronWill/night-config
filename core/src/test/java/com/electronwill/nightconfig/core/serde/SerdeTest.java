@@ -3,9 +3,11 @@ package com.electronwill.nightconfig.core.serde;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
@@ -182,6 +184,103 @@ public final class SerdeTest {
         assertEquals(Simple.SERIALIZED, serialized2);
     }
 
+    static class NestedObjects {
+        List<List<Simple>> inList = L;
+        Map<String, Map<String, Simple>> inMap = M;
+        NestedObjects inSelf;
+
+        private NestedObjects() {
+            this(true);
+        }
+
+        private NestedObjects(boolean nest) {
+            if (nest) {
+                inSelf = new NestedObjects(false);
+            } else {
+                inSelf = null;
+            }
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            NestedObjects other = (NestedObjects) obj;
+            if (inList == null) {
+                if (other.inList != null)
+                    return false;
+            } else if (!inList.equals(other.inList))
+                return false;
+            if (inMap == null) {
+                if (other.inMap != null)
+                    return false;
+            } else if (!inMap.equals(other.inMap))
+                return false;
+            if (inSelf == null) {
+                if (other.inSelf != null)
+                    return false;
+            } else if (!inSelf.equals(other.inSelf))
+                return false;
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return "NestedObjects [\n\tinList=" + inList + ",\n\tinMap=" + inMap + ",\n\tinSelf=" + inSelf + "\n]";
+        }
+
+        static final List<List<Simple>> L;
+        static final Map<String, Map<String, Simple>> M;
+        static final Config SERIALIZED;
+        static {
+            L = List.of(
+                List.of(new Simple(), new Simple()),
+                Collections.singletonList(null),
+                List.of()
+            );
+            M = Map.of(
+                "map", Map.of("sub", new Simple()),
+                "empty", Map.of()
+            );
+
+            var serializedL = List.of(
+                List.of(Simple.SERIALIZED, Simple.SERIALIZED),
+                Collections.singletonList(null),
+                List.of()
+            );
+            var serializedM = Config.inMemory();
+            var sub = Config.inMemory();
+            sub.set("sub", Simple.SERIALIZED);
+            serializedM.set("map", sub);
+            serializedM.set("empty", Config.inMemory());
+
+            SERIALIZED = Config.inMemory();
+            SERIALIZED.set("inList", serializedL);
+            SERIALIZED.set("inMap", serializedM);
+
+            var nested = Config.copy(SERIALIZED);
+            nested.set("inSelf", null);
+            SERIALIZED.set("inSelf", nested);
+        }
+    }
+
+    @Test
+    public void testNestedObjects() throws Exception {
+        var de = ObjectDeserializer.builder().build();
+        var deserialized = de.deserializeFields(NestedObjects.SERIALIZED, NestedObjects::new);
+        assertEquals(new NestedObjects(), deserialized);
+
+        var ser = ObjectSerializer.builder().build();
+        var serialized = ser.serializeFields(new NestedObjects(), Config::inMemory);
+        assertEquals(NestedObjects.SERIALIZED, serialized);
+        var serialized2 = ser.serialize(new NestedObjects(), CommentedConfig::inMemory);
+        assertEquals(NestedObjects.SERIALIZED, serialized2);
+    }
+
     static class SimpleMaps {
         Map<String, String> simpleMap = M1;
 
@@ -236,6 +335,7 @@ public final class SerdeTest {
     }
 
     static class Maps {
+        SimpleMaps object = new SimpleMaps();
         Map<String, String> simpleMap = M1;
         Map<String, Map<String, Integer>> nestedMap = M2;
 
@@ -248,27 +348,12 @@ public final class SerdeTest {
             if (getClass() != obj.getClass())
                 return false;
             Maps other = (Maps) obj;
-            if (simpleMap == null) {
-                if (other.simpleMap != null)
-                    return false;
-            } else if (!simpleMap.equals(other.simpleMap))
+            if (!Objects.equals(object, other.object) && Objects.equals(simpleMap, other.simpleMap))
                 return false;
-            if (nestedMap == null) {
-                if (other.nestedMap != null)
+            for (Map.Entry<String, Map<String, Integer>> e : nestedMap.entrySet()) {
+                Object otherValue = other.nestedMap.get(e.getKey());
+                if (!Objects.equals(e.getValue(), otherValue)) {
                     return false;
-            } else {
-                if (nestedMap.size() != other.nestedMap.size()) {
-                    return false;
-                }
-                for (Map.Entry<String, Map<String, Integer>> e : nestedMap.entrySet()) {
-                    Object otherValue = other.nestedMap.get(e.getKey());
-                    if (e.getValue() == null) {
-                        return otherValue == null;
-                    }
-                    if (!(otherValue instanceof Map)) {
-                        return false;
-                    }
-                    return e.getValue().equals(otherValue);
                 }
             }
             return true;
@@ -276,7 +361,7 @@ public final class SerdeTest {
 
         @Override
         public String toString() {
-            return "Maps [simpleMap=" + simpleMap + ", nestedMap=" + nestedMap + "]";
+            return "Maps [object=" + object + ", simpleMap=" + simpleMap + ", nestedMap=" + nestedMap + "]";
         }
 
         static final Map<String, String> M1;
@@ -297,6 +382,7 @@ public final class SerdeTest {
             M2.put("null", null);
 
             SERIALIZED = Config.inMemory();
+            SERIALIZED.set("object", SimpleMaps.SERIALIZED);
             SERIALIZED.set("simpleMap.key1", "value1");
             SERIALIZED.set("simpleMap.key2", "value2");
             SERIALIZED.set("simpleMap.key3", null);
@@ -353,5 +439,56 @@ public final class SerdeTest {
         assertEquals(Transient.SERIALIZED, serialized2);
     }
 
-    
+    static class ArrayValues<T extends CharSequence> {
+        String[] str = { "a", "b", "c" };
+        Simple[] nested = { new Simple() };
+
+        int[][][] iii = { { { 1, 2 }, { 10, 20 } }, { { -1, -2 } }, { { 0 }, { 0 } } };
+        T[][] seqs = null;
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof ArrayValues))
+                return false;
+            ArrayValues<?> other = (ArrayValues<?>) obj;
+            return Arrays.deepEquals(str, other.str) &&
+                    Arrays.equals(nested, other.nested) &&
+                    Arrays.deepEquals(iii, other.iii) &&
+                    Arrays.deepEquals(seqs, other.seqs);
+        }
+
+        @Override
+        public String toString() {
+            return "ArrayValues [str=" + Arrays.deepToString(str) + ", nested="
+                    + Arrays.deepToString(nested)
+                    + ", iii=" + Arrays.deepToString(iii) + ", seqs=" + Arrays.deepToString(seqs) + "]";
+            // return "ArrayValues [nested = " + Arrays.deepToString(nested) + "]";
+        }
+
+        static final Config SERIALIZED = Config.inMemory();
+        static {
+            SERIALIZED.set("str", List.of("a", "b", "c"));
+            SERIALIZED.set("nested", List.of(Simple.SERIALIZED));
+            SERIALIZED.set("iii", List.of(
+                    List.of(List.of(1, 2), List.of(10, 20)),
+                    List.of(List.of(-1, -2)),
+                    List.of(List.of(0), List.of(0))));
+            SERIALIZED.set("seqs", null);
+        }
+
+    }
+
+    @Test
+    public void testArrayValues() throws Exception {
+        var de = ObjectDeserializer.builder().build();
+        var deserialized = de.deserializeFields(ArrayValues.SERIALIZED, ArrayValues::new);
+        assertEquals(new ArrayValues<String>(), deserialized);
+
+        var ser = ObjectSerializer.builder().build();
+        var serialized = ser.serializeFields(new ArrayValues<String>(), Config::inMemory);
+        assertEquals(ArrayValues.SERIALIZED, serialized);
+        var serialized2 = ser.serialize(new ArrayValues<String>(),
+                CommentedConfig::inMemory);
+        assertEquals(ArrayValues.SERIALIZED, serialized2);
+    }
 }

@@ -388,6 +388,22 @@ public final class TypeConstraint {
 			String upper = "<: " + Arrays.asList(upperBounds);
 			return "?" + lower + " " + upper;
 		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof WildcardType))
+				return false;
+			if (obj == this)
+				return true;
+			WildcardType other = (WildcardType) obj;
+			return Arrays.equals(lowerBounds, other.getLowerBounds())
+					&& Arrays.equals(upperBounds, other.getUpperBounds());
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(lowerBounds, upperBounds);
+		}
 	}
 
 	/** A manually-created instance of ParameterizedType. */
@@ -424,6 +440,19 @@ public final class TypeConstraint {
 					String.join(", ", Arrays.stream(arguments).map(t -> t.toString())
 							.toArray(size -> new String[size]))
 					+ ">";
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof ParameterizedType))
+				return false;
+			if (obj == this)
+				return true;
+
+			ParameterizedType other = (ParameterizedType) obj;
+			return null == other.getOwnerType() &&
+					Objects.equals(rawType, other.getRawType()) &&
+					Arrays.equals(arguments, other.getActualTypeArguments());
 		}
 	}
 }

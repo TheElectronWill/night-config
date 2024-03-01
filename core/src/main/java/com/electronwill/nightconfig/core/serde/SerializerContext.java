@@ -64,7 +64,6 @@ public final class SerializerContext {
 
                     // find the right serializer
                     ValueSerializer<Object, ?> serializer = settings.findValueSerializer(value, this);
-                    System.out.println("serializer for " + field + " is " + serializer);
 
                     // serialize the value and modify the destination
                     try {

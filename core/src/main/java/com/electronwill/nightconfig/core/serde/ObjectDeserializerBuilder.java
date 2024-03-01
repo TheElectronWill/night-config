@@ -1,6 +1,9 @@
 package com.electronwill.nightconfig.core.serde;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -9,7 +12,6 @@ import java.util.Optional;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.EnumGetMethod;
-import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
 /**
@@ -123,18 +125,28 @@ public final class ObjectDeserializerBuilder {
 		ValueDeserializer trivialDe = new TrivialDeserializer();
 		ValueDeserializer mapDe = new MapDeserializer();
 		ValueDeserializer collDe = new CollectionDeserializer();
+		ValueDeserializer arrDe = new CollectionToArrayDeserializer();
 		ValueDeserializer enumDe = new EnumDeserializer();
 
 		withDeserializerProvider(((valueClass, resultType) -> {
+			Type fullType = resultType.getFullType();
 			return resultType.getSatisfyingRawType().map(resultClass -> {
-				if (Util.canAssign(resultClass, valueClass)) {
+				if (Util.canAssign(resultClass, valueClass)
+						&& (valueClass == null || fullType instanceof Class)) {
 					return trivialDe; // value to value (same type or compatible type)
+
+					// Note that we rule out TypeConstraint where getFullType() is not a simple Class,
+					// which means that there are type parameters and that we cannot just blindly assign.
 				}
-				if (Collection.class.isAssignableFrom(valueClass)
-						&& Collection.class.isAssignableFrom(resultClass)) {
-					return collDe; // collection<value> to collection<T>
+				if (Collection.class.isAssignableFrom(valueClass)) {
+					if (Collection.class.isAssignableFrom(resultClass)) {
+						return collDe; // collection<value> to collection<T>
+					} else if (resultClass.isArray()) {
+						return arrDe; // collection<value> to array<T>
+					}
 				}
-				if (UnmodifiableConfig.class.isAssignableFrom(valueClass)
+				if ((UnmodifiableConfig.class.isAssignableFrom(valueClass)
+						|| Map.class.isAssignableFrom(valueClass))
 						&& Map.class.isAssignableFrom(resultClass)) {
 					return mapDe; // config to map<K, V>
 				}
@@ -156,18 +168,21 @@ public final class ObjectDeserializerBuilder {
 	}
 
 	/**
-	 * The standard deserializer for fields of type {@code Map<String,?>} and values of type
-	 * {@code UnmodifiableCommentedConfig}.
+	 * Deserializes Map<String, Value> or UnmodifiableConfig to Map<String, Result>
 	 */
-	private static final class MapDeserializer
-			implements ValueDeserializer<UnmodifiableConfig, Map<String, ?>> {
+	private static final class MapDeserializer implements ValueDeserializer<Object, Map<String, ?>> {
 
 		@Override
-		public Map<String, ?> deserialize(UnmodifiableConfig configValue,
+		public Map<String, ?> deserialize(Object mapValue,
 				Optional<TypeConstraint> resultType,
 				DeserializerContext ctx) {
 
-			int size = configValue.size();
+			int size;
+			if (mapValue instanceof UnmodifiableConfig) {
+				size = ((UnmodifiableConfig) mapValue).size();
+			} else {
+				size = ((Map<?, ?>) mapValue).size();
+			}
 
 			// Look for the type of the values to insert in the map,
 			// and create a map of the right type.
@@ -197,23 +212,39 @@ public final class ObjectDeserializerBuilder {
 				}
 			}
 
-			// deserialize config entries to map values
-			for (UnmodifiableConfig.Entry entry : configValue.entrySet()) {
-				String key = entry.getKey();
-				Object value = entry.getValue();
-				Object deserialized = ctx.deserializeValue(value, mapValueType);
-				res.put(key, deserialized);
+			if (mapValue instanceof UnmodifiableConfig) {
+				// deserialize config entries to map values, converting each value
+				for (UnmodifiableConfig.Entry entry : ((UnmodifiableConfig) mapValue).entrySet()) {
+					String key = entry.getKey();
+					Object value = entry.getValue();
+					Object deserialized = ctx.deserializeValue(value, mapValueType);
+					res.put(key, deserialized);
+				}
+			} else {
+				// deserialize map entries to map values, converting each value
+				for (Map.Entry<?, ?> entry : ((Map<?, ?>) mapValue).entrySet()) {
+					Object key = entry.getKey();
+					if (!(key instanceof String)) {
+						String keyClassStr = key == null ? "null" : key.getClass().toString();
+						throw new DeserializationException(
+								"Invalid map type for deserialization, the keys should be of type String instead of "
+										+ keyClassStr + ". Full map type: " + resultType.get());
+					}
+					Object value = entry.getValue();
+					Object deserialized = ctx.deserializeValue(value, mapValueType);
+					res.put((String) key, deserialized);
+				}
 			}
 			return res;
 		}
 
-		private Optional<TypeConstraint[]> extractMapKVType(TypeConstraint mapTypeC) {
+		private static Optional<TypeConstraint[]> extractMapKVType(TypeConstraint mapTypeC) {
 			// return collType.resolveTypeArgumentsFor(Collection.class).map(c -> c[0]).orElse(null);
 			return mapTypeC.resolveTypeArgumentsFor(Map.class);
 		}
 
 		@SuppressWarnings("unchecked")
-		private Map<String, Object> createMapInstance(Class<?> cls, int sizeHint) {
+		private static Map<String, Object> createMapInstance(Class<?> cls, int sizeHint) {
 			if (cls == Map.class) {
 				return Config.isInsertionOrderPreserved() ? new java.util.LinkedHashMap<>(sizeHint)
 						: new java.util.HashMap<>(sizeHint);
@@ -250,6 +281,9 @@ public final class ObjectDeserializerBuilder {
 		}
 	}
 
+	/**
+	 * Deserializes Collection<Value> to Collection<Result>
+	 */
 	static final class CollectionDeserializer
 			implements ValueDeserializer<Collection<?>, Collection<?>> {
 
@@ -305,7 +339,7 @@ public final class ObjectDeserializerBuilder {
 		}
 	}
 
-	static final class ArrayDeserializer
+	static final class CollectionToArrayDeserializer
 			implements ValueDeserializer<Collection<?>, Object> {
 
 		@Override
@@ -372,13 +406,17 @@ public final class ObjectDeserializerBuilder {
 				Class<?> cls = t.getSatisfyingRawType().orElseThrow(() -> new DeserializationException(
 						"Could not find a concrete type that can satisfy the constraint " + t));
 				try {
-					Object instance = cls.getDeclaredConstructor().newInstance();
+					Constructor<?> constructor = cls.getDeclaredConstructor();
+					if (!Modifier.isPublic(constructor.getModifiers())) {
+						constructor.setAccessible(true);
+					}
+					Object instance = constructor.newInstance();
 					ctx.deserializeFields(value, instance);
+					return instance;
 				} catch (Exception e) {
 					throw new DeserializationException("Failed to create an instance of " + cls, e);
 				}
 			}
-			return null;
 		}
 	}
 
