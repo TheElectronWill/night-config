@@ -395,12 +395,14 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
             Map<String, Object> values = current.values;
             // try optimistic read once
             long stamp = lock.tryOptimisticRead();
+            boolean isLock = false;
             try {
                 Object level = values.get(key);
                 if (!lock.validate(stamp)) {
                     // Read has been invalidated, acquire the lock and read again.
                     checkStateForNormalOp();
                     stamp = lock.readLock();
+                    isLock = true;
                     level = values.get(key);
                 }
 
@@ -412,6 +414,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                         // write lock not acquired, need to wait
                         checkStateForNormalOp();
                         stamp = lock.writeLock();
+                        isLock = true;
                     }
                     current = createSubConfig();
                     values.put(key, current);
@@ -426,7 +429,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                                     + level.getClass());
                 }
             } finally {
-                if (StampedLock.isLockStamp(stamp)) {
+                if (isLock) { // I would like to use StampedLock.isLockStamp(stamp) but it's only available in Java 10+
                     lock.unlock(stamp);
                 } // else: optimistic read succeeded, nothing to unlock
             }
