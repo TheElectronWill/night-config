@@ -5,11 +5,11 @@ plugins {
 }
 
 dependencies {
-    implementation project(':core')
-    implementation project(':hocon')
-    implementation project(':json')
-    implementation project(':toml')
-    implementation project(':yaml')
+    jacocoAggregation project(':core')
+    jacocoAggregation project(':hocon')
+    jacocoAggregation project(':json')
+    jacocoAggregation project(':toml')
+    jacocoAggregation project(':yaml')
 }
 
 repositories {

@@ -13,6 +13,11 @@ configure(subprojects.findAll {it.name != "examples" && it.name != "tests-all"})
 	apply plugin: 'java-library'
     apply plugin: 'biz.aQute.bnd.builder'
 	apply plugin: 'jacoco'
+	apply plugin: 'me.champeau.mrjar'
+
+	multiRelease {
+		targetVersions 8, 11, 17
+	}
 
 	archivesBaseName = "nightconfig-$name"
 
@@ -27,13 +32,23 @@ configure(subprojects.findAll {it.name != "examples" && it.name != "tests-all"})
 			showStandardStreams true
 		}
 	}
+	java11Test {
+		useJUnitPlatform()
+		testLogging {
+			showStackTraces true
+			showStandardStreams true
+		}
+	}
+	java17Test {
+		useJUnitPlatform()
+		testLogging {
+			showStackTraces true
+			showStandardStreams true
+		}
+	}
 
 	javadoc {
     	options.overview = "${project.projectDir}/src/overview.html"
-	}
-
-	jacocoTestReport {
-		dependsOn test
 	}
 
 	dependencies {
@@ -129,11 +144,7 @@ configure(subprojects.findAll {!it.name.contains("core") && it.name != "examples
 
 configure(subprojects.findAll {it.name.contains("core")}) {
 	/* We want to apply the multi-release jar plugin */
-	apply plugin: 'me.champeau.mrjar'
 
-	multiRelease {
-		targetVersions 8, 11, 17
-	}
 
 	/* The purpose of this code is allow the other modules
 	   to use the core test classes for their tests. */

@@ -22,7 +22,7 @@ public class HoconWriterTest {
 		CommentedConfig config = CommentedConfig.inMemory();
 		Util.populateTest(config);
 
-		var result = new HoconWriter().writeToString(config);
+		String result = new HoconWriter().writeToString(config);
 		assertEquals(Util.EXPECTED_SERIALIZED, result);
 	}
 
@@ -31,7 +31,7 @@ public class HoconWriterTest {
 		CommentedConfig config = new SynchronizedConfig(InMemoryCommentedFormat.defaultInstance(),
 				HashMap::new);
 		Util.populateTest(config);
-		var result = new HoconWriter().writeToString(config);
+		String result = new HoconWriter().writeToString(config);
 		assertEquals(Util.EXPECTED_SERIALIZED, result);
 	}
 
@@ -40,7 +40,7 @@ public class HoconWriterTest {
 		CommentedConfig config = new StampedConfig(InMemoryCommentedFormat.defaultInstance(),
 				HashMap::new);
 		Util.populateTest(config);
-		var result = new HoconWriter().writeToString(config);
+		String result = new HoconWriter().writeToString(config);
 		assertEquals(Util.EXPECTED_SERIALIZED, result);
 	}
 
