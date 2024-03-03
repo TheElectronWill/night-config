@@ -5,10 +5,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.List;
 import java.util.Arrays;
 
-import com.electronwill.nightconfig.core.BasicTestEnum;
+import com.electronwill.sharedtests.BasicTestEnum;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.TestEnum;
+import com.electronwill.sharedtests.TestEnum;
 
 public class Util {
     static void checkExample(CommentedConfig config) {

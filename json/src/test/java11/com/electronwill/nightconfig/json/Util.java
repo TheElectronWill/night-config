@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Arrays;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.TestEnum;
+import com.electronwill.sharedtests.TestEnum;
 
 public class Util {
     static void checkExample(Config config) {

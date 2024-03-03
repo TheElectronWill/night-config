@@ -12,7 +12,7 @@ import java.util.List;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.TestEnum;
+import com.electronwill.sharedtests.TestEnum;
 
 public class Util {
     static void checkExample(CommentedConfig config) {

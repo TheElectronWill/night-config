@@ -1,5 +1,0 @@
-// see root build.gradle
-
-dependencies {
-	implementation "org.yaml:snakeyaml:$snakeYamlVersion"
-}

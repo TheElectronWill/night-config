@@ -2,7 +2,7 @@ package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.InMemoryCommentedFormat;
-import com.electronwill.nightconfig.core.TestEnum;
+import com.electronwill.sharedtests.TestEnum;
 import com.electronwill.nightconfig.core.concurrent.StampedConfig;
 import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;

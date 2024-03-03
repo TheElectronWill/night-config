@@ -1,8 +1,0 @@
-rootProject.name = 'night-config'
-include ':core'
-include ':json'
-include ':toml'
-include ':hocon'
-include ':yaml'
-include ':examples'
-include ':tests-all'

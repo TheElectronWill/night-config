@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
-import com.electronwill.nightconfig.core.BasicTestEnum;
+import com.electronwill.sharedtests.BasicTestEnum;
 import com.electronwill.nightconfig.core.Config;
 
 public class Util {

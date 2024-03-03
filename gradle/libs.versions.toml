@@ -1,0 +1,8 @@
+[versions]
+junit5 = "5.10.2"
+snakeYaml = "1.33"
+typesafeConfig = "1.4.3"
+
+[libraries]
+typesafeConfig = { module = "com.typesafe:config", version.ref = "typesafeConfig" }
+snakeYaml = { module = "org.yaml:snakeyaml", version.ref = "snakeYaml" }

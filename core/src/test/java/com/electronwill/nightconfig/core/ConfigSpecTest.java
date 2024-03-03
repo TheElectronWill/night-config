@@ -2,6 +2,8 @@ package com.electronwill.nightconfig.core;
 
 import java.util.Arrays;
 import java.util.Map;
+
+import com.electronwill.sharedtests.TestEnum;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;

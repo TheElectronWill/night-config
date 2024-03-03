@@ -1,4 +1,4 @@
-package com.electronwill.nightconfig.core;
+package com.electronwill.sharedtests;
 
 public enum TestEnum {
 	A {
@@ -22,5 +22,6 @@ public enum TestEnum {
 		}
 	};
 
+	@SuppressWarnings("unused")
 	abstract int id();
 }

@@ -1,7 +1,7 @@
 package com.electronwill.nightconfig.json;
 
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.TestEnum;
+import com.electronwill.sharedtests.TestEnum;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.core.io.IndentStyle;
