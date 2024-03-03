@@ -3,7 +3,7 @@
 version: 2
 
 jobs:
-  buildAndTest:
+  build:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/configuration-reference/#docker-machine-macos-windows-executor
     docker:
@@ -31,4 +31,4 @@ jobs:
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
       # run tests!
-      - run: gradle java17Test
+      - run: gradle test-everything
