@@ -3,12 +3,12 @@ package com.electronwill.nightconfig.core.serde;
 /**
  * Provides {@link ValueSerializer} to serialize configuration values.
  * <p>
- * The {@link #provide(Class)} method returns {@code null} when
+ * The {@link #provide(Class, SerializerContext)} method returns {@code null} when
  * it cannot provide a serializer for the given value type.
  * In that case, other providers will be called, until a suitable serializer is found
  * or all the providers have been tried.
  * 
- * @param <T> type of the config values to serialize
+ * @param <V> type of the config values to serialize
  * @param <R> resulting type of the deserialization of these values
  */
 @FunctionalInterface

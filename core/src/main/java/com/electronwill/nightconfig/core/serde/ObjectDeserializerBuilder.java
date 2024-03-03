@@ -97,7 +97,7 @@ public final class ObjectDeserializerBuilder {
 	 * <p>
 	 * This will replace any previously set default provider.
 	 * 
-	 * @see #withDefaultSerializer(ValueDeserializerProvider)
+	 * @see #withDefaultDeserializerProvider(ValueDeserializerProvider)
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void withDefaultDeserializerProvider() {

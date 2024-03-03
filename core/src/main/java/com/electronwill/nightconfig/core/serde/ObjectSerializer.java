@@ -99,8 +99,6 @@ public final class ObjectSerializer {
      * @see ObjectSerializerBuilder#withSerializerForClass(Class, ValueSerializer)
      * @see ObjectSerializerBuilder#withSerializerForExactClass(Class, ValueSerializer)
      * @see ObjectSerializerBuilder#withSerializerProvider(ValueSerializerProvider)
-     * 
-     * @return the new configuration
      */
     public void serializeFields(Object source, Config destination) {
         // the destination exists, convert the fields recursively
