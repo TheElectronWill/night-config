@@ -16,19 +16,38 @@ jobs:
     steps:
       - checkout
 
-      # Download and cache dependencies
+      # Compute hashcode
+      - run:
+          name: Prepare cache key by hashing build files
+          command: |
+            mkdir -p /tmp/cibuild
+            array=()
+            readarray -d '' array < <(find . -type f -name "*.gradle.kts" | sort)
+            array+="gradle/libs.versions.toml"
+            md5sum $array > /tmp/cibuild/hashcode.txt
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "build.gradle" }}
+            - v1-dependencies-{{ checksum "/tmp/cibuild/hashcode.txt" }}
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
 
+      # Download and cache dependencies
       - run: gradle dependencies
 
       - save_cache:
           paths:
             - ~/.gradle
-          key: v1-dependencies-{{ checksum "build.gradle" }}
+          key: v1-dependencies-{{ checksum "/tmp/cibuild/hashcode.txt" }}
 
-      # run tests!
+        # run the tests!
       - run: gradle test-everything
+
+        # save the test results
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
