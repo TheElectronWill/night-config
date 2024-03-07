@@ -5,11 +5,13 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import com.electronwill.nightconfig.core.NullObject;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.serde.annotations.SerdeKey;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeSkipDeserializingIf;
 
 public final class DeserializerContext {
 	final AbstractObjectDeserializer settings;
@@ -39,6 +41,11 @@ public final class DeserializerContext {
 
 					// get the config value
 					Object value = source.getRaw(path);
+
+					// skip the field if the annotation say so
+					if (skipField(field, destination, value)) {
+						continue; // don't deserialize, go to the next field
+					}
 
 					// deserialize, but try the default value first
 					Object deserialized;
@@ -99,6 +106,20 @@ public final class DeserializerContext {
 	private String configKey(Field field) {
 		SerdeKey keyAnnot = field.getAnnotation(SerdeKey.class);
 		return keyAnnot == null ? field.getName() : keyAnnot.value();
+	}
+
+	@SuppressWarnings("unchecked")
+	private boolean skipField(Field field, Object fieldContainer, Object rawConfigValue) {
+		SerdeSkipDeserializingIf annot = field.getAnnotation(SerdeSkipDeserializingIf.class);
+		if (annot == null) {
+			return false;
+		}
+		try {
+			Predicate<?> skipPredicate = AnnotationProcessor.resolveSkipDeserializingIfPredicate(annot, fieldContainer);
+			return ((Predicate<Object>) skipPredicate).test(rawConfigValue);
+		} catch (Exception e) {
+			throw new SerdeException("Failed to resolve or apply skip predicate for deserialization of field " + field, e);
+		}
 	}
 
 	private boolean preCheck(Field field) {

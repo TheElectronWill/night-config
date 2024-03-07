@@ -75,8 +75,8 @@ public final class SerializerContext {
 
 					// Try to apply the default value.
 					// (Note that this is not symmetrical with the deserialization process: the
-					// default value is always a Java value,
-					// and we will serialize this default value instead of the field's value.)
+					// default value is always a Java value, and we will serialize this default
+					// value instead of the field's value.)
 					Supplier<?> defaultValueSupplier = settings.findDefaultValueSupplier(value, field, source);
 					if (defaultValueSupplier != null) {
 						try {
@@ -132,8 +132,12 @@ public final class SerializerContext {
 		if (annot == null) {
 			return false;
 		}
-		Predicate<?> skipPredicate = AnnotationProcessor.resolveSkipSerializingIfPredicate(annot, fieldContainer);
-		return ((Predicate<Object>)skipPredicate).test(fieldValue);
+		try {
+			Predicate<?> skipPredicate = AnnotationProcessor.resolveSkipSerializingIfPredicate(annot, fieldContainer, field);
+			return ((Predicate<Object>) skipPredicate).test(fieldValue);
+		} catch (Exception e) {
+			throw new SerdeException("Failed to resolve or apply skip predicate for serialization of field " + field, e);
+		}
 	}
 
 	private boolean preCheck(Field field) {

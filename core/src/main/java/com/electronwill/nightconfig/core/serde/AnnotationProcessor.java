@@ -1,13 +1,17 @@
 package com.electronwill.nightconfig.core.serde;
 
+import com.electronwill.nightconfig.core.NullObject;
 import com.electronwill.nightconfig.core.serde.annotations.SerdeDefault;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeSkipDeserializingIf;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeSkipDeserializingIf.SkipDeIf;
 import com.electronwill.nightconfig.core.serde.annotations.SerdeSkipSerializingIf;
-import com.electronwill.nightconfig.core.serde.annotations.SerdeSkipSerializingIf.SkipIf;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeSkipSerializingIf.SkipSerIf;
 
 import static com.electronwill.nightconfig.core.serde.annotations.SerdeDefault.SerdePhase.BOTH;
 import static com.electronwill.nightconfig.core.serde.annotations.SerdeDefault.SerdePhase.DESERIALIZING;
 import static com.electronwill.nightconfig.core.serde.annotations.SerdeDefault.SerdePhase.SERIALIZING;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.EnumMap;
 import java.util.function.Supplier;
@@ -17,62 +21,104 @@ import java.util.function.Predicate;
  * Internal class to process serde annotations.
  */
 final class AnnotationProcessor {
-	// ====== SerdeSkipSerializingIf ======
-	static Predicate<?> resolveSkipSerializingIfPredicate(SerdeSkipSerializingIf annotation, Object currentInstance) {
-		SkipIf skipIf = annotation.value();
+	// ====== SerdeSkipDeserializingIf ======
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	static Predicate<?> resolveSkipDeserializingIfPredicate(SerdeSkipDeserializingIf annotation, Object currentInstance) {
+		SkipDeIf[] conditions = annotation.value();
+		Predicate[] predicates = new Predicate[conditions.length];
+		for (int i = 0; i < predicates.length; i++) {
+			SkipDeIf condition = conditions[i];
+			predicates[i] = resolveSkipDeserializingIfPredicate1(condition, annotation, currentInstance, Object.class);
+		}
+		return combineOr(predicates);
+	}
+
+	private static Predicate<?> resolveSkipDeserializingIfPredicate1(SkipDeIf skipIf,
+			SerdeSkipDeserializingIf annotation, Object currentInstance, Class<?> configValueType) {
 		Class<?> cls = annotation.customClass();
 		String methodOrFieldName = annotation.customCheck();
 
-		Object methodOrField;
-		if (skipIf == SerdeSkipSerializingIf.SkipIf.CUSTOM) {
+		if (skipIf == SkipDeIf.CUSTOM) {
 			if (methodOrFieldName.isEmpty()) {
-				throw new SerdeException(String.format("Invalid annotation %s: with SkipIf.CUSTOM, parameter `customCheck` must be provided and non-empty.", annotation));
+				throw new SerdeException(String.format(
+						"Invalid annotation %s: with SkipDeIf.CUSTOM, parameter `customCheck` must be provided and non-empty.",
+						annotToString(annotation)));
 			}
+			return findCustomSkipPredicate(annotation, cls, methodOrFieldName, currentInstance, configValueType);
 		} else {
 			if (!methodOrFieldName.isEmpty() || cls != Object.class) {
-				throw new SerdeException(String.format("Invalid annotation %s: with SkipIf.%s, no additional parameter must be specified.", annotation, skipIf.name()));
+				throw new SerdeException(String.format(
+						"Invalid annotation %s: with SkipDeIf.%s, no additional parameter must be specified.",
+						annotToString(annotation), skipIf.name()));
 			}
-			if (skipIf == SkipIf.IS_NULL) {
+			if (skipIf == SkipDeIf.IS_MISSING) {
 				return v -> v == null;
-			} else if (skipIf == SkipIf.IS_EMPTY) {
-				return Util::isEmpty;
+			} else if (skipIf == SkipDeIf.IS_NULL) {
+				return v -> v == NullObject.NULL_OBJECT;
+			} else if (skipIf == SkipDeIf.IS_EMPTY) {
+				return v -> v != null && Util.isEmpty(v);
 			} else {
 				assert false : "missing case";
 			}
+			return null;
 		}
+	}
 
-		// skipIf is CUSTOM, use reflection to find the field or method that we're going to use
-		if (cls == Object.class) {
-			// look for the predicate in the current instance
-			methodOrField = findFieldOrMethodIn(currentInstance.getClass(), methodOrFieldName, true);
+	// ====== SerdeSkipSerializingIf ======
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	static Predicate<?> resolveSkipSerializingIfPredicate(SerdeSkipSerializingIf annotation, Object currentInstance, Field field) {
+		SkipSerIf[] conditions = annotation.value();
+		Predicate[] predicates = new Predicate[conditions.length];
+		for (int i = 0; i < predicates.length; i++) {
+			SkipSerIf condition = conditions[i];
+			predicates[i] = resolveSkipSerializingIfPredicate1(condition, annotation, currentInstance, field.getType());
+		}
+		return combineOr(predicates);
+	}
+
+	private static Predicate<?> resolveSkipSerializingIfPredicate1(SkipSerIf skipIf, SerdeSkipSerializingIf annotation,
+			Object currentInstance, Class<?> fieldType) {
+		Class<?> cls = annotation.customClass();
+		String methodOrFieldName = annotation.customCheck();
+
+		if (skipIf == SkipSerIf.CUSTOM) {
+			if (methodOrFieldName.isEmpty()) {
+				throw new SerdeException(String.format(
+						"Invalid annotation %s: with SkipSerIf.CUSTOM, parameter `customCheck` must be provided and non-empty.",
+						annotToString(annotation)));
+			}
+			return findCustomSkipPredicate(annotation, cls, methodOrFieldName, currentInstance, fieldType);
 		} else {
-			// look for the predicate in the specified class
-			methodOrField = findFieldOrMethodIn(cls, methodOrFieldName, false);
+			if (!methodOrFieldName.isEmpty() || cls != Object.class) {
+				throw new SerdeException(String.format(
+						"Invalid annotation %s: with SkipSerIf.%s, no additional parameter must be specified.",
+						annotToString(annotation), skipIf.name()));
+			}
+			if (skipIf == SkipSerIf.IS_NULL) {
+				return v -> v == null;
+			} else if (skipIf == SkipSerIf.IS_EMPTY) {
+				return v -> v != null && Util.isEmpty(v);
+			} else {
+				assert false : "missing case";
+			}
+			return null;
 		}
-
-		if (methodOrField == null) {
-			String msg = String.format("Custom skip predicate `%s` not found for annotation %s", methodOrFieldName,
-					annotation);
-			throw new SerdeException(msg);
-		}
-
-		return (methodOrField instanceof Field)
-				? skipPredicateFromField((Field) methodOrField, currentInstance, cls != Object.class)
-				: skipPredicateFromMethod((Method) methodOrField, currentInstance, cls != Object.class);
 	}
 
 	private static Predicate<?> skipPredicateFromField(Field field, Object instance, boolean mustBeStatic) {
-		return anyFromField("skip predicate", field, instance, mustBeStatic);
+		return anyFromField(Predicate.class, "skip predicate", field, instance, mustBeStatic);
 	}
 
-	private static Predicate<?> skipPredicateFromMethod(Method method, Object instance, boolean mustBeStatic) {
-		return predicateFromMethod("skip predicate", method, instance, mustBeStatic);
+	private static Predicate<?> skipPredicateFromMethod(Method method, Object instance, boolean mustBeStatic, Class<?> parameterType) {
+		return predicateFromMethod("skip predicate", method, instance, mustBeStatic, parameterType);
 	}
 
 	// ====== SerdeDefault ======
-	static EnumMap<SerdeDefault.SerdePhase, EnumMap<SerdeDefault.WhenValue, SerdeDefault>> getConfigDefaultAnnotations(Field field) {
+	static EnumMap<SerdeDefault.SerdePhase, EnumMap<SerdeDefault.WhenValue, SerdeDefault>> getConfigDefaultAnnotations(
+			Field field) {
 		// init top-level map
-		EnumMap<SerdeDefault.SerdePhase, EnumMap<SerdeDefault.WhenValue, SerdeDefault>> byPhase = new EnumMap<>(SerdeDefault.SerdePhase.class);
+		EnumMap<SerdeDefault.SerdePhase, EnumMap<SerdeDefault.WhenValue, SerdeDefault>> byPhase = new EnumMap<>(
+				SerdeDefault.SerdePhase.class);
 
 		for (SerdeDefault annot : field.getAnnotationsByType(SerdeDefault.class)) {
 			// normalize phases: BOTH counts as SERIALIZING and DESERIALIZING
@@ -95,7 +141,7 @@ final class AnnotationProcessor {
 					if (conflict != null) {
 						String msg = String.format(
 								"Annotation %s is conflicting with annotation %s on field `%s`. Only one @ConfigDefault must be applicable in a given situation.",
-								annot, conflict, field);
+								annotToString(annot), conflict, field);
 						// TODO provide a javassist module to enrich the error messages with line
 						// numbers
 						throw new SerdeException(msg);
@@ -110,16 +156,17 @@ final class AnnotationProcessor {
 		Class<?> cls = annotation.cls();
 		String methodOrFieldName = annotation.provider();
 		Object methodOrField;
+		Class<?>[] noParameters = new Class<?>[]{};
 		if (cls == Object.class) {
 			// look for the provider in the current instance
-			methodOrField = findFieldOrMethodIn(currentInstance.getClass(), methodOrFieldName, true);
+			methodOrField = findFieldOrMethodIn(currentInstance.getClass(), methodOrFieldName, true, noParameters);
 		} else {
-			methodOrField = findFieldOrMethodIn(cls, methodOrFieldName, false);
+			methodOrField = findFieldOrMethodIn(cls, methodOrFieldName, false, noParameters);
 		}
 
 		if (methodOrField == null) {
 			String msg = String.format("Default value provider `%s` not found for annotation %s", methodOrFieldName,
-					annotation);
+					annotToString(annotation));
 			throw new SerdeException(msg);
 		}
 		return (methodOrField instanceof Field)
@@ -128,11 +175,52 @@ final class AnnotationProcessor {
 	}
 
 	// ====== private utilities ======
-	private static Object findFieldOrMethodIn(Class<?> cls, String name, boolean recurse) {
+	private static <T> Predicate<T> combineOr(Predicate<T>[] predicates) {
+		if (predicates.length == 1) {
+			return predicates[0];
+		} else {
+			return o -> {
+				for (Predicate<T> p : predicates) {
+					if (p.test(o)) {
+						return true;
+					}
+				}
+				return false;
+			};
+		}
+	}
+
+	private static Predicate<?> findCustomSkipPredicate(Annotation annotation, Class<?> cls, String methodOrFieldName,
+			Object currentInstance, Class<?> predicateParameter) {
+		Object methodOrField;
+		Class<?>[] methodParameters = new Class<?>[] {predicateParameter};
+
+		// skipIf is CUSTOM, use reflection to find the field or method that we're going to use
+		if (cls == Object.class) {
+			// look for the predicate in the current instance
+			methodOrField = findFieldOrMethodIn(currentInstance.getClass(), methodOrFieldName, true, methodParameters);
+		} else {
+			// look for the predicate in the specified class
+			methodOrField = findFieldOrMethodIn(cls, methodOrFieldName, false, methodParameters);
+		}
+
+		if (methodOrField == null) {
+			String msg = String.format(
+					"Custom skip predicate `%s` not found for annotation %s", methodOrFieldName,
+					annotToString(annotation));
+			throw new SerdeException(msg);
+		}
+
+		return (methodOrField instanceof Field)
+				? skipPredicateFromField((Field) methodOrField, currentInstance, cls != Object.class)
+				: skipPredicateFromMethod((Method) methodOrField, currentInstance, cls != Object.class, predicateParameter);
+	}
+
+	private static Object findFieldOrMethodIn(Class<?> cls, String name, boolean recurse, Class<?>[] methodParameters) {
 		boolean methodOnly = false;
 		if (name.endsWith("()")) {
-			// useful to disambiguate: if a Class has a method and a field with the same name x,
-			// "x" will be the field and "x()" will be the method.
+			// useful to disambiguate: if a Class has a method and a field with the same
+			// name x, "x" will be the field and "x()" will be the method.
 			methodOnly = true;
 			name = name.substring(0, name.length() - 2);
 		}
@@ -148,7 +236,7 @@ final class AnnotationProcessor {
 			}
 			// try method (no parameter)
 			try {
-				return cls.getDeclaredMethod(name);
+				return cls.getDeclaredMethod(name, methodParameters);
 			} catch (NoSuchMethodException e) {
 				// ignore
 			}
@@ -162,7 +250,7 @@ final class AnnotationProcessor {
 	}
 
 	private static Supplier<?> defaultSupplierFromField(Field field, Object instance, boolean mustBeStatic) {
-		return anyFromField("default value provider", field, instance, mustBeStatic);
+		return anyFromField(Supplier.class, "default value provider", field, instance, mustBeStatic);
 	}
 
 	private static Supplier<?> defaultSupplierFromMethod(Method method, Object instance, boolean mustBeStatic) {
@@ -170,7 +258,7 @@ final class AnnotationProcessor {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T> T anyFromField(String label, Field field, Object instance, boolean mustBeStatic) {
+	private static <T> T anyFromField(Class<T> t, String label, Field field, Object instance, boolean mustBeStatic) {
 		int mods = field.getModifiers();
 		if (!Modifier.isPublic(mods)) {
 			field.setAccessible(true);
@@ -193,10 +281,10 @@ final class AnnotationProcessor {
 			throw new SerdeException(
 					String.format("Invalid %s: field `%s` is null in object `%s`.", label, field,
 							instance));
-		} else if (!(value instanceof Supplier)) {
+		} else if (!(t.isAssignableFrom(value.getClass()))) {
 			throw new SerdeException(String.format(
-					"Invalid %s: field `%s` must be of type `java.util.function.Supplier`.",
-					label, field.getName(), instance));
+					"Invalid %s: field `%s` must be of type `%s`.",
+					label, field.getName(), t));
 		}
 
 		return (T) value;
@@ -238,10 +326,11 @@ final class AnnotationProcessor {
 		}
 	}
 
-	private static Predicate<?> predicateFromMethod(String label, Method method, Object instance, boolean mustBeStatic) {
-		if (method.getParameterCount() > 0) {
+	private static Predicate<?> predicateFromMethod(String label, Method method, Object instance,
+			boolean mustBeStatic, Class<?> parameterType) {
+		if (method.getParameterCount() != 1) {
 			throw new SerdeException(
-					String.format("Invalid %s: method %s should take no parameter.", label, method));
+					String.format("Invalid %s: method %s should take exactly one parameter of type %s.", label, method, parameterType));
 		}
 		if (method.getReturnType() != Boolean.TYPE) {
 			throw new SerdeException(String.format("Invalid %s: method %s should return a boolean.", label, method));
@@ -255,7 +344,7 @@ final class AnnotationProcessor {
 		if (Modifier.isStatic(mods)) {
 			return x -> {
 				try {
-					return (boolean)method.invoke(null, x);
+					return (boolean) method.invoke(null, x);
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 					throw new SerdeException(String.format("Could not invoke the %s `%s`", label, e));
 				}
@@ -268,12 +357,17 @@ final class AnnotationProcessor {
 			}
 			return x -> {
 				try {
-					return (boolean)method.invoke(instance, x);
+					return (boolean) method.invoke(instance, x);
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 					throw new SerdeException(
 							String.format("Could not invoke the %s `%s` on object %s", label, method, instance), e);
 				}
 			};
 		}
+	}
+
+	// ====== Printing ======
+	static String annotToString(Annotation annotation) {
+		return annotation.toString().replace("@com.electronwill.nightconfig.core.serde.annotations.", "@");
 	}
 }

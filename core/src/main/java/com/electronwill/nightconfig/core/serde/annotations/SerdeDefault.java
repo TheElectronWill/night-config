@@ -171,8 +171,8 @@ public @interface SerdeDefault {
 		 * Determining whether an object is "empty" or not is done in a "logical" way
 		 * for common Java objects.
 		 * For instance, a {@code CharSequence} is empty is its {@code length()} is
-		 * zero, a {@code Collection}
-		 * is empty if calling {@code isEmpty()} returns true, etc.
+		 * zero, a {@code Collection} is empty if calling {@code isEmpty()} returns
+		 * true, etc.
 		 * As a last-resort try to implement the "is empty" check, reflection is used to
 		 * find and call the method {@code boolean isEmpty()} on the value.
 		 */
