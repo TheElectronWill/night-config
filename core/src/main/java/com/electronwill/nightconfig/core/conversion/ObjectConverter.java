@@ -223,6 +223,7 @@ public final class ObjectConverter {
 				if (converter != null) {
 					value = converter.convertToField(value);
 				}
+				// System.err.println("value: " + value + ", annotations: " + Arrays.asList(field.getDeclaredAnnotations()));
 
 				// --- Writes the value to the object's field, converting it if needed ---
 				Class<?> fieldType = field.getType();
@@ -231,13 +232,13 @@ public final class ObjectConverter {
 						// --- Read as a sub-object ---
 						final UnmodifiableConfig cfg = (UnmodifiableConfig)value;
 
-						// Gets or creates the field and convert it (if null OR not preserved)
+						// Gets or creates the field and convert it
 						Object fieldValue = field.get(object);
 						if (fieldValue == null) {
 							fieldValue = createInstance(fieldType);
 							field.set(object, fieldValue);
 							convertToObject(cfg, fieldValue, field.getType());
-						} else if (!AnnotationUtils.mustPreserve(field, clazz)) {
+						} else {
 							convertToObject(cfg, fieldValue, field.getType());
 						}
 

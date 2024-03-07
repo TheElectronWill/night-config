@@ -19,13 +19,6 @@ import java.util.function.Predicate;
 final class AnnotationUtils {
 	private AnnotationUtils() {}
 
-    /**
-	 * Checks if an annotated element is annotated with {@link PreserveNotNull}.
-	 */
-	static boolean isEnum(Field annotatedElement) {
-		return annotatedElement.getType().isEnum() || annotatedElement.isAnnotationPresent(PreserveNotNull.class);
-	}
-
 	/**
 	 * Checks if an annotated element is annotated with {@link PreserveNotNull}.
 	 */
