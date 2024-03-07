@@ -6,7 +6,7 @@ import java.lang.reflect.Modifier;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
-/** 
+/**
  * Deserialize a {@code Config} to the fields of a Plain-Old-Java-Object (POJO).
  */
 final class ConfigToPojoDeserializer
@@ -21,7 +21,7 @@ final class ConfigToPojoDeserializer
 			return value;
 		} else {
 			TypeConstraint t = resultType.get();
-			Class<?> cls = t.getSatisfyingRawType().orElseThrow(() -> new DeserializationException(
+			Class<?> cls = t.getSatisfyingRawType().orElseThrow(() -> new SerdeException(
 					"Could not find a concrete type that can satisfy the constraint " + t));
             Object instance;
             try {
@@ -31,7 +31,7 @@ final class ConfigToPojoDeserializer
                 }
                 instance = constructor.newInstance();
             } catch (Exception e) {
-                throw new DeserializationException("Failed to create an instance of " + cls, e);
+                throw new SerdeException("Failed to create an instance of " + cls, e);
             }
             ctx.deserializeFields(value, instance);
             return instance;

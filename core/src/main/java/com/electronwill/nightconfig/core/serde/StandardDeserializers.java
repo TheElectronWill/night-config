@@ -1,8 +1,6 @@
 package com.electronwill.nightconfig.core.serde;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -63,7 +61,7 @@ final class StandardDeserializers {
 			// check the type of keys
 			if (mapKeyType.isPresent()) {
 				if (!mapKeyType.get().getSatisfyingRawType().equals(Optional.of(String.class))) {
-					throw new DeserializationException(
+					throw new SerdeException(
 							"Invalid map type for deserialization, the keys should be of type String instead of "
 									+ mapKeyType.get() + ". Full map type: " + resultType.get());
 				}
@@ -83,7 +81,7 @@ final class StandardDeserializers {
 					Object key = entry.getKey();
 					if (!(key instanceof String)) {
 						String keyClassStr = key == null ? "null" : key.getClass().toString();
-						throw new DeserializationException(
+						throw new SerdeException(
 								"Invalid map type for deserialization, the keys should be of type String instead of "
 										+ keyClassStr + ". Full map type: " + resultType.get());
 					}
@@ -133,7 +131,7 @@ final class StandardDeserializers {
 			try {
 				return (Map<String, Object>) cls.getDeclaredConstructor().newInstance();
 			} catch (Exception ex) {
-				throw new DeserializationException("Failed to create an instance of " + cls, ex);
+				throw new SerdeException("Failed to create an instance of " + cls, ex);
 			}
 		}
 	}
@@ -186,7 +184,7 @@ final class StandardDeserializers {
 			try {
 				return (Collection<Object>) cls.getDeclaredConstructor().newInstance();
 			} catch (Exception ex) {
-				throw new DeserializationException("Failed to create an instance of " + cls, ex);
+				throw new SerdeException("Failed to create an instance of " + cls, ex);
 			}
 		}
 
@@ -242,10 +240,10 @@ final class StandardDeserializers {
 		@Override
 		public Enum<?> deserialize(String value, Optional<TypeConstraint> resultType,
 				DeserializerContext ctx) {
-			TypeConstraint enumType = resultType.orElseThrow(() -> new DeserializationException(
+			TypeConstraint enumType = resultType.orElseThrow(() -> new SerdeException(
 					"Cannot deserialize a value to an enum without knowing the enum type"));
 			Class<?> cls = enumType.getSatisfyingRawType()
-					.orElseThrow(() -> new DeserializationException(
+					.orElseThrow(() -> new SerdeException(
 							"Could not find a concrete enum type that can satisfy the constraint "
 									+ enumType));
 			// TODO use the field's annotations, if any, to get the right variant of EnumGetMethod

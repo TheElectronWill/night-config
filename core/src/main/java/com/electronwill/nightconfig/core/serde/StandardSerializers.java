@@ -27,7 +27,7 @@ final class StandardSerializers {
                 Object key = entry.getKey();
                 if (!(key instanceof String)) {
                     String keyTypeString = key == null ? "null" : key.getClass().toString();
-                    throw new SerializationException("Map keys must be strings, invalid key type "
+                    throw new SerdeException("Map keys must be strings, invalid key type "
                             + keyTypeString + " in value.");
                 }
                 List<String> path = Collections.singletonList((String) key);
@@ -116,7 +116,7 @@ final class StandardSerializers {
         }
     }
 
-    /** 
+    /**
      * Converts an object to a config by turning each field into an entry.
      */
     static final class FieldsToConfigSerializer implements ValueSerializer<Object, Config> {

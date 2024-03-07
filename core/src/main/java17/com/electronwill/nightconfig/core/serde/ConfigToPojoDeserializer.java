@@ -28,7 +28,7 @@ final class ConfigToPojoDeserializer
 			return value;
 		} else {
 			TypeConstraint t = resultType.get();
-			Class<?> cls = t.getSatisfyingRawType().orElseThrow(() -> new DeserializationException(
+			Class<?> cls = t.getSatisfyingRawType().orElseThrow(() -> new SerdeException(
 					"Could not find a concrete type that can satisfy the constraint " + t));
 
 			if (cls.isRecord()) {
@@ -50,7 +50,7 @@ final class ConfigToPojoDeserializer
 			}
 			instance = constructor.newInstance();
 		} catch (Exception e) {
-			throw new DeserializationException("Failed to create an instance of " + cls, e);
+			throw new SerdeException("Failed to create an instance of " + cls, e);
 		}
 		ctx.deserializeFields(value, instance);
 		return instance;
@@ -69,7 +69,7 @@ final class ConfigToPojoDeserializer
 				List<String> missingComponents = Arrays.stream(components).map(c -> c.getName())
 						.filter(c -> !value.contains(c)).collect(Collectors.toList());
 				var missingComponentsStr = String.join(", ", missingComponents);
-				throw new DeserializationException(
+				throw new SerdeException(
 						"Could not deserialize this configuration to a record of type " + objectClass
 								+ " because the following components (entries) are missing: "
 								+ missingComponentsStr);
@@ -83,7 +83,7 @@ final class ConfigToPojoDeserializer
 		try {
 			return constructor.newInstance(componentValues);
 		} catch (Exception e) {
-			throw new DeserializationException(
+			throw new SerdeException(
 					"Failed to create an instance of record " + objectClass, e);
 		}
 	}
@@ -96,7 +96,7 @@ final class ConfigToPojoDeserializer
 		try {
 			return cls.getDeclaredConstructor(paramTypes);
 		} catch (Exception e) {
-			throw new DeserializationException(
+			throw new SerdeException(
 					"Failed to get the canonical constructor of record " + cls, e);
 		}
 	}

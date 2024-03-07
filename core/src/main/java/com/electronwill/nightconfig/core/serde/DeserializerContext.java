@@ -5,9 +5,11 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import com.electronwill.nightconfig.core.NullObject;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeKey;
 
 public final class DeserializerContext {
 	final AbstractObjectDeserializer settings;
@@ -23,7 +25,8 @@ public final class DeserializerContext {
 	}
 
 	/**
-	 * Deserializes a configuration by transforming its entries into fields of the {@code destination} object.
+	 * Deserializes a configuration by transforming its entries into fields of the
+	 * {@code destination} object.
 	 */
 	public void deserializeFields(UnmodifiableConfig source, Object destination) {
 		// loop through the class hierarchy of the destination type
@@ -31,36 +34,48 @@ public final class DeserializerContext {
 		while (cls != Object.class) {
 			for (Field field : cls.getDeclaredFields()) {
 				if (preCheck(field)) {
-					// todo read annotations
+					// get the config key
+					List<String> path = Collections.singletonList(configKey(field));
 
 					// get the config value
-					List<String> path = Collections.singletonList(field.getName());
 					Object value = source.getRaw(path);
-					if (value == null) {
-						 // missing value
-						throw new DeserializationException(
-								"Missing configuration entry " + path + " for field " + field
-										+ " declared in " + field.getDeclaringClass());
-					} else if (value == NullObject.NULL_OBJECT) {
-						// null value
-						value = null;
+
+					// deserialize, but try the default value first
+					Object deserialized;
+					Supplier<?> defaultValueSupplier = settings.findDefaultValueSupplier(value, field, destination);
+					if (defaultValueSupplier != null) {
+						// default value found, use it directly
+						try {
+							deserialized = defaultValueSupplier.get();
+						} catch (Exception e) {
+							throw new SerdeException("Error in default value provider for field " + field, e);
+						}
+					} else {
+						// no default value, deserialize the config value
+						value = normalizeForDeserialization(value, path, field);
+
+						// find the right deserializer
+						TypeConstraint resultType = new TypeConstraint(field.getGenericType());
+						ValueDeserializer<Object, ?> deserializer = settings.findValueDeserializer(value, resultType);
+
+						// deserialize
+						try {
+							Optional<TypeConstraint> type = Optional.of(resultType);
+							deserialized = deserializer.deserialize(value, type, this);
+						} catch (Exception ex) {
+							throw new SerdeException(
+									"Error during deserialization of value `" + value + "` to field `"
+											+ field + "` with deserializer " + deserializer,
+									ex);
+						}
 					}
 
-					// find the right deserializer
-					TypeConstraint resultType = new TypeConstraint(field.getGenericType());
-					ValueDeserializer<Object, ?> deserializer = settings
-							.findValueDeserializer(value, resultType);
-
-					// deserialize
+					// set the field
 					try {
-						Optional<TypeConstraint> type = Optional.of(resultType);
-						Object deserialized = deserializer.deserialize(value, type, this);
 						field.set(destination, deserialized);
-					} catch (Exception ex) {
-						throw new DeserializationException(
-								"Error during deserialization of value " + value + " to field `"
-										+ field + "` with deserializer " + deserializer,
-								ex);
+					} catch (Exception e) {
+						throw new SerdeException("Could not assign the deserialized value `" + deserialized
+								+ "` to the field " + field + ". The original config value was " + value);
 					}
 				}
 			}
@@ -68,9 +83,27 @@ public final class DeserializerContext {
 		}
 	}
 
+	private Object normalizeForDeserialization(Object configValue, List<String> path, Field field) {
+		if (configValue == null) {
+			// missing value
+			throw new SerdeException(
+					"Missing configuration entry " + path + " for field `" + field
+							+ "` declared in " + field.getDeclaringClass());
+		} else if (configValue == NullObject.NULL_OBJECT) {
+			// null value
+			return null;
+		}
+		return configValue;
+	}
+
+	private String configKey(Field field) {
+		SerdeKey keyAnnot = field.getAnnotation(SerdeKey.class);
+		return keyAnnot == null ? field.getName() : keyAnnot.value();
+	}
+
 	private boolean preCheck(Field field) {
 		int mods = field.getModifiers();
-		if (Modifier.isStatic(mods)) {
+		if (Modifier.isStatic(mods) || field.isSynthetic()) {
 			return false;
 		}
 		if (Modifier.isTransient(mods) && settings.applyTransientModifier) {

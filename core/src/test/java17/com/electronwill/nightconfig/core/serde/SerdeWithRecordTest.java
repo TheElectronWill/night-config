@@ -133,7 +133,7 @@ public class SerdeWithRecordTest {
 
         // it should fail to deserialize
         var de = ObjectDeserializer.builder().build();
-        assertThrows(DeserializationException.class, () -> {
+        assertThrows(SerdeException.class, () -> {
             de.deserializeToRecord(wrong, Point3d.class);
         });
 

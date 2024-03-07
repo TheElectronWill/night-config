@@ -29,7 +29,7 @@ public final class ObjectDeserializerBuilder {
 
 	/**
 	 * Builds the {@link ObjectDeserializer} with the current settings.
-	 * 
+	 *
 	 * @return a new ObjectDeserializer
 	 */
 	public ObjectDeserializer build() {
@@ -37,16 +37,16 @@ public final class ObjectDeserializerBuilder {
 	}
 
 	/**
-	 * If enabled, transient fields will be deserialized instead of ignored.
+	 * Deserialize transient fields instead of ignoring them.
 	 */
-	public void ignoreTransientModifier() {
+	public void deserializeTransientFields() {
 		this.applyTransientModifier = false;
 	}
 
 	/**
 	 * Adds a {@link ValueDeserializer} that will be used to deserialize config values
 	 * of type {@code valueClass} to objects of type {@code resultClass}.
-	 * 
+	 *
 	 * @param <V>          type of the config values to deserialize
 	 * @param <R>          resulting type of the deserialization
 	 * @param valueClass   class of the config values to deserialize
@@ -69,7 +69,7 @@ public final class ObjectDeserializerBuilder {
 	/**
 	 * Adds a {@link ValueDeserializerProvider} that provides {@link ValueDeserializer} to
 	 * deserialize config values.
-	 * 
+	 *
 	 * @param <V>      type of the config values to deserialize
 	 * @param <R>      resulting type of the deserialization
 	 * @param provider provider to register
@@ -83,7 +83,7 @@ public final class ObjectDeserializerBuilder {
 	 * able to give a {@link ValueDeserializer} for the incoming value and result type constraint.
 	 * <p>
 	 * This will replace any previously set default provider.
-	 * 
+	 *
 	 * @param <V>      type of the config values to deserialize
 	 * @param <R>      resulting type of the deserialization
 	 * @param provider the new default serializer
@@ -96,7 +96,7 @@ public final class ObjectDeserializerBuilder {
 	 * Enables the standard default serializer provider.
 	 * <p>
 	 * This will replace any previously set default provider.
-	 * 
+	 *
 	 * @see #withDefaultDeserializerProvider(ValueDeserializerProvider)
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })

@@ -1,6 +1,6 @@
 package com.electronwill.nightconfig.core.serde;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -9,12 +9,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.InMemoryFormat;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeComment;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeDefault;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeKey;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeDefault.WhenValue;
 
 public final class SerdeTest {
     static class Primitives {
@@ -491,4 +496,57 @@ public final class SerdeTest {
                 CommentedConfig::inMemory);
         assertEquals(ArrayValues.SERIALIZED, serialized2);
     }
+
+	static class SimpleAnnotations {
+		@SerdeComment("This is uid")
+		@SerdeKey("uid")
+		String myUniqueId = "0000-1234-uid";
+
+		@SerdeComment("This is myUniqueId")
+		@SerdeKey("myUniqueId") // yes that's confusing, don't do it at home! it's for testing purposes only
+		int uid = 42;
+
+		@SerdeComment("Here's a comment with multiple lines.")
+		@SerdeComment("See, a second line is right there!")
+		Simple nested = new Simple();
+
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof SimpleAnnotations)) {
+				return false;
+			}
+			SimpleAnnotations o = (SimpleAnnotations)obj;
+			return Objects.equals(myUniqueId, o.myUniqueId) && Objects.equals(uid, o.uid) && Objects.equals(nested, o.nested);
+		}
+
+        @Override
+		public String toString() {
+			return "SimpleAnnotations [myUniqueId=" + myUniqueId + ", uid=" + uid + ", nested=" + nested + "]";
+		}
+
+		static final CommentedConfig SERIALIZED;
+        static {
+            SERIALIZED = CommentedConfig.inMemory();
+            SERIALIZED.set("uid", "0000-1234-uid");
+            SERIALIZED.set("myUniqueId", 42);
+            SERIALIZED.set("nested", Simple.SERIALIZED);
+            SERIALIZED.setComment("uid", "This is uid");
+            SERIALIZED.setComment("myUniqueId", "This is myUniqueId");
+            SERIALIZED.setComment("nested", "Here's a comment with multiple lines.\nSee, a second line is right there!");
+        }
+	}
+
+    @Test
+    public void testSimpleAnnotations() throws Exception {
+        var de = ObjectDeserializer.builder().build();
+        var deserialized = de.deserializeFields(SimpleAnnotations.SERIALIZED, SimpleAnnotations::new);
+        assertEquals(new SimpleAnnotations(), deserialized);
+
+        var ser = ObjectSerializer.builder().build();
+        var serialized = ser.serializeFields(new SimpleAnnotations(), Config::inMemory);
+        assertEquals(SimpleAnnotations.SERIALIZED, serialized);
+        var serialized2 = ser.serialize(new SimpleAnnotations(), CommentedConfig::inMemory);
+        assertEquals(SimpleAnnotations.SERIALIZED, serialized2);
+    }
+
 }

@@ -89,7 +89,10 @@ public final class ObjectSerializerBuilder {
         };
     }
 
-    public void ignoreTransientModifier() {
+	/**
+	 * Serialize transient fields instead of ignoring them.
+	 */
+    public void serializeTransientFields() {
         this.applyTransientModifier = false;
     }
 
