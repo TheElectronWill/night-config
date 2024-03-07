@@ -91,8 +91,7 @@ public @interface SerdeDefault {
 	 * By default, it is set to {@code Object.class}, which is treated as a special
 	 * value.
 	 * It means that the actual class to use is the one of the object that is
-	 * currently
-	 * being (de)serialized.
+	 * currently being (de)serialized.
 	 *
 	 * @return the class that defines the default value provider
 	 */
@@ -175,8 +174,7 @@ public @interface SerdeDefault {
 		 * zero, a {@code Collection}
 		 * is empty if calling {@code isEmpty()} returns true, etc.
 		 * As a last-resort try to implement the "is empty" check, reflection is used to
-		 * find and call the
-		 * method {@code boolean isEmpty()} on the value.
+		 * find and call the method {@code boolean isEmpty()} on the value.
 		 */
 		IS_EMPTY,
 	}

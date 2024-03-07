@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
@@ -11,6 +12,7 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.serde.annotations.SerdeComment;
 import com.electronwill.nightconfig.core.serde.annotations.SerdeKey;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeSkipSerializingIf;
 
 public final class SerializerContext {
 	final ObjectSerializer settings;
@@ -60,6 +62,11 @@ public final class SerializerContext {
 						value = field.get(source);
 					} catch (Exception e) {
 						throw new SerdeException("Failed to read field `" + field + "`", e);
+					}
+
+					// skip the field if the annotation say so
+					if (skipField(field, source, value)) {
+						continue; // don't serialize, go to the next field
 					}
 
 					// get the config key and config comment
@@ -117,6 +124,16 @@ public final class SerializerContext {
 			comment += commentAnnots[i].value();
 		}
 		return comment;
+	}
+
+	@SuppressWarnings("unchecked")
+	private boolean skipField(Field field, Object fieldContainer, Object fieldValue) {
+		SerdeSkipSerializingIf annot = field.getAnnotation(SerdeSkipSerializingIf.class);
+		if (annot == null) {
+			return false;
+		}
+		Predicate<?> skipPredicate = AnnotationProcessor.resolveSkipSerializingIfPredicate(annot, fieldContainer);
+		return ((Predicate<Object>)skipPredicate).test(fieldValue);
 	}
 
 	private boolean preCheck(Field field) {
