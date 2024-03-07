@@ -12,8 +12,10 @@ import java.util.function.Supplier;
 /**
  * Converts Java objects to configs and vice-versa.
  *
+ * @deprecated Use {@link com.electronwill.nightconfig.core.serde.ObjectSerializer} or {@link com.electronwill.nightconfig.core.serde.ObjectSerializer} instead.
  * @author TheElectronWill
  */
+@Deprecated
 public final class ObjectConverter {
 	private final boolean bypassTransient, bypassFinal;
 

@@ -8,8 +8,10 @@ import java.lang.annotation.Target;
 /**
  * Indicates that the value of the field must be converted with the specified converter class.
  *
+ * @deprecated Use the new package {@link com.electronwill.nightconfig.core.serde} with {@code serde.annotations}.
  * @author TheElectronWill
  */
+@Deprecated
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Conversion {

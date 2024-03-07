@@ -11,8 +11,10 @@ import java.lang.annotation.Target;
  * interpreted as a separator between each key). If you have a complicated path with dots in key
  * names, use {@link AdvancedPath} instead of Path.
  *
+ * @deprecated Use the new package {@link com.electronwill.nightconfig.core.serde} with {@code serde.annotations}.
  * @author TheElectronWill
  */
+@Deprecated
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.TYPE})
 public @interface Path {

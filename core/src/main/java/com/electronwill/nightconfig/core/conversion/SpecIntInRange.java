@@ -8,8 +8,10 @@ import java.lang.annotation.Target;
 /**
  * Specifies that the value of a field must be in a certain range (inclusive).
  *
+ * @deprecated Use the new package {@link com.electronwill.nightconfig.core.serde} with {@code serde.annotations}.
  * @author TheElectronWill
  */
+@Deprecated
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface SpecIntInRange {
