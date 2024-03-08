@@ -73,7 +73,7 @@ public enum EnumGetMethod {
 					String enumName = enumType.getCanonicalName();
 					throw new IllegalArgumentException("No enum constant " + enumName + "." + name);
 				}
-			} else if (cls == Integer.class) {
+			} else if (cls == Integer.class || cls == Short.class || cls == Byte.class) {
 				if (isOrdinalOk()) {
 					return enumType.getEnumConstants()[(int)value];
 				} else {

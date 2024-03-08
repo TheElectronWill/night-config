@@ -299,6 +299,7 @@ public interface Config extends UnmodifiableConfig {
 	 *             use. Prefer to use a {@link com.electronwill.nightconfig.core.concurrent.ConcurrentConfig}
 	 *             instead.
 	 */
+	@Deprecated
 	static Config inMemoryConcurrent() {
 		return InMemoryFormat.defaultInstance().createConcurrentConfig();
 	}

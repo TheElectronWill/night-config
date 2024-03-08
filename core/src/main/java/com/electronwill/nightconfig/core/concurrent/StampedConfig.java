@@ -395,12 +395,14 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
             Map<String, Object> values = current.values;
             // try optimistic read once
             long stamp = lock.tryOptimisticRead();
+            boolean isLock = false; // this flag is tricky to get right but crucial to avoid bugs
             try {
                 Object level = values.get(key);
                 if (!lock.validate(stamp)) {
                     // Read has been invalidated, acquire the lock and read again.
                     checkStateForNormalOp();
                     stamp = lock.readLock();
+                    isLock = true; // lock acquired, we need to release it later
                     level = values.get(key);
                 }
 
@@ -413,6 +415,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                         checkStateForNormalOp();
                         stamp = lock.writeLock();
                     }
+                    isLock = true; // lock acquired, we need to release it later
                     current = createSubConfig();
                     values.put(key, current);
                 } else if (level instanceof StampedConfig) {
@@ -426,7 +429,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                                     + level.getClass());
                 }
             } finally {
-                if (StampedLock.isLockStamp(stamp)) {
+                if (isLock) { // I would like to use StampedLock.isLockStamp(stamp) but it's only available in Java 10+
                     lock.unlock(stamp);
                 } // else: optimistic read succeeded, nothing to unlock
             }
@@ -1531,7 +1534,9 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                             return false;
                         }
                     } else {
-                        return value.equals(otherEntry);
+                        if (!value.equals(otherEntry)) {
+                            return false;
+                        }
                     }
                 }
                 return true;

@@ -3,17 +3,18 @@ package com.electronwill.nightconfig.hocon;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
+import java.util.Arrays;
 
-import com.electronwill.nightconfig.core.BasicTestEnum;
+import com.electronwill.sharedtests.BasicTestEnum;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.TestEnum;
+import com.electronwill.sharedtests.TestEnum;
 
 public class Util {
     static void checkExample(CommentedConfig config) {
         assertEquals(" Comment associated to the boolean array\n With multiple lines",
                 config.getComment("bool_array"));
-        assertEquals(List.of(true, false, true, false), config.get("bool_array"));
+        assertEquals(Arrays.asList(true, false, true, false), config.get("bool_array"));
 
         assertEquals(" Comment associated to the string", config.getComment("string"));
         assertEquals("\"value\"", config.get("string"));
@@ -37,13 +38,13 @@ public class Util {
         subConfig.set("enum", BasicTestEnum.C);
         subConfig.set("sub", config.createSubConfig());
 
-        List<Config> configList = List.of(subConfig, subConfig, subConfig);
+        List<Config> configList = Arrays.asList(subConfig, subConfig, subConfig);
 
         config.set("string", "\"value\"");
         config.set("integer", 2);
         config.set("long", 123456789L);
         config.set("double", 3.1415926535);
-        config.set("bool_array", List.of(true, false, true, false));
+        config.set("bool_array", Arrays.asList(true, false, true, false));
         config.set("config", subConfig);
         config.set("config_list", configList);
         config.setComment("string", " Comment 1\n Comment 2\n Comment 3");

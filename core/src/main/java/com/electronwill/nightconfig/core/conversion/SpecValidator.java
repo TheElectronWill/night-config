@@ -9,8 +9,10 @@ import java.util.function.Predicate;
 /**
  * Indicates that the value of the field must be validated by the specified validator class.
  *
+ * @deprecated Use the new package {@link com.electronwill.nightconfig.core.serde} with {@code serde.annotations}.
  * @author TheElectronWill
  */
+@Deprecated
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface SpecValidator {

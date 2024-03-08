@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.electronwill.sharedtests.TestEnum;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 
@@ -153,13 +154,13 @@ public class AbstractConfigTest {
 		config.remove("int");
 		assertFalse(config.contains("int"));
 	}
-	
+
 	@Test
 	public void backingMap() {
 		Config config = Config.of(LinkedHashMap::new, InMemoryFormat.withUniversalSupport());
 		testValuesOrder(config);
 	}
-	
+
 	@Test
 	public void nestedBackingMap() {
 		Config config = Config.of(LinkedHashMap::new, InMemoryFormat.withUniversalSupport());

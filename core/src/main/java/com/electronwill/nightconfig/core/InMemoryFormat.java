@@ -17,6 +17,9 @@ public final class InMemoryFormat implements ConfigFormat<Config> {
 	static final Predicate<Class<?>> DEFAULT_PREDICATE =
 		type -> type == null
              || type.isPrimitive()
+             || type == Byte.class
+             || type == Short.class
+             || type == Character.class
              || type == Integer.class
              || type == Long.class
              || type == Float.class

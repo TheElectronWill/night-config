@@ -57,6 +57,7 @@ public final class YamlWriter implements ConfigWriter {
 		return new TransformingList<>(list, YamlWriter::unwrap, v -> v, v -> v);
 	}
 
+	@SuppressWarnings("unchecked")
 	private static Object unwrap(Object value) {
 		if (value instanceof UnmodifiableConfig) {
 			return unwrap((UnmodifiableConfig)value);

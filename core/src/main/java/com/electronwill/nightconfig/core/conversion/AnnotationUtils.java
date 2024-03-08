@@ -19,13 +19,6 @@ import java.util.function.Predicate;
 final class AnnotationUtils {
 	private AnnotationUtils() {}
 
-    /**
-	 * Checks if an annotated element is annotated with {@link PreserveNotNull}.
-	 */
-	static boolean isEnum(Field annotatedElement) {
-		return annotatedElement.getType().isEnum() || annotatedElement.isAnnotationPresent(PreserveNotNull.class);
-	}
-
 	/**
 	 * Checks if an annotated element is annotated with {@link PreserveNotNull}.
 	 */
@@ -70,7 +63,7 @@ final class AnnotationUtils {
 	 * @return the annotated path, if any, or the field name
 	 */
 	static List<String> getPath(Field field) {
-		List<String> annotatedPath = getPath((AnnotatedElement)field);
+		List<String> annotatedPath = getPath((AnnotatedElement)field); // cast to call the other version of the method
 		return (annotatedPath == null) ? Collections.singletonList(field.getName()) : annotatedPath;
 	}
 

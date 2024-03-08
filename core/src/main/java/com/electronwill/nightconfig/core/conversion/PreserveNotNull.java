@@ -12,8 +12,10 @@ import java.lang.annotation.Target;
  * <p>
  * On a class declaration: applies the effect of this annotation to all the fields.
  *
+ * @deprecated Use the new package {@link com.electronwill.nightconfig.core.serde} with {@code serde.annotations}.
  * @author TheElectronWill
  */
+@Deprecated
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.TYPE})
 public @interface PreserveNotNull {}

@@ -54,7 +54,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	/**
 	 * Performs multiple read/write operations, and do not save the configuration until the end
 	 * (unless {@code save()} is called by {@code action}).
-	 * 
+	 *
 	 * This is a way of manually grouping config modifications together.
 	 * <p>
 	 * If this configuration automatically saves, it will not do so before the end of the bulkUpdate.
@@ -64,7 +64,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	/**
 	 * Performs multiple read/write operations, and do not save the configuration until the end
 	 * (unless {@code save()} is called by {@code action}).
-	 * 
+	 *
 	 * This is a way of manually grouping config modifications together.
 	 * <p>
 	 * If this configuration automatically saves, it will not do so before the end of the bulkUpdate.

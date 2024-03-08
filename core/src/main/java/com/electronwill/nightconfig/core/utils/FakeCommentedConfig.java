@@ -26,6 +26,11 @@ public final class FakeCommentedConfig extends ConfigWrapper<Config> implements 
 		super(config);
 	}
 
+	/** @return the underlying non-commented configuration */
+	public Config unwrap() {
+		return config;
+	}
+
 	@Override
 	public String getComment(List<String> path) {
 		return null;

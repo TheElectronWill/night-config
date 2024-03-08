@@ -1,12 +1,10 @@
 package com.electronwill.nightconfig.yaml;
 
-import com.electronwill.nightconfig.core.BasicTestEnum;
+import com.electronwill.sharedtests.BasicTestEnum;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.ParsingMode;
 import com.electronwill.nightconfig.core.io.WritingMode;
-import com.electronwill.nightconfig.yaml.YamlFormat;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -58,5 +56,18 @@ public class YamlTest {
 		assertEquals(Boolean.TRUE, parsed.<List<UnmodifiableConfig>>get("objectList").get(1).get("baz"));
 		assertEquals("works", parsed.<String>get(Arrays.asList("not.a.subconfig")));
 		assertEquals(config, parsed, "written != parsed");
+	}
+
+	@Test
+	public void testYamlFormat() {
+		YamlFormat f = YamlFormat.defaultInstance();
+		assertTrue(f.supportsType(null));
+		assertTrue(f.supportsType(String.class));
+		assertTrue(f.supportsType(Boolean.class));
+		assertTrue(f.supportsType(Integer.class));
+		assertTrue(f.supportsType(Long.class));
+		assertTrue(f.supportsType(Float.class));
+		assertTrue(f.supportsType(Double.class));
+		assertTrue(f.supportsType(List.class));
 	}
 }
