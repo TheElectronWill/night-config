@@ -20,6 +20,14 @@ public final class DeserializerContext {
 		this.settings = settings;
 	}
 
+	/**
+	 * Deserializes a single value in way that satisfies the given type constraint.
+	 *
+	 * @param value          value coming from the config that we are deserializing
+	 * @param typeConstraint the type that we want to produce
+	 * @throws SerdeException if no suitable deserializer is found
+	 * @return deserialization result
+	 */
 	public Object deserializeValue(Object value, Optional<TypeConstraint> typeConstraint) {
 		TypeConstraint t = typeConstraint.orElse(new TypeConstraint(Object.class));
 		ValueDeserializer<Object, ?> deserializer = settings.findValueDeserializer(value, t);
@@ -29,6 +37,9 @@ public final class DeserializerContext {
 	/**
 	 * Deserializes a configuration by transforming its entries into fields of the
 	 * {@code destination} object.
+	 *
+	 * @param source      the config that we are deserializing
+	 * @param destination the object that we are modifying (result of the deserialization)
 	 */
 	public void deserializeFields(UnmodifiableConfig source, Object destination) {
 		// loop through the class hierarchy of the destination type
@@ -108,6 +119,7 @@ public final class DeserializerContext {
 		return keyAnnot == null ? field.getName() : keyAnnot.value();
 	}
 
+	/** @return true if the field should be skipped */
 	@SuppressWarnings("unchecked")
 	private boolean skipField(Field field, Object fieldContainer, Object rawConfigValue) {
 		SerdeSkipDeserializingIf annot = field.getAnnotation(SerdeSkipDeserializingIf.class);
@@ -118,7 +130,8 @@ public final class DeserializerContext {
 			Predicate<?> skipPredicate = AnnotationProcessor.resolveSkipDeserializingIfPredicate(annot, fieldContainer);
 			return ((Predicate<Object>) skipPredicate).test(rawConfigValue);
 		} catch (Exception e) {
-			throw new SerdeException("Failed to resolve or apply skip predicate for deserialization of field " + field, e);
+			String msg = "Failed to resolve or apply skip predicate for deserialization of field " + field;
+			throw new SerdeException(msg, e);
 		}
 	}
 

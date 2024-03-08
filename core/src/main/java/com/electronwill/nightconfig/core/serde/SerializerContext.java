@@ -27,19 +27,34 @@ public final class SerializerContext {
 		this.configSupplier = configSupplier;
 	}
 
+	/**
+	 * @return the current {@code ConfigFormat}
+	 */
 	public ConfigFormat<?> configFormat() {
 		return formatSupplier.get();
 	}
 
+	/**
+	 * @return a new {@code Config}
+	 */
 	public Config createConfig() {
 		return configSupplier.get();
 	}
 
+	/**
+	 * @return a new {@code CommentedConfig}
+	 */
 	public CommentedConfig createCommentedConfig() {
 		return CommentedConfig.fake(createConfig());
 	}
 
-	/** Serializes a single value. */
+	/**
+	 * Serializes a single value.
+	 *
+	 * @param value value coming from a field that we are serializing
+	 * @throws SerdeException if no suitable serializer is found
+	 * @return a value that can be added to a config
+	 */
 	public Object serializeValue(Object value) {
 		ValueSerializer<Object, ?> serializer = settings.findValueSerializer(value, this);
 		return serializer.serialize(value, this);
@@ -47,8 +62,10 @@ public final class SerializerContext {
 
 	/**
 	 * Serializes an object as a {@code Config} by transforming its fields into
-	 * configuration entries in
-	 * {@code destination}.
+	 * configuration entries in {@code destination}.
+	 *
+	 * @param source the object that we are serializing
+	 * @param destination the config that we are modifying (result of the serialization)
 	 */
 	public void serializeFields(Object source, Config destination) {
 		// loop through the class hierarchy of the source type
@@ -126,6 +143,9 @@ public final class SerializerContext {
 		return comment;
 	}
 
+	/**
+	 * @return true if the field should be skipped
+	 */
 	@SuppressWarnings("unchecked")
 	private boolean skipField(Field field, Object fieldContainer, Object fieldValue) {
 		SerdeSkipSerializingIf annot = field.getAnnotation(SerdeSkipSerializingIf.class);
@@ -133,10 +153,12 @@ public final class SerializerContext {
 			return false;
 		}
 		try {
-			Predicate<?> skipPredicate = AnnotationProcessor.resolveSkipSerializingIfPredicate(annot, fieldContainer, field);
+			Predicate<?> skipPredicate = AnnotationProcessor.resolveSkipSerializingIfPredicate(annot, fieldContainer,
+					field);
 			return ((Predicate<Object>) skipPredicate).test(fieldValue);
 		} catch (Exception e) {
-			throw new SerdeException("Failed to resolve or apply skip predicate for serialization of field " + field, e);
+			String msg = "Failed to resolve or apply skip predicate for serialization of field " + field;
+			throw new SerdeException(msg, e);
 		}
 	}
 

@@ -1,19 +1,53 @@
 package com.electronwill.nightconfig.core.serde;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.List;
+import java.util.IdentityHashMap;
+import java.util.EnumMap;
 import java.util.function.Supplier;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.NullObject;
-import com.electronwill.nightconfig.core.conversion.AdvancedPath;
-import com.electronwill.nightconfig.core.conversion.Path;
+import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.core.serde.annotations.SerdeDefault;
-import com.electronwill.nightconfig.core.utils.StringUtils;
 
 /**
- * Implements Object to Config serialization.
+ * Serializes Java objects to NightConfig configurations ({@link UnmodifiableConfig}, {@link Config}, etc.).
+ *
+ * <h2>Example</h2>
+ *
+ * Given a class like this:
+ * <pre><code>
+ * class Position {
+ *     private final int x, y, z;
+ *
+ *     public Position(int x, int y, int z) {
+ *         this.x=x; this.y=y; this.z=z;
+ *     }
+ * }
+ * </code></pre>
+ *
+ * And an instance like this:
+ * <pre><code>
+ * Position pos = new Position(12, -20, 42);
+ * </code></pre>
+ *
+ * You can serialize your instance of Position to a Config with:
+ * <pre><code>
+ * Config conf = new ObjectSerializer.standard().serializeFields(pos, Config::inMemory);
+ * // result: SimpleConfig{x=12, y=-20, z=42}
+ * </code></pre>
+ *
+ * It is also possible to serialize an object to an existing configuration,
+ * which is especially handy if you are working with {@link FileConfig}s.
+ * <pre><code>
+ * FileConfig myFileConfig = ...; // your FileConfig here
+ * new ObjectSerializer().standard().serializeFields(pos, myFileConfig);
+ * // the FileConfig is modified with the serialization result
+ * </code></pre>
+ * <p>
+ * Use {@link #builder()} or {@link #blankBuilder()} to precisely configure
+ * the serialization process.
  */
 public final class ObjectSerializer {
 	/**
@@ -34,6 +68,15 @@ public final class ObjectSerializer {
 	 */
 	public static ObjectSerializerBuilder blankBuilder() {
 		return new ObjectSerializerBuilder(false);
+	}
+
+	/**
+	 * Creates a new {@link ObjectSerializer} with the standard deserializers.
+	 * <p>
+	 * This is equivalent to {@code ObjectSerializer.builder().build()}.
+	 */
+	public static ObjectSerializer standard() {
+		return builder().build();
 	}
 
 	private final IdentityHashMap<Class<?>, ValueSerializer<?, ?>> classBasedSerializers;

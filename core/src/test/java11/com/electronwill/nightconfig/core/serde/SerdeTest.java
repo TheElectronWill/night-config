@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 
@@ -17,9 +16,7 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.InMemoryFormat;
 import com.electronwill.nightconfig.core.serde.annotations.SerdeComment;
-import com.electronwill.nightconfig.core.serde.annotations.SerdeDefault;
 import com.electronwill.nightconfig.core.serde.annotations.SerdeKey;
-import com.electronwill.nightconfig.core.serde.annotations.SerdeDefault.WhenValue;
 
 public final class SerdeTest {
     static class Primitives {

@@ -1,7 +1,10 @@
 package com.electronwill.nightconfig.core;
 
 /**
- * Singleton for representing null values in Maps that don't support them.
+ * Singleton for representing null values in Configs.
+ * <p>
+ * It allows to differentiate missing values from null values, and to store null values
+ * in a {@code ConcurrentHashMap}.
  */
 public final class NullObject {
 	/**
