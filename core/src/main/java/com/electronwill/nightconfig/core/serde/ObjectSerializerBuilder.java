@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
@@ -12,8 +14,7 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
  * Implements Object to Config serialization.
  */
 public final class ObjectSerializerBuilder {
-    final IdentityHashMap<Class<?>, ValueSerializer<?, ?>> classBasedSerializers = new IdentityHashMap<>(
-            7);
+    final IdentityHashMap<Class<?>, ValueSerializer<?, ?>> classBasedSerializers = new IdentityHashMap<>(7);
 
     final List<ValueSerializerProvider<?, ?>> generalProviders = new ArrayList<>();
 
@@ -107,6 +108,7 @@ public final class ObjectSerializerBuilder {
         ValueSerializer arraySer = new StandardSerializers.ArraySerializer();
         ValueSerializer enumSer = new StandardSerializers.EnumSerializer();
         ValueSerializer trivialSer = new StandardSerializers.TrivialSerializer();
+		ValueSerializer uuidSer = new StandardSerializers.UuidSerializer();
 
         withSerializerProvider((valueClass, ctx) -> {
             if (valueClass == null) {
@@ -135,6 +137,9 @@ public final class ObjectSerializerBuilder {
             if (valueClass.isArray()) {
                 return arraySer;
             }
+			if (valueClass == UUID.class) {
+				return uuidSer;
+			}
             return null;
         });
     }

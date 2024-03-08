@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
@@ -118,9 +119,10 @@ public final class ObjectDeserializerBuilder {
 
 		ValueDeserializer trivialDe = new StandardDeserializers.TrivialDeserializer();
 		ValueDeserializer mapDe = new StandardDeserializers.MapDeserializer();
-		ValueDeserializer collDe = new StandardDeserializers. CollectionDeserializer();
+		ValueDeserializer collDe = new StandardDeserializers.CollectionDeserializer();
 		ValueDeserializer arrDe = new StandardDeserializers.CollectionToArrayDeserializer();
-		ValueDeserializer enumDe = new StandardDeserializers. EnumDeserializer();
+		ValueDeserializer enumDe = new StandardDeserializers.EnumDeserializer();
+		ValueDeserializer uuidDe = new StandardDeserializers.UuidDeserializer();
 
 		withDeserializerProvider(((valueClass, resultType) -> {
 			Type fullType = resultType.getFullType();
@@ -144,8 +146,10 @@ public final class ObjectDeserializerBuilder {
 						&& Map.class.isAssignableFrom(resultClass)) {
 					return mapDe; // config to map<K, V>
 				}
-				if ((resultClass == String.class || resultClass == Integer.class
-						|| resultClass == int.class) && Enum.class.isAssignableFrom(resultClass)) {
+				if (resultClass == UUID.class && valueClass == String.class) {
+					return uuidDe;
+				}
+				if (valueClass == String.class && Enum.class.isAssignableFrom(resultClass)) {
 					return enumDe; // value to Enum
 				}
 				return null; // no standard deserializer matches this case

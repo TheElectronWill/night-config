@@ -5,12 +5,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.EnumGetMethod;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
 final class StandardDeserializers {
+	private StandardDeserializers() {}
+
 	/**
 	 * The trivial deserializer: deserialize(value) == value.
 	 */
@@ -248,6 +251,16 @@ final class StandardDeserializers {
 									+ enumType));
 			// TODO use the field's annotations, if any, to get the right variant of EnumGetMethod
 			return EnumGetMethod.NAME.get(value, (Class) cls);
+		}
+	}
+
+	/**
+	 * Deserializes a {@code String} into a {@code UUID}.
+	 */
+	static final class UuidDeserializer implements ValueDeserializer<String, UUID> {
+		@Override
+		public UUID deserialize(String value, Optional<TypeConstraint> resultType, DeserializerContext ctx) {
+			return UUID.fromString(value);
 		}
 	}
 }

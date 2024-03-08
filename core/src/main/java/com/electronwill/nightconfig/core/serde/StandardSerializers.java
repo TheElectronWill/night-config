@@ -7,10 +7,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import com.electronwill.nightconfig.core.Config;
 
 final class StandardSerializers {
+	private StandardSerializers() {}
+
     /**
      * Serializes a {@code Map<String, V>} to a {@code Config} by converting each entry of the map into an entry of the config,
      * converting the entry's value.
@@ -128,4 +131,14 @@ final class StandardSerializers {
             return sub;
         }
     }
+
+	/**
+	 * Serializes a UUID to a String.
+	 */
+	static final class UuidSerializer implements ValueSerializer<UUID, String> {
+		@Override
+		public String serialize(UUID value, SerializerContext ctx) {
+			return value.toString();
+		}
+	}
 }
