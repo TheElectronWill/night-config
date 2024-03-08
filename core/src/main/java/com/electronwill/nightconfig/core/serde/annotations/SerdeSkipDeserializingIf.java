@@ -22,7 +22,7 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
  * <pre><code>
  * class MyObject {
  *     {@code @SerdeSkipSerializingIf(SkipDeIf.IS_EMPTY)}
- *     List<String> servers;
+ *     {@code List<String>} servers;
  * }
  * </code></pre>
  *
@@ -65,13 +65,14 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
  *
  * class SkipChecker {
  *     // The predicate can be defined by a `Predicate` field too!
- *     static final Predicate<Object> skipName = nameInConfig -> nameInConfig == null ||
+ *     {@code static final Predicate<Object> skipName = nameInConfig -> nameInConfig == null ||
  * 	       nameInConfig == NullObject.NULL_OBJECT ||
  *         nameInConfig.equals("skip me");
+ *     }
  *
  *     // Note that skip predicates defined in another class must be static.
  *     static boolean skipId(Object idInConfig) {
- * 	       return idInConfig instanceof Integer && ((int)idInConfig) == -1;
+ * 	       return idInConfig instanceof Integer {@code &&} ((int)idInConfig) == -1;
  *     }
  * }
  * </code></pre>
@@ -107,7 +108,7 @@ public @interface SerdeSkipDeserializingIf {
 	 *
 	 * <h2>Constraints on methods</h2>
 	 * The predicate method must take exactly one parameter of type {@code Object}.
-	 * If {@link #cls()} is set to its non-default value, the method must be static.
+	 * If {@link #customClass()} is set to its non-default value, the method must be static.
 	 *
 	 * <h2>Constraints on fields</h2>
 	 * The predicate field must be of type {@code java.util.function.Predicate<Object>}.

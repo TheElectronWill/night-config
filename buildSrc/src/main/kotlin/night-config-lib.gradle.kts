@@ -157,9 +157,3 @@ signing {
     sign(publishing.publications["mavenJava"])
 }
 
-// Enable HTML5 for Javadoc if possible
-tasks.javadoc {
-    if (JavaVersion.current().isJava9Compatible) {
-        (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
-    }
-}

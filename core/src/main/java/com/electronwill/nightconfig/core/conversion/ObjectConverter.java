@@ -35,6 +35,7 @@ public final class ObjectConverter {
 	 * new ObjectConverter(false, true)}.
 	 *
 	 * @see #ObjectConverter(boolean, boolean)
+	 * @deprecated Use {@link com.electronwill.nightconfig.core.serde.ObjectSerializer} or {@link com.electronwill.nightconfig.core.serde.ObjectSerializer} instead.
 	 */
 	public ObjectConverter() {
 		this(false, true);
@@ -45,6 +46,7 @@ public final class ObjectConverter {
 	 *
 	 * @param o           the object to convert
 	 * @param destination the Config where to put the values into
+	 * Use {@link com.electronwill.nightconfig.core.serde.ObjectSerializer#serializeFields(Object, Config)} instead.
 	 */
 	public void toConfig(Object o, Config destination) {
 		Objects.requireNonNull(o, "The object must not be null.");
@@ -57,6 +59,12 @@ public final class ObjectConverter {
 		convertToConfig(o, clazz, destination);
 	}
 
+	/**
+	 * Converts static fields to a Config.
+	 *
+	 * @param clazz class
+	 * @param destination config
+	 */
 	public void toConfig(Class<?> clazz, Config destination) {
 		Objects.requireNonNull(destination, "The config must not be null.");
 		List<String> annotatedPath = AnnotationUtils.getPath(clazz);
@@ -73,6 +81,7 @@ public final class ObjectConverter {
 	 * @param destinationSupplier a Supplier that provides the Config where to put the values into
 	 * @param <C>                 the destination's type
 	 * @return the Config obtained from the Supplier
+	 * @deprecated Use {@link com.electronwill.nightconfig.core.serde.ObjectSerializer#serializeFields(Object, Supplier)} instead.
 	 */
 	public <C extends Config> C toConfig(Object o, Supplier<C> destinationSupplier) {
 		C destination = destinationSupplier.get();
@@ -80,6 +89,13 @@ public final class ObjectConverter {
 		return destination;
 	}
 
+	/**
+	 * Converts static fields to a Config.
+	 * @param <C> type of config
+	 * @param clazz class
+	 * @param destinationSupplier config supplier
+	 * @return the Config obtained from the Supplier
+	 */
 	public <C extends Config> C toConfig(Class<?> clazz, Supplier<C> destinationSupplier) {
 		C destination = destinationSupplier.get();
 		toConfig(clazz, destination);
@@ -91,6 +107,7 @@ public final class ObjectConverter {
 	 *
 	 * @param config      the config to convert
 	 * @param destination the Object where to put the values into
+	 * Use {@link com.electronwill.nightconfig.core.serde.ObjectDeserializer#deserializeFields(UnmodifiableConfig, Object)} instead.
 	 */
 	public void toObject(UnmodifiableConfig config, Object destination) {
 		Objects.requireNonNull(config, "The config must not be null.");
@@ -110,6 +127,7 @@ public final class ObjectConverter {
 	 * @param destinationSupplier a Supplier that provides the Object where to put the values into
 	 * @param <O>                 the destination's type
 	 * @return the object obtained from the Supplier
+	 * @deprecated Use {@link com.electronwill.nightconfig.core.serde.ObjectDeserializer#deserializeFields(UnmodifiableConfig, Supplier)} instead.
 	 */
 	public <O> O toObject(UnmodifiableConfig config, Supplier<O> destinationSupplier) {
 		O destination = destinationSupplier.get();

@@ -42,7 +42,7 @@ import com.electronwill.nightconfig.core.Config;
  *     {@code List<String>} servers;
  *
  *     // Note the "transient" annotation, which excludes this field from (de)serialization.
- *     private transient {@code Supplier<List<String>>} defaultServersSupplier = () -> Arrays.asList("example.org");
+ *     private transient {@code Supplier<List<String>> defaultServersSupplier = () -> Arrays.asList("example.org")};
  * }
  * </code>
  * </pre>

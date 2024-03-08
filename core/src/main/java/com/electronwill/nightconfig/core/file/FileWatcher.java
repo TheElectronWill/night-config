@@ -91,7 +91,7 @@ public final class FileWatcher {
 	 *
 	 * The default exception handler is simply:
 	 * <code>
-	 * (e) -> e.printStackTrace();
+	 * {@code (e) -> e.printStackTrace(); }
 	 * </code>
 	 *
 	 * The default debounce time is unspecified and may change in the future, but is typically
@@ -123,7 +123,7 @@ public final class FileWatcher {
 	 *
 	 * The default exception handler is simply:
 	 * <code>
-	 * (e) -> e.printStackTrace();
+	 * {@code (e) -> e.printStackTrace();}
 	 * </code>
 	 *
 	 * @param debounceTime hwo much time to wait after each modification of a file before triggering the change handler

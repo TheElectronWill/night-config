@@ -20,7 +20,7 @@ import java.lang.annotation.RetentionPolicy;
  * <pre><code>
  * class MyObject {
  *     {@code @SerdeSkipSerializingIf(SkipIf.IS_EMPTY)}
- *     List<String> servers;
+ *     {@code List<String>} servers;
  * }
  * </code></pre>
  *
@@ -51,7 +51,7 @@ import java.lang.annotation.RetentionPolicy;
  *
  * class SkipChecker {
  *     // The predicate can be defined by a `Predicate` field too!
- *     static final Predicate<String> skipName = name -> name == null || name.equals("skip me");
+ *     static final {@code Predicate<String> skipName = name -> name == null || name.equals("skip me")};
  *
  *     // Note that skip predicates defined in another class must be static.
  *     static boolean skipId(int id) {
@@ -91,7 +91,7 @@ public @interface SerdeSkipSerializingIf {
 	 * <h2>Constraints on methods</h2>
 	 * The predicate method must take exactly one parameter of type {@code T}, where
 	 * {@code T} is the type of the field to serialize.
-	 * If {@link #cls()} is set to its non-default value, the method must be static.
+	 * If {@link #customClass()} is set to its non-default value, the method must be static.
 	 *
 	 * <h2>Constraints on fields</h2>
 	 * The predicate field must be of type {@code java.util.function.Predicate<T>},
