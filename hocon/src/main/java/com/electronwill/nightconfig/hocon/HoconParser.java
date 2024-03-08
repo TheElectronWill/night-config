@@ -42,7 +42,7 @@ public final class HoconParser implements ConfigParser<CommentedConfig> {
 	public void parse(Reader reader, Config destination, ParsingMode parsingMode) {
 		try {
 			ConfigObject parsed = ConfigFactory.parseReader(reader, OPTIONS).resolve().root();
-			
+
 			if (destination instanceof ConcurrentCommentedConfig) {
 				ConcurrentCommentedConfig conf = (ConcurrentCommentedConfig)destination;
 				conf.bulkCommentedUpdate(view -> {
@@ -88,9 +88,10 @@ public final class HoconParser implements ConfigParser<CommentedConfig> {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private static Object unwrap(Object o) {
 		if (o instanceof Map) {
-			Map<String, ?> map = (Map)o;
+			Map<String, ?> map = (Map<String, ?>)o;
 			Map<String, Object> unwrappedMap = new HashMap<>(map.size());
 			for (Map.Entry<String, ?> entry : map.entrySet()) {
 				unwrappedMap.put(entry.getKey(), unwrap(entry.getValue()));
