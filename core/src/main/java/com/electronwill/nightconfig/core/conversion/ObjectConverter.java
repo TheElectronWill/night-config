@@ -126,7 +126,7 @@ public final class ObjectConverter {
 			for (Field field : clazz.getDeclaredFields()) {
 				// --- Checks modifiers ---
 				final int fieldModifiers = field.getModifiers();
-				if (object == null && Modifier.isStatic(fieldModifiers)) {
+				if (object != null && Modifier.isStatic(fieldModifiers)) {
 					continue;// Don't process static fields of object instances
 				}
 				if (!bypassTransient && Modifier.isTransient(fieldModifiers)) {
