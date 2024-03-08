@@ -35,6 +35,16 @@ java {
     withSourcesJar()
 }
 
+// Add Automatic-Module-Name for JPMS support, and some other attributes for OSGI
+tasks.jar {
+	manifest {
+		attributes["Automatic-Module-Name"] = "com.electronwill.nightconfig.${project.name}"
+		attributes["Bundle-SymbolicName"] = "com.electronwill.nightconfig.${project.name}"
+		attributes["Bundle-Name"] = "night-config:${project.name}"
+		attributes["Bundle-Version"] = "${project.version}"
+	}
+}
+
 project.afterEvaluate {
 	// Enable logging for test tasks and fix mrjar tests.
 	// This should be done through the "test suite" API, but it's not supported by the mrjar plugin yet.
