@@ -6,6 +6,7 @@ plugins {
 // Use the build script defined in buildSrc
 
 dependencies {
+	compileOnly("org.jetbrains:annotations:23.+")
     testImplementation(project(":test-shared"))
 }
 
