@@ -61,7 +61,7 @@ final class StringParser {
 					input.pushBack(nextNonSpace);
 					continue;
 				} else if (next == '\t' || next == ' ') {
-					throw new ParsingException("Invalid escapement: \\" + next);
+					throw new ParsingException(input, "Invalid escapement: \\" + next);
 				}
 				builder.write(escape(next, input));
 			} else {
@@ -122,12 +122,12 @@ final class StringParser {
 				return '\t';
 			case 'u':
 				CharsWrapper chars = input.readChars(4);
-				return (char)Utils.parseInt(chars, 16);
+				return (char)Utils.parseInt(chars, 16, input);
 			case 'U':
 				chars = input.readChars(8);
-				return (char)Utils.parseInt(chars, 16);
+				return (char)Utils.parseInt(chars, 16, input);
 			default:
-				throw new ParsingException("Invalid escapement: \\" + c);
+				throw new ParsingException(input, "Invalid escapement: \\" + c);
 		}
 	}
 

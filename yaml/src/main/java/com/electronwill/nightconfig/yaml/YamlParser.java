@@ -78,7 +78,7 @@ public final class YamlParser implements ConfigParser<Config> {
 				parsingMode.put(destination, Collections.singletonList(entry.getKey()), convertValue(entry.getValue(), destination));
 			}
 		} catch (Exception e) {
-			throw new ParsingException("YAML parsing failed", e);
+			throw new ParsingException(null, "YAML parsing failed", e);
 		}
 	}
 

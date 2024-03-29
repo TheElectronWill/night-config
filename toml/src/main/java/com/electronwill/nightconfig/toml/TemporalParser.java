@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.io.CharsWrapper;
+import com.electronwill.nightconfig.core.io.Cursor;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.Utils;
 import java.time.LocalDate;
@@ -18,7 +19,6 @@ import java.time.temporal.Temporal;
  * @see <a href="https://github.com/toml-lang/toml#user-content-local-time">TOML specification - LocalTime</a>
  */
 final class TemporalParser {
-
 	private static final char[] ALLOWED_DT_SEPARATORS = {'T', 't', ' '};
 	private static final char[] OFFSET_INDICATORS = {'Z', '+', '-'};
 
@@ -39,7 +39,7 @@ final class TemporalParser {
 		}
 		char dateTimeSeparator = chars.get(10);
 		if (!Utils.arrayContains(ALLOWED_DT_SEPARATORS, dateTimeSeparator)) {
-			throw new ParsingException(
+			throw new ParsingException(null,
 					"Invalid separator between date and time: '" + dateTimeSeparator + "'.");
 		}
 		CharsWrapper afterDate = chars.subView(11);
@@ -57,9 +57,9 @@ final class TemporalParser {
 		CharsWrapper yearChars = chars.subView(0, 4);
 		CharsWrapper monthChars = chars.subView(5, 7);
 		CharsWrapper dayChars = chars.subView(8, 10);
-		int year = Utils.parseInt(yearChars, 10);
-		int month = Utils.parseInt(monthChars, 10);
-		int day = Utils.parseInt(dayChars, 10);
+		int year = Utils.parseInt(yearChars, 10, null);
+		int month = Utils.parseInt(monthChars, 10, null);
+		int day = Utils.parseInt(dayChars, 10, null);
 		return LocalDate.of(year, month, day);
 	}
 
@@ -67,9 +67,9 @@ final class TemporalParser {
 		CharsWrapper hourChars = chars.subView(0, 2);
 		CharsWrapper minuteChars = chars.subView(3, 5);
 		CharsWrapper secondChars = chars.subView(6, 8);
-		int hour = Utils.parseInt(hourChars, 10);
-		int minutes = Utils.parseInt(minuteChars, 10);
-		int seconds = Utils.parseInt(secondChars, 10);
+		int hour = Utils.parseInt(hourChars, 10, null);
+		int minutes = Utils.parseInt(minuteChars, 10, null);
+		int seconds = Utils.parseInt(secondChars, 10, null);
 		int nanos;
 
 		if (chars.length() > 8) {
@@ -77,7 +77,7 @@ final class TemporalParser {
 			if (fractionChars.length() > 9) {
 				fractionChars = fractionChars.subView(0, 9);// truncates if too many digits
 			}
-			int value = Utils.parseInt(fractionChars, 10);
+			int value = Utils.parseInt(fractionChars, 10, null);
 			int coeff = (int)Math.pow(10, 9 - fractionChars.length());
 			nanos = value * coeff;
 		} else {

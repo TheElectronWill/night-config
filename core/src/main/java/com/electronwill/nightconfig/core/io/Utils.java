@@ -1,5 +1,7 @@
 package com.electronwill.nightconfig.core.io;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Serialization utilities.
  *
@@ -48,7 +50,7 @@ public final class Utils {
 	 * @param base  the base of the number
 	 * @return the long value represented by the CharsWrapper
 	 */
-	public static long parseLong(CharsWrapper chars, int base) {
+	public static long parseLong(CharsWrapper chars, int base, @Nullable Cursor cursor) {
 		// Optimized lightweight parsing
 		int offset = chars.offset;
 		boolean negative = false;
@@ -64,7 +66,7 @@ public final class Utils {
 		for (int i = chars.limit - 1; i >= offset; i--) {
 			int digitValue = Character.digit(array[i], base);
 			if (digitValue == -1) {//invalid digit in the specified base
-				throw new ParsingException("Invalid value: " + chars);
+				throw new ParsingException(cursor, "Invalid value: " + chars);
 			}
 			value += digitValue * coefficient;
 			coefficient *= base;
@@ -75,12 +77,13 @@ public final class Utils {
 	/**
 	 * Parses a CharsWrapper that represents an int value in the specified base.
 	 *
-	 * @param chars the CharsWrapper representing an int
-	 * @param base  the base of the number
+	 * @param chars  the CharsWrapper representing an int
+	 * @param base   the base of the number
+	 * @param cursor
 	 * @return the int value represented by the CharsWrapper
 	 */
-	public static int parseInt(CharsWrapper chars, int base) {
-		return (int)parseLong(chars, base);
+	public static int parseInt(CharsWrapper chars, int base, @Nullable Cursor cursor) {
+		return (int)parseLong(chars, base, cursor);
 	}
 
 	/**

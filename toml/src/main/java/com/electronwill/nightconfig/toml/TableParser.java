@@ -3,7 +3,9 @@ package com.electronwill.nightconfig.toml;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.io.CharacterInput;
 import com.electronwill.nightconfig.core.io.CharsWrapper;
+import com.electronwill.nightconfig.core.io.Cursor;
 import com.electronwill.nightconfig.core.io.ParsingException;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,19 +28,19 @@ final class TableParser {
 			}
 			String key = parseKey(input, keyFirst, parser);
 			char sep = Toml.readNonSpaceChar(input, false);
-			checkInvalidSeparator(sep, key, parser);
+			checkInvalidSeparator(sep, key, parser, input);
 
 			Object value = ValueParser.parse(input, parser, config);
 			Object previous = parser.getParsingMode().put(config.valueMap(), key, value);
-			checkDuplicateKey(key, previous, true);
+			checkDuplicateKey(key, previous, true, input);
 
 			char after = Toml.readNonSpaceChar(input, false);
 			if (after == '}') {
 				return config;
 			}
 			if (after != ',') {
-				throw new ParsingException(
-						"Invalid entry separator '" + after + "' in inline table.");
+				throw new ParsingException(input,
+					"Invalid entry separator '" + after + "' in inline table.");
 			}
 		}
 	}
@@ -56,7 +58,7 @@ final class TableParser {
 
 			Object value = ValueParser.parse(input, parser, config);
 			Object previous = parser.getParsingMode().put(config, key, value);
-			checkDuplicateKey(key, previous, parser.configWasEmpty());
+			checkDuplicateKey(key, previous, parser.configWasEmpty(), input);
 
 			int after = Toml.readNonSpace(input, false);
 			if (after == -1) {// End of the stream
@@ -66,7 +68,7 @@ final class TableParser {
 				CharsWrapper comment = Toml.readLine(input);
 				commentsList.add(comment);
 			} else if (after != '\n' && after != '\r') {
-				throw new ParsingException("Invalid character '"
+				throw new ParsingException(input, "Invalid character '"
 										   + (char)after
 										   + "' after table entry \""
 										   + key
@@ -78,21 +80,21 @@ final class TableParser {
 		}
 	}
 
-	private static void checkDuplicateKey(Object key, Object previousValue, boolean emptyConfig) {
+	private static void checkDuplicateKey(Object key, Object previousValue, boolean emptyConfig, @Nullable Cursor cursor) {
 		/*
 		If the config wasn't empty at the beginning of the parsing, there is no way to know if
 		previousValue isn't null because we parsed the data twice or because it was in the config
 		from the beginning.
 		 */
 		if (previousValue != null && emptyConfig) {
-			throw new ParsingException(
+			throw new ParsingException(cursor,
 					"Invalid TOML data: entry \"" + key + "\" defined twice" + " in its table.");
 		}
 	}
 
-	private static void checkInvalidSeparator(char sep, String key, TomlParser parser) {
+	private static void checkInvalidSeparator(char sep, String key, TomlParser parser, @Nullable Cursor cursor) {
 		if (!Toml.isKeyValueSeparator(sep, parser.isLenientWithSeparators())) {
-			throw new ParsingException(
+			throw new ParsingException(cursor,
 					"Invalid separator '" + sep + "'after key \"" + key + "\" in some table.");
 		}
 	}
@@ -106,7 +108,7 @@ final class TableParser {
 		while (true) {
 			char firstChar = Toml.readNonSpaceChar(input, false);
 			if (firstChar == ']') {
-				throw new ParsingException("Tables names must not be empty.");
+				throw new ParsingException(input, "Tables names must not be empty.");
 			}
 			String key = parseKey(input, firstChar, parser);
 			list.add(key);
@@ -116,7 +118,7 @@ final class TableParser {
 				if (array) {
 					char after = input.readChar();
 					if (after != ']') {
-						throw new ParsingException("Invalid declaration of an element of an array"
+						throw new ParsingException(input, "Invalid declaration of an element of an array"
 												   + " of tables: it ends by ]"
 												   + after
 												   + " but should end by ]]");
@@ -128,12 +130,12 @@ final class TableParser {
 					CharsWrapper comment = Toml.readLine(input);
 					parser.setComment(comment);
 				} else if (after != '\n' && after != '\r') {
-					throw new ParsingException(
-							"Invalid character '" + after + "' after a table " + "declaration.");
+					throw new ParsingException(input,
+						"Invalid character '" + after + "' after a table " + "declaration.");
 				}
 				return list;
 			} else if (separator != '.') {
-				throw new ParsingException("Invalid separator '" + separator + "' in table name.");
+				throw new ParsingException(input, "Invalid separator '" + separator + "' in table name.");
 			}
 		}
 	}
@@ -149,7 +151,7 @@ final class TableParser {
 			if (Toml.isKeyValueSeparator(sep, parser.isLenientWithSeparators())) {
 				return list;
 			} else if (sep != '.') {
-				throw new ParsingException("Invalid character '" + sep + "' after key " + list);
+				throw new ParsingException(input, "Invalid character '" + sep + "' after key " + list);
 			}
 			first = Toml.readNonSpaceChar(input, false);
 		}
@@ -169,10 +171,10 @@ final class TableParser {
 																			 .toString();
 			// Checks that the bare key is conform to the specification
 			if (bareKey.isEmpty()) {
-				throw new ParsingException("Empty bare keys aren't allowed.");
+				throw new ParsingException(input, "Empty bare keys aren't allowed.");
 			}
 			if (!Toml.isValidBareKey(bareKey, parser.isLenientWithBareKeys())) {
-				throw new ParsingException("Invalid bare key: \'" + bareKey + "\'");
+				throw new ParsingException(input, "Invalid bare key: \'" + bareKey + "\'");
 			}
 			return bareKey;
 		}
