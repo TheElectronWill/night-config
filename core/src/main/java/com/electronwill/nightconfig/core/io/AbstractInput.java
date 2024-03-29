@@ -36,6 +36,8 @@ public abstract class AbstractInput implements CharacterInput {
 	protected void advance(int r) {
 		if (r == '\n')
 			advanceLine();
+		else if (r == '\r')
+			column.set(0);
 		else advanceColumn();
 	}
 
