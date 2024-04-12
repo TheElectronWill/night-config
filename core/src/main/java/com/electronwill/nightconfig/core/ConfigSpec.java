@@ -66,7 +66,7 @@ public class ConfigSpec {
 		this(Config.inMemoryUniversal());
 	}
 
-	ConfigSpec(Config storage) {
+	public ConfigSpec(Config storage) {
 		this.storage = storage;
 	}
 
