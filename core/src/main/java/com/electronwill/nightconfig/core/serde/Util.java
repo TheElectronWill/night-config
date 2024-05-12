@@ -8,6 +8,14 @@ import java.util.*;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
 final class Util {
+	/**
+	 * Checks whether a value is empty, for a "sensible" definition of being empty.
+	 * <p>
+	 * Note: this method may throw an exception if the value is null.
+	 *
+	 * @param configValue the value to test
+	 * @return true if the value is empty
+	 */
 	static boolean isEmpty(Object configValue) {
 		if (configValue instanceof Collection) {
 			return ((Collection<?>) configValue).isEmpty();
@@ -111,9 +119,8 @@ final class Util {
 
 	/**
 	 * A better version of {@link Class#isAssignableFrom(Class)} that works with
-	 * null,
-	 * widening primitive conversions and conversions between primitive types and
-	 * wrapper types.
+	 * null, widening primitive conversions and conversions between primitive types
+	 * and wrapper types.
 	 *
 	 * @param fieldType the type of the field
 	 * @param valueType the type of the value
