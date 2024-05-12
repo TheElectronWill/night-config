@@ -92,14 +92,14 @@ class CharsetUnicodeBom extends Charset {
                         // detect UTF-16 BE and LE BOMs: wrong encoding!
                         if (b1 == 0xFE && b2 == 0xFF) {
                             if (utf8Only) {
-                                throw new ParsingException(
+                                throw new ParsingException(null,
                                         "Invalid input: it begins with an UTF-16 BE byte-order mark, but it should be plain UTF-8.");
                             }
                             setupDecoder(StandardCharsets.UTF_16BE);
                             newPosition += 2;
                         } else if (b1 == 0xFF && b2 == 0xFE) {
                             if (utf8Only) {
-                                throw new ParsingException(
+                                throw new ParsingException(null,
                                         "Invalid input: it begins with an UTF-16 LE byte-order mark, but it should be plain UTF-8.");
                             }
                             setupDecoder(StandardCharsets.UTF_16LE);

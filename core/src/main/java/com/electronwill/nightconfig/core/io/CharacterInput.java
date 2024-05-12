@@ -11,7 +11,7 @@ package com.electronwill.nightconfig.core.io;
  *
  * @author TheElectronWill
  */
-public interface CharacterInput {
+public interface CharacterInput extends Cursor {
 	/**
 	 * Reads the next character.
 	 *

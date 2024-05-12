@@ -24,7 +24,7 @@ final class ArrayParser {
 				if (nextChar == ']') {
 					return list;
 				}
-				throw new ParsingException("Unexpected character in array: '"
+				throw new ParsingException(input, "Unexpected character in array: '"
 										   + nextChar
 										   + "' - "
 										   + "Expected end of array because of the leading comma.");
@@ -36,7 +36,7 @@ final class ArrayParser {
 				return list;
 			}
 			if (after != ',') {// Invalid character between two elements of the array
-				throw new ParsingException("Invalid separator '" + after + "' in array.");
+				throw new ParsingException(input, "Invalid separator '" + after + "' in array.");
 			}
 		}
 	}

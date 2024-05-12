@@ -9,5 +9,6 @@ multiRelease {
 
 dependencies {
 	implementation(project(":core"))
-    testImplementation(project(":test-shared"))
+	compileOnly("org.jetbrains:annotations:+")
+	testImplementation(project(":test-shared"))
 }

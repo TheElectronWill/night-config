@@ -93,7 +93,7 @@ public final class JsonParser implements ConfigParser<Config> {
 				// If data is empty && we accept empty data => return empty config
 				return configModel.createSubConfig();
 			} else {
-				throw new ParsingException("No json data: input is empty");
+				throw new ParsingException(input, "No json data: input is empty");
 			}
 		}
 		char firstChar = input.readCharAndSkip(SPACES);
@@ -103,7 +103,7 @@ public final class JsonParser implements ConfigParser<Config> {
 		if (firstChar == '[') {
 			return parseArray(input, new ArrayList<>(), ParsingMode.MERGE, configModel.createSubConfig());
 		}
-		throw new ParsingException("Invalid first character for a json document: " + firstChar);
+		throw new ParsingException(input, "Invalid first character for a json document: " + firstChar);
 	}
 
 	/**
@@ -127,12 +127,12 @@ public final class JsonParser implements ConfigParser<Config> {
 				// If data is empty && we accept empty data => let the config as it is
 				return;
 			} else {
-				throw new ParsingException("No json data: input is empty");
+				throw new ParsingException(input, "No json data: input is empty");
 			}
 		}
 		char firstChar = input.readCharAndSkip(SPACES);
 		if (firstChar != '{') {
-			throw new ParsingException("Invalid first character for a json object: " + firstChar);
+			throw new ParsingException(input, "Invalid first character for a json object: " + firstChar);
 		}
 		if (destination instanceof ConcurrentConfig) {
 			((ConcurrentConfig)destination).bulkUpdate(view -> {
@@ -190,12 +190,12 @@ public final class JsonParser implements ConfigParser<Config> {
 				// If data is empty && we accept empty data => let the config as it is
 				return;
 			} else {
-				throw new ParsingException("No json data: input is empty");
+				throw new ParsingException(input, "No json data: input is empty");
 			}
 		}
 		char firstChar = input.readCharAndSkip(SPACES);
 		if (firstChar != '[') {
-			throw new ParsingException("Invalid first character for a json array: " + firstChar);
+			throw new ParsingException(input, "Invalid first character for a json array: " + firstChar);
 		}
 		parseArray(input, destination, parsingMode, configModel);
 	}
@@ -205,7 +205,7 @@ public final class JsonParser implements ConfigParser<Config> {
 		if (kfirst == '}') {
 			return config;
 		} else if (kfirst != '"') {
-			throw new ParsingException("Invalid beginning of a key: " + kfirst);
+			throw new ParsingException(input, "Invalid beginning of a key: " + kfirst);
 		}
 		parseKVPair(input, config, parsingMode);
 		while (true) {
@@ -213,11 +213,11 @@ public final class JsonParser implements ConfigParser<Config> {
 			if (vsep == '}') {// end of the object
 				return config;
 			} else if (vsep != ',') {
-				throw new ParsingException("Invalid value separator: " + vsep);
+				throw new ParsingException(input, "Invalid value separator: " + vsep);
 			}
 			kfirst = input.readCharAndSkip(SPACES);
 			if (kfirst != '"') {
-				throw new ParsingException("Invalid beginning of a key: " + kfirst);
+				throw new ParsingException(input, "Invalid beginning of a key: " + kfirst);
 			}
 			parseKVPair(input, config, parsingMode);
 		}
@@ -227,7 +227,7 @@ public final class JsonParser implements ConfigParser<Config> {
 		List<String> key = Collections.singletonList(parseString(input)); // the list is necessary if there are dots in the key
 		char sep = input.readCharAndSkip(SPACES);
 		if (sep != ':') {
-			throw new ParsingException("Invalid key-value separator: " + sep);
+			throw new ParsingException(input, "Invalid key-value separator: " + sep);
 		}
 
 		char vfirst = input.readCharAndSkip(SPACES);
@@ -249,7 +249,7 @@ public final class JsonParser implements ConfigParser<Config> {
 			if (next == ']') {// end of the array
 				return list;
 			} else if (next != ',') {// invalid separator
-				throw new ParsingException("Invalid value separator: " + valueFirst);
+				throw new ParsingException(input, "Invalid value separator: " + valueFirst);
 			}
 		}
 	}
@@ -279,7 +279,7 @@ public final class JsonParser implements ConfigParser<Config> {
 		if (chars.contains('.') || chars.contains('e') || chars.contains('E')) {// must be a double
 			return Utils.parseDouble(chars);
 		}
-		long l = Utils.parseLong(chars, 10);
+		long l = Utils.parseLong(chars, 10, input);
 		int small = (int)l;
 		if (l == small) {// small value => return an int instead of a long
 			return small;
@@ -290,7 +290,7 @@ public final class JsonParser implements ConfigParser<Config> {
 	private boolean parseTrue(CharacterInput input) {
 		CharsWrapper chars = input.readChars(3);
 		if (!chars.contentEquals(TRUE_LAST)) {
-			throw new ParsingException("Invalid value: t" + chars + " - expected boolean true");
+			throw new ParsingException(input, "Invalid value: t" + chars + " - expected boolean true");
 		}
 		return true;
 	}
@@ -298,7 +298,7 @@ public final class JsonParser implements ConfigParser<Config> {
 	private boolean parseFalse(CharacterInput input) {
 		CharsWrapper chars = input.readChars(4);
 		if (!chars.contentEquals(FALSE_LAST)) {
-			throw new ParsingException("Invalid value: f" + chars + " - expected boolean false");
+			throw new ParsingException(input, "Invalid value: f" + chars + " - expected boolean false");
 		}
 		return false;
 	}
@@ -306,7 +306,7 @@ public final class JsonParser implements ConfigParser<Config> {
 	private Object parseNull(CharacterInput input) {
 		CharsWrapper chars = input.readChars(3);
 		if (!chars.contentEquals(NULL_LAST)) {
-			throw new ParsingException("Invaid value: n" + chars + " - expected null");
+			throw new ParsingException(input, "Invaid value: n" + chars + " - expected null");
 		}
 		return null;
 	}
@@ -346,9 +346,9 @@ public final class JsonParser implements ConfigParser<Config> {
 				return '\t';
 			case 'u':
 				CharsWrapper chars = input.readChars(4);
-				return (char)Utils.parseInt(chars, 16);
+				return (char)Utils.parseInt(chars, 16, input);
 			default:
-				throw new ParsingException("Invalid escapement: \\" + c);
+				throw new ParsingException(input, "Invalid escapement: \\" + c);
 		}
 	}
 }

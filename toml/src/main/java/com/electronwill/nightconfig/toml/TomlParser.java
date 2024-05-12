@@ -97,7 +97,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 			}
 			if (isArray) {// It's an element of an array of tables
 				if (parentMap == null) {
-					throw new ParsingException("Cannot create entry "
+					throw new ParsingException(input, "Cannot create entry "
 											   + path
 											   + " because of an invalid "
 											   + "parent that isn't a table.");
@@ -111,7 +111,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 				arrayOfTables.add(table);
 			} else {// It's a table
 				if (parentMap == null) {
-					throw new ParsingException("Cannot create entry "
+					throw new ParsingException(input, "Cannot create entry "
 											   + path
 											   + " because of an invalid "
 											   + "parent that isn't a table.");
@@ -127,7 +127,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 						CommentedConfig commentedTable = CommentedConfig.fake(table);
 						TableParser.parseNormal(input, this, commentedTable);
 					} else if (configWasEmpty) {
-						throw new ParsingException("Entry " + path + " has been defined twice.");
+						throw new ParsingException(input, "Entry " + path + " has been defined twice.");
 					}
 				}
 			}
@@ -162,7 +162,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 			}
 			if (this.isInlineTable(currentConfig)) {
 				// reject modification of inline tables
-				throw new ParsingException("Cannot modify an inline table after its creation. Key path: " + path);
+				throw new ParsingException(null, "Cannot modify an inline table after its creation. Key path: " + path);
 			}
 		}
 		return currentConfig;
@@ -171,7 +171,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 	private void checkContainsOnlySubtables(Config table, List<String> path) {
 		for (Object value : table.valueMap().values()) {
 			if (!(value instanceof Config)) {
-				throw new ParsingException("Table with path " + path + " has been declared twice.");
+				throw new ParsingException(null, "Table with path " + path + " has been declared twice.");
 			}
 		}
 	}

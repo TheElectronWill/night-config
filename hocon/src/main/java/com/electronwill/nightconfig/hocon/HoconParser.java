@@ -57,7 +57,7 @@ public final class HoconParser implements ConfigParser<CommentedConfig> {
 				put(parsed, destination, parsingMode);
 			}
 		} catch (Exception e) {
-			throw new ParsingException("HOCON parsing failed", e);
+			throw new ParsingException(null, "HOCON parsing failed", e);
 		}
 	}
 

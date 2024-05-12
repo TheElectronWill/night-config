@@ -1,10 +1,7 @@
 package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.io.CharacterInput;
-import com.electronwill.nightconfig.core.io.CharsWrapper;
-import com.electronwill.nightconfig.core.io.ParsingException;
-import com.electronwill.nightconfig.core.io.Utils;
+import com.electronwill.nightconfig.core.io.*;
 
 /**
  * @author TheElectronWill
@@ -44,13 +41,13 @@ final class ValueParser {
 				}
 				return StringParser.parseBasic(input, parser);
 			case 't':
-				return parseTrue(input);
+				return parseTrue(input, input);
 			case 'f':
-				return parseFalse(input);
+				return parseFalse(input, input);
 			case '+':
 			case '-':
 				input.pushBack(firstChar);
-				return parseNumber(input.readUntil(END_OF_VALUE));
+				return parseNumber(input.readUntil(END_OF_VALUE), input);
 			default:
 				input.pushBack(firstChar);
 				CharsWrapper valueChars = input.readUntil(END_OF_VALUE_DATE);
@@ -59,9 +56,9 @@ final class ValueParser {
 				}
 				CharsWrapper trimmed = valueChars.trimmedView();
 				if (trimmed.isEmpty()) {
-					throw new ParsingException("Invalid value containing only whitespaces");
+					throw new ParsingException(input, "Invalid value containing only whitespaces");
 				}
-				return parseNumber(trimmed);
+				return parseNumber(trimmed, input);
 		}
 	}
 
@@ -74,8 +71,8 @@ final class ValueParser {
 			   && (valueChars.get(2) == ':' || (valueChars.get(4) == '-' && valueChars.get(7) == '-'));
 	}
 
-	private static Number parseNumber(CharsWrapper valueChars) {
-		valueChars = simplifyNumber(valueChars);
+	private static Number parseNumber(CharsWrapper valueChars, Cursor cursor) {
+		valueChars = simplifyNumber(valueChars, cursor);
 		// Parse +-inf and +-nan
 		char first = valueChars.get(0);
 		CharsWrapper remaining;
@@ -118,14 +115,14 @@ final class ValueParser {
 			try {
 				return Utils.parseDouble(valueChars);
 			} catch (NumberFormatException ex) {
-				throw new ParsingException("Invalid floating-point value: " + valueChars);
+				throw new ParsingException(cursor, "Invalid floating-point value: " + valueChars);
 			}
 		}
 		long longValue;
 		try {
-			longValue = Utils.parseLong(numberChars, base);
+			longValue = Utils.parseLong(numberChars, base, cursor);
 		} catch (NumberFormatException ex) {
-			throw new ParsingException("Invalid integer value: " + valueChars);
+			throw new ParsingException(cursor, "Invalid integer value: " + valueChars);
 		}
 		int intValue = (int)longValue;
 		if (intValue == longValue) {
@@ -134,19 +131,19 @@ final class ValueParser {
 		return longValue;
 	}
 
-	private static CharsWrapper simplifyNumber(CharsWrapper numberChars) {
+	private static CharsWrapper simplifyNumber(CharsWrapper numberChars, Cursor cursor) {
 		if (numberChars.charAt(0) == '_') {
-			throw new ParsingException("Invalid leading underscore in number " + numberChars);
+			throw new ParsingException(cursor, "Invalid leading underscore in number " + numberChars);
 		}
 		if (numberChars.charAt(numberChars.length() - 1) == '_') {
-			throw new ParsingException("Invalid trailing underscore in number " + numberChars);
+			throw new ParsingException(cursor, "Invalid trailing underscore in number " + numberChars);
 		}
 		CharsWrapper.Builder builder = new CharsWrapper.Builder(16);
 		boolean nextCannotBeUnderscore = false;
 		for (char c : numberChars) {
 			if (c == '_') {
 				if (nextCannotBeUnderscore) {
-					throw new ParsingException("Invalid underscore followed by another one in "
+					throw new ParsingException(cursor, "Invalid underscore followed by another one in "
 											   + "number "
 											   + numberChars);
 				}
@@ -161,20 +158,20 @@ final class ValueParser {
 		return builder.build();
 	}
 
-	private static Boolean parseFalse(CharacterInput input) {
+	private static Boolean parseFalse(CharacterInput input, Cursor cursor) {
 		CharsWrapper remaining = input.readUntil(END_OF_VALUE);
 		if (!remaining.contentEquals(FALSE_END)) {
-			throw new ParsingException(
-					"Invalid value f" + remaining + " - Expected the boolean value false.");
+			throw new ParsingException(cursor,
+				"Invalid value f" + remaining + " - Expected the boolean value false.");
 		}
 		return false;
 	}
 
-	private static Boolean parseTrue(CharacterInput input) {
+	private static Boolean parseTrue(CharacterInput input, Cursor cursor) {
 		CharsWrapper remaining = input.readUntil(END_OF_VALUE);
 		if (!remaining.contentEquals(TRUE_END)) {
-			throw new ParsingException(
-					"Invalid value t" + remaining + " - Expected the boolean value true.");
+			throw new ParsingException(cursor,
+				"Invalid value t" + remaining + " - Expected the boolean value true.");
 		}
 		return true;
 	}

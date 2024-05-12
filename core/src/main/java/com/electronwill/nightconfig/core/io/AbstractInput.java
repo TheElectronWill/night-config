@@ -2,6 +2,8 @@ package com.electronwill.nightconfig.core.io;
 
 import com.electronwill.nightconfig.core.utils.IntDeque;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * Abstract base class for CharacterInputs.
  *
@@ -12,6 +14,8 @@ public abstract class AbstractInput implements CharacterInput {
 	 * Contains the peeked characters that haven't been read (by the read methods) yet.
 	 */
 	protected final IntDeque deque = new IntDeque();
+	private final AtomicLong line = new AtomicLong();
+	private final AtomicLong column = new AtomicLong();
 
 	/**
 	 * Tries to parse the next character without taking care of the peek deque.
@@ -29,24 +33,59 @@ public abstract class AbstractInput implements CharacterInput {
 	 */
 	protected abstract char directReadChar();
 
+	protected void advance(int r) {
+		if (r == '\n')
+			advanceLine();
+		else if (r == '\r')
+			column.set(0);
+		else advanceColumn();
+	}
+
+	protected void advanceLine() {
+		line.incrementAndGet();
+		column.set(0);
+	}
+
+	protected void advanceColumn() {
+		column.incrementAndGet();
+	}
+
+	@Override
+	public long line() {
+		return line.get();
+	}
+
+	@Override
+	public long column() {
+		return column.get();
+	}
+
 	@Override
 	public int read() {
+		int r;
 		if (!deque.isEmpty()) {
-			return deque.removeFirst();
+			r = deque.removeFirst();
+		} else {
+			r = directRead();
 		}
-		return directRead();
+		advance(r);
+		return r;
 	}
 
 	@Override
 	public char readChar() {
+		char r;
 		if (!deque.isEmpty()) {
 			int next = deque.removeFirst();
 			if (next == -1) {
 				throw ParsingException.notEnoughData();
 			}
-			return (char)next;
+			r = (char)next;
+		} else {
+			r = directReadChar();
 		}
-		return directReadChar();
+		advance(r);
+		return r;
 	}
 
 	@Override
