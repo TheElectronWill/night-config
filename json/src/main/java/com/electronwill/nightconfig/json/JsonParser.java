@@ -24,6 +24,7 @@ public final class JsonParser implements ConfigParser<Config> {
 
 	private final ConfigFormat<Config> configFormat;
 	private boolean emptyDataAccepted = false;
+	private boolean trailingDataAccepted = false;
 
 	public JsonParser() {
 		this(JsonFormat.fancyInstance());
@@ -54,6 +55,24 @@ public final class JsonParser implements ConfigParser<Config> {
 	 */
 	public JsonParser setEmptyDataAccepted(boolean emptyDataAccepted) {
 		this.emptyDataAccepted = emptyDataAccepted;
+		return this;
+	}
+
+	/**
+	 * @return true if the parser accepts trailing data (data after the end of the JSON document) as a valid input, false otherwise (default)
+	 */
+	public boolean isTrailingDataAccepted() {
+		return trailingDataAccepted;
+	}
+
+	/**
+	 * Enables or disables the acceptance of trailing input data. False by default. If set to true,
+	 * the parser will ignore any data that is after the end of the document.
+	 *
+	 * @param trailingDataAccepted true to accept trailing data (data after the end of the JSON document) as a valid input, false to reject it
+	 */
+	public JsonParser setTrailingDataAccepted(boolean trailingDataAccepted) {
+		this.trailingDataAccepted = trailingDataAccepted;
 		return this;
 	}
 
@@ -97,13 +116,24 @@ public final class JsonParser implements ConfigParser<Config> {
 			}
 		}
 		char firstChar = input.readCharAndSkip(SPACES);
+		Object result;
 		if (firstChar == '{') {
-			return parseObject(input, configModel.createSubConfig(), ParsingMode.MERGE);
+			result =parseObject(input, configModel.createSubConfig(), ParsingMode.MERGE);
+		} else if (firstChar == '[') {
+			result = parseArray(input, new ArrayList<>(), ParsingMode.MERGE, configModel.createSubConfig());
+		} else {
+			throw new ParsingException("Invalid first character for a json document: " + firstChar);
 		}
-		if (firstChar == '[') {
-			return parseArray(input, new ArrayList<>(), ParsingMode.MERGE, configModel.createSubConfig());
+
+		int trailing = input.readAndSkip(SPACES);
+		if (trailing >= 0) {
+			input.pushBack((char) trailing);
+			String msg = String.format(
+					"Invalid data at the end of the JSON document: %s (use JsonParser.setTrailingDataAccepted(true) if you intend this to work)",
+					input.read(6).toString());
+			throw new ParsingException(msg);
 		}
-		throw new ParsingException("Invalid first character for a json document: " + firstChar);
+		return result;
 	}
 
 	/**
@@ -142,6 +172,14 @@ public final class JsonParser implements ConfigParser<Config> {
 		} else {
 			parsingMode.prepareParsing(destination);
 			parseObject(input, destination, parsingMode);
+		}
+		int trailing = input.readAndSkip(SPACES);
+		if (trailing >= 0) {
+			input.pushBack((char) trailing);
+			String msg = String.format(
+					"Invalid data at the end of the JSON document: %s (use JsonParser.setTrailingDataAccepted(true) if you intend this to work)",
+					input.read(6).toString());
+			throw new ParsingException(msg);
 		}
 	}
 
@@ -198,6 +236,15 @@ public final class JsonParser implements ConfigParser<Config> {
 			throw new ParsingException("Invalid first character for a json array: " + firstChar);
 		}
 		parseArray(input, destination, parsingMode, configModel);
+
+		int trailing = input.readAndSkip(SPACES);
+		if (trailing >= 0) {
+			input.pushBack((char) trailing);
+			String msg = String.format(
+					"Invalid data at the end of the JSON document: %s (use JsonParser.setTrailingDataAccepted(true) if you intend this to work)",
+					input.read(6).toString());
+			throw new ParsingException(msg);
+		}
 	}
 
 	private <T extends Config> T parseObject(CharacterInput input, T config, ParsingMode parsingMode) {
