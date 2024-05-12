@@ -10,8 +10,7 @@ import java.util.function.Supplier;
 
 import com.electronwill.nightconfig.core.NullObject;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import com.electronwill.nightconfig.core.serde.annotations.SerdeKey;
-import com.electronwill.nightconfig.core.serde.annotations.SerdeSkipDeserializingIf;
+import com.electronwill.nightconfig.core.serde.annotations.*;
 
 public final class DeserializerContext {
 	final AbstractObjectDeserializer settings;
@@ -88,6 +87,11 @@ public final class DeserializerContext {
 						}
 					}
 
+					// check the value of the field
+					if (!assertField(field, destination, value)) {
+						throw new SerdeAssertException("Field `" + field + "` has an invalid value: " + value);
+					}
+
 					// set the field
 					try {
 						field.set(destination, deserialized);
@@ -131,6 +135,28 @@ public final class DeserializerContext {
 			return ((Predicate<Object>) skipPredicate).test(rawConfigValue);
 		} catch (Exception e) {
 			String msg = "Failed to resolve or apply skip predicate for deserialization of field " + field;
+			throw new SerdeException(msg, e);
+		}
+	}
+
+	/**
+	 * @return false if there is an assertion and it fails
+	 */
+	@SuppressWarnings("unchecked")
+	private boolean assertField(Field field, Object fieldContainer, Object fieldValue) {
+		SerdeAssert[] annot = field.getAnnotationsByType(SerdeAssert.class);
+		if (annot == null || annot.length == 0) {
+			return true;
+		}
+		try {
+			Predicate<?> assertPredicate = AnnotationProcessor.resolveAssertPredicate(annot, fieldContainer,
+					SerdePhase.DESERIALIZING, field);
+			if (assertPredicate == null) {
+				return true;
+			}
+			return ((Predicate<Object>) assertPredicate).test(fieldValue);
+		} catch (Exception e) {
+			String msg = "Failed to resolve or apply assertion for deserialization of field " + field;
 			throw new SerdeException(msg, e);
 		}
 	}

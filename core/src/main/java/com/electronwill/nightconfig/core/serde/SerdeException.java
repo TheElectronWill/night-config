@@ -1,11 +1,11 @@
 package com.electronwill.nightconfig.core.serde;
 
-public final class SerdeException extends RuntimeException {
-    public SerdeException(String message) {
+public class SerdeException extends RuntimeException {
+    SerdeException(String message) {
         super(message);
     }
 
-    public SerdeException(String message, Throwable cause) {
+    SerdeException(String message, Throwable cause) {
         super(message, cause);
     }
 }

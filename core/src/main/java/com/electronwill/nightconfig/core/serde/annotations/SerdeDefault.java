@@ -53,8 +53,8 @@ import com.electronwill.nightconfig.core.Config;
  * <code>
  * import java.util.Arrays;
  * import java.util.Collections;
- * import static SerdeDefault.WhenValue.*;
- * import static SerdeDefault.SerdePhase.*;
+ * import static com.electronwill.nightconfig.core.serde.annotations.SerdeDefault.WhenValue.*;
+ * import static com.electronwill.nightconfig.core.serde.annotations.SerdeDefault.SerdePhase.*;
  *
  * class MyObject {
  *     // When deserializing, if the config entry "servers" is missing, null or empty,
@@ -135,15 +135,6 @@ public @interface SerdeDefault {
 	 * @return when to use the default value
 	 */
 	WhenValue[] whenValue() default { WhenValue.IS_MISSING };
-
-	public static enum SerdePhase {
-		/** Only use the default value provider when serializing. */
-		SERIALIZING,
-		/** Only use the default value provider when deserializing. */
-		DESERIALIZING,
-		/** Use the default value provider when serializing and deserializing. */
-		BOTH,
-	}
 
 	public static enum WhenValue {
 		/**

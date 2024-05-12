@@ -10,7 +10,7 @@ import java.lang.annotation.RetentionPolicy;
  *
  * <pre><code>
  * class MyObject {
- *     {@code @SerdeSkipSerializingIf(SkipIf.IS_NULL)}
+ *     {@code @SerdeSkipSerializingIf(SkipSerIf.IS_NULL)}
  *     String name;
  * }
  * </code></pre>
@@ -19,7 +19,7 @@ import java.lang.annotation.RetentionPolicy;
  *
  * <pre><code>
  * class MyObject {
- *     {@code @SerdeSkipSerializingIf(SkipIf.IS_EMPTY)}
+ *     {@code @SerdeSkipSerializingIf(SkipSerIf.IS_EMPTY)}
  *     {@code List<String>} servers;
  * }
  * </code></pre>
@@ -28,7 +28,7 @@ import java.lang.annotation.RetentionPolicy;
  *
  * <pre><code>
  * class MyObject {
- *     {@code @SerdeSkipSerializingIf(value = SkipIf.CUSTOM, customCheck="skipName")}
+ *     {@code @SerdeSkipSerializingIf(value = SkipSerIf.CUSTOM, customCheck="skipName")}
  *     String name;
  *
  *     private boolean skipName(String name) {
@@ -42,10 +42,10 @@ import java.lang.annotation.RetentionPolicy;
  *
  * <pre><code>
  * class MyObject {
- *     {@code @SerdeSkipSerializingIf(value = SkipIf.CUSTOM, customClass=SkipChecker.class, customCheck="skipName")}
+ *     {@code @SerdeSkipSerializingIf(value = SkipSerIf.CUSTOM, customClass=SkipChecker.class, customCheck="skipName")}
  *     String name;
  *
- *     {@code @SerdeSkipSerializingIf(value = SkipIf.CUSTOM, customClass=SkipChecker.class, customCheck="skipId")}
+ *     {@code @SerdeSkipSerializingIf(value = SkipSerIf.CUSTOM, customClass=SkipChecker.class, customCheck="skipId")}
  *     int id;
  * }
  *
@@ -91,7 +91,8 @@ public @interface SerdeSkipSerializingIf {
 	 * <h2>Constraints on methods</h2>
 	 * The predicate method must take exactly one parameter of type {@code T}, where
 	 * {@code T} is the type of the field to serialize.
-	 * If {@link #customClass()} is set to its non-default value, the method must be static.
+	 * If {@link #customClass()} is set to its non-default value, the method must be
+	 * static.
 	 *
 	 * <h2>Constraints on fields</h2>
 	 * The predicate field must be of type {@code java.util.function.Predicate<T>},
@@ -115,8 +116,9 @@ public @interface SerdeSkipSerializingIf {
 		 * Determining whether an object is "empty" or not is done in a "logical" way
 		 * for common Java objects.
 		 * For instance, a {@code CharSequence} is empty is its {@code length()} is
-		 * zero, a {@code Collection}
-		 * is empty if calling {@code isEmpty()} returns true, etc.
+		 * zero, a {@code Collection} is empty if calling {@code isEmpty()} returns
+		 * true, etc.
+		 *
 		 * As a last-resort try to implement the "is empty" check, reflection is used to
 		 * find and call the method {@code boolean isEmpty()} on the value.
 		 */

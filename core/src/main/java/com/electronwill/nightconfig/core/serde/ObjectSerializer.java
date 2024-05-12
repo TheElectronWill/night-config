@@ -10,6 +10,7 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.core.serde.annotations.SerdeDefault;
+import com.electronwill.nightconfig.core.serde.annotations.SerdePhase;
 
 /**
  * Serializes Java objects to NightConfig configurations ({@link UnmodifiableConfig}, {@link Config}, etc.).
@@ -191,7 +192,7 @@ public final class ObjectSerializer {
 	Supplier<?> findDefaultValueSupplier(Object fieldValue, Field field, Object instance) {
 		EnumMap<SerdeDefault.WhenValue, SerdeDefault> defaultForSerializing = AnnotationProcessor
 				.getConfigDefaultAnnotations(field)
-				.get(SerdeDefault.SerdePhase.SERIALIZING);
+				.get(SerdePhase.SERIALIZING);
 
 		if (defaultForSerializing == null) {
 			return null; // no default

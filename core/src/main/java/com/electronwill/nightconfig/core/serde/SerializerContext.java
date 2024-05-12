@@ -10,9 +10,7 @@ import java.util.function.Supplier;
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.serde.annotations.SerdeComment;
-import com.electronwill.nightconfig.core.serde.annotations.SerdeKey;
-import com.electronwill.nightconfig.core.serde.annotations.SerdeSkipSerializingIf;
+import com.electronwill.nightconfig.core.serde.annotations.*;
 
 public final class SerializerContext {
 	final ObjectSerializer settings;
@@ -64,7 +62,7 @@ public final class SerializerContext {
 	 * Serializes an object as a {@code Config} by transforming its fields into
 	 * configuration entries in {@code destination}.
 	 *
-	 * @param source the object that we are serializing
+	 * @param source      the object that we are serializing
 	 * @param destination the config that we are modifying (result of the serialization)
 	 */
 	public void serializeFields(Object source, Config destination) {
@@ -101,6 +99,11 @@ public final class SerializerContext {
 						} catch (Exception e) {
 							throw new SerdeException("Error in default value provider for field " + field);
 						}
+					}
+
+					// check the value of the field
+					if (!assertField(field, source, value)) {
+						throw new SerdeAssertException("Field `" + field + "` has an invalid value: " + value);
 					}
 
 					// find the right serializer
@@ -158,6 +161,28 @@ public final class SerializerContext {
 			return ((Predicate<Object>) skipPredicate).test(fieldValue);
 		} catch (Exception e) {
 			String msg = "Failed to resolve or apply skip predicate for serialization of field " + field;
+			throw new SerdeException(msg, e);
+		}
+	}
+
+	/**
+	 * @return false if there is an assertion and it fails
+	 */
+	@SuppressWarnings("unchecked")
+	private boolean assertField(Field field, Object fieldContainer, Object fieldValue) {
+		SerdeAssert[] annot = field.getAnnotationsByType(SerdeAssert.class);
+		if (annot == null || annot.length == 0) {
+			return true;
+		}
+		try {
+			Predicate<?> assertPredicate = AnnotationProcessor.resolveAssertPredicate(annot, fieldContainer,
+					SerdePhase.SERIALIZING, field);
+			if (assertPredicate == null) {
+				return true;
+			}
+			return ((Predicate<Object>) assertPredicate).test(fieldValue);
+		} catch (Exception e) {
+			String msg = "Failed to resolve or apply assertion for serialization of field " + field;
 			throw new SerdeException(msg, e);
 		}
 	}

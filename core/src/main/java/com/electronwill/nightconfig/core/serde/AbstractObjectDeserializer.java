@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import com.electronwill.nightconfig.core.NullObject;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.serde.annotations.SerdeDefault;
+import com.electronwill.nightconfig.core.serde.annotations.SerdePhase;
 
 /**
  * AbstractObjectDeserializer, common to all Java versions.
@@ -124,7 +125,7 @@ class AbstractObjectDeserializer {
 	protected Supplier<?> findDefaultValueSupplier(Object rawConfigValue, Field field, Object instance) {
 		EnumMap<SerdeDefault.WhenValue, SerdeDefault> defaultForDeserializing = AnnotationProcessor
 				.getConfigDefaultAnnotations(field)
-				.get(SerdeDefault.SerdePhase.DESERIALIZING);
+				.get(SerdePhase.DESERIALIZING);
 
 		if (defaultForDeserializing == null) {
 			return null; // no default
