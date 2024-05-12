@@ -170,7 +170,7 @@ public final class ObjectSerializer {
 	 * @throws SerdeException if no converter is found
 	 */
 	@SuppressWarnings("unchecked")
-	<T, R> ValueSerializer<T, R> findValueSerializer(Object value, SerializerContext ctx) { // todo
+	<T, R> ValueSerializer<T, R> findValueSerializer(Object value, SerializerContext ctx) {
 		Class<?> valueClass = value == null ? null : value.getClass();
 		ValueSerializer<?, ?> maybeSe = null;
 		for (ValueSerializerProvider<?, ?> provider : generalProviders) {
