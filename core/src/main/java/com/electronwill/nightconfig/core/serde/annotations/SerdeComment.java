@@ -1,8 +1,6 @@
 package com.electronwill.nightconfig.core.serde.annotations;
 
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.*;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
@@ -34,6 +32,7 @@ import com.electronwill.nightconfig.core.io.ConfigWriter;
  */
 @Repeatable(SerdeCommentsContainer.class)
 @Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
 public @interface SerdeComment {
 	String value();
 }

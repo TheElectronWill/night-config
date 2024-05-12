@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.core.serde.annotations;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.*;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
@@ -78,6 +77,7 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
  * </code></pre>
  */
 @Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
 public @interface SerdeSkipDeserializingIf {
 	/**
 	 * The type of skip predicate: either a predefined condition, or {@code CUSTOM}.
@@ -120,6 +120,11 @@ public @interface SerdeSkipDeserializingIf {
 	 */
 	String customCheck() default "";
 
+	/**
+	 * A condition that defines when to skip the field during deserialization.
+	 * <p>
+	 * The field is skipped if the condition is true.
+	 */
 	public static enum SkipDeIf {
 		/**
 		 * Skip the field if the corresponding config entry is missing.

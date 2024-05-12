@@ -12,6 +12,9 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.serde.annotations.*;
 
+/**
+ * Holds serialization settings and provides some base serialization logic.
+ */
 public final class SerializerContext {
 	final ObjectSerializer settings;
 	final Supplier<? extends ConfigFormat<?>> formatSupplier;

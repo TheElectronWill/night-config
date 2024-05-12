@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.core.serde.annotations;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.*;
 
 /**
  * Don't serialize the annotated field if some condition is true.
@@ -61,6 +60,7 @@ import java.lang.annotation.RetentionPolicy;
  * </code></pre>
  */
 @Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
 public @interface SerdeSkipSerializingIf {
 	/**
 	 * The type of skip predicate: either a predefined condition, or {@code CUSTOM}.
@@ -105,6 +105,11 @@ public @interface SerdeSkipSerializingIf {
 	 */
 	String customCheck() default "";
 
+	/**
+	 * A condition that defines when to skip the field during serialization.
+	 * <p>
+	 * The field is skipped if the condition is true.
+	 */
 	public static enum SkipSerIf {
 		/**
 		 * Skip the field if it's null.

@@ -10,7 +10,7 @@ import java.util.UUID;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
 /**
- * Implements Config to Object deserialization.
+ * Builder for {@link ObjectDeserializer}.
  */
 public final class ObjectDeserializerBuilder {
 

@@ -11,7 +11,7 @@ import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
 /**
- * Implements Object to Config serialization.
+ * Builder for {@link ObjectSerializer}.
  */
 public final class ObjectSerializerBuilder {
     final IdentityHashMap<Class<?>, ValueSerializer<?, ?>> classBasedSerializers = new IdentityHashMap<>(7);

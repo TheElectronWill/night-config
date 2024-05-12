@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.core.serde.annotations;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.*;
 
 /**
  * Sets the key to use when serializing/deserializing an element, instead of its
@@ -32,6 +31,7 @@ import java.lang.annotation.RetentionPolicy;
  * </pre>
  */
 @Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
 public @interface SerdeKey {
 	String value();
 }

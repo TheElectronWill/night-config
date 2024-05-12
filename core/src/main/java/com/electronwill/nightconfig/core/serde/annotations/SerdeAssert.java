@@ -1,8 +1,6 @@
 package com.electronwill.nightconfig.core.serde.annotations;
 
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.*;
 
 /**
  * Throw an exception if the annotated field does not match the given condition.
@@ -33,6 +31,7 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Repeatable(SerdeAssertsContainer.class)
 @Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
 public @interface SerdeAssert {
 	/**
 	 * One or multiple assertions to check.
@@ -94,6 +93,11 @@ public @interface SerdeAssert {
 	 */
 	SerdePhase phase() default SerdePhase.BOTH;
 
+	/**
+	 * An condition that the field's value must verify during (de)serialization.
+	 * <p>
+	 * An exception is thrown if the field does not satisfy the condition.
+	 */
 	public static enum AssertThat {
 		/**
 		 * Throw an exception if the field is null.

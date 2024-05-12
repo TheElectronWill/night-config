@@ -7,6 +7,7 @@ import java.util.EnumMap;
 import java.util.function.Supplier;
 
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import com.electronwill.nightconfig.core.serde.annotations.SerdeDefault;

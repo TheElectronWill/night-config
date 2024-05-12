@@ -1,8 +1,6 @@
 package com.electronwill.nightconfig.core.serde.annotations;
 
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.*;
 
 import com.electronwill.nightconfig.core.Config;
 
@@ -84,6 +82,7 @@ import com.electronwill.nightconfig.core.Config;
  */
 @Repeatable(SerdeDefaultsContainer.class)
 @Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
 public @interface SerdeDefault {
 	/**
 	 * The class that defines the method that provides the default value.
@@ -136,6 +135,11 @@ public @interface SerdeDefault {
 	 */
 	WhenValue[] whenValue() default { WhenValue.IS_MISSING };
 
+	/**
+	 * A condition that defines when to use the default value during (de)serialization.
+	 * <p>
+	 * The default value is used if the condition is true.
+	 */
 	public static enum WhenValue {
 		/**
 		 * When deserializing a field, call the default value provider if the value is

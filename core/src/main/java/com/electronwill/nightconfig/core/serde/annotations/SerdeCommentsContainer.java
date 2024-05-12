@@ -1,8 +1,6 @@
 package com.electronwill.nightconfig.core.serde.annotations;
 
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.*;
 
 /**
  * A container for multiple {@link SerdeComment} annotations, because
@@ -12,6 +10,7 @@ import java.lang.annotation.RetentionPolicy;
  * you should simply repeat the {@code @SerdeComment} annotation multiple times.
  */
 @Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
 public @interface SerdeCommentsContainer {
 	SerdeComment[] value();
 }

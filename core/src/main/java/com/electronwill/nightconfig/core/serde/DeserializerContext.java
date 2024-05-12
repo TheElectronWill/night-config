@@ -12,6 +12,9 @@ import com.electronwill.nightconfig.core.NullObject;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.serde.annotations.*;
 
+/**
+ * Holds deserialization settings and provides some base deserialization logic.
+ */
 public final class DeserializerContext {
 	final AbstractObjectDeserializer settings;
 
