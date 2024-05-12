@@ -6,6 +6,7 @@ import java.util.Map;
 import com.electronwill.sharedtests.TestEnum;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -92,6 +93,59 @@ class ConfigSpecTest {
 		sb.delete(sb.length() - 2, sb.length());
 		sb.append('}');
 		return sb.toString();
+	}
+
+	@Test
+	public void testPrimitiveConversions() {
+		ConfigSpec spec = new ConfigSpec();
+		spec.defineInRange("x", 1L, 1L, 100L);
+
+		Config conf = Config.inMemory();
+		conf.set("x", 2L);
+		assertTrue(spec.isCorrect(conf));
+		assertEquals(0, spec.correct(conf));
+
+		spec = new ConfigSpec();
+		spec.defineInRange("x", 1, 1, 100);
+		conf.set("x", 2L);
+		assertTrue(spec.isCorrect(conf));
+		assertEquals(0, spec.correct(conf));
+
+		spec = new ConfigSpec();
+		spec.defineInRange("x", 1.0, 1.0, 100.0);
+		conf.set("x", 2L);
+		assertTrue(spec.isCorrect(conf));
+		assertEquals(0, spec.correct(conf));
+
+		spec = new ConfigSpec();
+		spec.defineInRange("x", 1.0, 1.0, 100.0);
+		conf.set("x", 2);
+		assertTrue(spec.isCorrect(conf));
+		assertEquals(0, spec.correct(conf));
+
+		spec = new ConfigSpec();
+		spec.defineInRange("x", 1.0f, 1.0f, 100.0f);
+		conf.set("x", 2L);
+		assertTrue(spec.isCorrect(conf));
+		assertEquals(0, spec.correct(conf));
+
+		spec = new ConfigSpec();
+		spec.defineInRange("x", 1.0f, 1.0f, 100.0f);
+		conf.set("x", 2);
+		assertTrue(spec.isCorrect(conf));
+		assertEquals(0, spec.correct(conf));
+
+		spec = new ConfigSpec();
+		spec.defineInRange("x", 1, 1, 100);
+		conf.set("x", 2.0);
+		assertTrue(spec.isCorrect(conf));
+		assertEquals(0, spec.correct(conf));
+
+		spec = new ConfigSpec();
+		spec.defineInRange("x", 1, 1, 100);
+		conf.set("x", 2.0f);
+		assertTrue(spec.isCorrect(conf));
+		assertEquals(0, spec.correct(conf));
 	}
 
 }

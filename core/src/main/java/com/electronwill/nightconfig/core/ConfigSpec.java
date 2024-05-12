@@ -149,7 +149,7 @@ public class ConfigSpec {
 	 * @param path                 the entry's path
 	 * @param defaultValue         the default entry value
 	 * @param acceptableValueClass the class that a value of this entry must have
-	 * @param <V> the value's type 
+	 * @param <V> the value's type
 	 */
 	public <V> void defineOfClass(String path, V defaultValue,
 								  Class<? super V> acceptableValueClass) {
@@ -163,7 +163,7 @@ public class ConfigSpec {
 	 * @param path                 the entry's path
 	 * @param defaultValueSupplier the Supplier of the default entry value
 	 * @param acceptableValueClass the class that a value of this entry must have
-	 * @param <V> the value's type 
+	 * @param <V> the value's type
 	 */
 	public <V> void defineOfClass(String path, Supplier<V> defaultValueSupplier,
 								  Class<? super V> acceptableValueClass) {
@@ -177,7 +177,7 @@ public class ConfigSpec {
 	 * @param path                 the entry's path
 	 * @param defaultValue         the default entry value
 	 * @param acceptableValueClass the class that a value of this entry must have
-	 * @param <V> the value's type 
+	 * @param <V> the value's type
 	 */
 	public <V> void defineOfClass(List<String> path, V defaultValue,
 								  Class<? super V> acceptableValueClass) {
@@ -191,7 +191,7 @@ public class ConfigSpec {
 	 * @param path                 the entry's path
 	 * @param defaultValueSupplier the Supplier of the default entry value
 	 * @param acceptableValueClass the class that a value of this entry must have
-	 * @param <V> the value's type 
+	 * @param <V> the value's type
 	 */
 	public <V> void defineOfClass(List<String> path, Supplier<V> defaultValueSupplier,
 								  Class<? super V> acceptableValueClass) {
@@ -273,7 +273,7 @@ public class ConfigSpec {
 	 * @param defaultValueSupplier the Supplier of the default entry value
 	 * @param min                  the minimum, inclusive
 	 * @param max                  the maximum, inclusive
-	 * @param <V> the value's type 
+	 * @param <V> the value's type
 	 */
 	public <V extends Comparable<? super V>> void defineInRange(String path,
 																Supplier<V> defaultValueSupplier,
@@ -289,7 +289,7 @@ public class ConfigSpec {
 	 * @param defaultValue the default entry value
 	 * @param min          the minimum, inclusive
 	 * @param max          the maximum, inclusive
-	 * @param <V> the value's type 
+	 * @param <V> the value's type
 	 */
 	public <V extends Comparable<? super V>> void defineInRange(List<String> path, V defaultValue,
 																V min, V max) {
@@ -304,7 +304,7 @@ public class ConfigSpec {
 	 * @param defaultValueSupplier the Supplier of the default entry value
 	 * @param min                  the minimum, inclusive
 	 * @param max                  the maximum, inclusive
-	 * @param <V> the value's type 
+	 * @param <V> the value's type
 	 */
 	@SuppressWarnings("unchecked")
 	public <V extends Comparable<? super V>> void defineInRange(List<String> path,
@@ -318,8 +318,32 @@ public class ConfigSpec {
 			Comparable<V> c = (Comparable<V>)o;
 			try {
 				return c.compareTo(min) >= 0 && c.compareTo(max) <= 0;
-			} catch (ClassCastException ex) {//cannot check if c is really Comparable<V> or
-				// Comparable<Other incompatible type> so we catch the exception
+			} catch (ClassCastException ex) {
+				// We cannot check whether c is really Comparable<V> or
+				// Comparable<Other incompatible type>, so we catch the exception.
+
+				// If a primitive conversion makes sense, do it.
+				if (c instanceof Number && min instanceof Number) {
+					Class<?> valueCls = c.getClass();
+					Class<?> rangeCls = min.getClass();
+					if (valueCls == Long.class || valueCls == Integer.class) {
+						if (rangeCls == Integer.class || rangeCls == Short.class || rangeCls == Character.class) {
+							long l = ((Number) c).longValue();
+							return l >= ((Number) min).longValue() && l <= ((Number) max).longValue();
+						} else if (rangeCls == Float.class || rangeCls == Double.class) {
+							double d = ((Number) c).doubleValue();
+							return d >= ((Number) min).doubleValue() && d <= ((Number) max).doubleValue();
+							// Note: it is possible that this integer cannot be accurately represented as a
+							// double, but I'm not sure how to handle this here. The Java languages accepts
+							// comparisons of primitive double with primitive long (casts long to double).
+						}
+					}
+					if (valueCls == Double.class || valueCls == Float.class) {
+						double d = ((Number) c).doubleValue();
+						return d >= ((Number) min).doubleValue() && d <= ((Number) max).doubleValue();
+					}
+				}
+				// Else, fail the range check.
 				return false;
 			}
 		});
