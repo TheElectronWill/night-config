@@ -144,6 +144,13 @@ final class Util {
 		return type.isPrimitive() || WRAPPER_TO_PRIMITIVE.get(type) != null;
 	}
 
+	/** Checks that {@code type} is a primitive or a wrapper type that is a {@code Number}
+	 * (all primitive types except boolean and char). */
+	static boolean isPrimitiveOrWrapperNumber(Class<?> type) {
+		return isPrimitiveOrWrapper(type) && type != Boolean.class && type != boolean.class && type != Character.class
+				&& type != char.class;
+	}
+
 	private static final IdentityHashMap<Class<?>, TypeAndOrder> PRIMITIVE_TO_WRAPPER = new IdentityHashMap<>();
 	private static final IdentityHashMap<Class<?>, TypeAndOrder> WRAPPER_TO_PRIMITIVE = new IdentityHashMap<>();
 

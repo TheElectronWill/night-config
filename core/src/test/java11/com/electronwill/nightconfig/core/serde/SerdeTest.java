@@ -70,6 +70,13 @@ public final class SerdeTest {
 				return false;
 			return true;
 		}
+
+		@Override
+		public String toString() {
+			return "Primitives [l=" + l + ", i=" + i + ", s=" + s + ", c=" + c + ", b=" + b + ", bool=" + bool + ", f="
+					+ f + ", d=" + d + "]";
+		}
+
 	}
 
 	@Test
@@ -89,7 +96,7 @@ public final class SerdeTest {
 	@Test
 	public void testPrimitivesWithExoticConfigFormats() throws Exception {
 		// Here we use a ConfigFormat that does not support byte, short and char, but
-		// that support int.
+		// that does support int.
 		// We expect the Serializer to convert the values to int.
 		Predicate<Class<?>> onlyIntOrFloat = (cls) -> cls == Boolean.class || cls == boolean.class
 				|| cls == Integer.class || cls == int.class || cls == Long.class || cls == long.class
@@ -110,6 +117,53 @@ public final class SerdeTest {
 		ser = ObjectSerializer.standard();
 		serialized = ser.serializeFields(new Primitives(), Config::inMemoryUniversal);
 		assertEquals(Primitives.SERIALIZED, serialized);
+	}
+
+	@Test
+	public void testPrimitivesWithConversions() throws Exception {
+		// Put, in the config, values that are not exactly of the same type as the Java field.
+		// We expect the Deserializer to convert the values automatically.
+
+		// easy widening conversions
+		var conf = Config.copy(Primitives.SERIALIZED);
+		conf.set("l", Integer.MAX_VALUE); // int -> long
+		conf.set("i", Short.MAX_VALUE); // short -> int
+		conf.set("s", Byte.MAX_VALUE); // byte -> short
+		conf.set("f", Integer.MAX_VALUE); // int -> float
+		conf.set("d", Long.MAX_VALUE); // long -> double
+		var deserialized = ObjectDeserializer.standard().deserializeFields(conf, Primitives::new);
+
+		var expectedObj = new Primitives();
+		expectedObj.l = Integer.MAX_VALUE;
+		expectedObj.i = Short.MAX_VALUE;
+		expectedObj.s = Byte.MAX_VALUE;
+		expectedObj.f = Integer.MAX_VALUE;
+		expectedObj.d = Long.MAX_VALUE;
+		assertEquals(expectedObj, deserialized);
+
+		// less easy conversions that could truncate the value, a check is required
+		conf.set("i", 1234L); // long -> int
+		conf.set("s", 123); // int -> short
+		conf.set("b", 10); // int -> byte
+		conf.set("f", 1234L); // long -> float
+		deserialized = ObjectDeserializer.standard().deserializeFields(conf, Primitives::new);
+
+		expectedObj.i = 1234;
+		expectedObj.s = 123;
+		expectedObj.b = 10;
+		expectedObj.f = 1234L;
+		assertEquals(expectedObj, deserialized);
+
+		// lossy conversions, forbidden
+		conf.set("i", Long.MIN_VALUE);
+		assertThrows(SerdeException.class, () -> {
+			ObjectDeserializer.standard().deserializeFields(conf, Primitives::new);
+		});
+		conf.set("i", 1234);
+		conf.set("s", Short.MAX_VALUE + 1);
+		assertThrows(SerdeException.class, () -> {
+			ObjectDeserializer.standard().deserializeFields(conf, Primitives::new);
+		});
 	}
 
 	static class Simple {

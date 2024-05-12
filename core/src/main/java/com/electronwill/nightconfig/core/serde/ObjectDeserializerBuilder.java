@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.serde.StandardDeserializers.RiskyNumberDeserializer;
 
 /**
  * Builder for {@link ObjectDeserializer}.
@@ -123,6 +124,7 @@ public final class ObjectDeserializerBuilder {
 		ValueDeserializer arrDe = new StandardDeserializers.CollectionToArrayDeserializer();
 		ValueDeserializer enumDe = new StandardDeserializers.EnumDeserializer();
 		ValueDeserializer uuidDe = new StandardDeserializers.UuidDeserializer();
+		ValueDeserializer numberDe = new StandardDeserializers.RiskyNumberDeserializer();
 
 		withDeserializerProvider(((valueClass, resultType) -> {
 			Type fullType = resultType.getFullType();
@@ -151,6 +153,9 @@ public final class ObjectDeserializerBuilder {
 				}
 				if (valueClass == String.class && Enum.class.isAssignableFrom(resultClass)) {
 					return enumDe; // value to Enum
+				}
+				if (RiskyNumberDeserializer.isNumberTypeSupported(valueClass) && Util.isPrimitiveOrWrapperNumber(resultClass)) {
+					return numberDe;
 				}
 				return null; // no standard deserializer matches this case
 			}).orElse(null);

@@ -263,4 +263,88 @@ final class StandardDeserializers {
 			return UUID.fromString(value);
 		}
 	}
+
+	/**
+	 * Tries to perform a "risky" conversion between two number types.
+	 * Throws an exception is the conversion turns out to be lossy.
+	 * <p>
+	 * This deserializer should only be called if the value cannot be assigned to the number field
+	 * using an automatic widening conversion.
+	 */
+	static final class RiskyNumberDeserializer implements ValueDeserializer<Number, Number> {
+
+		public static boolean isNumberTypeSupported(Class<?> t) {
+			return t == Integer.class || t == int.class || t == Long.class || t == long.class;
+		}
+
+		@Override
+		public Number deserialize(Number value, Optional<TypeConstraint> resultType, DeserializerContext ctx) {
+			TypeConstraint numberType = resultType.orElseThrow(() -> new SerdeException(
+					"Cannot deserialize a value with a risky number conversion without knowing the number type"));
+			Class<?> resultCls = numberType.getSatisfyingRawType()
+					.orElseThrow(() -> new SerdeException(
+							"Could not find a concrete number type that can satisfy the constraint "
+									+ numberType));
+			Class<?> valueCls = value.getClass();
+
+			if (valueCls == Long.class) {
+				long l = ((Number) value).longValue();
+				if (resultCls == Integer.class || resultCls == int.class) {
+					// long to int
+					int i = (int) l;
+					if ((long) i == l) {
+						return i;
+					} else {
+						// error: lossy
+					}
+
+				} else if (resultCls == Short.class || resultCls == short.class) {
+					// long to short
+					short s = (short) l;
+					if ((long) s == l) {
+						return s;
+					} else {
+						// error: lossy
+					}
+				} else if (resultCls == Byte.class || resultCls == byte.class) {
+					// long to byte
+					byte b = (byte) l;
+					if ((long) b == l) {
+						return b;
+					} else {
+						// error: lossy
+					}
+				} else {
+					throw new SerdeException(String.format(
+							"Cannot deserialize from %s to %s: risky conversion not implemented, you should change your types.",
+							valueCls, resultCls));
+				}
+			} else if (valueCls == Integer.class) {
+				int i = ((Number) value).intValue();
+				if (resultCls == Short.class || resultCls == short.class) {
+					// int to short
+					short s = (short) i;
+					if ((int) s == i) {
+						return s;
+					} else {
+						// error: lossy
+					}
+				} else if (resultCls == Byte.class || resultCls == byte.class) {
+					// int to byte
+					byte b = (byte) i;
+					if ((int) b == i) {
+						return b;
+					} else {
+						// error: lossy
+					}
+				} else {
+					throw new SerdeException(String.format(
+							"Cannot deserialize from %s to %s: risky conversion not implemented, you should change your types.",
+							valueCls, resultCls));
+				}
+			}
+			throw new SerdeException(String.format(
+					"Cannot deserialize %s to %s: the conversion would be lossy", value, resultCls));
+		}
+	}
 }
