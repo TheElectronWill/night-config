@@ -124,16 +124,21 @@ public final class JsonParser implements ConfigParser<Config> {
 		} else {
 			throw new ParsingException("Invalid first character for a json document: " + firstChar);
 		}
-
-		int trailing = input.readAndSkip(SPACES);
-		if (trailing >= 0) {
-			input.pushBack((char) trailing);
-			String msg = String.format(
-					"Invalid data at the end of the JSON document: %s (use JsonParser.setTrailingDataAccepted(true) if you intend this to work)",
-					input.read(6).toString());
-			throw new ParsingException(msg);
-		}
+		checkNoTrailingData(input);
 		return result;
+	}
+
+	private void checkNoTrailingData(CharacterInput input) {
+		if (!trailingDataAccepted) {
+			int trailing = input.readAndSkip(SPACES);
+			if (trailing >= 0) {
+				input.pushBack((char) trailing);
+				String msg = String.format(
+						"Invalid data at the end of the JSON document: %s (use JsonParser.setTrailingDataAccepted(true) if you intend this to work)",
+						input.read(6).toString());
+				throw new ParsingException(msg);
+			}
+		}
 	}
 
 	/**
@@ -173,14 +178,7 @@ public final class JsonParser implements ConfigParser<Config> {
 			parsingMode.prepareParsing(destination);
 			parseObject(input, destination, parsingMode);
 		}
-		int trailing = input.readAndSkip(SPACES);
-		if (trailing >= 0) {
-			input.pushBack((char) trailing);
-			String msg = String.format(
-					"Invalid data at the end of the JSON document: %s (use JsonParser.setTrailingDataAccepted(true) if you intend this to work)",
-					input.read(6).toString());
-			throw new ParsingException(msg);
-		}
+		checkNoTrailingData(input);
 	}
 
 	/**
@@ -236,15 +234,7 @@ public final class JsonParser implements ConfigParser<Config> {
 			throw new ParsingException("Invalid first character for a json array: " + firstChar);
 		}
 		parseArray(input, destination, parsingMode, configModel);
-
-		int trailing = input.readAndSkip(SPACES);
-		if (trailing >= 0) {
-			input.pushBack((char) trailing);
-			String msg = String.format(
-					"Invalid data at the end of the JSON document: %s (use JsonParser.setTrailingDataAccepted(true) if you intend this to work)",
-					input.read(6).toString());
-			throw new ParsingException(msg);
-		}
+		checkNoTrailingData(input);
 	}
 
 	private <T extends Config> T parseObject(CharacterInput input, T config, ParsingMode parsingMode) {
