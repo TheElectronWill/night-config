@@ -8,7 +8,7 @@ multiRelease {
 }
 
 dependencies {
-	implementation(project(":core"))
+	api(project(":core"))
 	implementation(libs.snakeYaml)
 
 	testImplementation(project(":test-shared"))

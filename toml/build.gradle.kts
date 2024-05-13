@@ -8,6 +8,6 @@ multiRelease {
 }
 
 dependencies {
-	implementation(project(":core"))
+	api(project(":core"))
     testImplementation(project(":test-shared"))
 }
