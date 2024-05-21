@@ -48,6 +48,8 @@ dotted.key = 12
 dotted.sub.subsub.key = { a = "b", c = "d", d = 12, e = 3.14, f = true }# more comments
 dotted.more_data = 'some string' # comments here!
 
+dotted_key_in_inline_table = { version.number = "1.2.3", "a.b.c" = "normal key" }
+
 # Numbers in different bases
 hexa = 0xabcdef
 hexa2 = 0x01234

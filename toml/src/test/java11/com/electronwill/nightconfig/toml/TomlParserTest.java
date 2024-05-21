@@ -19,6 +19,7 @@ import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -305,5 +306,15 @@ public class TomlParserTest {
 				+ "[array_full_inline.sub2.subtable]\n"
 				+ "   test = 'success'\n";
 		parseAndPrint(toml);
+	}
+
+	@Test
+	public void testInlineTables() {
+		String toml = "dotted_key_in_inline_table = { version.number = \"1.2.3\", \"a.b.c\" = \"normal key\" }";
+		CommentedConfig config = new TomlParser().parse(toml);
+		CommentedConfig sub = config.get("dotted_key_in_inline_table");
+		assertEquals(2, sub.size());
+		assertEquals("1.2.3", sub.get(Arrays.asList("version", "number")));
+		assertEquals("normal key", sub.get(Arrays.asList("a.b.c")));
 	}
 }

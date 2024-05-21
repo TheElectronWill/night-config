@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.toml;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.Config.Entry;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.concurrent.StampedConfig;
 import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
@@ -142,10 +143,11 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 		}
 		Config currentConfig = parentTable;
 		for (String key : path) {
-			Object value = currentConfig.valueMap().get(key);
+			List<String> singleKey = Collections.singletonList(key);
+			Object value = currentConfig.get(singleKey);
 			if (value == null) {
 				Config sub = parentTable.createSubConfig();
-				currentConfig.valueMap().put(key, sub);
+				currentConfig.set(singleKey, sub);
 				currentConfig = sub;
 			} else if (value instanceof Config) {
 				currentConfig = (Config)value;
@@ -169,8 +171,8 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 	}
 
 	private void checkContainsOnlySubtables(Config table, List<String> path) {
-		for (Object value : table.valueMap().values()) {
-			if (!(value instanceof Config)) {
+		for (Entry entry : table.entrySet()) {
+			if (!(entry.getValue() instanceof Config)) {
 				throw new ParsingException("Table with path " + path + " has been declared twice.");
 			}
 		}

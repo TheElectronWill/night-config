@@ -24,12 +24,10 @@ final class TableParser {
 			if (keyFirst == '}') {
 				return config;// handles {} and {k1=v1,... ,}
 			}
-			String key = parseKey(input, keyFirst, parser);
-			char sep = Toml.readNonSpaceChar(input, false);
-			checkInvalidSeparator(sep, key, parser);
+			List<String> key = parseDottedKey(input, keyFirst, parser);
 
 			Object value = ValueParser.parse(input, parser, config);
-			Object previous = parser.getParsingMode().put(config.valueMap(), key, value);
+			Object previous = parser.getParsingMode().put(config, key, value);
 			checkDuplicateKey(key, previous, true);
 
 			char after = Toml.readNonSpaceChar(input, false);
@@ -90,13 +88,6 @@ final class TableParser {
 		}
 	}
 
-	private static void checkInvalidSeparator(char sep, String key, TomlParser parser) {
-		if (!Toml.isKeyValueSeparator(sep, parser.isLenientWithSeparators())) {
-			throw new ParsingException(
-					"Invalid separator '" + sep + "'after key \"" + key + "\" in some table.");
-		}
-	}
-
 	static CommentedConfig parseNormal(CommentedConfig parentConfig, CharacterInput input, TomlParser parser) {
 		return parseNormal(input, parser, parentConfig.createSubConfig());
 	}
@@ -108,7 +99,7 @@ final class TableParser {
 			if (firstChar == ']') {
 				throw new ParsingException("Tables names must not be empty.");
 			}
-			String key = parseKey(input, firstChar, parser);
+			String key = parseNonDottedKey(input, firstChar, parser);
 			list.add(key);
 
 			char separator = Toml.readNonSpaceChar(input, false);
@@ -138,11 +129,17 @@ final class TableParser {
 		}
 	}
 
+	/**
+	 * Parses a key that can be dotted (e.g. {@code a.b.c}, quoted {@code "abc"} or bare {@code abc}).
+	 * The next non-space character is also read, and an exception is thrown if it's not a key-value separator.
+	 *
+	 * @return the components of the key
+	 */
 	static List<String> parseDottedKey(CharacterInput input, char firstChar, TomlParser parser) {
 		List<String> list = parser.createList();
 		char first = firstChar;
 		while (true) {
-			String part = parseKey(input, first, parser);
+			String part = parseNonDottedKey(input, first, parser);
 			list.add(part);
 
 			char sep = Toml.readNonSpaceChar(input, false);
@@ -155,7 +152,7 @@ final class TableParser {
 		}
 	}
 
-	static String parseKey(CharacterInput input, char firstChar, TomlParser parser) {
+	static String parseNonDottedKey(CharacterInput input, char firstChar, TomlParser parser) {
 		// Note that a key can't be multiline
 		// Empty keys are allowed if and only if they are quoted (with double or single quotes)
 		if (firstChar == '\"') {
