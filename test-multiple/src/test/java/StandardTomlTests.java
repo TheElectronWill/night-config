@@ -68,7 +68,7 @@ public class StandardTomlTests {
 					// Regular TOML test.
 					invalidTests.add(dynamicTest(relativePath.toString(), () -> {
 						TomlParser parser = new TomlParser();
-						assertThrows(Exception.class, () -> {
+						assertThrows(ParsingException.class, () -> {
 							parser.parse(testFile, FileNotFoundAction.THROW_ERROR);
 						}, () -> String.format("invalid file '%s' should have been rejected by the parser",
 								relativePath));
@@ -120,7 +120,8 @@ public class StandardTomlTests {
 			}
 		}
 
-		var allTests = Arrays.asList(dynamicContainer("parser valid", validTests), dynamicContainer("parser invalid", invalidTests));
+		var allTests = Arrays.asList(dynamicContainer("parser valid", validTests),
+				dynamicContainer("parser invalid", invalidTests));
 		return allTests;
 	}
 
@@ -149,16 +150,20 @@ public class StandardTomlTests {
 						JsonParser jsonParser = new JsonParser();
 
 						try {
-							Config config = parseJsonExpectationToConfig(
-									jsonParser.parse(jsonFile, FileNotFoundAction.THROW_ERROR));
+							Config config = parseJsonExpectationToConfig(jsonParser.parse(jsonFile, FileNotFoundAction.THROW_ERROR));
 							String written = tomlWriter.writeToString(config);
 
-							CommentedConfig writtenParsed = tomlParser.parse(written);
-							CommentedConfig expected = tomlParser.parse(tomlFile, FileNotFoundAction.THROW_ERROR);
-							assertEquals(writtenParsed, expected);
+							try {
+								CommentedConfig writtenParsed = tomlParser.parse(written);
+								CommentedConfig expected = tomlParser.parse(tomlFile, FileNotFoundAction.THROW_ERROR);
+								assertEquals(expected, writtenParsed, String.format("Invalid output for test %s:\n%s", relativePath, written));
+							} catch (Exception ex) {
+								fail("Exception occured while parsing serialization of:\n" + config + "\nwhich has been written as:\n"
+										+ written, ex);
+							}
 
 						} catch (Exception ex) {
-							fail("Exception occured in test " + relativePath, ex);
+							fail("Exception occured while serializing test " + relativePath, ex);
 						}
 
 					}));

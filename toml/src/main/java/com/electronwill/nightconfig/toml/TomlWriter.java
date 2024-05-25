@@ -21,8 +21,10 @@ public final class TomlWriter implements ConfigWriter {
 		int i0 = str.indexOf('\n'); // index of first newline
 		int i1 = str.indexOf('\n', i0+1);
 		int i2 = str.indexOf('\n', i1+1);
-		return (i0 >= 0 && i1 > 0 && i2 > 0) // at least 3 newlines
-			|| (i0 > 0 && i0 < str.length()-1); // at least one newline in the middle
+		int cr = str.indexOf('\r');
+		return cr == -1 // no \r (it causes problem with splitLines and tests)
+			&& ((i0 >= 0 && i1 > 0 && i2 > 0) // at least 3 newlines
+			|| (i0 > 0 && i0 < str.length()-1)); // at least one newline in the middle
 	};
 	private Predicate<List<?>> indentArrayElementsPredicate = elem -> false;
 	private char[] indent = IndentStyle.TABS.chars;

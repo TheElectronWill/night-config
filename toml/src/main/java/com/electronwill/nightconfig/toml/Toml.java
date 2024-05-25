@@ -78,7 +78,11 @@ final class Toml {
 	}
 
 	static boolean isValidBareKey(CharSequence csq, boolean lenient) {
-		for (int i = 0; i < csq.length(); i++) {
+		int len = csq.length();
+		if (len == 0) {
+			return false;
+		}
+		for (int i = 0; i < len; i++) {
 			if (!isValidInBareKey(csq.charAt(i), lenient)) { return false; }
 		}
 		return true;

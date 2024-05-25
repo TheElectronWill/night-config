@@ -73,10 +73,6 @@ final class StringWriter {
 		output.write("''''");
 	}
 
-	private static void writeBasicMultilineChar(char c, CharacterOutput output) {
-
-	}
-
 	private static void writeBasicChar(char c, CharacterOutput output) {
 		switch (c) {
 			case '\\':
