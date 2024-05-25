@@ -11,3 +11,4 @@ include("toml")
 include("yaml")
 
 include("test-shared")
+include("test-multiple")

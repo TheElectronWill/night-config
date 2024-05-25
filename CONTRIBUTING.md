@@ -62,3 +62,10 @@ Execution failed for task ':japicmp'.
 
      See failure report at file:///home/guillaume/Documents/Projets/night-config/build/reports/japicmp.html
 ```
+
+## Multi-module test suite
+
+The Gradle module `test-multiple` implements tests that require multiple NightConfig modules.
+
+In particular, it executes the tests of [the language agnostic TOML test suite](https://github.com/toml-lang/toml-test).
+To avoid a test dependency on another programming language, we don't run the provided binary, but rather reimplement the tests using the same resources (valid and invalid TOML files).
