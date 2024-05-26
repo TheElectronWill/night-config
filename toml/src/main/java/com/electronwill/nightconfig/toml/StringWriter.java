@@ -51,7 +51,7 @@ final class StringWriter {
 						output.write(ESCAPED_BACKSLASH);
 						break;
 					default: {
-						if (Toml.isControlChar(c)) {
+						if (c != '\t' && c != '\n' && c != '\r' && Toml.isControlChar(c)) {
 							output.write(escapeUnicode(c));
 						} else {
 							output.write(Character.toChars(c));

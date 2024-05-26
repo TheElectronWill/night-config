@@ -72,7 +72,7 @@ binary = 0b101011
 [[  array  .  ofTables  ]]
     a = false
 [[array.ofTables]]
-    a = [,]# This is an empty array
+    a = [1,2,]# trailing comma
 [[array.ofTables]]
     a = true
 
