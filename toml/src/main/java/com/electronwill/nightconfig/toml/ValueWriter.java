@@ -31,24 +31,13 @@ final class ValueWriter {
 	}
 	/**
 	 * Writes a value. This method calls the correct writing method based on the value's type.
+	 * If {@code value} is a table ({@code Config}), it is written in inline form.
 	 */
 	static void write(Object value, CharacterOutput output, TomlWriter writer) {
 		if (value instanceof Config) {
 			TableWriter.writeInline((Config)value, output, writer);
 		} else if (value instanceof List) {
-			List<?> list = (List<?>)value;
-			if (!list.isEmpty() && list.stream().allMatch(Config.class::isInstance)) {// Array of tables
-				Iterator<?> iterator = list.iterator();
-				while (iterator.hasNext()) {
-					final Object table = iterator.next();
-					TableWriter.writeInline((Config)table, output, writer);
-					if (iterator.hasNext()) {
-						output.write(ArrayWriter.ELEMENT_SEPARATOR);
-					}
-				}
-			} else {// Normal array
-				ArrayWriter.write((List<?>)value, output, writer);
-			}
+			ArrayWriter.write((List<?>)value, output, writer);
 		} else if (value instanceof CharSequence) {// String
 			writeString(value.toString(), output, writer);
 		} else if (value instanceof Enum) {// Enum value
