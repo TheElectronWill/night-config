@@ -9,6 +9,8 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -90,7 +92,11 @@ public interface ConfigParser<C extends Config> {
 	 * @throws ParsingException if an error occurs
 	 */
 	default C parse(InputStream input, Charset charset) {
-		return parse(new BufferedReader(new InputStreamReader(input, charset)));
+		// fail on malformed input
+		CharsetDecoder decoder = charset.newDecoder();
+		decoder.onMalformedInput(CodingErrorAction.REPORT);
+		decoder.onUnmappableCharacter(CodingErrorAction.REPORT);
+		return parse(new BufferedReader(new InputStreamReader(input, decoder)));
 	}
 
 	/**
@@ -116,7 +122,11 @@ public interface ConfigParser<C extends Config> {
 	 */
 	default void parse(InputStream input, Config destination, ParsingMode parsingMode,
 			Charset charset) {
-		Reader reader = new BufferedReader(new InputStreamReader(input, charset));
+		// fail on malformed input
+		CharsetDecoder decoder = charset.newDecoder();
+		decoder.onMalformedInput(CodingErrorAction.REPORT);
+		decoder.onUnmappableCharacter(CodingErrorAction.REPORT);
+		Reader reader = new BufferedReader(new InputStreamReader(input, decoder));
 		parse(reader, destination, parsingMode);
 	}
 

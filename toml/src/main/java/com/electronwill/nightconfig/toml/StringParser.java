@@ -33,19 +33,6 @@ final class StringParser {
 				String properEscape = "\\u" + Integer.toHexString((int)c).toUpperCase();
 				throw new ParsingException("Invalid control character '" + c + "' in string, you should escape it by writing " + properEscape);
 			} else {
-				// some unicode code points are represented by Java's UTF-16 String as a "high surrogate" followed by a "low surrogate"
-				if (Character.isHighSurrogate(c)) {
-					char next = input.peekChar();
-					if (Character.isLowSurrogate(next)) {
-						int codePoint = Character.toCodePoint(c, next);
-						if (!Toml.isValidCodePoint(codePoint)) {
-							String escaped = StringWriter.escapeUnicode(codePoint);
-							throw new ParsingException("Invalid unicode codepoint " + escaped + " in string that begins with \"" + builder + "\"");
-						}
-					} else {
-						throw new ParsingException("Invalid unicode sequence in string: " + c + next);
-					}
-				}
 				builder.write(c);
 			}
 		}
@@ -68,10 +55,6 @@ final class StringParser {
 				String properEscape = "\\u" + Integer.toHexString(codePoint).toUpperCase();
 				CharsWrapper display = new CharsWrapper(Character.toChars(codePoint));
 				throw new ParsingException("Invalid control character '" + display + "' in literal string '" + str + "', you should escape it by writing " + properEscape);
-			}
-			if (!Toml.isValidCodePoint(codePoint)) {
-				String escaped = StringWriter.escapeUnicode(codePoint);
-				throw new ParsingException("Invalid unicode codepoint " + escaped + " in literal string '" + str + "'");
 			}
 		});
 		return str;
