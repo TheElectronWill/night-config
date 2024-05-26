@@ -29,10 +29,23 @@ final class StringParser {
 				escape = true;
 			} else if (c == '\n' || c == '\r') {
 				throw new ParsingException("Invalid newline in basic string, you should use a multiline string or escape the newline by writing \\n. The string begins with: \"" + builder + "\"");
-			} else if (c != '\t' && isControlChar(c)) {
+			} else if (c != '\t' && Toml.isControlChar(c)) {
 				String properEscape = "\\u" + Integer.toHexString((int)c).toUpperCase();
 				throw new ParsingException("Invalid control character '" + c + "' in string, you should escape it by writing " + properEscape);
 			} else {
+				// some unicode code points are represented by Java's UTF-16 String as a "high surrogate" followed by a "low surrogate"
+				if (Character.isHighSurrogate(c)) {
+					char next = input.peekChar();
+					if (Character.isLowSurrogate(next)) {
+						int codePoint = Character.toCodePoint(c, next);
+						if (!Toml.isValidCodePoint(codePoint)) {
+							String escaped = StringWriter.escapeUnicode(codePoint);
+							throw new ParsingException("Invalid unicode codepoint " + escaped + " in string that begins with \"" + builder + "\"");
+						}
+					} else {
+						throw new ParsingException("Invalid unicode sequence in string: " + c + next);
+					}
+				}
 				builder.write(c);
 			}
 		}
@@ -50,13 +63,17 @@ final class StringParser {
 		if (end != '\'') {
 			throw new ParsingException("Invalid newline in literal string, you should use a multiline string. The string is '" + str + "'");
 		}
-		for (int i = 0; i < str.length(); i++) {
-			char c = str.charAt(i);
-			if (c != '\t' && isControlChar(c)) {
-				String properEscape = "\\u" + Integer.toHexString((int)c).toUpperCase();
-				throw new ParsingException("Invalid control character '" + c + "' in literal string '" + str + "', you should escape it by writing " + properEscape);
+		str.codePoints().forEach(codePoint -> {
+			if (codePoint != '\t' && Toml.isControlChar(codePoint)) {
+				String properEscape = "\\u" + Integer.toHexString(codePoint).toUpperCase();
+				CharsWrapper display = new CharsWrapper(Character.toChars(codePoint));
+				throw new ParsingException("Invalid control character '" + display + "' in literal string '" + str + "', you should escape it by writing " + properEscape);
 			}
-		}
+			if (!Toml.isValidCodePoint(codePoint)) {
+				String escaped = StringWriter.escapeUnicode(codePoint);
+				throw new ParsingException("Invalid unicode codepoint " + escaped + " in literal string '" + str + "'");
+			}
+		});
 		return str;
 	}
 
@@ -81,7 +98,7 @@ final class StringParser {
 					throw new ParsingException("Invalid escapement: \\" + next);
 				}
 				builder.write(unescape(next, input));
-			} else if (c != '\n' && c != '\r' && c != '\t' && isControlChar(c)) {
+			} else if (c != '\n' && c != '\r' && c != '\t' && Toml.isControlChar(c)) {
 				String properEscape = "\\u" + Integer.toHexString((int)c).toUpperCase();
 				throw new ParsingException("Invalid control character '" + c + "' in multiline string, you should escape it by writing " + properEscape);
 			} else {
@@ -104,10 +121,6 @@ final class StringParser {
 		return buildMultilineString(builder);
 	}
 
-	static boolean isControlChar(char c) {
-		return (c <= 0x1F || c == 0x7F) && !Character.isSurrogate(c);
-	}
-
 	/**
 	 * Parses a multiline literal string (surrounded by '''). The 3 opening quotes must be parse
 	 * before calling this method.
@@ -116,7 +129,7 @@ final class StringParser {
 		CharsWrapper.Builder builder = parser.createBuilder();
 		char c;
 		while ((c = input.readChar()) != '\'' || input.peek() != '\'' || input.peek(1) != '\'') {
-			if (c != '\n' && c != '\r' && c != '\t' && isControlChar(c)) {
+			if (c != '\n' && c != '\r' && c != '\t' && Toml.isControlChar(c)) {
 				String properEscape = "\\u" + Integer.toHexString((int)c).toUpperCase();
 				throw new ParsingException("Invalid control character '" + c + "' in multiline literal string, you should escape it by writing " + properEscape);
 			}
@@ -187,8 +200,8 @@ final class StringParser {
 	private static String parseUnicodeCodepoint(CharsWrapper chars) {
 		try {
 			int codePoint = Utils.parseInt(chars, 16);
-			if (codePoint > 0xD7FF && codePoint < 0xE000) {
-				throw new ParsingException("Invalid unicode codepoint, it must be a valid scalar value: " + chars);
+			if (!Toml.isValidCodePoint(codePoint)) {
+				throw new ParsingException("Invalid unicode codepoint: " + chars);
 			}
 			return new String(new int[] { codePoint }, 0, 1);
 		} catch (IllegalArgumentException ex) {

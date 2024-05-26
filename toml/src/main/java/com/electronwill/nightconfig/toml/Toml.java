@@ -1,9 +1,8 @@
 package com.electronwill.nightconfig.toml;
 
-import com.electronwill.nightconfig.core.io.CharacterInput;
-import com.electronwill.nightconfig.core.io.CharsWrapper;
-import com.electronwill.nightconfig.core.io.Utils;
 import java.util.List;
+
+import com.electronwill.nightconfig.core.io.*;
 
 /**
  * @author TheElectronWill
@@ -68,8 +67,20 @@ final class Toml {
 		return chars;
 	}
 
+	static boolean isControlChar(char c) {
+		return (c <= 0x1F || c == 0x7F) && !Character.isSurrogate(c);
+	}
+
+	static boolean isControlChar(int c) {
+		return (c <= 0x1F || c == 0x7F);
+	}
+
+	static boolean isValidCodePoint(int c) {
+		return (c <= 0xD7FF || (c >= 0xE000 && c <= 0x10FFFF));
+	}
+
 	static boolean isValidInBareKey(char c, boolean lenient) {
-		if (lenient) { return c > ' ' && !Utils.arrayContains(FORBIDDEN_IN_ALL_BARE_KEYS, c); }
+		if (lenient) { return c > ' ' && !Utils.arrayContains(FORBIDDEN_IN_ALL_BARE_KEYS, c) && !isControlChar(c); }
 		return (c >= 'a' && c <= 'z')
 			   || (c >= 'A' && c <= 'Z')
 			   || (c >= '0' && c <= '9')
