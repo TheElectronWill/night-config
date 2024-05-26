@@ -16,6 +16,11 @@ jobs:
     steps:
       - checkout
 
+      # Handle git submodules
+      - run:
+          name: Sync and update submodules
+          command: git submodule sync && git submodule update --init --recursive
+
       # Compute hashcode
       - run:
           name: Prepare cache key by hashing build files

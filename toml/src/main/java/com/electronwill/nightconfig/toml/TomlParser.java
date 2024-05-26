@@ -56,6 +56,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 		parse(new ReaderInput(reader), destination, parsingMode);
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T extends Config> T parse(CharacterInput input, T destination, ParsingMode parsingMode) {
 		if (destination instanceof StampedConfig) {
 			// StampedConfig does not support valueMap(), parse in Accumulator instead
@@ -104,10 +105,15 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 											   + "parent that isn't a table.");
 				}
 				CommentedConfig table = TableParser.parseNormal(commentedConfig, input, this);
-				List<CommentedConfig> arrayOfTables = (List)parentMap.get(lastKey);
-				if (arrayOfTables == null) {
+				Object shouldBeAarrayOfTables = parentMap.get(lastKey);
+				List<CommentedConfig> arrayOfTables;
+				if (shouldBeAarrayOfTables instanceof List) {
+					arrayOfTables = (List<CommentedConfig>)shouldBeAarrayOfTables;
+				} else if (shouldBeAarrayOfTables == null) {
 					arrayOfTables = createList();
 					parentMap.put(lastKey, arrayOfTables);
+				} else {
+					throw new ParsingException("Cannot create entry " + path + " because of an invalid parent that is not an array of tables");
 				}
 				arrayOfTables.add(table);
 			} else {// It's a table
@@ -123,6 +129,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 					parentMap.put(lastKey, table);
 				} else {
 					if (alreadyDeclared instanceof Config) {
+						// check that there is no conflict with the existing declaration
 						Config table = (Config)alreadyDeclared;
 						checkContainsOnlySubtables(table, path);
 						CommentedConfig commentedTable = CommentedConfig.fake(table);
@@ -172,7 +179,8 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 
 	private void checkContainsOnlySubtables(Config table, List<String> path) {
 		for (Entry entry : table.entrySet()) {
-			if (!(entry.getValue() instanceof Config)) {
+			Object value = entry.getValue();
+			if (!(value instanceof Config || (value instanceof List && !((List<?>)value).isEmpty() && ((List<?>)value).get(0) instanceof Config))) {
 				throw new ParsingException("Table with path " + path + " has been declared twice.");
 			}
 		}
@@ -260,10 +268,23 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 
 	void setComment(CharsWrapper comment) {
 		if (comment != null) {
+			// control characters other than tab are not permitted in comments
+			String str = comment.toString();
+			str.codePoints().forEach(c -> {
+				if (c == '\t' || c == '\n') {
+					return;
+				}
+				if (c <= 0x001F || c == 0x007F) {
+					throw new ParsingException("Invalid control character in comment: " + str);
+				}
+				if (c > 0xD7FF && c < 0xE000) {
+					throw new ParsingException("Invalid unicode codepoint in comment: " + str);
+				}
+			});
 			if (currentComment == null) {
-				currentComment = comment.toString();
+				currentComment = str;
 			} else {
-				currentComment = currentComment + '\n' + comment.toString();
+				currentComment = currentComment + '\n' + str;
 			}
 		}
 	}

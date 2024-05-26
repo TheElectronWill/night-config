@@ -154,8 +154,10 @@ public class TomlParserTest {
 		assertThrows(ParsingException.class, this::testAlreadyDefinedTable2);
 		assertThrows(ParsingException.class, this::testAlreadyDefinedKey);
 		assertThrows(ParsingException.class, this::testAlreadyDefinedKeyInline);
+		assertThrows(ParsingException.class, this::testAlreadyDefinedKeyInlineDotted);
 		assertThrows(ParsingException.class, this::testInvalidKeyValueSeparator);
 		assertThrows(ParsingException.class, this::testInvalidArrayValueSeparator);
+		assertThrows(ParsingException.class, this::testInvalidArrayDoubleComma);
 		assertThrows(ParsingException.class, this::testInvalidInlineEntrySeparator);
 		assertThrows(ParsingException.class, this::testInvalidNotAComment);
 		assertThrows(ParsingException.class, this::testInvalidNotAComment2);
@@ -173,6 +175,8 @@ public class TomlParserTest {
 		assertThrows(ParsingException.class, this::testMixedArraySubtablePrimitive);
 		assertThrows(ParsingException.class, this::testInlineTableArraySubtable);
 		assertThrows(ParsingException.class, this::testInlineTableArraySubtable2);
+		assertThrows(ParsingException.class, this::testInvalidTrailingCommaInInlineTable);
+		assertThrows(ParsingException.class, this::testInvalidOnlyCommaInInlineTable);
 	}
 
 	private void testAlreadyDefinedTable() {
@@ -205,6 +209,10 @@ public class TomlParserTest {
 		parseAndPrint(toml);
 	}
 
+	private void testAlreadyDefinedKeyInlineDotted() {
+		parseAndPrint("tbl = { a.b = \"a_b\", a.b.c = \"a_b_c\" }");
+	}
+
 	private void testInvalidKeyValueSeparator() {
 		String toml = "string : \"value\"\n";
 		parseAndPrint(toml);
@@ -213,6 +221,10 @@ public class TomlParserTest {
 	private void testInvalidArrayValueSeparator() {
 		String toml = "array = [0,1,2,3;4]\n";
 		parseAndPrint(toml);
+	}
+
+	private void testInvalidArrayDoubleComma() {
+		parseAndPrint("bad_array = [1,2,,]");
 	}
 
 	private void testInvalidNotAComment() {
@@ -273,6 +285,14 @@ public class TomlParserTest {
 	private void testInvalidTableArrayDeclaration() {
 		String toml = "[[missing.closing.brackets \n";
 		parseAndPrint(toml);
+	}
+
+	private void testInvalidTrailingCommaInInlineTable() {
+		parseAndPrint("a = { wrong = 1, }");
+	}
+
+	private void testInvalidOnlyCommaInInlineTable() {
+		parseAndPrint("a = {,}");
 	}
 
 	private void testInvalidTableArrayDeclaration2() {

@@ -66,11 +66,16 @@ final class TableWriter {
 					&& (!subTables.isEmpty() || !arraysOfTables.isEmpty());
 		}
 
+		@Override
+		public String toString() {
+			return "OrganizedTable [simples=" + simples + ", subTables=" + subTables + ", arraysOfTables="
+					+ arraysOfTables + ", comment=" + comment + ", canBeSkipped()=" + canBeSkipped() + "]";
+		}
+
 	}
 
 	/** Separate the table in three groups: simple values, sub-configurations, and arrays of tables. */
-	static OrganizedTable prepareTable(UnmodifiableCommentedConfig config, String comment,
-			TomlWriter writer) {
+	static OrganizedTable prepareTable(UnmodifiableCommentedConfig config, String comment, TomlWriter writer) {
 		List<Entry> simpleEntries = new ArrayList<>();
 		List<Entry> tablesEntries = new ArrayList<>();
 		List<Entry> tableArraysEntries = new ArrayList<>();
@@ -86,8 +91,7 @@ final class TableWriter {
 				}
 			} else if (value instanceof List) {
 				List<?> list = (List<?>) value;
-				if (!list.isEmpty()
-						&& list.stream().allMatch(UnmodifiableConfig.class::isInstance)) {
+				if (!list.isEmpty() && list.stream().allMatch(UnmodifiableConfig.class::isInstance)) {
 					tableArraysEntries.add(entry);
 				} else {
 					simpleEntries.add(entry);
@@ -112,11 +116,21 @@ final class TableWriter {
 		OrganizedTable table = prepareTable(config, tableComment, writer);
 		boolean hasSubTables = !table.subTables.isEmpty();
 
+		// System.out.println("writeWithHeader: " + table);
+
 		if (table.canBeSkipped() && writer.isHidingRedundantLevels()) {
 			writer.increaseIndentLevel();
 
-			// subtables
+			// subtables, but first header if in array of tables
+			if (inArrayOfTables) {
+				writeTableArrayName(configPath, output, writer);
+				writer.writeNewline(output);
+				writer.increaseIndentLevel();
+			}
 			writeSubTables(table, configPath, output, writer);
+			if (inArrayOfTables) {
+				writer.decreaseIndentLevel();
+			}
 
 			// sub arrays of tables, if there is a comment we write it before them
 			if (!table.comment.isEmpty()) {
@@ -159,6 +173,7 @@ final class TableWriter {
 	}
 
 	private static void writeSubTables(OrganizedTable table, List<String> configPath, CharacterOutput output, TomlWriter writer) {
+		// System.out.println("writeSubTables for " + table);
 		boolean hasArraysOfTables = !table.arraysOfTables.isEmpty();
 		for (Iterator<Entry> it = table.subTables.iterator(); it.hasNext();) {
 			Entry entry = it.next();
@@ -176,6 +191,7 @@ final class TableWriter {
 	}
 
 	private static void writeArraysOfTables(OrganizedTable table, List<String> configPath, CharacterOutput output, TomlWriter writer) {
+		// System.out.println("writeArraysOfTables for " + table);
 		for (Iterator<Entry> it = table.arraysOfTables.iterator(); it.hasNext();) {
 			Entry entry = it.next();
 			configPath.add(entry.getKey());

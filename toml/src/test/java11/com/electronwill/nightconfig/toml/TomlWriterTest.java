@@ -304,6 +304,22 @@ public class TomlWriterTest {
 			""), written);
 	}
 
+	@Test
+	public void writeNestedArraysAndTables() {
+		TomlWriter writer = new TomlWriter();
+
+		CommentedConfig config = CommentedConfig.inMemory();
+		CommentedConfig table1 = CommentedConfig.inMemory();
+		CommentedConfig table2 = CommentedConfig.inMemory();
+		table1.set("one", 1);
+		table2.set("two", 2);
+		config.set("arr_arr_tbls", List.of(List.of(table1, table2)));
+
+		String written = writer.writeToString(config);
+		System.out.println(written);
+		assertEquals(join("arr_arr_tbls = [[{one = 1}, {two = 2}]]\n"), written);
+	}
+
 	private String join(String... lines) {
 		return String.join(System.lineSeparator(), lines);
 	}

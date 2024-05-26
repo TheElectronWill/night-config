@@ -3,11 +3,8 @@ package com.electronwill.nightconfig.toml;
 import com.electronwill.nightconfig.core.io.CharsWrapper;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.Utils;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+
+import java.time.*;
 import java.time.temporal.Temporal;
 
 /**
@@ -20,7 +17,7 @@ import java.time.temporal.Temporal;
 final class TemporalParser {
 
 	private static final char[] ALLOWED_DT_SEPARATORS = {'T', 't', ' '};
-	private static final char[] OFFSET_INDICATORS = {'Z', '+', '-'};
+	private static final char[] OFFSET_INDICATORS = {'Z', 'z', '+', '-'};
 
 	/**
 	 * Parses a Temporal value, to either a LocalTime, a LocalDate, a LocalDateTime or
@@ -30,27 +27,36 @@ final class TemporalParser {
 	 * @return a Temporal value
 	 */
 	static Temporal parse(CharsWrapper chars) {
-		if (chars.get(2) == ':') {// LocalTime
-			return parseTime(chars);
+		chars = chars.trimmedView(); // it's important to trim the trailing spaces (which occur when there's a comment after the datetime)
+		try {
+			if (chars.get(2) == ':') {// LocalTime
+				return parseTime(chars);
+			}
+			LocalDate date = parseDate(chars);
+			if (chars.length() == 10) {// LocalDate
+				return date;
+			}
+			char dateTimeSeparator = chars.get(10);
+			if (!Utils.arrayContains(ALLOWED_DT_SEPARATORS, dateTimeSeparator)) {
+				throw new ParsingException(
+						"Invalid separator between date and time: '" + dateTimeSeparator + "'.");
+			}
+			CharsWrapper afterDate = chars.subView(11);
+			int offsetIndicatorIndex = afterDate.indexOfFirst(OFFSET_INDICATORS);
+			if (offsetIndicatorIndex == -1) {// LocalDateTime
+				LocalTime time = parseTime(afterDate);
+				return LocalDateTime.of(date, time);
+			}
+			if (afterDate.get(offsetIndicatorIndex) == 'z') {
+				// Java does not support 'z' but only 'Z'
+				afterDate.set(offsetIndicatorIndex, 'Z');
+			}
+			LocalTime time = parseTime(afterDate.subView(0, offsetIndicatorIndex));
+			ZoneOffset offset = ZoneOffset.of(afterDate.subView(offsetIndicatorIndex).trimmedView().toString());
+			return OffsetDateTime.of(date, time, offset);// OffsetDateTime
+		} catch (ArrayIndexOutOfBoundsException | DateTimeException ex) {
+			throw new ParsingException("Invalid temporal value " + chars, ex);
 		}
-		LocalDate date = parseDate(chars);
-		if (chars.length() == 10) {// LocalDate
-			return date;
-		}
-		char dateTimeSeparator = chars.get(10);
-		if (!Utils.arrayContains(ALLOWED_DT_SEPARATORS, dateTimeSeparator)) {
-			throw new ParsingException(
-					"Invalid separator between date and time: '" + dateTimeSeparator + "'.");
-		}
-		CharsWrapper afterDate = chars.subView(11);
-		int offsetIndicatorIndex = afterDate.indexOfFirst(OFFSET_INDICATORS);
-		if (offsetIndicatorIndex == -1) {// LocalDateTime
-			LocalTime time = parseTime(afterDate);
-			return LocalDateTime.of(date, time);
-		}
-		LocalTime time = parseTime(afterDate.subView(0, offsetIndicatorIndex));
-		ZoneOffset offset = ZoneOffset.of(afterDate.subView(offsetIndicatorIndex).trimmedView().toString());
-		return OffsetDateTime.of(date, time, offset);// OffsetDateTime
 	}
 
 	private static LocalDate parseDate(CharsWrapper chars) {

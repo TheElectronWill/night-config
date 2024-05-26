@@ -219,6 +219,11 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 			result = 31 * result + Objects.hashCode(getComment());
 			return result;
 		}
+
+		@Override
+		public String toString() {
+			return "CommentedEntryWrapper(" + getKey() + "=" + getValue() + ")";
+		}
 	}
 
 	@Override

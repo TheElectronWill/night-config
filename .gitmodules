@@ -1,0 +1,3 @@
+[submodule "test-multiple/src/test/resources/toml-test"]
+	path = test-multiple/src/test/resources/toml-test
+	url = git@github.com:toml-lang/toml-test.git

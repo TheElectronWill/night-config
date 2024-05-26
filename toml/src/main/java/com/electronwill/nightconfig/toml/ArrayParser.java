@@ -15,19 +15,17 @@ final class ArrayParser {
 	 */
 	static List<?> parse(CharacterInput input, TomlParser parser, CommentedConfig parentConfig) {
 		List<Object> list = parser.createList();
+		boolean first = true;
 		while (true) {
 			char firstChar = Toml.readUsefulChar(input);
 			if (firstChar == ']') {// End of the array
 				return list;// handle [] and [v1,v2,... ,]
-			} else if (firstChar == ',') {// Handles [,] which is an empty array too
-				char nextChar = Toml.readUsefulChar(input);
-				if (nextChar == ']') {
-					return list;
+			} else if (firstChar == ',') {// Handles [,] or [v1,,] which are both invalid
+				if (first) {
+					throw new ParsingException("Invalid array: [,]");
+				} else {
+					throw new ParsingException("Invalid double comma in array.");
 				}
-				throw new ParsingException("Unexpected character in array: '"
-										   + nextChar
-										   + "' - "
-										   + "Expected end of array because of the leading comma.");
 			}
 			Object value = ValueParser.parse(input, firstChar, parser, parentConfig);
 			list.add(value);
@@ -38,6 +36,7 @@ final class ArrayParser {
 			if (after != ',') {// Invalid character between two elements of the array
 				throw new ParsingException("Invalid separator '" + after + "' in array.");
 			}
+			first = false;
 		}
 	}
 

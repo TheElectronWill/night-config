@@ -20,9 +20,7 @@ final class StringWriter {
 
 	static void writeBasic(String str, CharacterOutput output) {
 		output.write('\"');
-		for (char c : str.toCharArray()) {
-			writeBasicChar(c, output);
-		}
+		str.codePoints().forEach(c -> writeBasicChar(c, output));
 		output.write('\"');
 	}
 
@@ -52,9 +50,14 @@ final class StringWriter {
 					case '\\':
 						output.write(ESCAPED_BACKSLASH);
 						break;
-					default:
-						output.write(c);
+					default: {
+						if (Toml.isControlChar(c)) {
+							output.write(escapeUnicode(c));
+						} else {
+							output.write(Character.toChars(c));
+						}
 						break;
+					}
 				}
 			}
 		}
@@ -73,11 +76,7 @@ final class StringWriter {
 		output.write("''''");
 	}
 
-	private static void writeBasicMultilineChar(char c, CharacterOutput output) {
-
-	}
-
-	private static void writeBasicChar(char c, CharacterOutput output) {
+	private static void writeBasicChar(int c, CharacterOutput output) {
 		switch (c) {
 			case '\\':
 				output.write(ESCAPED_BACKSLASH);
@@ -100,9 +99,29 @@ final class StringWriter {
 			case '\t':
 				output.write(ESCAPED_T);
 				break;
-			default:
-				output.write(c);
+			default: {
+				if (Toml.isControlChar(c)) {
+					output.write(escapeUnicode(c));
+				} else {
+					output.write(Character.toChars(c));
+				}
+				break;
+			}
 		}
+	}
+
+	static String escapeUnicode(int codePoint) {
+		String hexa = Integer.toHexString(codePoint).toUpperCase();
+		if (hexa.length() < 4) {
+			while (hexa.length() < 4) {
+				hexa = "0" + hexa;
+			}
+		} else if (hexa.length() < 8) {
+			while (hexa.length() < 8) {
+				hexa = "0" + hexa;
+			}
+		}
+		return "\\u" + hexa;
 	}
 
 	private StringWriter() {}

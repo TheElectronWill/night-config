@@ -298,6 +298,9 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	 */
 	@Override
 	public CharsWrapper subSequence(int start, int end) {
+		if (offset + end > limit) {
+			throw new ArrayIndexOutOfBoundsException(String.format("Out of bounds: this wrapper has a length of %d, but chars [%d..<%d] were requested", length(), start, end));
+		}
 		return new CharsWrapper(Arrays.copyOfRange(chars, start + offset, end + offset));
 	}
 
@@ -310,6 +313,9 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	 * @return a new CharsWrapper that is a view of a part of this CharsWrapper
 	 */
 	public CharsWrapper subView(int start, int end) {
+		if (offset + end > limit) {
+			throw new ArrayIndexOutOfBoundsException(String.format("Out of bounds: this wrapper has a length of %d, but chars [%d..<%d] were requested", length(), start, end));
+		}
 		return new CharsWrapper(chars, start + offset, end + offset);
 	}
 
@@ -321,6 +327,9 @@ public final class CharsWrapper implements CharSequence, Cloneable, Iterable<Cha
 	 * @return a new CharsWrapper that is a view of a part of this CharsWrapper
 	 */
 	public CharsWrapper subView(int start) {
+		if (offset + start > limit) {
+			throw new ArrayIndexOutOfBoundsException(String.format("Out of bounds: this wrapper has a length of %d, but chars [%d..] were requested", length(), start));
+		}
 		return new CharsWrapper(chars, start + offset, limit);
 	}
 

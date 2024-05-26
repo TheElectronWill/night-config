@@ -354,7 +354,7 @@ public final class JsonParser implements ConfigParser<Config> {
 		char c;
 		while ((c = input.readChar()) != '"' || escape) {
 			if (escape) {
-				builder.append(escape(c, input));
+				builder.append(unescape(c, input));
 				escape = false;
 			} else if (c == '\\') {
 				escape = true;
@@ -365,7 +365,7 @@ public final class JsonParser implements ConfigParser<Config> {
 		return builder.toString();
 	}
 
-	private char escape(char c, CharacterInput input) {
+	private char unescape(char c, CharacterInput input) {
 		switch (c) {
 			case '"':
 			case '\\':
