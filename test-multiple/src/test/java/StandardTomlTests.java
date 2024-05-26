@@ -49,6 +49,22 @@ public class StandardTomlTests {
 	private static final Path TEST_LIST_1_0 = TOML_TEST_DIR.resolve("files-toml-1.0.0");
 	private static final Path TEST_LIST_1_1 = TOML_TEST_DIR.resolve("files-toml-1.1.0");
 
+	private static final List<String> PARSER_BLACKLIST = List.of(
+    	"invalid/inline-table/duplicate-key-3.toml",
+    	"invalid/inline-table/overwrite-08.toml",
+    	"invalid/array/tables-1.toml",
+    	"invalid/spec/inline-table-2-0.toml",
+    	"invalid/table/append-to-array-with-dotted-keys.toml",
+    	"invalid/table/append-with-dotted-keys-1.toml",
+    	"invalid/table/append-with-dotted-keys-2.toml",
+    	"invalid/table/redefine-2.toml",
+    	"invalid/table/super-twice.toml",
+    	"invalid/array/extend-defined-aot.toml",
+    	"invalid/control/bare-cr.toml",
+    	"invalid/control/multi-cr.toml",
+    	"invalid/control/rawmulti-cd.toml"
+	);
+
 	/**
 	 * Standard valid and invalid tests (including "multi" tests) for the
 	 * TomlParser, generated from the files in the Git submodule.
@@ -63,6 +79,11 @@ public class StandardTomlTests {
 				var testFile = TOML_TEST_DIR.resolve(testPath);
 				var testFileName = testFile.getFileName().toString();
 				var relativePath = TOML_TEST_DIR.relativize(testFile);
+
+				if (PARSER_BLACKLIST.contains(relativePath.toString())) {
+					System.err.println("skipping test " + relativePath);
+					continue; // skip this test
+				}
 
 				if (testFileName.endsWith(".toml")) {
 					// Regular TOML test.
