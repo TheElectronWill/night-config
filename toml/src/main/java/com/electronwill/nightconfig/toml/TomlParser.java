@@ -268,10 +268,23 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 
 	void setComment(CharsWrapper comment) {
 		if (comment != null) {
+			// control characters other than tab are not permitted in comments
+			String str = comment.toString();
+			str.codePoints().forEach(c -> {
+				if (c == '\t' || c == '\n') {
+					return;
+				}
+				if (c <= 0x001F || c == 0x007F) {
+					throw new ParsingException("Invalid control character in comment: " + str);
+				}
+				if (c > 0xD7FF && c < 0xE000) {
+					throw new ParsingException("Invalid unicode codepoint in comment: " + str);
+				}
+			});
 			if (currentComment == null) {
-				currentComment = comment.toString();
+				currentComment = str;
 			} else {
-				currentComment = currentComment + '\n' + comment.toString();
+				currentComment = currentComment + '\n' + str;
 			}
 		}
 	}

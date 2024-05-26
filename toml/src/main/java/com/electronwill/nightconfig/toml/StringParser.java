@@ -1,7 +1,5 @@
 package com.electronwill.nightconfig.toml;
 
-import java.nio.charset.StandardCharsets;
-
 import com.electronwill.nightconfig.core.io.CharacterInput;
 import com.electronwill.nightconfig.core.io.CharsWrapper;
 import com.electronwill.nightconfig.core.io.ParsingException;
@@ -13,6 +11,7 @@ import com.electronwill.nightconfig.core.io.Utils;
  */
 final class StringParser {
 	private static final char[] SINGLE_QUOTE = {'\''};
+	private static final char[] SINGLE_QUOTE_OR_NEWLINE = {'\'', '\n', '\r'};
 
 	/**
 	 * Parses a basic string (surrounded by "). The opening quote must be parse before calling this
@@ -28,6 +27,11 @@ final class StringParser {
 				escape = false;
 			} else if (c == '\\') {
 				escape = true;
+			} else if (c == '\n' || c == '\r') {
+				throw new ParsingException("Invalid newline in basic string, you should use a multiline string or escape the newline by writing \\n. The string begins with: \"" + builder + "\"");
+			} else if (c != '\t' && isControlChar(c)) {
+				String properEscape = "\\u" + Integer.toHexString((int)c).toUpperCase();
+				throw new ParsingException("Invalid control character '" + c + "' in string, you should escape it by writing " + properEscape);
 			} else {
 				builder.write(c);
 			}
@@ -40,8 +44,19 @@ final class StringParser {
 	 * this method.
 	 */
 	static String parseLiteral(CharacterInput input, TomlParser parser) {
-		String str = input.readCharsUntil(SINGLE_QUOTE).toString();
-		input.readChar();// skips the last single quote
+		String str = input.readCharsUntil(SINGLE_QUOTE_OR_NEWLINE).toString();
+		char end = input.readChar();// consume the closing quote
+		// check for invalid charcters
+		if (end != '\'') {
+			throw new ParsingException("Invalid newline in literal string, you should use a multiline string. The string is '" + str + "'");
+		}
+		for (int i = 0; i < str.length(); i++) {
+			char c = str.charAt(i);
+			if (c != '\t' && isControlChar(c)) {
+				String properEscape = "\\u" + Integer.toHexString((int)c).toUpperCase();
+				throw new ParsingException("Invalid control character '" + c + "' in literal string '" + str + "', you should escape it by writing " + properEscape);
+			}
+		}
 		return str;
 	}
 
@@ -66,6 +81,9 @@ final class StringParser {
 					throw new ParsingException("Invalid escapement: \\" + next);
 				}
 				builder.write(unescape(next, input));
+			} else if (c != '\n' && c != '\r' && c != '\t' && isControlChar(c)) {
+				String properEscape = "\\u" + Integer.toHexString((int)c).toUpperCase();
+				throw new ParsingException("Invalid control character '" + c + "' in multiline string, you should escape it by writing " + properEscape);
 			} else {
 				builder.write(c);
 			}
@@ -86,6 +104,10 @@ final class StringParser {
 		return buildMultilineString(builder);
 	}
 
+	static boolean isControlChar(char c) {
+		return (c <= 0x1F || c == 0x7F) && !Character.isSurrogate(c);
+	}
+
 	/**
 	 * Parses a multiline literal string (surrounded by '''). The 3 opening quotes must be parse
 	 * before calling this method.
@@ -94,6 +116,10 @@ final class StringParser {
 		CharsWrapper.Builder builder = parser.createBuilder();
 		char c;
 		while ((c = input.readChar()) != '\'' || input.peek() != '\'' || input.peek(1) != '\'') {
+			if (c != '\n' && c != '\r' && c != '\t' && isControlChar(c)) {
+				String properEscape = "\\u" + Integer.toHexString((int)c).toUpperCase();
+				throw new ParsingException("Invalid control character '" + c + "' in multiline literal string, you should escape it by writing " + properEscape);
+			}
 			builder.append(c);
 		}
 		input.skipPeeks();// Don't include the closing quotes in the String
@@ -161,6 +187,9 @@ final class StringParser {
 	private static String parseUnicodeCodepoint(CharsWrapper chars) {
 		try {
 			int codePoint = Utils.parseInt(chars, 16);
+			if (codePoint > 0xD7FF && codePoint < 0xE000) {
+				throw new ParsingException("Invalid unicode codepoint, it must be a valid scalar value: " + chars);
+			}
 			return new String(new int[] { codePoint }, 0, 1);
 		} catch (IllegalArgumentException ex) {
 			throw new ParsingException("Invalid unicode codepoint: " + chars, ex);
