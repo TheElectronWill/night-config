@@ -21,7 +21,7 @@ public class AsyncFileConfigTest {
     @Test
     public void testWriteDelay() throws IOException, InterruptedException {
         Path file = tmp.resolve("fileNotifications.txt"); // does not exist yet
-        var format = new Util.TestFormat();
+        var format = new Util.TestFormat(true);
         var autosaveCounter = new AtomicInteger(0);
         var saveCounter = new AtomicInteger(0);
         var config = FileConfig.builder(file, format)
@@ -62,7 +62,7 @@ public class AsyncFileConfigTest {
     @Test
     public void testCustomWriteDelay() throws IOException, InterruptedException {
         Path file = tmp.resolve("fileNotificationsCustom.txt"); // does not exist yet
-        var format = new Util.TestFormat();
+        var format = new Util.TestFormat(true);
         var config = FileConfig.builder(file, format)
             .autosave()
             .writingMode(WritingMode.REPLACE)
@@ -94,23 +94,26 @@ public class AsyncFileConfigTest {
     @Test
     public void testReplace() throws IOException {
         Path file = tmp.resolve("syncFileConfig.txt");
-        Util.testLoadReplace(newConfig(file, ParsingMode.REPLACE));
+        Util.testLoadReplace(newConfig(file, ParsingMode.REPLACE, true));
+        Util.testLoadReplace(newConfig(file, ParsingMode.REPLACE, false));
     }
 
     @Test
     public void testAdd() throws IOException {
         Path file = tmp.resolve("syncFileConfig.txt");
-        Util.testLoadAdd(newConfig(file, ParsingMode.ADD));
+        Util.testLoadAdd(newConfig(file, ParsingMode.ADD, true));
+        Util.testLoadAdd(newConfig(file, ParsingMode.ADD, false));
     }
 
     @Test
     public void testMerge() throws IOException {
         Path file = tmp.resolve("syncFileConfig.txt");
-        Util.testLoadMerge(newConfig(file, ParsingMode.MERGE));
+        Util.testLoadMerge(newConfig(file, ParsingMode.MERGE, true));
+        Util.testLoadMerge(newConfig(file, ParsingMode.MERGE, false));
     }
 
-    private FileConfig newConfig(Path file, ParsingMode parsingMode) {
-        var format = new Util.TestFormat();
+    private FileConfig newConfig(Path file, ParsingMode parsingMode, boolean useProperSubConfigType) {
+        var format = new Util.TestFormat(useProperSubConfigType);
         return FileConfig.builder(file, format).sync().parsingMode(parsingMode).build();
     }
 

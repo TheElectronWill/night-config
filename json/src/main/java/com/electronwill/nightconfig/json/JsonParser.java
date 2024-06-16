@@ -118,7 +118,7 @@ public final class JsonParser implements ConfigParser<Config> {
 		char firstChar = input.readCharAndSkip(SPACES);
 		Object result;
 		if (firstChar == '{') {
-			result =parseObject(input, configModel.createSubConfig(), ParsingMode.MERGE);
+			result = parseObject(input, configModel.createSubConfig(), ParsingMode.MERGE);
 		} else if (firstChar == '[') {
 			result = parseArray(input, new ArrayList<>(), ParsingMode.MERGE, configModel.createSubConfig());
 		} else {

@@ -21,7 +21,6 @@ import java.util.function.Function;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.concurrent.ConcurrentCommentedConfig;
 import com.electronwill.nightconfig.core.concurrent.StampedConfig;
@@ -204,14 +203,14 @@ final class AsyncFileConfig extends CommentedConfigWrapper<StampedConfig>
 		switch (parsingMode) {
 			case REPLACE:
 				StampedConfig newSafeContent = config.createSubConfig(); // this is actually an independant config
-				convertConfig(newCC, newSafeContent);
+				newSafeContent.putAll(newCC);
 				config.replaceContentBy(newSafeContent);
 				// It could work with SynchronizedConfig too:
 				// if (config instanceof SynchronizedConfig) {
-				// SynchronizedConfig real = (SynchronizedConfig) config;
-				// SynchronizedConfig newSafeContent = real.createSubConfig(); // not totally independent but ok for replace
-				// convertConfig(newCC, newSafeContent);
-				// real.replaceContentBy(newSafeContent);
+				// 		SynchronizedConfig real = (SynchronizedConfig) config;
+				// 		SynchronizedConfig newSafeContent = real.createSubConfig(); // not totally independent but ok for replace
+				// 		convertConfig(newCC, newSafeContent);
+				// 		real.replaceContentBy(newSafeContent);
 				// }
 				break;
 			default:
@@ -226,10 +225,11 @@ final class AsyncFileConfig extends CommentedConfigWrapper<StampedConfig>
 			for (CommentedConfig.Entry entry : newCC.entrySet()) {
 				List<String> key = Collections.singletonList(entry.getKey());
 				Object value = entry.getRawValue();
-				if (value instanceof UnmodifiableConfig
-						&& !(value instanceof ConcurrentCommentedConfig)) {
+				if (value instanceof UnmodifiableConfig && value.getClass() != config.getClass()) {
 					// convert the subconfig to a proper type
-					value = convertSubConfig((UnmodifiableConfig) value, config);
+					ConcurrentCommentedConfig newSafeContent = config.createSubConfig();
+					newSafeContent.putAll((UnmodifiableConfig)value);
+					value = newSafeContent;
 				}
 				parsingMode.put(view, key, value);
 			}
@@ -272,43 +272,6 @@ final class AsyncFileConfig extends CommentedConfigWrapper<StampedConfig>
 		} else {
 			loadNow(); // blocking operation
 		}
-	}
-
-	private static void convertConfig(UnmodifiableConfig input, ConcurrentCommentedConfig into) {
-		if (input instanceof UnmodifiableCommentedConfig) {
-			into.bulkCommentedUpdate(view -> {
-				UnmodifiableCommentedConfig commentedSub = (UnmodifiableCommentedConfig) input;
-				for (UnmodifiableCommentedConfig.Entry entry : commentedSub.entrySet()) {
-					List<String> key = Collections.singletonList(entry.getKey());
-					Object value = entry.getRawValue();
-					if (value instanceof UnmodifiableConfig) {
-						// recursively convert
-						value = convertSubConfig((UnmodifiableConfig) value, into);
-					}
-					view.set(key, entry.getRawValue());
-					view.setComment(key, entry.getComment());
-				}
-			});
-		} else {
-			into.bulkUpdate(view -> {
-				for (UnmodifiableConfig.Entry entry : input.entrySet()) {
-					List<String> key = Collections.singletonList(entry.getKey());
-					Object value = entry.getRawValue();
-					if (value instanceof UnmodifiableConfig) {
-						// recursively convert
-						value = convertSubConfig((UnmodifiableConfig) value, into);
-					}
-					view.set(key, value);
-				}
-			});
-		}
-	}
-
-	private static ConcurrentCommentedConfig convertSubConfig(UnmodifiableConfig subconfig,
-			ConcurrentCommentedConfig parent) {
-		ConcurrentCommentedConfig safe = parent.createSubConfig();
-		convertConfig(subconfig, safe);
-		return safe;
 	}
 
 	@Override

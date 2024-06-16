@@ -58,21 +58,6 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 
 	@SuppressWarnings("unchecked")
 	private <T extends Config> T parse(CharacterInput input, T destination, ParsingMode parsingMode) {
-		if (destination instanceof StampedConfig) {
-			// StampedConfig does not support valueMap(), parse in Accumulator instead
-			StampedConfig sc = (StampedConfig)destination;
-			Accumulator acc = sc.newAccumulator();
-			parse(input, acc, parsingMode);
-			sc.replaceContentBy(acc);
-			return destination;
-		} else if (destination instanceof SynchronizedConfig) {
-			// SynchronizedConfig supports valueMap() but it's dangerous to use it without synchronization
-			((SynchronizedConfig)destination).bulkCommentedUpdate(view -> {
-				parse(input, view, parsingMode);
-			});
-			return destination;
-		}
-
 		this.parsingMode = parsingMode;
 		parsingMode.prepareParsing(destination);
 		CommentedConfig commentedConfig = CommentedConfig.fake(destination);
@@ -85,48 +70,47 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 			}
 			final List<String> path = TableParser.parseTableName(input, this, isArray);
 			final int lastIndex = path.size() - 1;
-			final String lastKey = path.get(lastIndex);
 			final List<String> parentPath = path.subList(0, lastIndex);
+			final List<String> lastPath = Collections.singletonList(path.get(lastIndex));
 			final Config parentConfig = getSubTable(rootTable, parentPath);
-			final Map<String, Object> parentMap = (parentConfig != null) ? parentConfig.valueMap()
-																		 : null;
+
 			if (hasPendingComment()) {// Handles comments that are before the table declaration
 				String comment = consumeComment();
 				if (parentConfig instanceof CommentedConfig) {
-					List<String> lastPath = Collections.singletonList(lastKey);
 					((CommentedConfig)parentConfig).setComment(lastPath, comment);
 				}
 			}
 			if (isArray) {// It's an element of an array of tables
-				if (parentMap == null) {
+				if (parentConfig == null) {
 					throw new ParsingException("Cannot create entry "
 											   + path
 											   + " because of an invalid "
 											   + "parent that isn't a table.");
 				}
 				CommentedConfig table = TableParser.parseNormal(commentedConfig, input, this);
-				Object shouldBeAarrayOfTables = parentMap.get(lastKey);
+				Object shouldBeArrayOfTables = parentConfig.get(lastPath);
 				List<CommentedConfig> arrayOfTables;
-				if (shouldBeAarrayOfTables instanceof List) {
-					arrayOfTables = (List<CommentedConfig>)shouldBeAarrayOfTables;
-				} else if (shouldBeAarrayOfTables == null) {
+				if (shouldBeArrayOfTables instanceof List) {
+					arrayOfTables = (List<CommentedConfig>)shouldBeArrayOfTables;
+					arrayOfTables.add(table);
+				} else if (shouldBeArrayOfTables == null) {
 					arrayOfTables = createList();
-					parentMap.put(lastKey, arrayOfTables);
+					arrayOfTables.add(table); // fill the array of tables before put because put could convert the value and copy it
+					parsingMode.put(parentConfig, lastPath, arrayOfTables);
 				} else {
 					throw new ParsingException("Cannot create entry " + path + " because of an invalid parent that is not an array of tables");
 				}
-				arrayOfTables.add(table);
 			} else {// It's a table
-				if (parentMap == null) {
+				if (parentConfig == null) {
 					throw new ParsingException("Cannot create entry "
 											   + path
 											   + " because of an invalid "
 											   + "parent that isn't a table.");
 				}
-				Object alreadyDeclared = parentMap.get(lastKey);
+				Object alreadyDeclared = parentConfig.get(lastPath);
 				if (alreadyDeclared == null) {
 					CommentedConfig table = TableParser.parseNormal(commentedConfig, input, this);
-					parentMap.put(lastKey, table);
+					parsingMode.put(parentConfig, lastPath, table);
 				} else {
 					if (alreadyDeclared instanceof Config) {
 						// check that there is no conflict with the existing declaration

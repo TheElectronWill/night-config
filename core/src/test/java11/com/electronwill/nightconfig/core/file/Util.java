@@ -2,6 +2,7 @@ package com.electronwill.nightconfig.core.file;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -29,6 +31,7 @@ final class Util {
         config.set("c", "old C");
         config.set("nested.c", "nested.c");
         config.set("nested.sub", 1234);
+		config.set("array", "123"); // not an array, but it will be replaced so it should work
         config.load();
         assertEquals("new A", config.get("a"));
         assertEquals("new B", config.get("b"));
@@ -37,6 +40,9 @@ final class Util {
         assertEquals("nested.b", config.get("nested.b"));
         assertNotEquals(1234, config.<Object>get("nested.sub"));
         assertEquals("nss", config.get("nested.sub.sub"));
+		assertInstanceOf(List.class, config.get("array"));
+		assertInstanceOf(Config.class, (config.<List<Object>>get("array")).get(0));
+		assertEquals("value", ((Config)(config.<List<Object>>get("array")).get(0)).get("inConfigInArray"));
     }
 
     /**
@@ -59,6 +65,7 @@ final class Util {
         assertFalse(config.contains("nested.a"));
         assertFalse(config.contains("nested.b"));
         assertFalse(config.contains("nested.sub.sub"));
+		assertEquals("value", ((Config)(config.<List<Object>>get("array")).get(0)).get("inConfigInArray"));
     }
 
     /**
@@ -78,19 +85,25 @@ final class Util {
         assertFalse(config.contains("nested.c"));
         assertEquals("nss", config.get("nested.sub.sub"));
         assertNotEquals(1234, config.<Object>get("nested.sub"));
+		assertEquals("value", ((Config)(config.<List<Object>>get("array")).get(0)).get("inConfigInArray"));
     }
 
     static final class TestFormat implements ConfigFormat<CommentedConfig> {
         volatile long writeTime = -1;
+		final boolean useProperSubConfigType;
 
-        @Override
+        public TestFormat(boolean useProperSubConfigType) {
+			this.useProperSubConfigType = useProperSubConfigType;
+		}
+
+		@Override
         public CommentedConfig createConfig(Supplier<Map<String, Object>> mapCreator) {
             throw new UnsupportedOperationException();
         }
 
         @Override
         public ConfigParser<CommentedConfig> createParser() {
-            return new TestParser();
+            return new TestParser(useProperSubConfigType);
         }
 
         @Override
@@ -126,8 +139,13 @@ final class Util {
     }
 
     static final class TestParser implements ConfigParser<CommentedConfig> {
+		private final boolean useProperSubConfigType;
 
-        @Override
+        public TestParser(boolean useProperSubConfigType) {
+			this.useProperSubConfigType = useProperSubConfigType;
+		}
+
+		@Override
         public ConfigFormat<CommentedConfig> getFormat() {
             return InMemoryCommentedFormat.defaultInstance();
         }
@@ -150,17 +168,26 @@ final class Util {
             parseInto(destination, parsingMode);
         }
 
+		private Config newSubConfig(Config config) {
+			return useProperSubConfigType ? config.createSubConfig() : Config.inMemory();
+		}
+
         private void parseInto(Config config, ParsingMode parsingMode) {
             parsingMode.prepareParsing(config);
             parsingMode.put(config, "a", "new A");
             parsingMode.put(config, "b", "new B");
-            var sub = config.createSubConfig();
-            var subsub = config.createSubConfig();
+
+			var sub = newSubConfig(config);
+            var subsub = newSubConfig(config);
             sub.set("a", "nested.a");
             sub.set("b", "nested.b");
             sub.set("sub", subsub);
             subsub.set("sub", "nss");
             parsingMode.put(config, "nested", sub);
+
+			var inArray = newSubConfig(config);
+			inArray.set("inConfigInArray", "value");
+			parsingMode.put(config, "array", List.of(inArray));
         }
     }
 }

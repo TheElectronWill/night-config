@@ -1,0 +1,16 @@
+modLoader = "javafml"
+loaderVersion = "[3,)"
+license = "CC0"
+
+[[mods]]
+modId = "testproject"
+version = "0.0.0"
+displayName = "Test Project"
+description = '''A test project.'''
+
+[[dependencies.testproject]]
+modId = "neoforge"
+type = "required"
+versionRange = "[999.6,)"
+ordering = "NONE"
+side = "BOTH"

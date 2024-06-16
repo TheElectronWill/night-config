@@ -1,0 +1,12 @@
+{
+	"year": 2024,
+	"dependencies": {
+		"testproject": [
+			{
+				"a": "dep-a",
+				"b": "dep-b",
+				"null": null
+			}
+		]
+	}
+}

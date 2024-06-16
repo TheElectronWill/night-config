@@ -118,7 +118,7 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
     /**
      * Atomically replaces the content of this config by the content of the specified config.
      * The specified config cannot be used anymore after a call to this method.
-     * 
+     *
      * @param newContent the new content (cannot be used anymore after this)
      */
     public void replaceContentBy(SynchronizedConfig newContent) {
@@ -133,7 +133,7 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
     /**
      * Atomically replaces the content of this config by the content of the specified config.
      * The specified config cannot be used anymore after a call to this method.
-     * 
+     *
      * @param newContent the new content (cannot be used anymore after this)
      */
     public void replaceContentBy(Config newContent) {
@@ -331,7 +331,15 @@ public final class SynchronizedConfig implements ConcurrentCommentedConfig {
         }
     }
 
+	/**
+	 * Returns a Map view of the config's values.
+	 *
+	 * @deprecated This method is deprecated on SynchronizedConfig. Because a conversion is applied to the value that is
+	 * added to the map with {@code put}, modifying the value after the {@code put} will, most of the time, not be reflected
+	 * to the config, i.e. once something is added to the {@code valueMap()}, you loose control over it.
+	 */
     @Override
+	@Deprecated
     public Map<String, Object> valueMap() {
         synchronized (rootMonitor) {
             Map<String, Object> transformingMap = new TransformingMap<>(dataHolder.valueMap(),
