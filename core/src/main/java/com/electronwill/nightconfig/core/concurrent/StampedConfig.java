@@ -584,7 +584,14 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
     private void convertSubConfigs(Config c) {
         if (c instanceof AbstractConfig) {
             AbstractConfig conf = (AbstractConfig) c;
-            conf.valueMap().replaceAll((k, v) -> convertValue(v));
+			try {
+            	conf.valueMap().replaceAll((k, v) -> convertValue(v));
+			} catch (UnsupportedOperationException ex) {
+				// valueMap() is not supported, use entrySet() instead
+				conf.entrySet().forEach(entry -> {
+					entry.setValue(convertValue(entry.getRawValue()));
+                });
+			}
         } else {
             for (Config.Entry entry : c.entrySet()) {
                 Object value = entry.getRawValue();
