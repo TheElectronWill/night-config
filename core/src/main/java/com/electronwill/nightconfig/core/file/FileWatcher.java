@@ -208,7 +208,6 @@ public final class FileWatcher {
 				try {
 					WatchService service = fs.newWatchService();
 					FsWatcher w = new FsWatcher(exceptionHandler, debounceTime, servicePollTimeoutNanos, service);
-					threadGroup.activeCount();
 					String threadName = "config-file-watcher-" + instanceId + "-" + threadCount.getAndIncrement();
 					Thread t = new Thread(threadGroup, w, threadName);
 					t.setDaemon(true);
