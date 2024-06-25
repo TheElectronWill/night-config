@@ -111,7 +111,7 @@ project.afterEvaluate {
 
 // Set project metadata for publishing
 group = "com.electronwill.night-config"
-version = "3.7.3"
+version = "3.7.4"
 
 // Publish the library as a Maven artifact.
 publishing {

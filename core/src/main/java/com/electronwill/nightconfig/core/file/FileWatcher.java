@@ -5,13 +5,8 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -200,6 +195,14 @@ public final class FileWatcher {
 
 	private void addOrPutWatch(Path file, Runnable changeHandler, ControlMessageKind kind) {
 		failIfStopped();
+		try {
+			if (Files.exists(file) && Files.readAttributes(file, BasicFileAttributes.class).isDirectory()) {
+				throw new IllegalArgumentException(
+						"FileWatcher is designed to watch files but this path is a directory, not a file: " + file);
+			}
+		} catch (IOException ex) {
+			throw new WatchingException("Failed to get information about path: " + file, ex);
+		}
 		CanonicalPath canon = CanonicalPath.from(file);
 		FileSystem fs = canon.parentDirectory.getFileSystem();
 		try {
@@ -412,7 +415,6 @@ public final class FileWatcher {
 						// key cancelled explicitely, or WatchService closed, or directory no longer accessible
 						// To account for the latter case (dir no longer accessible), we need to remove the dir from our map.
 						watchedDirectories.remove(dir);
-						break;
 					}
 				}
 			}

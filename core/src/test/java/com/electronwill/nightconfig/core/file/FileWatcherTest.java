@@ -1,8 +1,10 @@
 package com.electronwill.nightconfig.core.file;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD;
 
 import java.io.IOException;
@@ -29,6 +31,8 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.Isolated;
 
+import com.electronwill.nightconfig.core.file.FileWatcher.WatchingException;
+
 // other threads can slow down the threads in this test, which will make the "awaits" time out
 @Isolated
 @Execution(SAME_THREAD)
@@ -43,7 +47,8 @@ public class FileWatcherTest {
 
 	@Test
 	public void singleFile() throws Exception {
-		// no debouncing, no waiting on underlying filesystem watcher (handles new messages immediately)
+		// no debouncing, no waiting on underlying filesystem watcher (handles new
+		// messages immediately)
 		FileWatcher watcher = new FileWatcher(Duration.ZERO, Duration.ZERO, onWatcherException);
 
 		// ---- watch new file
@@ -104,7 +109,7 @@ public class FileWatcherTest {
 		int nDirs = 10;
 		int nFiles = 10;
 		FileWatcher watcher = new FileWatcher(Duration.ZERO, Duration.ZERO, onWatcherException);
-		CountDownLatch latch = new CountDownLatch(nDirs*nFiles);
+		CountDownLatch latch = new CountDownLatch(nDirs * nFiles);
 		// watch many files
 		for (int i = 0; i < nDirs; i++) {
 			Path dir = tmp.resolve("sub-" + i);
@@ -128,6 +133,49 @@ public class FileWatcherTest {
 
 		// stop watching
 		watcher.stop();
+	}
+
+	/**
+	 * Watches files in some directories, and remove one of the dirs after a while.
+	 */
+	@Test
+	public void dirNoLongerAccessible() throws Exception {
+		FileWatcher watcher = new FileWatcher(Duration.ZERO, Duration.ZERO, onWatcherException);
+
+		// create the directories
+		Path dir1 = tmp.resolve("dir1");
+		Path dir2 = tmp.resolve("dir2");
+		Files.createDirectory(dir1);
+		Files.createDirectory(dir2);
+
+		// watch the files
+		Path file1 = dir1.resolve("file1");
+		Path file2 = dir2.resolve("file2");
+		AtomicInteger notifCount1 = new AtomicInteger(0);
+		AtomicInteger notifCount2 = new AtomicInteger(0);
+		watcher.addWatch(file1, () -> notifCount1.incrementAndGet());
+		watcher.addWatch(file2, () -> notifCount2.incrementAndGet());
+
+		// generate events on the files
+		writeAndSync(file1, Arrays.asList("1"));
+		writeAndSync(file2, Arrays.asList("2"));
+		int midCount1 = notifCount1.get();
+		int midCount2 = notifCount2.get();
+
+		// remove one directory
+		Files.delete(file1);
+		Files.delete(dir1);
+
+		// generate events on the remaining files
+		writeAndSync(file2, Arrays.asList("22"));
+		for (int tries = 0; tries < 10 && notifCount2.get() == midCount2; tries++) {
+			Thread.sleep(10);
+		}
+		int finalCount1 = notifCount1.get();
+		int finalCount2 = notifCount2.get();
+		assertEquals(midCount1, finalCount1);
+		assertNotEquals(midCount2, finalCount2);
+		assertTrue(finalCount2 > midCount2);
 	}
 
 	@Test
@@ -227,11 +275,20 @@ public class FileWatcherTest {
 	}
 
 	private void writeAndSync(Path file, List<String> lines) throws IOException {
-		try(FileChannel chan = FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
+		try (FileChannel chan = FileChannel.open(file, StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
 			for (String line : lines) {
 				chan.write(ByteBuffer.wrap(line.getBytes(StandardCharsets.UTF_8)));
 			}
 			chan.force(true);
 		}
+	}
+
+	@Test
+	public void badDirWatch() throws Exception {
+		Path dir = Files.createDirectory(tmp.resolve("I am a directory"));
+		FileWatcher watcher = new FileWatcher();
+		assertThrows(IllegalArgumentException.class, () -> {
+			watcher.addWatch(dir, () -> fail("should not happen"));
+		});
 	}
 }
