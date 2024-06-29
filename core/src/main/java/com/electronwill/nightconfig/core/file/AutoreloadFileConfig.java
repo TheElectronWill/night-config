@@ -1,16 +1,15 @@
 package com.electronwill.nightconfig.core.file;
 
-import com.electronwill.nightconfig.core.*;
-import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
+import com.electronwill.nightconfig.core.utils.ConcurrentCommentedConfigWrapper;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.function.Function;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author TheElectronWill
  */
-final class AutoreloadFileConfig<C extends CommentedFileConfig> extends CommentedConfigWrapper<C>
+final class AutoreloadFileConfig<C extends CommentedFileConfig> extends ConcurrentCommentedConfigWrapper<C>
 		implements CommentedFileConfig {
 
 	private final FileWatcher watcher;
@@ -51,29 +50,11 @@ final class AutoreloadFileConfig<C extends CommentedFileConfig> extends Commente
 	@Override
 	public void close() {
 		try {
-			watcher.removeWatch(config.getNioPath());
+			watcher.removeWatchFuture(config.getNioPath()).get(5, TimeUnit.SECONDS);
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
 		} finally {
 			config.close();
 		}
-	}
-
-	@Override
-	public <R> R bulkRead(Function<? super UnmodifiableConfig, R> action) {
-		return config.bulkRead(action);
-	}
-
-	@Override
-	public <R> R bulkCommentedRead(Function<? super UnmodifiableCommentedConfig, R> action) {
-		return config.bulkCommentedRead(action);
-	}
-
-	@Override
-	public <R> R bulkCommentedUpdate(Function<? super CommentedConfig, R> action) {
-		return config.bulkCommentedUpdate(action);
-	}
-
-	@Override
-	public <R> R bulkUpdate(Function<? super Config, R> action) {
-		return config.bulkUpdate(action);
 	}
 }

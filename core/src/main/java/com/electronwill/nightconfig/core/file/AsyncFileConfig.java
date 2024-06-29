@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
-import java.util.function.Function;
 
 import com.electronwill.nightconfig.core.*;
 import com.electronwill.nightconfig.core.concurrent.ConcurrentCommentedConfig;
@@ -27,12 +26,12 @@ import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.ParsingMode;
 import com.electronwill.nightconfig.core.io.WritingException;
 import com.electronwill.nightconfig.core.io.WritingMode;
-import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
+import com.electronwill.nightconfig.core.utils.ConcurrentCommentedConfigWrapper;
 
 /**
  * @author TheElectronWill
  */
-final class AsyncFileConfig extends CommentedConfigWrapper<StampedConfig>
+final class AsyncFileConfig extends ConcurrentCommentedConfigWrapper<StampedConfig>
 		implements CommentedFileConfig {
 	/**
 	 * Holder for the executor service: allows to create the executor on demand in a thread-safe way
@@ -275,25 +274,5 @@ final class AsyncFileConfig extends CommentedConfigWrapper<StampedConfig>
 	@Override
 	public void close() {
 		this.closed = true;
-	}
-
-	@Override
-	public <R> R bulkRead(Function<? super UnmodifiableConfig, R> action) {
-		return config.bulkRead(action);
-	}
-
-	@Override
-	public <R> R bulkCommentedRead(Function<? super UnmodifiableCommentedConfig, R> action) {
-		return config.bulkCommentedRead(action);
-	}
-
-	@Override
-	public <R> R bulkCommentedUpdate(Function<? super CommentedConfig, R> action) {
-		return config.bulkCommentedUpdate(action);
-	}
-
-	@Override
-	public <R> R bulkUpdate(Function<? super Config, R> action) {
-		return config.bulkUpdate(action);
 	}
 }

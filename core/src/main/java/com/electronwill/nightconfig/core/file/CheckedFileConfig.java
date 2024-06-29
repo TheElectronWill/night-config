@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core.file;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
 import com.electronwill.nightconfig.core.utils.ConfigWrapper;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
@@ -85,6 +86,7 @@ class CheckedFileConfig extends ConfigWrapper<FileConfig> implements FileConfig 
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Set<? extends Config.Entry> entrySet() {
 		return new TransformingSet<>((Set<Config.Entry>)super.entrySet(), v -> v, this::checkedValue, o -> o);
 	}
@@ -92,6 +94,11 @@ class CheckedFileConfig extends ConfigWrapper<FileConfig> implements FileConfig 
 	@Override
 	public String toString() {
 		return "checked of " + config;
+	}
+
+	@Override
+	public ConcurrentConfig createSubConfig() {
+		return config.createSubConfig();
 	}
 
 	/**

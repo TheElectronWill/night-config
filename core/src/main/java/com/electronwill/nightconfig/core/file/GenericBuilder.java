@@ -376,6 +376,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 *
 	 * @return the config
 	 */
+	@SuppressWarnings("resource")
 	public Result build() {
 		CommentedFileConfig fileConfig;
 

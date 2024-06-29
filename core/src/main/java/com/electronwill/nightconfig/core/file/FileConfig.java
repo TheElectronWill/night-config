@@ -8,7 +8,6 @@ import java.util.function.Function;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
 
 /**
@@ -62,7 +61,7 @@ import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
  *
  * @author TheElectronWill
  */
-public interface FileConfig extends Config, AutoCloseable {
+public interface FileConfig extends ConcurrentConfig, AutoCloseable {
 	/**
 	 * @return the config's file, as a classic File object
 	 */
@@ -98,33 +97,6 @@ public interface FileConfig extends Config, AutoCloseable {
 	@Override
 	default FileConfig checked() {
 		return new CheckedFileConfig(this);
-	}
-
-	/**
-	 * Performs multiple reads at once and returns a value.
-	 * <p>
-	 * This has the same guarantees of consistency as
-	 * {@link ConcurrentConfig#bulkRead(Function)}.
-	 *
-	 * @param action a function to execute on the configuration view
-	 * @param <R>    the type of the function's result
-	 * @return the result of the function
-	 */
-	<R> R bulkRead(Function<? super UnmodifiableConfig, R> action);
-
-	/**
-	 * Performs multiple reads at once.
-	 * <p>
-	 * This has the same guarantees of consistency as
-	 * {@link ConcurrentConfig#bulkRead(Consumer)}.
-	 *
-	 * @param action a function to execute on the configuration view
-	 */
-	default void bulkRead(Consumer<? super UnmodifiableConfig> action) {
-		bulkRead(config -> {
-			action.accept(config);
-			return null;
-		});
 	}
 
 	/**

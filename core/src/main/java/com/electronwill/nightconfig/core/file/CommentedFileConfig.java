@@ -19,42 +19,10 @@ import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
  *
  * @author TheElectronWill
  */
-public interface CommentedFileConfig extends CommentedConfig, FileConfig {
+public interface CommentedFileConfig extends ConcurrentCommentedConfig, FileConfig {
 	@Override
 	default CommentedFileConfig checked() {
 		return new CheckedCommentedFileConfig(this);
-	}
-
-	/**
-	 * Performs multiple reads at once, with access to the comments.
-	 * <p>
-	 * This has the same guarantees of consistency as
-	 * {@link ConcurrentCommentedConfig#bulkCommentedRead(Function)}.
-	 *
-	 * @param action a function to execute on the configuration view
-	 * @param <R>    the type of the function's result
-	 * @return the result of the function
-	 */
-	<R> R bulkCommentedRead(Function<? super UnmodifiableCommentedConfig, R> action);
-
-	/**
-	 * Performs multiple reads at once, with access to the comments.
-	 * <p>
-	 * This has the same guarantees of consistency as
-	 * {@link ConcurrentCommentedConfig#bulkCommentedRead(Consumer)}.
-	 *
-	 * @param action a function to execute on the configuration view
-	 */
-	default void bulkCommentedRead(Consumer<? super UnmodifiableCommentedConfig> action) {
-        bulkCommentedRead(config -> {
-            action.accept(config);
-            return null;
-        });
-    }
-
-	@Override
-	default <R> R bulkRead(Function<? super UnmodifiableConfig, R> action) {
-		return bulkCommentedRead(action);
 	}
 
 	/**
@@ -124,7 +92,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @see #builder(Path)
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static CommentedFileConfig of(Path file) {
 		ConfigFormat format = FormatDetector.detect(file);
 		if (format == null || !format.supportsComments()) {
@@ -306,6 +274,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 *
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static CommentedFileConfigBuilder builder(Path file) {
 		ConfigFormat format = FormatDetector.detect(file);
 		if (format == null) {

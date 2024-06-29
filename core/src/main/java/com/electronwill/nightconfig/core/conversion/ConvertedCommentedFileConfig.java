@@ -1,6 +1,7 @@
 package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.*;
+import com.electronwill.nightconfig.core.concurrent.ConcurrentCommentedConfig;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 
 import java.io.File;
@@ -71,5 +72,10 @@ public final class ConvertedCommentedFileConfig
 	@Override
 	public <R> R bulkUpdate(Function<? super Config, R> action) {
 		return config.bulkUpdate(action);
+	}
+
+	@Override
+	public ConcurrentCommentedConfig createSubConfig() {
+		return config.createSubConfig();
 	}
 }

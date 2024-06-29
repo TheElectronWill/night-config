@@ -4,7 +4,7 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.UnmodifiableCommentedConfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
+import com.electronwill.nightconfig.core.utils.ConcurrentCommentedConfigWrapper;
 import com.electronwill.nightconfig.core.utils.ObservedMap;
 
 import java.io.File;
@@ -16,7 +16,7 @@ import java.util.function.Function;
 /**
  * @author TheElectronWill
  */
-final class AutosaveCommentedFileConfig extends CommentedConfigWrapper<CommentedFileConfig>
+final class AutosaveCommentedFileConfig extends ConcurrentCommentedConfigWrapper<CommentedFileConfig>
 		implements CommentedFileConfig {
 	private final Runnable autoSaveListener; // called on automatic save
 
@@ -134,16 +134,6 @@ final class AutosaveCommentedFileConfig extends CommentedConfigWrapper<Commented
 	@Override
 	public void close() {
 		config.close();
-	}
-
-	@Override
-	public <R> R bulkRead(Function<? super UnmodifiableConfig, R> action) {
-		return config.bulkRead(action);
-	}
-
-	@Override
-	public <R> R bulkCommentedRead(Function<? super UnmodifiableCommentedConfig, R> action) {
-		return config.bulkCommentedRead(action);
 	}
 
 	@Override

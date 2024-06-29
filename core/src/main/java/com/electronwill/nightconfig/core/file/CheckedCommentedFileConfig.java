@@ -1,9 +1,7 @@
 package com.electronwill.nightconfig.core.file;
 
 import com.electronwill.nightconfig.core.*;
-import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
-import com.electronwill.nightconfig.core.utils.TransformingMap;
-import com.electronwill.nightconfig.core.utils.TransformingSet;
+import com.electronwill.nightconfig.core.utils.*;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -15,7 +13,7 @@ import java.util.function.Function;
 /**
  * @author TheElectronWill
  */
-class CheckedCommentedFileConfig extends CommentedConfigWrapper<CommentedFileConfig>
+class CheckedCommentedFileConfig extends ConcurrentCommentedConfigWrapper<CommentedFileConfig>
 		implements CommentedFileConfig {
 	/**
 	 * Creates a new CheckedConfig around a commented configuration.
@@ -84,6 +82,7 @@ class CheckedCommentedFileConfig extends CommentedConfigWrapper<CommentedFileCon
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Set<? extends CommentedConfig.Entry> entrySet() {
 		return new TransformingSet<>((Set<CommentedConfig.Entry>) super.entrySet(), v -> v,
 				this::checkedValue, o -> o);
