@@ -10,7 +10,6 @@ import com.electronwill.nightconfig.core.io.Utils;
  * @see <a href="https://toml.io/en/v1.0.0#string">TOML specification - Strings</a>
  */
 final class StringParser {
-	private static final char[] SINGLE_QUOTE = {'\''};
 	private static final char[] SINGLE_QUOTE_OR_NEWLINE = {'\'', '\n', '\r'};
 
 	/**

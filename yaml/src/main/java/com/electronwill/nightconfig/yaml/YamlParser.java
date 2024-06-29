@@ -1,18 +1,11 @@
 package com.electronwill.nightconfig.yaml;
 
-import com.electronwill.nightconfig.core.AbstractConfig;
-import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
-import com.electronwill.nightconfig.core.concurrent.StampedConfig;
-import com.electronwill.nightconfig.core.concurrent.StampedConfig.Accumulator;
-import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.core.io.ParsingMode;
-import com.electronwill.nightconfig.core.utils.TransformingList;
-import com.electronwill.nightconfig.core.utils.TransformingMap;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -20,8 +13,6 @@ import java.io.Reader;
 import java.util.List;
 import java.util.Map;
 import java.util.Collections;
-
-import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 
 /**
  * A YAML parser that uses the snakeYaml library.
@@ -72,6 +63,7 @@ public final class YamlParser implements ConfigParser<Config> {
 		}
 
 		try {
+			@SuppressWarnings("unchecked")
 			Map<String, Object> map = yaml.loadAs(reader, Map.class);
 			parsingMode.prepareParsing(destination);
 			for (Map.Entry<String, Object> entry : map.entrySet()) {

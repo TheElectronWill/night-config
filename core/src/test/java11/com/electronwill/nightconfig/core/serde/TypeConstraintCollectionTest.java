@@ -117,11 +117,13 @@ public class TypeConstraintCollectionTest {
 		Collection<? extends String> extendString;
 	}
 
+	@SuppressWarnings("all")
 	static class WildcardsWithParams<T extends String> {
 		List<? super T> superString;
 		List<? extends T> extendString;
 	}
 
+	@SuppressWarnings("all")
 	static class Params1<A, B extends String, C> {
 		Collection<B> coll;
 	}

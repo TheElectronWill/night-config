@@ -84,12 +84,14 @@ public class TransformingCollection<InternalV, ExternalV> implements Collection<
 	}
 
 	@Override
+	@SuppressWarnings("rawtypes")
 	public boolean containsAll(Collection<?> c) {
 		return internalCollection.containsAll(
 			new TransformingCollection(c, searchTransformation, o -> o, searchTransformation));
 	}
 
 	@Override
+	@SuppressWarnings("rawtypes")
 	public boolean addAll(Collection<? extends ExternalV> c) {
 		return internalCollection.addAll(
 			new TransformingCollection(c, writeTransformation, readTransformation,
@@ -97,6 +99,7 @@ public class TransformingCollection<InternalV, ExternalV> implements Collection<
 	}
 
 	@Override
+	@SuppressWarnings("rawtypes")
 	public boolean removeAll(Collection<?> c) {
 		return internalCollection.removeAll(
 			new TransformingCollection(c, searchTransformation, o -> o, searchTransformation));
@@ -109,6 +112,7 @@ public class TransformingCollection<InternalV, ExternalV> implements Collection<
 	}
 
 	@Override
+	@SuppressWarnings("rawtypes")
 	public boolean retainAll(Collection<?> c) {
 		return internalCollection.retainAll(
 			new TransformingCollection(c, searchTransformation, o -> o, searchTransformation));

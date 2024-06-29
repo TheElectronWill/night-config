@@ -216,6 +216,7 @@ public final class ObjectConverter {
 	 * Converts a Config to an Object. The {@link #bypassTransient} and {@link #bypassFinal}
 	 * settings apply.
 	 */
+	@SuppressWarnings("unchecked")
 	private void convertToObject(UnmodifiableConfig config, Object object, Class<?> clazz) {
 		// This loop walks through the class hierarchy, see clazz = clazz.getSuperclass(); at the end
 		while (clazz != Object.class) {
@@ -306,7 +307,8 @@ public final class ObjectConverter {
 						} else {
 							AnnotationUtils.checkField(field, value);
                             if (field.getType().isEnum()) {
-                                Class<? extends Enum> enumType = (Class<? extends Enum>) field.getType();
+                                @SuppressWarnings("rawtypes")
+								Class<? extends Enum> enumType = (Class<? extends Enum>) field.getType();
                                 SpecEnum specEnum = field.getAnnotation(SpecEnum.class);
                                 EnumGetMethod method = (specEnum == null) ? EnumGetMethod.NAME_IGNORECASE : specEnum.method();
                                 field.set(object, method.get(value, enumType));
@@ -407,6 +409,7 @@ public final class ObjectConverter {
 	 * @param dst             the collection of objects, destination
 	 * @param dstElementTypes the type of lists and objects in dst
 	 */
+	@SuppressWarnings("unchecked")
 	private void convertConfigsToObject(Collection<?> src,
 										Collection<Object> dst,
 										List<Class<?>> dstElementTypes,

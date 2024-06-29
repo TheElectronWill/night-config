@@ -92,6 +92,7 @@ public final class TransformingMap<K, InternalV, ExternalV> extends AbstractMap<
 	}
 
 	@Override
+	@SuppressWarnings("rawtypes")
 	public void putAll(Map<? extends K, ? extends ExternalV> m) {
 		internalMap.putAll(new TransformingMap(m, writeTransformation, o -> o, o -> o));
 	}
@@ -122,7 +123,7 @@ public final class TransformingMap<K, InternalV, ExternalV> extends AbstractMap<
 
 		Function<Object, Object> searchTranformation = o -> {
 			if (o instanceof Map.Entry) {
-				Map.Entry<K, InternalV> entry = (Map.Entry)o;
+				Map.Entry<K, InternalV> entry = (Map.Entry<K, InternalV>)o;
 				return new TransformingMapEntry<>(entry, readTransformation, writeTransformation);
 			}
 			return o;

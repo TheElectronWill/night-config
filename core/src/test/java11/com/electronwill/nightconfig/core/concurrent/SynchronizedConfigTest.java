@@ -1,19 +1,13 @@
 package com.electronwill.nightconfig.core.concurrent;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-
-import java.util.Arrays;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 import org.junit.jupiter.api.Test;
 
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.InMemoryCommentedFormat;
 
 public class SynchronizedConfigTest {
-    static SynchronizedConfig newConfig() {
+    @SuppressWarnings("deprecation")
+	static SynchronizedConfig newConfig() {
         return new SynchronizedConfig(InMemoryCommentedFormat.defaultInstance(),
                 Config.getDefaultMapCreator(false));
     }

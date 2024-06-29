@@ -103,6 +103,7 @@ public abstract class AbstractInput implements CharacterInput {
 	}
 
 	@Override
+	@SuppressWarnings("resource")
 	public CharsWrapper readUntil(char[] stop) {
 		CharsWrapper.Builder builder = new CharsWrapper.Builder(10);
 		int c = read();
@@ -115,6 +116,7 @@ public abstract class AbstractInput implements CharacterInput {
 	}
 
 	@Override
+	@SuppressWarnings("resource")
 	public CharsWrapper readCharsUntil(char[] stop) {
 		CharsWrapper.Builder builder = new CharsWrapper.Builder(10);
 		char c = readChar();

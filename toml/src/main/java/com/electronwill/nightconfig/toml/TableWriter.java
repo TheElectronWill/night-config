@@ -195,6 +195,7 @@ final class TableWriter {
 		for (Iterator<Entry> it = table.arraysOfTables.iterator(); it.hasNext();) {
 			Entry entry = it.next();
 			configPath.add(entry.getKey());
+			@SuppressWarnings({ "rawtypes", "unchecked" })
 			List<? extends UnmodifiableConfig> array = (List) entry.getRawValue();
 			for (UnmodifiableConfig sub : array) {
 				writeWithHeader(UnmodifiableCommentedConfig.fake(sub), entry.getComment(), true,

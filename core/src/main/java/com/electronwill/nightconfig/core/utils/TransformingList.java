@@ -15,6 +15,7 @@ public final class TransformingList<InternalV, ExternalV>
 	}
 
 	@Override
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public boolean addAll(int index, Collection<? extends ExternalV> c) {
 		return ((List<InternalV>) internalCollection).addAll(index,
 			new TransformingCollection(c, writeTransformation, readTransformation, searchTransformation));

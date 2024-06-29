@@ -18,12 +18,14 @@ import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.InMemoryCommentedFormat;
 
 public class StampedConfigTest {
-    private static StampedConfig newConfig() {
+    @SuppressWarnings("deprecation")
+	private static StampedConfig newConfig() {
         return new StampedConfig(InMemoryCommentedFormat.defaultInstance(),
                 Config.getDefaultMapCreator(false));
     }
 
-    static StampedConfig.Accumulator newAccumulator() {
+    @SuppressWarnings("deprecation")
+	static StampedConfig.Accumulator newAccumulator() {
         return new StampedConfig.Accumulator(InMemoryCommentedFormat.defaultInstance(),
                 Config.getDefaultMapCreator(false));
     }
@@ -306,7 +308,6 @@ public class StampedConfigTest {
         config.set("a.b", "value of a.b");
         config.set("key", "value of key");
 
-        var error = AssertionError.class;
         var exception = IllegalStateException.class;
 
         // during a bulk operation, iteration on the config (not the view)

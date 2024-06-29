@@ -71,6 +71,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		this.mapCreator = mapCreator;
 	}
 
+	@Deprecated
 	protected static <T> Supplier<Map<String, T>> getDefaultMapCreator(boolean concurrent) {
 		return Config.getDefaultMapCreator(concurrent);
 	}

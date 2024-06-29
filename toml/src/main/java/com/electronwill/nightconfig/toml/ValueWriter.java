@@ -5,7 +5,6 @@ import com.electronwill.nightconfig.core.io.CharacterOutput;
 import com.electronwill.nightconfig.core.io.WritingException;
 
 import java.time.temporal.Temporal;
-import java.util.Iterator;
 import java.util.List;
 
 import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import com.electronwill.nightconfig.core.Config;
 
+@SuppressWarnings("deprecation")
 public class ObjectConverterTestPreserveNotNull {
 
     @PreserveNotNull

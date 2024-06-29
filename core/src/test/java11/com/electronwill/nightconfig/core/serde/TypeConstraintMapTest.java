@@ -175,6 +175,7 @@ public class TypeConstraintMapTest {
 		MyMap3_1 field12;
 	}
 
+	@SuppressWarnings("rawtypes")
 	static class Wildcards {
 		Map<? super CharSequence, ? super Number> superMap;
 		Map<? extends CharSequence, ? extends Number> extendMap;

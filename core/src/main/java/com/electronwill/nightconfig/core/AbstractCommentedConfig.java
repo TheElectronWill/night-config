@@ -77,6 +77,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 		this.commentMap = AbstractConfig.<String>getWildcardMapCreator(mapCreator).get();
 	}
 
+	@Deprecated
 	protected static Map<String, String> getDefaultCommentMap(boolean concurrent) {
 		return AbstractConfig.<String>getDefaultMapCreator(concurrent).get();
 	}

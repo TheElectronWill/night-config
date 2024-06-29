@@ -3,7 +3,6 @@ package com.electronwill.nightconfig.core;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.function.Supplier;
 
 /**
@@ -33,10 +32,10 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 		super(valueMap);
 		this.configFormat = configFormat;
 	}
-	
+
 	/**
 	 * Creates a SimpleCommentedConfig with the specified backing map supplier and format.
-	 * 
+	 *
 	 * @param mapCreator the supplier for backing maps
 	 * @param configFormat the config's format
 	 */
@@ -56,7 +55,7 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 		super(toCopy, concurrent);
 		this.configFormat = configFormat;
 	}
-	
+
 	/**
 	 * Creates a SimpleCommentedConfig by copying a config, with the specified backing map creator and format.
 	 *
@@ -81,7 +80,7 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 		super(toCopy, concurrent);
 		this.configFormat = configFormat;
 	}
-	
+
 	/**
 	 * Creates a SimpleCommentedConfig by copying a config, with the specified backing map creator and format.
 	 *

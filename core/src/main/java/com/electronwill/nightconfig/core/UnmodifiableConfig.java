@@ -32,6 +32,7 @@ public interface UnmodifiableConfig {
 	 * @param <T>  the value's type
 	 * @return the value at the given path, or {@code null} if there is no such value.
 	 */
+	@SuppressWarnings("unchecked")
 	default <T> T get(List<String> path) {
 		Object raw = getRaw(path);
 		return (raw == NULL_OBJECT) ? null : (T)raw;
@@ -152,7 +153,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getEnum(String, Class, EnumGetMethod)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
-	 * 
+	 *
 	 * @param path     the value's path, each part separated by a dot. Example "a.b.c"
 	 * @param enumType the class of the Enum
 	 * @param <T>      the enum type
@@ -183,7 +184,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getEnum(List, Class, EnumGetMethod)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
-	 * 
+	 *
 	 * @param path     the value's path, each element of the list is a different part of the path.
 	 * @param enumType the class of the Enum
 	 * @return the value at the given path as an enum, or {@code null} if not found.
@@ -212,7 +213,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getOptionalEnum(String, Class, EnumGetMethod)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
-	 * 
+	 *
 	 * @param path     the value's path, each part separated by a dot. Example "a.b.c"
 	 * @param enumType the class of the Enum
 	 * @return the value at the given path as an enum, or {@code null} if not found.
@@ -241,7 +242,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getOptionalEnum(List, Class, EnumGetMethod)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
-	 * 
+	 *
 	 * @param path the value's path, each element of the list is a different part of the path.
 	 * @param enumType the class of the Enum
 	 * @return the value at the given path as an enum, or {@code null} if not found.
@@ -270,7 +271,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getEnumOrElse(String, Enum, EnumGetMethod)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
-	 * 
+	 *
 	 * @param path         the value's path, each part separated by a dot. Example "a.b.c"
 	 * @param defaultValue the default value
 	 * @return the value at the given path as an enum, or {@code null} if not found.
@@ -300,7 +301,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getEnumOrElse(List, Enum, EnumGetMethod)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
-	 * 
+	 *
 	 * @param path         the value's path, each element of the list is a different part of the path.
 	 * @param defaultValue the default value
 	 * @return the value at the given path as an enum, or {@code null} if not found.
@@ -332,7 +333,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getEnumOrElse(String, Class, EnumGetMethod, Supplier)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
-	 * 
+	 *
 	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
 	 * @param enumType the class of the Enum
 	 * @return the value at the given path as an enum, or {@code null} if not found.
@@ -368,7 +369,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Calls {@link #getEnumOrElse(List, Class, EnumGetMethod, Supplier)} with method
 	 * {@link EnumGetMethod#NAME_IGNORECASE}.
-	 * 
+	 *
 	 * @param path         the value's path, each element of the list is a different part of the path.
 	 * @param enumType the class of the Enum
 	 * @param defaultValueSupplier Supplier of the default value, only used if needed
@@ -384,7 +385,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #get(String)} but returns a primitive int. The config's value must be a
 	 * {@link Number}. Throws an exception if the value does not exist.
-	 * 
+	 *
 	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
 	 * @return the value at the given path, as {@link Number#intValue()}.
 	 */
@@ -395,7 +396,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #get(List)} but returns a primitive int. The config's value must be a
 	 * {@link Number}. Throws an exception if the value does not exist.
-	 * 
+	 *
 	 * @param path         the value's path, each element of the list is a different part of the path.
 	 * @return the value at the given path, as {@link Number#intValue()}.
 	 */
@@ -406,7 +407,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOptional(String)} but returns a primitive int. The config's value must be a
 	 * {@link Number} or null or nonexistant.
-	 * 
+	 *
 	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
 	 * @return the value at the given path, as {@link Number#intValue()}, or {@link OptionalInt#empty()}.
 	 */
@@ -417,7 +418,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOptional(List)} but returns a primitive int. The config's value must be a
 	 * {@link Number} or null or nonexistant.
-	 * 
+	 *
 	 * @param path         the value's path, each element of the list is a different part of the path.
 	 * @return the value at the given path, as {@link Number#intValue()}, or {@link OptionalInt#empty()}.
 	 */
@@ -429,7 +430,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(String, Object)} but returns a primitive int.
 	 * The config's value must be a {@link Number} or null or nonexistant.
-	 * 
+	 *
 	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
 	 * @param defaultValue the value returned if the config doesn't contain the given path
 	 * @return the value at the given path, as {@link Number#intValue()}, or {@code defaultValue}.
@@ -441,7 +442,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(List, Object)} but returns a primitive int.
 	 * The config's value must be a {@link Number} or null or nonexistant.
-	 * 
+	 *
 	 * @param path         the value's path, each element of the list is a different part of the path.
 	 * @return the value at the given path, as {@link Number#intValue()}, or {@code defaultValue}.
 	 */
@@ -453,7 +454,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(String, Supplier)} but returns a primitive int.
 	 * The config's value must be a {@link Number} or null or nonexistant.
-	 * 
+	 *
 	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
 	 * @return the value at the given path, as {@link Number#intValue()}, or {@code defaultValueSupplier.get()}.
 	 */
@@ -464,7 +465,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(List, Supplier)} but returns a primitive int.
 	 * The config's value must be a {@link Number} or null or nonexistant.
-	 * 
+	 *
 	 * @param path         the value's path, each element of the list is a different part of the path.
 	 * @return the value at the given path, as {@link Number#intValue()}, or {@code defaultValueSupplier.get()}.
 	 */
@@ -477,7 +478,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #get(String)} but returns a primitive long. The config's value must be a
 	 * {@link Number}.
-	 * 
+	 *
 	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
 	 */
 	default long getLong(String path) {
@@ -487,7 +488,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #get(List)} but returns a primitive long. The config's value must be a
 	 * {@link Number}.
-	 * 
+	 *
 	 * @param path         the value's path, each element of the list is a different part of the path.
 	 */
 	default long getLong(List<String> path) {
@@ -497,7 +498,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOptional(String)} but returns a primitive long. The config's value must be a
 	 * {@link Number} or null or nonexistant.
-	 * 
+	 *
 	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
 	 */
 	default OptionalLong getOptionalLong(String path) {
@@ -507,7 +508,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOptional(List)} but returns a primitive long. The config's value must be a
 	 * {@link Number} or null or nonexistant.
-	 * 
+	 *
 	 * @param path         the value's path, each element of the list is a different part of the path.
 	 */
 	default OptionalLong getOptionalLong(List<String> path) {
@@ -518,7 +519,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(String, Object)} but returns a primitive long.
 	 * The config's value must be a {@link Number} or null or nonexistant.
-	 * 
+	 *
 	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
 	 * @param defaultValue the value to return if the config doesn't contain the path
 	 */
@@ -529,7 +530,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(List, Object)} but returns a primitive long.
 	 * The config's value must be a {@link Number} or null or nonexistant.
-	 * 
+	 *
 	 * @param path         the value's path, each element of the list is a different part of the path.
 	 * @param defaultValue the value to return if the config doesn't contain the path
 	 */
@@ -541,7 +542,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(String, Supplier)} but returns a primitive long.
 	 * The config's value must be a {@link Number} or null or nonexistant.
-	 * 
+	 *
 	 * @param path the path to check, each part separated by a dot. Example "a.b.c"
 	 * @param defaultValueSupplier supplies the value to return if the config doesn't contain the path
 	 */
@@ -552,7 +553,7 @@ public interface UnmodifiableConfig {
 	/**
 	 * Like {@link #getOrElse(List, Supplier)} but returns a primitive long.
 	 * The config's value must be a {@link Number} or null or nonexistant.
-	 * 
+	 *
 	 * @param path         the value's path, each element of the list is a different part of the path.
 	 * @param defaultValueSupplier supplies the value to return if the config doesn't contain the path
 	 */
@@ -771,6 +772,7 @@ public interface UnmodifiableConfig {
 		 * @param <T> the value's type
 		 * @return the entry's value
 		 */
+		@SuppressWarnings("unchecked")
 		default <T> T getValue() {
 			Object raw = getRawValue();
 			return (raw == NULL_OBJECT) ? null : (T)raw;

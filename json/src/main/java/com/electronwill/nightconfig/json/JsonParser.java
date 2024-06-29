@@ -197,6 +197,7 @@ public final class JsonParser implements ConfigParser<Config> {
 	 * @param reader the Reader to parse
 	 * @return a List with the content of the parsed array
 	 */
+	@SuppressWarnings("unchecked")
 	public <T> List<T> parseList(Reader reader) {
 		List<Object> list = new ArrayList<>();
 		parseList(reader, list, ParsingMode.MERGE, configFormat.createConfig());
@@ -272,6 +273,7 @@ public final class JsonParser implements ConfigParser<Config> {
 		parsingMode.put(config, key, value);
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T> List<T> parseArray(CharacterInput input, List<T> list, ParsingMode parsingMode, Config parentConfig) {
 		boolean first = true;
 		while (true) {

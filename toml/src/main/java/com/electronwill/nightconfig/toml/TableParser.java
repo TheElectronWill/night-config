@@ -193,6 +193,7 @@ final class TableParser {
 			return StringParser.parseLiteral(input, parser);
 		} else {
 			CharsWrapper restOfKey = input.readCharsUntil(KEY_END);
+			@SuppressWarnings("resource")
 			String bareKey = new CharsWrapper.Builder(restOfKey.length() + 1).append(firstChar)
 																			 .append(restOfKey)
 																			 .toString();

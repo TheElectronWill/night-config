@@ -2,7 +2,6 @@ package com.electronwill.nightconfig.core.serde;
 
 import java.util.*;
 import java.util.function.Supplier;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 
 import com.electronwill.nightconfig.core.NullObject;

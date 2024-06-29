@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.electronwill.nightconfig.core.Config;
 
+@SuppressWarnings("deprecation")
 public class GenericParamTest {
 
 	static class GenericClass<T> {

@@ -53,6 +53,7 @@ public enum EnumGetMethod {
 		return this == ORDINAL_OR_NAME || this == ORDINAL_OR_NAME_IGNORECASE;
 	}
 
+	@SuppressWarnings("unchecked")
 	public <T extends Enum<T>> T get(Object value, Class<T> enumType) {
 		if (value == null || value == NULL_OBJECT) {
 			return null;
