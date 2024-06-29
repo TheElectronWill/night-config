@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 public abstract class AbstractCommentedConfig extends AbstractConfig implements CommentedConfig {
 	protected final Map<String, String> commentMap;
 
+	@Deprecated
 	public AbstractCommentedConfig(boolean concurrent) {
 		super(concurrent);
 		this.commentMap = getDefaultCommentMap(concurrent);
@@ -51,6 +52,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	 *
 	 * @param toCopy the config to copy
 	 */
+	@Deprecated
 	public AbstractCommentedConfig(UnmodifiableConfig toCopy, boolean concurrent) {
 		super(toCopy, concurrent);
 		this.commentMap = getDefaultCommentMap(concurrent);
@@ -66,6 +68,7 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	 *
 	 * @param toCopy the config to copy
 	 */
+	@Deprecated
 	public AbstractCommentedConfig(UnmodifiableCommentedConfig toCopy, boolean concurrent) {
 		super(toCopy, concurrent);
 		this.commentMap = getDefaultCommentMap(concurrent);

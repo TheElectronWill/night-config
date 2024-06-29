@@ -19,6 +19,7 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 	 *
 	 * @param configFormat the config's format
 	 */
+	@Deprecated
 	SimpleCommentedConfig(ConfigFormat<?> configFormat, boolean concurrent) {
 		super(concurrent ? new ConcurrentHashMap<>() : new HashMap<>());
 		this.configFormat = configFormat;
@@ -50,6 +51,7 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 	 * @param toCopy       the config to copy
 	 * @param configFormat the config's format
 	 */
+	@Deprecated
 	SimpleCommentedConfig(UnmodifiableConfig toCopy, ConfigFormat<?> configFormat,
 						  boolean concurrent) {
 		super(toCopy, concurrent);
@@ -75,6 +77,7 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 	 * @param toCopy       the config to copy
 	 * @param configFormat the config's format
 	 */
+	@Deprecated
 	SimpleCommentedConfig(UnmodifiableCommentedConfig toCopy, ConfigFormat<?> configFormat,
 						  boolean concurrent) {
 		super(toCopy, concurrent);

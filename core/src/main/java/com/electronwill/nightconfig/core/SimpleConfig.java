@@ -15,15 +15,16 @@ final class SimpleConfig extends AbstractConfig {
 	 *
 	 * @param configFormat the config's format
 	 */
+	@Deprecated
 	SimpleConfig(ConfigFormat<?> configFormat, boolean concurrent) {
 		super(concurrent);
 		this.configFormat = configFormat;
 	}
-	
+
 	/**
 	 * Creates a SimpleConfig with the specified data and format. The map is used as it is and
 	 * isn't copied.
-	 * 
+	 *
 	 * @param map the data to use in the config
 	 * @param configFormat the config's format
 	 */
@@ -34,7 +35,7 @@ final class SimpleConfig extends AbstractConfig {
 
 	/**
 	 * Creates a SimpleConfig with the specified backing map supplier and format.
-	 * 
+	 *
 	 * @param mapCreator the supplier for backing maps
 	 * @param configFormat the config's format
 	 */
@@ -42,7 +43,7 @@ final class SimpleConfig extends AbstractConfig {
 		super(mapCreator);
 		this.configFormat = configFormat;
 	}
-	
+
 	/**
 	 * Creates a SimpleConfig by copying a config.
 	 *
@@ -50,6 +51,7 @@ final class SimpleConfig extends AbstractConfig {
 	 * @param configFormat the config's format
 	 * @param concurrent
 	 */
+	@Deprecated
 	SimpleConfig(UnmodifiableConfig toCopy, ConfigFormat<?> configFormat, boolean concurrent) {
 		super(toCopy, concurrent);
 		this.configFormat = configFormat;
