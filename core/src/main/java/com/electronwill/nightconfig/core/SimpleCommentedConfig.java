@@ -3,7 +3,6 @@ package com.electronwill.nightconfig.core;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.function.Supplier;
 
 /**
@@ -20,6 +19,7 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 	 *
 	 * @param configFormat the config's format
 	 */
+	@Deprecated
 	SimpleCommentedConfig(ConfigFormat<?> configFormat, boolean concurrent) {
 		super(concurrent ? new ConcurrentHashMap<>() : new HashMap<>());
 		this.configFormat = configFormat;
@@ -33,10 +33,10 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 		super(valueMap);
 		this.configFormat = configFormat;
 	}
-	
+
 	/**
 	 * Creates a SimpleCommentedConfig with the specified backing map supplier and format.
-	 * 
+	 *
 	 * @param mapCreator the supplier for backing maps
 	 * @param configFormat the config's format
 	 */
@@ -51,12 +51,13 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 	 * @param toCopy       the config to copy
 	 * @param configFormat the config's format
 	 */
+	@Deprecated
 	SimpleCommentedConfig(UnmodifiableConfig toCopy, ConfigFormat<?> configFormat,
 						  boolean concurrent) {
 		super(toCopy, concurrent);
 		this.configFormat = configFormat;
 	}
-	
+
 	/**
 	 * Creates a SimpleCommentedConfig by copying a config, with the specified backing map creator and format.
 	 *
@@ -76,12 +77,13 @@ final class SimpleCommentedConfig extends AbstractCommentedConfig {
 	 * @param toCopy       the config to copy
 	 * @param configFormat the config's format
 	 */
+	@Deprecated
 	SimpleCommentedConfig(UnmodifiableCommentedConfig toCopy, ConfigFormat<?> configFormat,
 						  boolean concurrent) {
 		super(toCopy, concurrent);
 		this.configFormat = configFormat;
 	}
-	
+
 	/**
 	 * Creates a SimpleCommentedConfig by copying a config, with the specified backing map creator and format.
 	 *

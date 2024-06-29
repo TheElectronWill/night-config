@@ -9,7 +9,9 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 
 /**
- * Builder for FileConfig. The default settings are:
+ * Builder for {@link FileConfig}.
+ * <p>
+ * The default settings are:
  * <ul>
  * <li>Charset: UTF-8 - change it with {@link #charset(Charset)}</li>
  * <li>WritingMode: REPLACE - change it with {@link #writingMode(WritingMode)}</li>
@@ -20,11 +22,12 @@ import java.nio.file.Path;
  * <li>Not autosaved - change it with {@link #autosave()}</li>
  * <li>Not autoreloaded - change it with {@link #autoreload()}</li>
  * </ul>
+ * <p>
+ * To create a new builder, use {@link FileConfig#builder(Path)}.
  *
  * @author TheElectronWill
  */
 public class FileConfigBuilder extends GenericBuilder<Config, FileConfig> {
-
 	FileConfigBuilder(Path file, ConfigFormat<? extends Config> format) {
 		super(file, format);
 	}

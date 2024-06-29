@@ -3,21 +3,19 @@ package com.electronwill.nightconfig.core.file;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
-import java.util.function.Function;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.*;
 import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
 import com.electronwill.nightconfig.core.io.ParsingMode;
 import com.electronwill.nightconfig.core.io.WritingMode;
-import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
+import com.electronwill.nightconfig.core.utils.ConcurrentCommentedConfigWrapper;
 
 /**
  * @author TheElectronWill
  */
-final class SyncFileConfig extends CommentedConfigWrapper<SynchronizedConfig>
+final class SyncFileConfig extends ConcurrentCommentedConfigWrapper<SynchronizedConfig>
 		implements CommentedFileConfig {
 	private final Path nioPath;
 	private final Charset charset;
@@ -111,15 +109,5 @@ final class SyncFileConfig extends CommentedConfigWrapper<SynchronizedConfig>
 	@Override
 	public void close() {
 		closed = true;
-	}
-
-	@Override
-	public <R> R bulkCommentedUpdate(Function<? super CommentedConfig, R> action) {
-		return config.bulkCommentedUpdate(action);
-	}
-
-	@Override
-	public <R> R bulkUpdate(Function<? super Config, R> action) {
-		return config.bulkUpdate(action);
 	}
 }

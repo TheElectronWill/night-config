@@ -51,6 +51,7 @@ class CheckedCommentedConfig extends CommentedConfigWrapper<CommentedConfig> {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Set<? extends CommentedConfig.Entry> entrySet() {
 		return new TransformingSet<>((Set<CommentedConfig.Entry>)super.entrySet(), v -> v, this::checkedValue, o -> o);
 	}

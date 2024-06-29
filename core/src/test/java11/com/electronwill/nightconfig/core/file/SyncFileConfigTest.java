@@ -1,7 +1,5 @@
 package com.electronwill.nightconfig.core.file;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.io.IOException;
 import java.nio.file.Path;
 

@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author TheElectronWill
  */
+@SuppressWarnings("deprecation")
 public class ObjectConverterTest2 {
 
 	@Test

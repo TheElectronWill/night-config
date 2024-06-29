@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author TheElectronWill
  */
+@SuppressWarnings("deprecation")
 public class ObjectConverterTest {
 
 	static final List<String> list1 = Arrays.asList("a", "b", "c");

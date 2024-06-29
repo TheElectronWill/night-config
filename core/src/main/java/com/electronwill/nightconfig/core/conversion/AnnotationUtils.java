@@ -16,6 +16,7 @@ import java.util.function.Predicate;
  *
  * @author TheElectronWill
  */
+@SuppressWarnings("deprecation")
 final class AnnotationUtils {
 	private AnnotationUtils() {}
 
@@ -39,6 +40,7 @@ final class AnnotationUtils {
 	 *
 	 * @return the field's converter, or {@code null} if there is none
 	 */
+	@SuppressWarnings("unchecked")
 	static Converter<Object, Object> getConverter(Field field) {
 		Conversion conversion = field.getAnnotation(Conversion.class);
 		if (conversion != null) {

@@ -1,6 +1,8 @@
 package com.electronwill.nightconfig.core.conversion;
 
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
 
 import java.io.File;
@@ -49,7 +51,17 @@ public class ConvertedFileConfig extends AbstractConvertedConfig<FileConfig> imp
 	}
 
 	@Override
+	public <R> R bulkRead(Function<? super UnmodifiableConfig, R> action) {
+		return config.bulkRead(action);
+	}
+
+	@Override
 	public <R> R bulkUpdate(Function<? super Config, R> action) {
 		return config.bulkUpdate(action);
+	}
+
+	@Override
+	public ConcurrentConfig createSubConfig() {
+		return config.createSubConfig();
 	}
 }

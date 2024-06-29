@@ -23,12 +23,6 @@ public class TypeConstraintArrayTest {
         assertEquals(rawType, t.getSatisfyingRawType());
     }
 
-    private void checkField(Field f, String fullTypeString, String rawTypeString) {
-        var t = new TypeConstraint(f.getGenericType());
-        assertEquals(fullTypeString, t.getFullType().toString());
-        assertEquals(rawTypeString, String.valueOf(t.getSatisfyingRawType()));
-    }
-
     @Test
     public void resolveArrayArgumentsFromArraySimple() {
         TypeConstraint t = new TypeConstraint(Object[].class);

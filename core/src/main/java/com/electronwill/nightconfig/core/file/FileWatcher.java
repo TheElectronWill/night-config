@@ -8,15 +8,8 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -150,6 +143,9 @@ public final class FileWatcher {
 	/**
 	 * Watches a file, if not already watched by this FileWatcher.
 	 * The file's parent directory must exist.
+	 * <p>
+	 * NOTE: This method may return before the handler is set up.
+	 * Prefer to use {@link #addWatchFuture(Path, Runnable)}.
 	 *
 	 * @param file          the file to watch
 	 * @param changeHandler the handler to call when the file is modified
@@ -161,18 +157,72 @@ public final class FileWatcher {
 	/**
 	 * Watches a file, if not already watched by this FileWatcher.
 	 * The file's parent directory must exist.
+	 * <p>
+	 * NOTE: This method may return before the handler is set up.
+	 * Prefer to use {@link #addWatchFuture(Path, Runnable)}.
 	 *
 	 * @param file          the file to watch
 	 * @param changeHandler the handler to call when the file is modified
 	 */
 	public void addWatch(Path file, Runnable changeHandler) {
-		addOrPutWatch(file, changeHandler, ControlMessageKind.ADD);
+		addOrPutWatch(file, changeHandler, ControlMessageKind.ADD, null);
+	}
+
+	/**
+	 * Watches a File, if not already watched by this FileWatcher.
+	 * The file's parent directory must exist.
+	 * <p>
+	 * This method returns a {@code CompletableFuture} that is completed when the
+	 * handler is registered and ready to be notified of file events.
+	 *
+	 * <h2>Examples</h2>
+	 *
+	 * Waiting for the FileWatcher to register one handler:
+	 * <pre>
+	 * {@code
+	 * FileWatcher watcher = FileWatcher.defaultInstance();
+	 * CompletableFuture<Void> f = watcher.addWatchFuture(file, handler);
+	 * f.join();
+	 * }
+	 * </pre>
+	 *
+	 * Watching multiple files and waiting for the handlers to be ready,
+	 * with a timeout of 1 second:
+	 * <pre>
+	 * {@code
+	 * FileWatcher watcher = FileWatcher.defaultInstance();
+	 * List<CompletableFuture<Void>> futures = new ArrayList<>();
+	 * for (Path path : filesToWatch) {
+	 *     futures.add(watcher.addWatchFuture(file, () -> {
+	 *         // react to file creation or modification
+	 *     }));
+	 * }
+	 * CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).get(1, TimeUnit.SECONDS);
+	 * }
+	 * </pre>
+	 *
+	 * @param file          the file to watch
+	 * @param changeHandler the handler to call when the file is modified
+	 * @return a future that completes when the handler is ready
+	 */
+	public CompletableFuture<Void> addWatchFuture(Path file, Runnable changeHandler) {
+		failIfStopped();
+		CompletableFuture<Void> future = new CompletableFuture<>();
+		try {
+			addOrPutWatch(file, changeHandler, ControlMessageKind.ADD, future);
+		} catch (Exception ex) {
+			future.completeExceptionally(ex);
+		}
+		return future;
 	}
 
 	/**
 	 * Watches a file. If the file is already watched by this FileWatcher, its changeHandler is
 	 * replaced.
 	 * The file's parent directory must exist.
+	 * <p>
+	 * NOTE: This method may return before the handler is set up.
+	 * Prefer to use {@link #setWatchFuture(Path, Runnable)}.
 	 *
 	 * @param file          the file to watch
 	 * @param changeHandler the handler to call when the file is modified
@@ -185,15 +235,29 @@ public final class FileWatcher {
 	 * Watches a file. If the file is already watched by this FileWatcher, its changeHandler is
 	 * replaced.
 	 * The file's parent directory must exist.
+	 * <p>
+	 * NOTE: This method may return before the handler is set up.
+	 * Prefer to use {@link #setWatchFuture(Path, Runnable)}.
 	 *
 	 * @param file          the file to watch
 	 * @param changeHandler the handler to call when the file is modified
 	 */
 	public void setWatch(Path file, Runnable changeHandler) {
-		addOrPutWatch(file, changeHandler, ControlMessageKind.PUT);
+		addOrPutWatch(file, changeHandler, ControlMessageKind.PUT, null);
 	}
 
-	private void addOrPutWatch(Path file, Runnable changeHandler, ControlMessageKind kind) {
+	public CompletableFuture<Void> setWatchFuture(Path file, Runnable changeHandler) {
+		failIfStopped();
+		CompletableFuture<Void> future = new CompletableFuture<>();
+		try {
+			addOrPutWatch(file, changeHandler, ControlMessageKind.PUT, future);
+		} catch (Exception ex) {
+			future.completeExceptionally(ex);
+		}
+		return future;
+	}
+
+	private void addOrPutWatch(Path file, Runnable changeHandler, ControlMessageKind kind, CompletableFuture<Void> future) {
 		failIfStopped();
 		try {
 			if (Files.exists(file) && Files.readAttributes(file, BasicFileAttributes.class).isDirectory()) {
@@ -221,7 +285,7 @@ public final class FileWatcher {
 				}
 			});
 			// tell the watcher thread to watch the file
-			watcher.send(ControlMessage.addOrPut(kind, canon, changeHandler));
+			watcher.send(ControlMessage.addOrPut(kind, canon, changeHandler, future));
 		} catch (Exception ex) {
 			throw new WatchingException("Failed to watch path '" + file + "', canonical path '" + canon + "'", ex);
 		}
@@ -229,6 +293,9 @@ public final class FileWatcher {
 
 	/**
 	 * Stops watching a file.
+	 * <p>
+	 * NOTE: This method may return before the handler is removed.
+	 * Prefer to use {@link #setWatchFuture(Path, Runnable)}.
 	 *
 	 * @param file the file to stop watching
 	 */
@@ -238,22 +305,43 @@ public final class FileWatcher {
 
 	/**
 	 * Stops watching a file.
+	 * <p>
+	 * NOTE: This method may return before the handler is removed.
+	 * Prefer to use {@link #setWatchFuture(Path, Runnable)}.
 	 *
 	 * @param file the file to stop watching
 	 */
 	public void removeWatch(Path file) {
 		failIfStopped();
+		removeWatch(file, null);
+	}
+
+	public CompletableFuture<Void> removeWatchFuture(Path file) {
+		failIfStopped();
+		CompletableFuture<Void> future = new CompletableFuture<>();
+		try {
+			removeWatch(file, future);
+		} catch (Exception ex) {
+			future.completeExceptionally(ex);
+		}
+		return future;
+	}
+
+	private void removeWatch(Path file, CompletableFuture<Void> future) {
 		CanonicalPath canon = CanonicalPath.from(file);
 		FileSystem fs = canon.parentDirectory.getFileSystem();
 		FsWatcher watcher = watchers.get(fs);
 		if (watcher != null) {
-			watcher.send(ControlMessage.remove(canon));
+			watcher.send(ControlMessage.remove(canon, future));
 		}
 	}
 
 	/**
 	 * Stops this FileWatcher. The underlying ressources (ie the WatchServices) are closed, and
 	 * the file modification handlers won't be called anymore.
+	 * <p>
+	 * NOTE: This method may return before the FileWatcher is completely stopped.
+	 * Prefer to use {@link #stopFuture()}.
 	 */
 	public void stop() {
 		// prevent further use of the FileWatcher
@@ -261,10 +349,48 @@ public final class FileWatcher {
 
 		// stop each watcher thread
 		for (FsWatcher watcher : watchers.values()) {
-			watcher.send(ControlMessage.poison());
+			watcher.send(ControlMessage.poison(null));
 		}
 		// interrupt each watcher thread so that they handle the "poison" asap
 		threadGroup.interrupt();
+	}
+
+	public CompletableFuture<Void> stopFuture() {
+		// prevent further use of the FileWatcher
+		running = false;
+
+		Collection<FsWatcher> allWatchers = watchers.values();
+		if (allWatchers.size() == 0) {
+			// There is no background watcher thread to stop, we're done.
+			return CompletableFuture.completedFuture(null);
+		}
+
+		// create the main future
+		CompletableFuture<Void> main = new CompletableFuture<>();
+		AtomicInteger remainingChildCount = new AtomicInteger(allWatchers.size());
+
+		// stop each watcher thread
+		for (FsWatcher watcher : allWatchers) {
+			CompletableFuture<Void> f = new CompletableFuture<>();
+			f.handle((ok, err) -> {
+				int remaining = remainingChildCount.decrementAndGet();
+				if (remaining == 0) {
+					// When every watcher thread is stopped, complete the main future.
+					if (err == null) {
+						main.complete(null);
+					} else {
+						main.completeExceptionally(err);
+					}
+				}
+				return null;
+			});
+			watcher.send(ControlMessage.poison(f));
+		}
+		// interrupt each watcher thread so that they handle the "poison" asap
+		threadGroup.interrupt();
+
+		// return the main future
+		return main;
 	}
 
 	private void failIfStopped() {
@@ -296,15 +422,33 @@ public final class FileWatcher {
 			controlMessages.add(msg);
 		}
 
-		private WatchedDirectory watchDirectory(Path dir) {
+		/**
+		 * Attempts to register a new directory to watch.
+		 *
+		 * If {@code future} is not null and an exception occurs (for instance if the
+		 * directory does not exist), call {@link CompletableFuture#completeExceptionally}
+		 * with the exception.
+		 *
+		 * If {@code future} is null and an exception occurs, call the
+		 * {@code exceptionHandler}.
+		 *
+		 * @param dir    directory to watch
+		 * @param future future to notify about failures
+		 * @return info about the watched directory
+		 */
+		private WatchedDirectory watchDirectory(Path dir, CompletableFuture<Void> future) {
 			return watchedDirectories.computeIfAbsent(dir, k -> {
 				// the file's parent directory isn't monitored yet, register it
 				WatchKey key;
 				try {
 					key = dir.register(watchService, ENTRY_MODIFY, ENTRY_CREATE);
 					return new WatchedDirectory(key, new HashMap<>(8));
-				} catch (IOException e) {
-					exceptionHandler.accept(e);
+				} catch (Exception ex) {
+					if (future != null) {
+						future.completeExceptionally(ex);
+					} else {
+						exceptionHandler.accept(ex);
+					}
 					return null;
 				}
 			});
@@ -315,18 +459,22 @@ public final class FileWatcher {
 			// executor (in yet another thread) to schedule debounced actions
 			ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
+			// future that initiated the shutdown and needs to be completed with the result or error
+			CompletableFuture<Void> shutdownFuture = null;
+
 			mainLoop:
 			while (true) {
 				// handle control messages coming from other threads (modification of the watch list)
 				ControlMessage msg;
 				while ((msg = controlMessages.poll()) != null) {
 					CanonicalPath path = msg.path;
+					CompletableFuture<Void> future = msg.future;
 					switch (msg.kind) {
 						case ADD: {
 							// Combine the handlers if there's already one, otherwise set it
 							Path dir = path.parentDirectory;
 							Path fileName = path.fileName;
-							WatchedDirectory w = watchDirectory(dir);
+							WatchedDirectory w = watchDirectory(dir, future);
 							if (w != null) {
 								DebouncedRunnable newHandler;
 								DebouncedRunnable existingHandler = w.fileChangeHandlers.get(fileName);
@@ -343,7 +491,7 @@ public final class FileWatcher {
 							// Set the handler, replacing any existing handler
 							Path dir = path.parentDirectory;
 							Path fileName = path.fileName;
-							WatchedDirectory w = watchDirectory(dir);
+							WatchedDirectory w = watchDirectory(dir, future);
 							if (w != null) {
 								DebouncedRunnable newHandler = new DebouncedRunnable(msg.handler, debounceTime);
 								w.fileChangeHandlers.put(fileName, newHandler);
@@ -367,8 +515,12 @@ public final class FileWatcher {
 						}
 						case POISON: {
 							// Kill the thread
+							shutdownFuture = future;
 							break mainLoop;
 						}
+					}
+					if (future != null) {
+						future.complete(null);
 					}
 				}
 
@@ -422,8 +574,15 @@ public final class FileWatcher {
 				executor.shutdown();
 				watchService.close();
 				watchedDirectories.clear();
-			} catch (IOException e) {
-				exceptionHandler.accept(e);
+			} catch (Exception e) {
+				if (shutdownFuture != null) {
+					shutdownFuture.completeExceptionally(e);
+				} else {
+					exceptionHandler.accept(e);
+				}
+			}
+			if (shutdownFuture != null) {
+				shutdownFuture.complete(null);
 			}
 		}
 	}
@@ -443,26 +602,34 @@ public final class FileWatcher {
 		private final ControlMessageKind kind;
 		private final CanonicalPath path; // null for poison
 		private final Runnable handler; // null for some poison and remove
+		/** Allows to notify the caller when the processing of the message is complete. */
+		private final CompletableFuture<Void> future; // optional
 
-		private ControlMessage(ControlMessageKind kind, CanonicalPath path, Runnable handler) {
+		private ControlMessage(ControlMessageKind kind, CanonicalPath path, Runnable handler, CompletableFuture<Void> future) {
 			this.path = path;
 			this.kind = kind;
 			this.handler = handler;
+			this.future = future;
 		}
 
-		static ControlMessage addOrPut(ControlMessageKind kind, CanonicalPath path, Runnable handler) {
+		static ControlMessage addOrPut(ControlMessageKind kind, CanonicalPath path, Runnable handler, CompletableFuture<Void> future) {
 			if (kind != ControlMessageKind.ADD && kind != ControlMessageKind.PUT) {
 				throw new IllegalArgumentException("Unexpected message kind " + kind);
 			}
-			return new ControlMessage(kind, path, handler);
+			return new ControlMessage(kind, path, handler, future);
 		}
 
-		static ControlMessage remove(CanonicalPath path) {
-			return new ControlMessage(ControlMessageKind.REMOVE, path, null);
+		static ControlMessage remove(CanonicalPath path, CompletableFuture<Void> future) {
+			return new ControlMessage(ControlMessageKind.REMOVE, path, null, future);
 		}
 
-		static ControlMessage poison() {
-			return new ControlMessage(ControlMessageKind.POISON, null, null);
+		static ControlMessage poison(CompletableFuture<Void> future) {
+			return new ControlMessage(ControlMessageKind.POISON, null, null, future);
+		}
+
+		@Override
+		public String toString() {
+			return "ControlMessage[kind=" + kind + ", path=" + path + ", handler=" + handler + ", future=" + future + "]";
 		}
 	}
 

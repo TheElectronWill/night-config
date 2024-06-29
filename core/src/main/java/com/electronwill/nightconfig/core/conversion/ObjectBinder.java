@@ -109,6 +109,7 @@ public final class ObjectBinder {
 	/**
 	 * Binds an object or a class to a config.
 	 */
+	@SuppressWarnings({ "deprecation", "rawtypes", "unchecked" })
 	private BoundConfig createBoundConfig(Object object, Class<?> clazz,
 										  ConfigFormat<?> configFormat) {
 		final BoundConfig boundConfig = new BoundConfig(object, configFormat, bypassFinal);
@@ -385,6 +386,7 @@ public final class ObjectBinder {
 	/**
 	 * Informations about a java field used by the BoundConfig.
 	 */
+	@SuppressWarnings("deprecation")
 	private static final class FieldInfos {
 		final Field field;// always non-null
 		final BoundConfig boundConfig;// non-null iff the field is a sub config
@@ -443,6 +445,7 @@ public final class ObjectBinder {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private static final class NoOpConverter implements Converter<Object, Object> {
 		static final NoOpConverter INSTANCE = new NoOpConverter();
 
@@ -457,6 +460,7 @@ public final class ObjectBinder {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
     private static final class EnumValueConverter<T extends Enum<T>> implements Converter<T, Object> {
         private final Class<T> enumType;
         private final EnumGetMethod method;

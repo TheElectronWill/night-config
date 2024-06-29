@@ -68,6 +68,7 @@ public interface CharacterInput {
 	 * @param n the number of characters to parse
 	 * @return an array containing at most n characters, not null
 	 */
+	@SuppressWarnings("resource")
 	default CharsWrapper read(int n) {
 		CharsWrapper.Builder builder = new CharsWrapper.Builder(n);
 		for (int i = 0; i < n; i++) {

@@ -178,6 +178,7 @@ public class AbstractConfigTest {
 	}
 
 	@Test
+	@SuppressWarnings("deprecation")
 	public void concurrentOrderedSetting() {
 		Config.setInsertionOrderPreserved(true);
 		testValuesOrder(Config.inMemoryConcurrent());

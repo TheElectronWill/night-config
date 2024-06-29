@@ -25,6 +25,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	/**
 	 * Creates a new AbstractConfig backed by a new {@link Map}.
 	 */
+	@Deprecated
 	public AbstractConfig(boolean concurrent) {
 		this(getDefaultMapCreator(concurrent));
 	}
@@ -54,6 +55,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	 *
 	 * @param toCopy the config to copy
 	 */
+	@Deprecated
 	public AbstractConfig(UnmodifiableConfig toCopy, boolean concurrent) {
 		this(toCopy, getDefaultMapCreator(concurrent));
 	}
@@ -71,6 +73,7 @@ public abstract class AbstractConfig implements Config, Cloneable {
 		this.mapCreator = mapCreator;
 	}
 
+	@Deprecated
 	protected static <T> Supplier<Map<String, T>> getDefaultMapCreator(boolean concurrent) {
 		return Config.getDefaultMapCreator(concurrent);
 	}

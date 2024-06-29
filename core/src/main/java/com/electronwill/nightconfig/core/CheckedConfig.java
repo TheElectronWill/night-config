@@ -50,6 +50,7 @@ class CheckedConfig extends ConfigWrapper<Config> {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Set<? extends Config.Entry> entrySet() {
 		return new TransformingSet<>((Set<Config.Entry>)super.entrySet(), v -> v, this::checkedValue, o -> o);
 	}

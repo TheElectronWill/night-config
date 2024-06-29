@@ -6,15 +6,20 @@ import java.nio.file.Paths;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.*;
+import com.electronwill.nightconfig.core.concurrent.ConcurrentCommentedConfig;
 import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
 
 /**
+ * A commented configuration that is tied to a particular file.
+ * <p>
+ * A {@code CommentedFileConfig} is simply a {@link FileConfig} that implements {@link CommentedConfig}
+ * (and provides some methods of {@link ConcurrentCommentedConfig}).
+ * Please refer to the documentation of {@link FileConfig} for more information.
+ *
  * @author TheElectronWill
  */
-public interface CommentedFileConfig extends CommentedConfig, FileConfig {
+public interface CommentedFileConfig extends ConcurrentCommentedConfig, FileConfig {
 	@Override
 	default CommentedFileConfig checked() {
 		return new CheckedCommentedFileConfig(this);
@@ -23,7 +28,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	/**
 	 * Performs multiple read/write operations, and do not save the configuration until the end
 	 * (unless {@code save()} is called by {@code action}).
-	 * 
+	 *
 	 * This is a way of manually grouping config modifications together.
 	 * <p>
 	 * If this configuration automatically saves, it will not do so before the end of the bulkUpdate.
@@ -33,7 +38,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	/**
 	 * Performs multiple read/write operations, and do not save the configuration until the end
 	 * (unless {@code save()} is called by {@code action}).
-	 * 
+	 *
 	 * This is a way of manually grouping config modifications together.
 	 * <p>
 	 * If this configuration automatically saves, it will not do so before the end of the bulkUpdate.
@@ -87,7 +92,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 * @see #builder(Path)
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static CommentedFileConfig of(Path file) {
 		ConfigFormat format = FormatDetector.detect(file);
 		if (format == null || !format.supportsComments()) {
@@ -269,6 +274,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	 *
 	 * @throws NoFormatFoundException if the format detection fails
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static CommentedFileConfigBuilder builder(Path file) {
 		ConfigFormat format = FormatDetector.detect(file);
 		if (format == null) {

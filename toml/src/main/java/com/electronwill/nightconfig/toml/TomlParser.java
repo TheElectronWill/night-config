@@ -4,9 +4,6 @@ import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
 import com.electronwill.nightconfig.core.Config.Entry;
 import com.electronwill.nightconfig.core.ConfigFormat;
-import com.electronwill.nightconfig.core.concurrent.StampedConfig;
-import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
-import com.electronwill.nightconfig.core.concurrent.StampedConfig.Accumulator;
 import com.electronwill.nightconfig.core.io.*;
 
 import java.io.Reader;
@@ -273,6 +270,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 		}
 	}
 
+	@SuppressWarnings("resource")
 	void setComment(List<CharsWrapper> commentsList) {
 		CharsWrapper.Builder builder = new CharsWrapper.Builder(32);
 		if (!commentsList.isEmpty()) {

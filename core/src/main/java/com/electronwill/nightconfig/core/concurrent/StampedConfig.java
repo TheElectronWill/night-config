@@ -46,6 +46,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
 
     // BEWARE: StampedLock does not support reentrant locking
 
+	@SuppressWarnings("deprecation")
     public StampedConfig() {
         this(InMemoryCommentedFormat.defaultInstance(), Config.getDefaultMapCreator(false));
     }
@@ -1116,11 +1117,11 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
 
     /** A lazy entry that locks the values/comments lock(s) on demand. */
     private final class LockingLazyEntry extends LazyEntry {
-        private final EntrySet set;
+        // private final EntrySet set;
 
         protected LockingLazyEntry(String key, EntrySet set) {
             super(key);
-            this.set = set;
+            // this.set = set;
         }
 
         @Override

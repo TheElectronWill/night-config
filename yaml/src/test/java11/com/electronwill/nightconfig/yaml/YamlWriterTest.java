@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.yaml;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.HashMap;
 

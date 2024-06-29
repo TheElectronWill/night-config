@@ -171,6 +171,7 @@ public final class ConversionTable implements Cloneable {
 	public UnmodifiableConfig wrap(UnmodifiableConfig config) {
 		return new UnmodifiableConfigWrapper<UnmodifiableConfig>(config) {
 			@Override
+			@SuppressWarnings("unchecked")
 			public <T> T getRaw(List<String> path) {
 				return (T)convert(config.getRaw(path));
 			}
@@ -189,6 +190,7 @@ public final class ConversionTable implements Cloneable {
 					}
 
 					@Override
+					@SuppressWarnings("unchecked")
 					public <T> T getRawValue() {
 						return (T)convert(entry.getRawValue());
 					}

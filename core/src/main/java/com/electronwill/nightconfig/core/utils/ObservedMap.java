@@ -148,14 +148,14 @@ public final class ObservedMap<K, V> extends AbstractObserved implements Map<K, 
 		Function<ObservedEntry<K, V>, Entry<K, V>> writeT = oe -> oe.entry;
 		Function<Object, Object> searchT = o -> {
 			if (o instanceof ObservedEntry) {
-				ObservedEntry<?, ?> observedEntry = (ObservedEntry)o;
+				ObservedEntry<?, ?> observedEntry = (ObservedEntry<?, ?>) o;
 				return observedEntry.entry;
 			}
 			return o;
 		};
-		TransformingSet<Entry<K, V>, ObservedEntry<K, V>> tset = new TransformingSet<>(
+		TransformingSet<Entry<K, V>, ObservedEntry<K, V>> tSet = new TransformingSet<>(
 				map.entrySet(), readT, writeT, searchT);
-		return new ObservedSet<>(map.entrySet(), callback);
+		return new ObservedSet2<>(callback, tSet, mapEntry -> new ObservedEntry<>(mapEntry, callback));
 	}
 
 	@Override
