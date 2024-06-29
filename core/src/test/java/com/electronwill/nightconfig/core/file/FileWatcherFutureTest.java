@@ -160,6 +160,7 @@ public class FileWatcherFutureTest {
 		// generate events on the files
 		writeAndSync(file1, Arrays.asList("1"));
 		writeAndSync(file2, Arrays.asList("2"));
+		Thread.sleep(20); // wait for the event handler to be called
 		int midCount1 = notifCount1.get();
 		int midCount2 = notifCount2.get();
 
