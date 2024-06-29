@@ -11,6 +11,12 @@ import com.electronwill.nightconfig.core.concurrent.ConcurrentCommentedConfig;
 import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
 
 /**
+ * A commented configuration that is tied to a particular file.
+ * <p>
+ * A {@code CommentedFileConfig} is simply a {@link FileConfig} that implements {@link CommentedConfig}
+ * (and provides some methods of {@link ConcurrentCommentedConfig}).
+ * Please refer to the documentation of {@link FileConfig} for more information.
+ *
  * @author TheElectronWill
  */
 public interface CommentedFileConfig extends CommentedConfig, FileConfig {

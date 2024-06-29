@@ -12,6 +12,54 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
 
 /**
+ * A configuration that is tied to a particular file.
+ *
+ * <h2>IO operations</h2>
+ * When created, a {@code FileConfig} is empty. It is linked to a file, but that file has not been parsed yet.
+ * To parse the file and fill the {@code FileConfig}, call the {@link #load()} method.
+ * <b>You probably want to call {@link load()} before using the configuration.</b>
+ * <p>
+ * Depending on the options that you have chosen when building the {@code FileConfig} (see {@link FileConfigBuilder}),
+ * it may be saved automatically after each writing operation. To manually save the content of the configuration to
+ * its file, call the {@link #save()} method.
+ * <p>
+ * <h3>Optimizing writes</h3>
+ * If your {@code FileConfig} has been configured to automatically save its content, it can suffer from
+ * performance issues when applying many modifications. A solution is to use {@link #bulkUpdate(Consumer)}
+ * in order to apply multiple modifications as one writing operation, which will trigger only one save operation
+ * (at the end of {@code bulkUpdate}).
+ * <p>
+ * Example:
+ * <pre>
+ * {@code
+ * FileConfig config = FileConfig.builder(file).autosave().build();
+ * config.bulkUpdate(c -> {
+ *     c.set("key1", "value1");
+ *     c.set("key2", "value2");
+ *     // ... other operations
+ *     // NOTE: you must NOT use the config variable here, only c
+ * });
+ * }
+ * </pre>
+ * <p>
+ * Even if your {@code FileConfig} is not auto-saved, bulk methods like {@link #bulkUpdate(Consumer)}
+ * are useful to ensure the consistency of the configuration in a multi-thread environment.
+ * See the next section for more details.
+ *
+ * <h2>Thread safety</h2>
+ * Since NightConfig 3.7.0, every {@code FileConfig} is thread-safe (see <a href="https://github.com/TheElectronWill/night-config/pull/152">PR #152</a>).
+ * In other words, you can read and modify the same {@code FileConfig} from different threads at the same time,
+ * without any external synchronization (no need to guard the configuration with a lock).
+ * <p>
+ * However, some rules need to be followed in order to ensure the consistency of the configuration's content.
+ * In particular, when you write multiple values to a {@code FileConfig}, or read multiple values from
+ * a {@code FileConfig}, and expect all the values to be consistent (i.e. you are performing multiple
+ * operations as if they were all applied together, with no other thread modifying the configuration in
+ * between), you should use {@link #bulkUpdate(Consumer)} and {@link #bulkRead(Consumer)}.
+ * <p>
+ * For more details, please see the documentation of the {@code concurrent} package, which is internally
+ * used by {@code FileConfig}s: {@link com.electronwill.nightconfig.core.concurrent}.
+ *
  * @author TheElectronWill
  */
 public interface FileConfig extends Config, AutoCloseable {
@@ -68,7 +116,7 @@ public interface FileConfig extends Config, AutoCloseable {
 	 * Performs multiple reads at once.
 	 * <p>
 	 * This has the same guarantees of consistency as
-	 * {@link ConcurrentConfig#bulkRead(Consumer))}.
+	 * {@link ConcurrentConfig#bulkRead(Consumer)}.
 	 *
 	 * @param action a function to execute on the configuration view
 	 */

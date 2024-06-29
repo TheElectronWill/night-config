@@ -78,7 +78,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 * Sets the WritingMode used for {@link FileConfig#save()}.
 	 * <p>
 	 * Example:
-	 * 
+	 *
 	 * <pre>
 	 * {@code
 	 * FileConfig config = FileConfig.builder(file).writingMode(WritingMode.REPLACE_ATOMIC).build();
@@ -176,7 +176,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 * method does not wait for the write operation to complete.
 	 * <p>
 	 * An automatic debouncing of unspecified duration is applied.
-	 * 
+	 *
 	 * @return this builder
 	 */
 	public GenericBuilder<Base, Result> async() {
@@ -190,7 +190,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 * The config's {@link FileConfig#save()} method will not wait for the write operation to complete,
 	 * and perform a debouncing of the given duration. Calling {@link FileConfig#save()} twice with
 	 * less than {@code debounceTime} in between will cancel the first save and only perform the second.
-	 * 
+	 *
 	 * @param debounceTime the minimal time between two saves
 	 * @return this builder
 	 */
@@ -245,7 +245,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 * ones.
 	 * <p>
 	 * If {@link #autoreload()} is not called, setting a listener has no effect.
-	 * 
+	 *
 	 * @param listener the listener to call when the FileConfig is automatically reloaded
 	 * @return this builder
 	 */
@@ -268,7 +268,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 * ones.
 	 * <p>
 	 * If {@link #autosave()} is not called on the builder, setting a listener has no effect.
-	 * 
+	 *
 	 * @param listener the listener to call when the FileConfig is automatically saved
 	 * @return this builder
 	 */
@@ -286,7 +286,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 * If a {@link ConfigLoadFilter} is set and rejects the operation, the listener is not called.
 	 * <p>
 	 * If {@link #autoreload()} is not called on the builder, setting a listener has no effect.
-	 * 
+	 *
 	 * @param listener the listener to call when the FileConfig is automatically reloaded
 	 * @return this builder
 	 */
@@ -304,7 +304,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 * If a {@link ConfigLoadFilter} is set and rejects the operation, the listener is not called.
 	 * <p>
 	 * If {@link #autosave()} is not called, setting a listener has no effect.
-	 * 
+	 *
 	 * @param listener the listener to call when the FileConfig is automatically saved
 	 * @return this builder
 	 */
@@ -320,7 +320,7 @@ public abstract class GenericBuilder<Base extends Config, Result extends FileCon
 	 * <p>
 	 * If a listener is set and the filter accepts the operation, the listener is called after the filter.
 	 * If a listener is set and the filter rejects the operation, the listener is not called.
-	 * 
+	 *
 	 * @param filter the filter to call on {@link FileConfig#load()}
 	 * @return this builder
 	 */
