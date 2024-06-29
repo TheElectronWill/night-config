@@ -19,9 +19,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.*;
 import com.electronwill.nightconfig.core.concurrent.ConcurrentCommentedConfig;
 import com.electronwill.nightconfig.core.concurrent.StampedConfig;
 import com.electronwill.nightconfig.core.io.ConfigParser;
@@ -277,6 +275,16 @@ final class AsyncFileConfig extends CommentedConfigWrapper<StampedConfig>
 	@Override
 	public void close() {
 		this.closed = true;
+	}
+
+	@Override
+	public <R> R bulkRead(Function<? super UnmodifiableConfig, R> action) {
+		return config.bulkRead(action);
+	}
+
+	@Override
+	public <R> R bulkCommentedRead(Function<? super UnmodifiableCommentedConfig, R> action) {
+		return config.bulkCommentedRead(action);
 	}
 
 	@Override

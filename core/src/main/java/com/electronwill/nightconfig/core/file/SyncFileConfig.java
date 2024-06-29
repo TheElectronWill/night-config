@@ -5,8 +5,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.function.Function;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.*;
 import com.electronwill.nightconfig.core.concurrent.SynchronizedConfig;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
@@ -111,6 +110,16 @@ final class SyncFileConfig extends CommentedConfigWrapper<SynchronizedConfig>
 	@Override
 	public void close() {
 		closed = true;
+	}
+
+	@Override
+	public <R> R bulkRead(Function<? super UnmodifiableConfig, R> action) {
+		return config.bulkRead(action);
+	}
+
+	@Override
+	public <R> R bulkCommentedRead(Function<? super UnmodifiableCommentedConfig, R> action) {
+		return config.bulkCommentedRead(action);
 	}
 
 	@Override

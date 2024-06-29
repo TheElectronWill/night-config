@@ -1,8 +1,6 @@
 package com.electronwill.nightconfig.core.file;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.*;
 import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
 import com.electronwill.nightconfig.core.utils.TransformingMap;
 import com.electronwill.nightconfig.core.utils.TransformingSet;
@@ -53,6 +51,11 @@ class CheckedCommentedFileConfig extends CommentedConfigWrapper<CommentedFileCon
 	@Override
 	public void close() {
 		config.close();
+	}
+
+	@Override
+	public <R> R bulkCommentedRead(Function<? super UnmodifiableCommentedConfig, R> action) {
+		return config.bulkCommentedRead(action);
 	}
 
 	@Override

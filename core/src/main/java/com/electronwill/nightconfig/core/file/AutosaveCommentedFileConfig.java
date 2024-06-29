@@ -137,6 +137,16 @@ final class AutosaveCommentedFileConfig extends CommentedConfigWrapper<Commented
 	}
 
 	@Override
+	public <R> R bulkRead(Function<? super UnmodifiableConfig, R> action) {
+		return config.bulkRead(action);
+	}
+
+	@Override
+	public <R> R bulkCommentedRead(Function<? super UnmodifiableCommentedConfig, R> action) {
+		return config.bulkCommentedRead(action);
+	}
+
+	@Override
 	public <R> R bulkCommentedUpdate(Function<? super CommentedConfig, R> action) {
 		R result = config.bulkCommentedUpdate(action);
 		autoSave();

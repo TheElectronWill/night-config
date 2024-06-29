@@ -1,7 +1,6 @@
 package com.electronwill.nightconfig.core.file;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.*;
 import com.electronwill.nightconfig.core.utils.CommentedConfigWrapper;
 
 import java.io.File;
@@ -56,6 +55,16 @@ final class AutoreloadFileConfig<C extends CommentedFileConfig> extends Commente
 		} finally {
 			config.close();
 		}
+	}
+
+	@Override
+	public <R> R bulkRead(Function<? super UnmodifiableConfig, R> action) {
+		return config.bulkRead(action);
+	}
+
+	@Override
+	public <R> R bulkCommentedRead(Function<? super UnmodifiableCommentedConfig, R> action) {
+		return config.bulkCommentedRead(action);
 	}
 
 	@Override

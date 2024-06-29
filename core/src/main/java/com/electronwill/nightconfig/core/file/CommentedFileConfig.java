@@ -6,9 +6,8 @@ import java.nio.file.Paths;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import com.electronwill.nightconfig.core.CommentedConfig;
-import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.ConfigFormat;
+import com.electronwill.nightconfig.core.*;
+import com.electronwill.nightconfig.core.concurrent.ConcurrentCommentedConfig;
 import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
 
 /**
@@ -21,9 +20,41 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	}
 
 	/**
+	 * Performs multiple reads at once, with access to the comments.
+	 * <p>
+	 * This has the same guarantees of consistency as
+	 * {@link ConcurrentCommentedConfig#bulkCommentedRead(Function)}.
+	 *
+	 * @param action a function to execute on the configuration view
+	 * @param <R>    the type of the function's result
+	 * @return the result of the function
+	 */
+	<R> R bulkCommentedRead(Function<? super UnmodifiableCommentedConfig, R> action);
+
+	/**
+	 * Performs multiple reads at once, with access to the comments.
+	 * <p>
+	 * This has the same guarantees of consistency as
+	 * {@link ConcurrentCommentedConfig#bulkCommentedRead(Consumer)}.
+	 *
+	 * @param action a function to execute on the configuration view
+	 */
+	default void bulkCommentedRead(Consumer<? super UnmodifiableCommentedConfig> action) {
+        bulkCommentedRead(config -> {
+            action.accept(config);
+            return null;
+        });
+    }
+
+	@Override
+	default <R> R bulkRead(Function<? super UnmodifiableConfig, R> action) {
+		return bulkCommentedRead(action);
+	}
+
+	/**
 	 * Performs multiple read/write operations, and do not save the configuration until the end
 	 * (unless {@code save()} is called by {@code action}).
-	 * 
+	 *
 	 * This is a way of manually grouping config modifications together.
 	 * <p>
 	 * If this configuration automatically saves, it will not do so before the end of the bulkUpdate.
@@ -33,7 +64,7 @@ public interface CommentedFileConfig extends CommentedConfig, FileConfig {
 	/**
 	 * Performs multiple read/write operations, and do not save the configuration until the end
 	 * (unless {@code save()} is called by {@code action}).
-	 * 
+	 *
 	 * This is a way of manually grouping config modifications together.
 	 * <p>
 	 * If this configuration automatically saves, it will not do so before the end of the bulkUpdate.
