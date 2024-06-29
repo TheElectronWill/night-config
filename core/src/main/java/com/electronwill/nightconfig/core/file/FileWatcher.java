@@ -143,6 +143,9 @@ public final class FileWatcher {
 	/**
 	 * Watches a file, if not already watched by this FileWatcher.
 	 * The file's parent directory must exist.
+	 * <p>
+	 * NOTE: This method may return before the handler is set up.
+	 * Prefer to use {@link #addWatchFuture(Path, Runnable)}.
 	 *
 	 * @param file          the file to watch
 	 * @param changeHandler the handler to call when the file is modified
@@ -154,6 +157,9 @@ public final class FileWatcher {
 	/**
 	 * Watches a file, if not already watched by this FileWatcher.
 	 * The file's parent directory must exist.
+	 * <p>
+	 * NOTE: This method may return before the handler is set up.
+	 * Prefer to use {@link #addWatchFuture(Path, Runnable)}.
 	 *
 	 * @param file          the file to watch
 	 * @param changeHandler the handler to call when the file is modified
@@ -162,6 +168,43 @@ public final class FileWatcher {
 		addOrPutWatch(file, changeHandler, ControlMessageKind.ADD, null);
 	}
 
+	/**
+	 * Watches a File, if not already watched by this FileWatcher.
+	 * The file's parent directory must exist.
+	 * <p>
+	 * This method returns a {@code CompletableFuture} that is completed when the
+	 * handler is registered and ready to be notified of file events.
+	 *
+	 * <h2>Examples</h2>
+	 *
+	 * Waiting for the FileWatcher to register one handler:
+	 * <pre>
+	 * {@code
+	 * FileWatcher watcher = FileWatcher.defaultInstance();
+	 * CompletableFuture<Void> f = watcher.addWatchFuture(file, handler);
+	 * f.join();
+	 * }
+	 * </pre>
+	 *
+	 * Watching multiple files and waiting for the handlers to be ready,
+	 * with a timeout of 1 second:
+	 * <pre>
+	 * {@code
+	 * FileWatcher watcher = FileWatcher.defaultInstance();
+	 * List<CompletableFuture<Void>> futures = new ArrayList<>();
+	 * for (Path path : filesToWatch) {
+	 *     futures.add(watcher.addWatchFuture(file, () -> {
+	 *         // react to file creation or modification
+	 *     }));
+	 * }
+	 * CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).get(1, TimeUnit.SECONDS);
+	 * }
+	 * </pre>
+	 *
+	 * @param file          the file to watch
+	 * @param changeHandler the handler to call when the file is modified
+	 * @return a future that completes when the handler is ready
+	 */
 	public CompletableFuture<Void> addWatchFuture(Path file, Runnable changeHandler) {
 		failIfStopped();
 		CompletableFuture<Void> future = new CompletableFuture<>();
@@ -177,6 +220,9 @@ public final class FileWatcher {
 	 * Watches a file. If the file is already watched by this FileWatcher, its changeHandler is
 	 * replaced.
 	 * The file's parent directory must exist.
+	 * <p>
+	 * NOTE: This method may return before the handler is set up.
+	 * Prefer to use {@link #setWatchFuture(Path, Runnable)}.
 	 *
 	 * @param file          the file to watch
 	 * @param changeHandler the handler to call when the file is modified
@@ -189,6 +235,9 @@ public final class FileWatcher {
 	 * Watches a file. If the file is already watched by this FileWatcher, its changeHandler is
 	 * replaced.
 	 * The file's parent directory must exist.
+	 * <p>
+	 * NOTE: This method may return before the handler is set up.
+	 * Prefer to use {@link #setWatchFuture(Path, Runnable)}.
 	 *
 	 * @param file          the file to watch
 	 * @param changeHandler the handler to call when the file is modified
@@ -244,6 +293,9 @@ public final class FileWatcher {
 
 	/**
 	 * Stops watching a file.
+	 * <p>
+	 * NOTE: This method may return before the handler is removed.
+	 * Prefer to use {@link #setWatchFuture(Path, Runnable)}.
 	 *
 	 * @param file the file to stop watching
 	 */
@@ -253,6 +305,9 @@ public final class FileWatcher {
 
 	/**
 	 * Stops watching a file.
+	 * <p>
+	 * NOTE: This method may return before the handler is removed.
+	 * Prefer to use {@link #setWatchFuture(Path, Runnable)}.
 	 *
 	 * @param file the file to stop watching
 	 */
@@ -284,6 +339,9 @@ public final class FileWatcher {
 	/**
 	 * Stops this FileWatcher. The underlying ressources (ie the WatchServices) are closed, and
 	 * the file modification handlers won't be called anymore.
+	 * <p>
+	 * NOTE: This method may return before the FileWatcher is completely stopped.
+	 * Prefer to use {@link #stopFuture()}.
 	 */
 	public void stop() {
 		// prevent further use of the FileWatcher
