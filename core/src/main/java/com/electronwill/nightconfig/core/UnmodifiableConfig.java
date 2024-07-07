@@ -5,6 +5,8 @@ import java.util.function.IntSupplier;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
+import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
+
 import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
 
@@ -740,7 +742,11 @@ public interface UnmodifiableConfig {
 	 * map is unmodifiable too.
 	 *
 	 * @return a Map view of the config's values.
+	 * @deprecated valueMap() may not work exactly as a regular Map for some config types, in
+	 *             particular {@link ConcurrentConfig}, and may be removed in a future version.
+	 * 			   Prefer to use {@link #entrySet()} instead.
 	 */
+	@Deprecated
 	Map<String, Object> valueMap();
 
 	/**

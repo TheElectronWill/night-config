@@ -8,7 +8,7 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
 /**
  * Interface for thread-safe configurations.
- * 
+ *
  * See the package documentation for more information: {@link com.electronwill.nightconfig.core.concurrent}.
  */
 public interface ConcurrentConfig extends Config {
@@ -21,7 +21,7 @@ public interface ConcurrentConfig extends Config {
      * After the bulk operation, the view cannot be used anymore.
      * <p>
      * Here is an example:
-     * 
+     *
      * <pre>
      * {@code
      * String combined = config.bulkUpdate(conf -> {
@@ -32,7 +32,7 @@ public interface ConcurrentConfig extends Config {
      * });
      * }
      * </pre>
-     * 
+     *
      * @param action a function to execute on the configuration view
      * @param <R>    the type of the function's result
      * @return the result of the function
@@ -48,7 +48,7 @@ public interface ConcurrentConfig extends Config {
      * After the bulk operation, the view cannot be used anymore.
      * <p>
      * Here is an example:
-     * 
+     *
      * <pre>
      * {@code
      * config.bulkRead(conf -> {
@@ -58,7 +58,7 @@ public interface ConcurrentConfig extends Config {
      * });
      * }
      * </pre>
-     * 
+     *
      * @param action a function to execute on the configuration view
      */
     default void bulkRead(Consumer<? super UnmodifiableConfig> action) {
@@ -78,7 +78,7 @@ public interface ConcurrentConfig extends Config {
      * After the bulk operation, the view cannot be used anymore.
      * <p>
      * Here is an example:
-     * 
+     *
      * <pre>
      * {@code
      * String combined = config.bulkUpdate(conf -> {
@@ -91,11 +91,11 @@ public interface ConcurrentConfig extends Config {
      * });
      * }
      * </pre>
-     * 
+     *
      * <p>
      * If you only have to read the configuration, prefer to use {@link #bulkRead(Function)},
      * since it may provide a better performance.
-     * 
+     *
      * @param action a function to execute on the configuration view
      * @param <R>    the type of the function's result
      * @return the result of the function
@@ -112,7 +112,7 @@ public interface ConcurrentConfig extends Config {
      * After the bulk operation, the view cannot be used anymore.
      * <p>
      * Here is an example:
-     * 
+     *
      * <pre>
      * {@code
      * config.bulkUpdate(conf -> {
@@ -127,7 +127,7 @@ public interface ConcurrentConfig extends Config {
      * <p>
      * If you only have to read the configuration, prefer to use {@link #bulkRead(Consumer)},
      * since it may provide a better performance.
-     * 
+     *
      * @param action a function to execute on the configuration view
      */
     default void bulkUpdate(Consumer<? super Config> action) {
@@ -142,7 +142,7 @@ public interface ConcurrentConfig extends Config {
      * <p>
      * Every sub-config <b>must</b> be created with this method, mixing
      * different types of sub-configs in {@code ConcurrentConfig}s is invalid.
-     * 
+     *
      * @return a new sub-config
      */
     @Override
