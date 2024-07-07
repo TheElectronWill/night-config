@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core;
 
+import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
 import com.electronwill.nightconfig.core.utils.FakeUnmodifiableCommentedConfig;
 
 import java.util.*;
@@ -78,7 +79,11 @@ public interface UnmodifiableCommentedConfig extends UnmodifiableConfig {
 	 * configuration, not the comments of their sub-elements.
 	 *
 	 * @return a Map view of the config's comments.
+	 * @deprecated {@code commentMap()} may not be supported by some config types, in
+	 *             particular {@link ConcurrentConfig}, and may be removed in a future version.
+	 * 			   Prefer to use {@link #entrySet()} instead.
 	 */
+	@Deprecated
 	Map<String, String> commentMap();
 
 	/**

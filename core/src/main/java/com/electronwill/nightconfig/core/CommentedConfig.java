@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core;
 
+import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
 import com.electronwill.nightconfig.core.utils.FakeCommentedConfig;
 
 import java.util.Collections;
@@ -174,8 +175,14 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	 * <p>
 	 * The comment map contains only the comments of the direct elements of the configuration, not
 	 * the comments of their sub-elements.
+	 *
+	 * @return a Map view of the config's comments.
+	 * @deprecated {@code commentMap()} may not be supported by some config types, in
+	 *             particular {@link ConcurrentConfig}, and may be removed in a future version.
+	 * 			   Prefer to use {@link #entrySet()} instead.
 	 */
 	@Override
+	@Deprecated
 	Map<String, String> commentMap();
 
 	@Override
@@ -289,7 +296,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	/**
 	 * Creates a new CommentedConfig with the content of the given config. The returned config will
 	 * have the same format as the copied config, and be backed by the given supplier.
-	 * 
+	 *
 	 * @see #of(Supplier, ConfigFormat)
 	 *
 	 * @param config     the config to copy
@@ -316,7 +323,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	/**
 	 * Creates a new CommentedConfig with the content of the given config. The returned config will
 	 * be backed by the given map supplier.
-	 * 
+	 *
 	 * @see #of(Supplier, ConfigFormat)
 	 *
 	 * @param config     the config to copy
@@ -369,7 +376,7 @@ public interface CommentedConfig extends UnmodifiableCommentedConfig, Config {
 	/**
 	 * Creates a new CommentedConfig with the content of the given config. The returned config will
 	 * be backed by the given map supplier.
-	 * 
+	 *
 	 * @see #of(Supplier, ConfigFormat)
 	 *
 	 * @param config     the config to copy

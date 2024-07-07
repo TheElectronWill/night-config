@@ -4,6 +4,8 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
+
 import static com.electronwill.nightconfig.core.ConfigSpec.CorrectionAction.*;
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
 
@@ -543,7 +545,13 @@ public class ConfigSpec {
 	 * @return {@code true} if it's correct, {@code false} if it's incorrect
 	 */
 	public boolean isCorrect(Config config) {
-		return isCorrect(config.valueMap(), storage.valueMap());
+		if (config instanceof ConcurrentConfig) {
+			return ((ConcurrentConfig)config).bulkRead(c -> {
+				return isCorrect(c.valueMap(), storage.valueMap());
+			});
+		} else {
+			return isCorrect(config.valueMap(), storage.valueMap());
+		}
 	}
 
 	/**
@@ -627,7 +635,13 @@ public class ConfigSpec {
 	 * @return the number of added, removed or replaced values.
 	 */
 	public int correct(Config config, CorrectionListener listener) {
-		return correct(config.valueMap(), storage.valueMap(), new ArrayList<>(), listener, config::createSubConfig);
+		if (config instanceof ConcurrentConfig) {
+			return ((ConcurrentConfig)config).bulkUpdate(c -> {
+				return correct(c.valueMap(), storage.valueMap(), new ArrayList<>(), listener, config::createSubConfig);
+			});
+		} else {
+			return correct(config.valueMap(), storage.valueMap(), new ArrayList<>(), listener, config::createSubConfig);
+		}
 	}
 
 	/**

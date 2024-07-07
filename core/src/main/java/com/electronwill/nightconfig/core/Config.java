@@ -4,6 +4,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+import com.electronwill.nightconfig.core.concurrent.ConcurrentConfig;
+
 import static com.electronwill.nightconfig.core.utils.StringUtils.split;
 
 /**
@@ -173,9 +175,15 @@ public interface Config extends UnmodifiableConfig {
 	}
 
 	/**
-	 * Returns a Map view of the config's values. Any change to the map is reflected in the config
-	 * and vice-versa.
+	 * Returns a Map view of the config's values. Any change to the map is reflected
+	 * in the config and vice-versa.
+	 *
+	 * @return a Map view of the config's values.
+	 * @deprecated valueMap() may not work exactly as a regular Map for some config types, in
+	 *             particular {@link ConcurrentConfig}, and may be removed in a future version.
+	 * 			   Prefer to use {@link #entrySet()} instead.
 	 */
+	@Deprecated
 	Map<String, Object> valueMap();
 
 	/**
@@ -398,7 +406,11 @@ public interface Config extends UnmodifiableConfig {
 	 *
 	 * @param config the config to copy
 	 * @return a thread-safe copy of the config
+	 * @deprecated A concurrent HashMap is not enough to make the whole configuration robust to multi-threaded
+	 *             use. Prefer to use a {@link com.electronwill.nightconfig.core.concurrent.ConcurrentConfig}
+	 *             instead.
 	 */
+	@Deprecated
 	static Config concurrentCopy(UnmodifiableConfig config) {
 		return new SimpleConfig(config, config.configFormat(), true);
 	}
@@ -409,7 +421,11 @@ public interface Config extends UnmodifiableConfig {
 	 * @param config the config to copy
 	 * @param format the config's format
 	 * @return a thread-safe copy of the config
+	 * @deprecated A concurrent HashMap is not enough to make the whole configuration robust to multi-threaded
+	 *             use. Prefer to use a {@link com.electronwill.nightconfig.core.concurrent.ConcurrentConfig}
+	 *             instead.
 	 */
+	@Deprecated
 	static Config concurrentCopy(UnmodifiableConfig config, ConfigFormat<?> format) {
 		return new SimpleConfig(config, format, true);
 	}

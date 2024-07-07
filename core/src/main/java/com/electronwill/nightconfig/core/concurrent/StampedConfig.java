@@ -2,17 +2,13 @@ package com.electronwill.nightconfig.core.concurrent;
 
 import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 
-import java.util.AbstractCollection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import com.electronwill.nightconfig.core.AbstractCommentedConfig;
 import com.electronwill.nightconfig.core.AbstractConfig;
@@ -469,8 +465,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
 
     @Override
     public Map<String, Object> valueMap() {
-        // TODO?
-        throw new UnsupportedOperationException("StampedConfig does not support valueMap() yet.");
+		return new ValueMap(this);
     }
 
     @Override
@@ -657,15 +652,9 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
         } else {
             // Danger: we may insert subconfigs that are not StampedConfig! convert them
             convertSubConfigs((Config) other);
-            try {
-                Map<String, Object> values = other.valueMap();
-                this.values.putAll(values);
-            } catch (UnsupportedOperationException ex) {
-                // valueMap() is not supported, use entrySet() instead
-                other.entrySet().forEach(entry -> {
-                    values.put(entry.getKey(), entry.getRawValue());
-                });
-            }
+			other.entrySet().forEach(entry -> {
+				values.put(entry.getKey(), entry.getRawValue());
+			});
         }
     }
 
@@ -796,7 +785,7 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
     @Override
     public Map<String, String> commentMap() {
         // TODO?
-        throw new UnsupportedOperationException("StampedConfig does not support commentMap() yet.");
+        throw new UnsupportedOperationException("StampedConfig does not support commentMap() yet, please use entrySet() instead.");
     }
 
     @Override
@@ -1370,15 +1359,23 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
         // True if this view is still valid. When the bulk operation ends, the view
         // is marked as invalid in order to prevent its use outside of the locking region
         // (which would be unsafe).
-        private boolean valid = true;
+        private final AtomicBoolean valid;
 
-        /** Prevents further use of the view (reasonable effort but not perfect since the field is not volatile). */
+        ReadOnlyLockedView() {
+            this(new AtomicBoolean(true));
+        }
+
+        ReadOnlyLockedView(AtomicBoolean valid) {
+            this.valid = valid;
+        }
+
+        /** Prevents further use of the view (and of all the views that use the same boolean flag). */
         void invalidate() {
-            valid = false;
+            valid.set(false);
         }
 
         protected void checkValid() {
-            if (!valid) {
+            if (!valid.get()) {
                 throw new IllegalStateException(
                         "View provided by bulk operations are only valid in the scope of the bulkRead or bulkWrite method."
                                 + "To use the config elsewhere, use the actual config variable (not the one provided to your bulk action).");
@@ -1388,17 +1385,27 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
         @Override
         public Map<String, String> commentMap() {
             throw new UnsupportedOperationException(
-                    "The view provided by bulk operations on StampedConfig does not support commentMap()");
+                    "The view provided by bulk operations on StampedConfig does not support commentMap(), please use entrySet() instead.");
         }
 
         @Override
         public Set<? extends UnmodifiableCommentedConfig.Entry> entrySet() {
             checkValid();
-            return new TransformingSet<>(StampedConfig.this.values.entrySet(), Entry::new,
-                    o -> null, o -> {
+            @SuppressWarnings({ "unchecked", "rawtypes" })
+            Set<Entry> set = new TransformingSet<Map.Entry<String,Object>,Entry>(
+                    StampedConfig.this.values.entrySet(),
+                    r -> {
                         checkValid();
-                        return o;
+                        return new Entry(r);
+                    },
+                    w -> {
+                        checkValid();
+                        return null;
+                    }, s -> {
+                        checkValid();
+                        return s instanceof Map.Entry ? new Entry((Map.Entry)s) : s;
                     });
+			return Collections.unmodifiableSet(set);
         }
 
         @Override
@@ -1505,8 +1512,9 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
 
         @Override
         public Map<String, Object> valueMap() {
-            throw new UnsupportedOperationException(
-                    "The view provided by bulk operations on StampedConfig does not support valueMap()");
+            // share the flag, so that the new view is invalidated when "this" is invalidated
+			WritableLockedView writable = new WritableLockedView(this.valid);
+			return Collections.unmodifiableMap(writable.valueMap());
         }
 
         @Override
@@ -1579,8 +1587,16 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
             @Override
             public <T> T setValue(Object value) {
                 checkValid();
-                return (T) mapEntry.setValue(value);
+                return (T) mapEntry.setValue(convertValue(value));
             }
+        }
+
+        WritableLockedView() {
+            super();
+        }
+
+        WritableLockedView(AtomicBoolean valid) {
+            super(valid);
         }
 
         @Override
@@ -1618,14 +1634,47 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
             return new StampedConfig(configFormat, mapSupplier);
         }
 
-        @Override
+		@Override
+		public Map<String, Object> valueMap() {
+			return new ValueMap(this);
+		}
+
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+		@Override
         public Set<? extends CommentedConfig.Entry> entrySet() {
-            checkValid();
-            return new TransformingSet<>(StampedConfig.this.values.entrySet(), Entry::new,
-                    o -> null, o -> {
-                        checkValid();
-                        return o;
-                    });
+			checkValid();
+			return new TransformingSet<Map.Entry<String,Object>,Entry>(
+					StampedConfig.this.values.entrySet(),
+					r -> {
+						checkValid();
+						return new Entry(r);
+					},
+					w -> {
+						checkValid();
+						return new Map.Entry<String,Object>() {
+							@Override
+							public String getKey() {
+								checkValid();
+								return w.getKey();
+							}
+
+							@Override
+							public Object getValue() {
+								checkValid();
+								return w.getRawValue();
+							}
+
+							@Override
+							public Object setValue(Object value) {
+								checkValid();
+								return w.setValue(value);
+							}
+						};
+					},
+					s -> {
+						checkValid();
+						return s instanceof Map.Entry ? new Entry((Map.Entry) s) : s;
+					});
         }
 
         @SuppressWarnings("unchecked")
@@ -1787,4 +1836,239 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
         /** passed to otherConfig.replaceContentBy(this), cannot be used anymore */
         CONSUMED;
     }
+
+	/**
+	 * A "Map<K, V>" view of the StampedConfig. This implementation is limited because it's hard,
+	 * or maybe impossible, to provide it in a way that is correct, multi-readers and that behaves as a normal map.
+	 */
+	private static final class ValueMap implements Map<String, Object> {
+		private final CommentedConfig config;
+
+		ValueMap(CommentedConfig config) {
+			this.config = config;
+		}
+
+		@Override
+		public void clear() {
+			config.clear();
+		}
+
+		@Override
+		public boolean containsKey(Object key) {
+			if (!(key instanceof String)) {
+				return false;
+			}
+			return config.contains(Collections.singletonList((String)key));
+		}
+
+		@Override
+		public boolean containsValue(Object value) {
+			return config.entrySet().stream().anyMatch(e -> Objects.equals(value, e.getRawValue()));
+		}
+
+		@Override
+		public Set<Entry<String, Object>> entrySet() {
+			return new Set<Map.Entry<String,Object>>() {
+				@Override
+				public int size() {
+					return config.size();
+				}
+
+				@Override
+				public boolean isEmpty() {
+					return config.isEmpty();
+				}
+
+				@Override
+				@SuppressWarnings("unlikely-arg-type")
+				public boolean contains(Object o) {
+					if (!(o instanceof Map.Entry)) {
+						return false;
+					}
+					Map.Entry<?,?> search = (Map.Entry<?,?>)o;
+					if (!(search.getKey() instanceof String)) {
+						return false;
+					}
+					return config.entrySet().contains(new UnmodifiableConfig.Entry() {
+						@Override
+						public String getKey() {
+							return (String)search.getKey();
+						}
+
+						@Override
+						@SuppressWarnings("unchecked")
+						public <T> T getRawValue() {
+							return (T)search.getValue();
+						}
+
+					});
+				}
+
+				@Override
+				public Iterator<Entry<String, Object>> iterator() {
+					Iterator<? extends Config.Entry> it = config.entrySet().iterator();
+					return new Iterator<Map.Entry<String,Object>>() {
+
+						@Override
+						public boolean hasNext() {
+							return it.hasNext();
+						}
+
+						@Override
+						public Entry<String, Object> next() {
+							Config.Entry entry = it.next();
+							return new Entry<String,Object>() {
+
+								@Override
+								public String getKey() {
+									return entry.getKey();
+								}
+
+								@Override
+								public Object getValue() {
+									return entry.getRawValue();
+								}
+
+								@Override
+								public Object setValue(Object value) {
+									return entry.setValue(value);
+								}
+
+							};
+						}
+
+						@Override
+						public void remove() {
+							it.remove();
+						}
+
+					};
+				}
+
+				@Override
+				public Object[] toArray() {
+					throw new UnsupportedOperationException("Unimplemented method 'toArray'");
+				}
+
+				@Override
+				public <T> T[] toArray(T[] a) {
+					throw new UnsupportedOperationException("Unimplemented method 'toArray'");
+				}
+
+				@Override
+				public boolean add(Entry<String, Object> e) {
+					return config.add(Collections.singletonList(e.getKey()), e.getValue());
+				}
+
+				@Override
+				public boolean remove(Object o) {
+					if (!(o instanceof Map.Entry)) {
+						return false;
+					}
+					Map.Entry<?,?> entry = (Map.Entry<?,?>)o;
+					Object key = entry.getKey();
+					if (!(key instanceof String)) {
+						return false;
+					}
+					return config.remove(Collections.singletonList((String)key)) != null;
+				}
+
+				@Override
+				public boolean containsAll(Collection<?> c) {
+					for (Object o : c) {
+						if (!contains(o)) {
+							return false;
+						}
+					}
+					return true;
+				}
+
+				@Override
+				public boolean addAll(Collection<? extends Entry<String, Object>> c) {
+					boolean changed = false;
+					for (Map.Entry<String, Object> o : c) {
+						changed |= add(o);
+					}
+					return changed;
+				}
+
+				@Override
+				public boolean retainAll(Collection<?> c) {
+					boolean changed = false;
+					Iterator<Map.Entry<String, Object>> it = iterator();
+					while (it.hasNext()) {
+						if (!c.contains(it.next())) {
+							it.remove();
+							changed = true;
+						}
+					}
+					return changed;
+				}
+
+				@Override
+				public boolean removeAll(Collection<?> c) {
+					boolean changed = false;
+					for (Object o : c) {
+						changed |= remove(o);
+					}
+					return changed;
+				}
+
+				@Override
+				public void clear() {
+					config.clear();
+				}
+
+			};
+		}
+
+		@Override
+		public Object get(Object key) {
+			if (!(key instanceof String)) {
+				return false;
+			}
+			return config.get(Collections.singletonList((String)key));
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return config.isEmpty();
+		}
+
+		@Override
+		public Set<String> keySet() {
+			return config.entrySet().stream().map(e -> e.getKey()).collect(Collectors.toSet());
+		}
+
+		@Override
+		public Collection<Object> values() {
+			return config.entrySet().stream().map(e -> e.getRawValue()).collect(Collectors.toList());
+		}
+
+		@Override
+		public Object put(String key, Object value) {
+			return config.set(Collections.singletonList(key), value);
+		}
+
+		@Override
+		public void putAll(Map<? extends String, ? extends Object> m) {
+			for (Map.Entry<? extends String,? extends Object> entry : m.entrySet()) {
+				config.set(Collections.singletonList(entry.getKey()), entry.getValue());
+			}
+		}
+
+		@Override
+		public Object remove(Object key) {
+			if (!(key instanceof String)) {
+				return null;
+			}
+			return config.remove(Collections.singletonList((String)key));
+		}
+
+		@Override
+		public int size() {
+			return config.size();
+		}
+	}
+
 }
