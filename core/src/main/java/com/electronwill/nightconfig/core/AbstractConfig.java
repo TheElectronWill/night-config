@@ -69,7 +69,14 @@ public abstract class AbstractConfig implements Config, Cloneable {
 	 */
 	public AbstractConfig(UnmodifiableConfig toCopy, Supplier<Map<String, Object>> mapCreator) {
 		this.map = mapCreator.get();
-		this.map.putAll(toCopy.valueMap());
+		try {
+			this.map.putAll(toCopy.valueMap());
+		} catch (UnsupportedOperationException ex) {
+			// Some types of config don't support valueMap(), but they do support entrySet()
+			for (UnmodifiableConfig.Entry entry : toCopy.entrySet()) {
+				this.map.put(entry.getKey(), entry.getRawValue());
+			}
+		}
 		this.mapCreator = mapCreator;
 	}
 

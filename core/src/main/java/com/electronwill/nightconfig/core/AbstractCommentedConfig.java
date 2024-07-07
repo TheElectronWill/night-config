@@ -72,7 +72,14 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	public AbstractCommentedConfig(UnmodifiableCommentedConfig toCopy, boolean concurrent) {
 		super(toCopy, concurrent);
 		this.commentMap = getDefaultCommentMap(concurrent);
-		this.commentMap.putAll(toCopy.commentMap());
+		try {
+			this.commentMap.putAll(toCopy.commentMap());
+		} catch (UnsupportedOperationException ex) {
+			// Some types of config don't support commentMap(), but they do support entrySet()
+			for (UnmodifiableCommentedConfig.Entry entry : toCopy.entrySet()) {
+				this.commentMap.put(entry.getKey(), entry.getComment());
+			}
+		}
 	}
 
 	public AbstractCommentedConfig(UnmodifiableCommentedConfig toCopy, Supplier<Map<String, Object>> mapCreator) {
