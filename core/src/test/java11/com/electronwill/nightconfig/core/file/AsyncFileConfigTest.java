@@ -53,10 +53,19 @@ public class AsyncFileConfigTest {
         assertTrue(Files.exists(file));
         assertEquals("a = b", Files.readString(file).trim());
 
+		// write again and check
+		config.set("a", "b2");
+		Thread.sleep(AsyncFileConfig.DEFAULT_WRITE_DEBOUNCE_TIME.toMillis() *3/2);
+        assertNotEquals(-1, format.writeTime);
+        assertEquals(501, autosaveCounter.get());
+        assertEquals(2, saveCounter.get());
+        assertTrue(Files.exists(file));
+        assertEquals("a = b2", Files.readString(file).trim());
+
         config.close();
         assertNotEquals(-1, format.writeTime);
         assertTrue(Files.exists(file));
-        assertEquals("a = b", Files.readString(file).trim());
+        assertEquals("a = b2", Files.readString(file).trim());
     }
 
     @Test

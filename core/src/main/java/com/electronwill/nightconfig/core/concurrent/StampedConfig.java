@@ -605,9 +605,12 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
             return v;
         } else if (v instanceof Config) {
             Config c = (Config) v;
-            Config converted = createSubConfig();
+            StampedConfig converted = createSubConfig();
             convertSubConfigs(c);
             converted.putAll(c);
+			if (c instanceof CommentedConfig) {
+				converted.putAllComments((CommentedConfig)c);
+			}
             return converted;
         } else if (v instanceof List) {
             List<Object> l = (List<Object>) v;
@@ -811,8 +814,8 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                         Object value = entry.getRawValue();
                         if (value instanceof StampedConfig) {
                             // all subconfigs are StampedConfig
-                            Object config = values.get(entry.getKey());
-                            if (config instanceof StampedConfig) {
+                            Object config = this.values.get(entry.getKey());
+                            if (config instanceof StampedConfig && config != value) {
                                 ((StampedConfig) config).putAllComments((StampedConfig) value);
                             }
                         }
@@ -830,8 +833,8 @@ public final class StampedConfig implements ConcurrentCommentedConfig {
                     for (UnmodifiableCommentedConfig.Entry entry : other.entrySet()) {
                         Object value = entry.getRawValue();
                         if (value instanceof UnmodifiableCommentedConfig) {
-                            Object config = values.get(entry.getKey());
-                            if (config instanceof StampedConfig) {
+                            Object config = this.values.get(entry.getKey());
+                            if (config instanceof StampedConfig && config != value) {
                                 ((StampedConfig) config)
                                         .putAllComments((UnmodifiableCommentedConfig) value);
                             }

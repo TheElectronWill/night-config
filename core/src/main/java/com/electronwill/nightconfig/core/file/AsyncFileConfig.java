@@ -70,9 +70,6 @@ final class AsyncFileConfig extends ConcurrentCommentedConfigWrapper<StampedConf
 	/** Debounced saving task. It runs on the shared executor. */
 	private final DebouncedRunnable saveTask;
 
-	/** Writes to the file (must be called from a task submitted to the executor). */
-	private BufferedWriter fileWriter;
-
 	// Serializing
 	private final ConfigWriter configWriter;
 	private final WritingMode writingMode;
@@ -148,16 +145,12 @@ final class AsyncFileConfig extends ConcurrentCommentedConfigWrapper<StampedConf
 					throw new WritingException(msg, e);
 				}
 			} else {
-				if (fileWriter == null) {
-					OpenOption lastOption = (writingMode == WritingMode.APPEND) ? APPEND
-							: TRUNCATE_EXISTING;
-					try {
-						fileWriter = Files.newBufferedWriter(nioPath, charset, WRITE, CREATE,
-								lastOption);
-					} catch (IOException e) {
-						throw new WritingException("Failed to open a BufferedWriter on: " + nioPath,
-								e);
-					}
+				BufferedWriter fileWriter;
+				OpenOption lastOption = (writingMode == WritingMode.APPEND) ? APPEND : TRUNCATE_EXISTING;
+				try {
+					fileWriter = Files.newBufferedWriter(nioPath, charset, WRITE, CREATE, lastOption);
+				} catch (IOException e) {
+					throw new WritingException("Failed to open a BufferedWriter on: " + nioPath, e);
 				}
 				configWriter.write(copy, fileWriter);
 				try {
@@ -201,6 +194,7 @@ final class AsyncFileConfig extends ConcurrentCommentedConfigWrapper<StampedConf
 			case REPLACE:
 				StampedConfig newSafeContent = config.createSubConfig(); // this is actually an independant config
 				newSafeContent.putAll(newCC);
+				newSafeContent.putAllComments(newCC);
 				config.replaceContentBy(newSafeContent);
 				// It could work with SynchronizedConfig too:
 				// if (config instanceof SynchronizedConfig) {
@@ -226,6 +220,9 @@ final class AsyncFileConfig extends ConcurrentCommentedConfigWrapper<StampedConf
 					// convert the subconfig to a proper type
 					ConcurrentCommentedConfig newSafeContent = config.createSubConfig();
 					newSafeContent.putAll((UnmodifiableConfig)value);
+					if (value instanceof UnmodifiableCommentedConfig) {
+						newSafeContent.putAllComments((UnmodifiableCommentedConfig)value);
+					}
 					value = newSafeContent;
 				}
 				parsingMode.put(view, key, value);

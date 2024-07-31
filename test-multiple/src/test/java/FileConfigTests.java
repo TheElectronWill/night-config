@@ -1,6 +1,8 @@
 import org.junit.jupiter.api.Test;
 
+import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -102,5 +104,51 @@ public class FileConfigTests {
 		assertEquals("required", dep0.get("type"));
 		assertEquals("NONE", dep0.get("ordering"));
 		assertEquals("BOTH", dep0.get("side"));
+	}
+
+	@Test
+	public void asyncTomlCommentsTest() throws Exception {
+		Path forgeTestResource = Path.of(getClass().getResource("/comments_test.toml").toURI());
+		CommentedFileConfig fileConfig = CommentedFileConfig.builder(forgeTestResource).async().build();
+		fileConfig.load(); // initial load
+		System.out.println("loaded: " + fileConfig);
+
+		checkCommentsTestContent(fileConfig);
+		fileConfig.load(); // reload (should have the same content)
+		checkCommentsTestContent(fileConfig);
+		fileConfig.close(); // close (should not modify the config)
+		checkCommentsTestContent(fileConfig);
+	}
+
+	@Test
+	public void syncTomlCommentsTest() throws Exception {
+		Path forgeTestResource = Path.of(getClass().getResource("/comments_test.toml").toURI());
+		CommentedFileConfig fileConfig = CommentedFileConfig.builder(forgeTestResource).sync().build();
+		fileConfig.load(); // initial load
+		System.out.println("loaded: " + fileConfig);
+
+		checkCommentsTestContent(fileConfig);
+		fileConfig.load(); // reload (should have the same content)
+		checkCommentsTestContent(fileConfig);
+		fileConfig.close(); // close (should not modify the config)
+		checkCommentsTestContent(fileConfig);
+	}
+
+	void checkCommentsTestContent(CommentedFileConfig config) {
+		assertEquals(1, config.getInt("v"));
+		assertEquals(" comment on v", config.getComment("v"));
+
+		List<CommentedConfig> abbc = config.get(List.of("a.b", "b.c"));
+		assertNotNull(abbc);
+		assertEquals("value", abbc.get(0).get("key"));
+		assertEquals(" sub1", abbc.get(0).getComment("key"));
+
+		assertEquals(" comment on table", config.getComment("table"));
+		assertEquals("v", config.get(List.of("table", "k")));
+		assertEquals(" sub2", config.getComment(List.of("table", "k")));
+
+		assertEquals(" comment on subtable", config.getComment(List.of("table", "subtable")));
+		assertEquals("b", config.get(List.of("table", "subtable", "a")));
+		assertEquals(" sub3", config.getComment(List.of("table", "subtable", "a")));
 	}
 }
