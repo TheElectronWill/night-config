@@ -1,0 +1,17 @@
+# comment on v
+v = 1
+
+# comment on array of tables
+[["a.b"."b.c"]]
+# sub1
+key = "value"
+
+# comment on table
+[table]
+# sub2
+k = "v"
+
+# comment on subtable
+[table.subtable]
+# sub3
+a = "b"
