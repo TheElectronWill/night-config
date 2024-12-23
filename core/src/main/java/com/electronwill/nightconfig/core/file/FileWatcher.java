@@ -457,7 +457,12 @@ public final class FileWatcher {
 		@Override
 		public void run() {
 			// executor (in yet another thread) to schedule debounced actions
-			ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+			ThreadFactory delegatedFactory = Executors.defaultThreadFactory();
+			ScheduledExecutorService executor = Executors.newScheduledThreadPool(1, runnable -> {
+				Thread thread = delegatedFactory.newThread(runnable);
+				thread.setDaemon(true);
+				return thread;
+			});
 
 			// future that initiated the shutdown and needs to be completed with the result or error
 			CompletableFuture<Void> shutdownFuture = null;
