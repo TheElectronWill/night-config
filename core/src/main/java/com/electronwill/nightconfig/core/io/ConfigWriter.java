@@ -62,8 +62,9 @@ public interface ConfigWriter {
 	}
 
 	/**
-	 * Writes a configuration. The content of the file is overwritten. This method is equivalent to
-	 * 
+	 * Writes a configuration. The content of the file is overwritten. This method
+	 * is equivalent to
+	 *
 	 * <pre>
 	 * write(config, file, false)
 	 * </pre>
@@ -86,10 +87,21 @@ public interface ConfigWriter {
 	default void write(UnmodifiableConfig config, Path file, WritingMode writingMode, Charset charset) {
 		if (writingMode == WritingMode.REPLACE_ATOMIC) {
 			// write to another file, then atomically move it
-			Path tmp = file.resolveSibling(file.getFileName().toString() + ".new.tmp");
+			String tmpFileName = IoUtils.tempConfigFileName(file);
+			Path tmp = file.resolveSibling(tmpFileName);
 			try (OutputStream output = Files.newOutputStream(tmp, WRITE, CREATE, TRUNCATE_EXISTING)) {
 				write(config, output, charset);
-				Files.move(tmp, file, StandardCopyOption.ATOMIC_MOVE);
+			} catch (IOException e) {
+				// regular IO exception
+				String msg = String.format("Failed to write (%s) the config to: %s",
+						writingMode.toString(), file.toString());
+				throw new WritingException(msg, e);
+			}
+			// Flush and close the output before atomically moving the file.
+			try {
+				IoUtils.retryIfAccessDenied("move", () -> {
+					Files.move(tmp, file, StandardCopyOption.ATOMIC_MOVE);
+				});
 			} catch (AtomicMoveNotSupportedException e) {
 				// can fail in some conditions (OS and filesystem-dependent)
 				String msg = String.format(
@@ -100,7 +112,7 @@ public interface ConfigWriter {
 				throw new WritingException(msg, e);
 			} catch (IOException e) {
 				// regular IO exception
-				String msg = String.format("Failed to write (%s) the config to: %s",
+				String msg = String.format("Failed to atomically write (%s) the config to: %s",
 						writingMode.toString(), file.toString());
 				throw new WritingException(msg, e);
 			}
@@ -118,8 +130,9 @@ public interface ConfigWriter {
 	}
 
 	/**
-	 * Writes a configuration. The content of the file is overwritten. This method is equivalent to
-	 * 
+	 * Writes a configuration. The content of the file is overwritten. This method
+	 * is equivalent to
+	 *
 	 * <pre>
 	 * write(config, file, false)
 	 * </pre>

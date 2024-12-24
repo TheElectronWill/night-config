@@ -14,18 +14,12 @@ import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.*;
 
 import com.electronwill.nightconfig.core.*;
 import com.electronwill.nightconfig.core.concurrent.ConcurrentCommentedConfig;
 import com.electronwill.nightconfig.core.concurrent.StampedConfig;
-import com.electronwill.nightconfig.core.io.ConfigParser;
-import com.electronwill.nightconfig.core.io.ConfigWriter;
-import com.electronwill.nightconfig.core.io.ParsingMode;
-import com.electronwill.nightconfig.core.io.WritingException;
-import com.electronwill.nightconfig.core.io.WritingMode;
+import com.electronwill.nightconfig.core.io.*;
 import com.electronwill.nightconfig.core.utils.ConcurrentCommentedConfigWrapper;
 
 /**
@@ -126,10 +120,19 @@ final class AsyncFileConfig extends ConcurrentCommentedConfigWrapper<StampedConf
 			// The FileWriter is not kept open in that case, because the temporary file will no longer exist after the
 			// move.
 			if (writingMode == WritingMode.REPLACE_ATOMIC) {
-				Path tmp = nioPath.resolveSibling(nioPath.getFileName() + ".new.tmp");
+				Path tmp = nioPath.resolveSibling(IoUtils.tempConfigFileName(nioPath));
 				try (BufferedWriter writer = Files.newBufferedWriter(tmp, charset, WRITE, CREATE, TRUNCATE_EXISTING)) {
 					configWriter.write(copy, writer);
-					Files.move(tmp, nioPath, StandardCopyOption.ATOMIC_MOVE);
+				} catch (IOException e) {
+					String msg = String.format("Failed to write (%s) the config to: %s",
+							writingMode.toString(), tmp.toString());
+					throw new WritingException(msg, e);
+				}
+				// Flush and close the output before atomically moving the file.
+				try {
+					IoUtils.retryIfAccessDenied("move", () -> {
+						Files.move(tmp, nioPath, StandardCopyOption.ATOMIC_MOVE);
+					});
 				} catch (AtomicMoveNotSupportedException e) {
 					// can fail in some conditions (OS and filesystem-dependent)
 					String msg = String.format(
@@ -140,7 +143,7 @@ final class AsyncFileConfig extends ConcurrentCommentedConfigWrapper<StampedConf
 					throw new WritingException(msg, e);
 				} catch (IOException e) {
 					// regular IO exception
-					String msg = String.format("Failed to write (%s) the config to: %s",
+					String msg = String.format("Failed to atomically write (%s) the config to: %s",
 							writingMode.toString(), tmp.toString());
 					throw new WritingException(msg, e);
 				}
