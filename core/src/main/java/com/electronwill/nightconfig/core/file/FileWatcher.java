@@ -457,7 +457,8 @@ public final class FileWatcher {
 		@Override
 		public void run() {
 			// executor (in yet another thread) to schedule debounced actions
-			ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+			ThreadFactory threadFactory = new NamedDaemonThreadFactory("FileWatcher-", "-thread-");
+			ScheduledExecutorService executor = Executors.newScheduledThreadPool(1, threadFactory);
 
 			// future that initiated the shutdown and needs to be completed with the result or error
 			CompletableFuture<Void> shutdownFuture = null;
@@ -671,4 +672,21 @@ public final class FileWatcher {
 		PUT, ADD, REMOVE, POISON
 	}
 
+	private static class NamedDaemonThreadFactory implements ThreadFactory {
+		private static final AtomicInteger FACTORY_NUMBER = new AtomicInteger(1);
+		private final AtomicInteger threadNumber = new AtomicInteger(1);
+		private final String namePrefix;
+
+		NamedDaemonThreadFactory(String prefix, String suffix) {
+			this.namePrefix = prefix + FACTORY_NUMBER.getAndIncrement() + suffix;
+		}
+
+		@Override
+		public Thread newThread(Runnable r) {
+			Thread t = new Thread(r, namePrefix + threadNumber.getAndIncrement());
+			t.setDaemon(true);
+			t.setPriority(Thread.NORM_PRIORITY);
+			return t;
+		}
+	}
 }
