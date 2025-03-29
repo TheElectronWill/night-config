@@ -16,6 +16,11 @@ To **run all the tests**, do:
 gradle test-everything
 ```
 
+You may need to update the submodules first:
+```sh
+git submodule update --init
+```
+
 The results will be in the build directory of each module, in a subdirectory per test task:
 - Results of `core:test` in [`./core/build/reports/tests/test/index.html`](./core/build/reports/tests/test/index.html).
 - Results of `core:java11Test` in [`./core/build/reports/tests/java11Test/index.html`](./core/build/reports/tests/java11Test/index.html).
