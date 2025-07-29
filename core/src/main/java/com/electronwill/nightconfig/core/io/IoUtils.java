@@ -73,7 +73,7 @@ public final class IoUtils {
 	 * @return a filename for the temporary file (the file is not created by this method)
 	 */
 	public static String tempConfigFileName(Path originalFile) {
-		String filename = originalFile.toString();
+		String filename = originalFile.getFileName().toString();
 		String[] parts = splitOnce(filename, '.');
 		if (parts.length == 1) {
 			return filename + ".new.tmp";
