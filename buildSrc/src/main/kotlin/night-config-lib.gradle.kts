@@ -145,15 +145,18 @@ publishing {
             from(components["java"])
         }
     }
-    // Publish to Sonatype OSSRH
+    // Publish to Sonatype OSSRH Staging API Service (OSSRH has been shut down)
     repositories {
         maven {
-            val releasesRepoUrl = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2")
-            val snapshotsRepoUrl = uri("https://oss.sonatype.org/content/repositories/snapshots")
-            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+			// See https://central.sonatype.org/pages/ossrh-eol/
+			// See https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/#getting-started-for-maven-api-like-plugins
+			// NOTE: after running "gradle publish", an additional POST request is necessary.
+			// See https://ossrh-staging-api.central.sonatype.com/swagger-ui/#/default/manual_upload_default_repository
+			name = "ossrh-staging-api"
+            url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
             credentials(PasswordCredentials::class) {
                 // Read the credentials from gradle's properties.
-                // The true credentials are provided by $HOME/.gradle/gradle/properties
+                // The true credentials are provided by $HOME/.gradle/gradle.properties
                 username = property("ossrhUser") as String
                 password = property("ossrhPassword") as String
             }
