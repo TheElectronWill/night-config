@@ -150,6 +150,12 @@ final class ValueParser {
 		} catch (NumberFormatException ex) {
 			throw new ParsingException("Invalid integer value: " + valueChars);
 		}
+
+		// forbid 0x-123
+		if (longValue < 0 && base != 10) {
+			throw new ParsingException(String.format("Cannot use a negative integer with a base %s prefix", base));
+		}
+
 		int intValue = (int) longValue;
 		if (intValue == longValue) {
 			return intValue;// returns an int if it is enough to represent the value correctly

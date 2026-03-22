@@ -52,7 +52,7 @@ final class TemporalParser {
 				afterDate.set(offsetIndicatorIndex, 'Z');
 			}
 			LocalTime time = parseTime(afterDate.subView(0, offsetIndicatorIndex), version);
-			ZoneOffset offset = ZoneOffset.of(afterDate.subView(offsetIndicatorIndex).trimmedView().toString());
+			ZoneOffset offset = parseOffset(afterDate.subView(offsetIndicatorIndex).trimmedView());
 			return OffsetDateTime.of(date, time, offset);// OffsetDateTime
 		} catch (ArrayIndexOutOfBoundsException | DateTimeException ex) {
 			throw new ParsingException("Invalid temporal value " + chars, ex);
@@ -79,13 +79,11 @@ final class TemporalParser {
 
 		// seconds can be omitted since TOML v1.1
 		CharsWrapper secondChars;
-		try {
+		if (chars.length() > 5) {
 			secondChars = chars.subView(6, 8);
 			seconds = Utils.parseInt(secondChars, 10);
-		} catch (ArrayIndexOutOfBoundsException ex) {
-			if (version == TomlVersion.v1_0) {
-				throw new ParsingException("Invalid time '" + chars + "': missing seconds. NOTE: this is rejected in TOML v1.0, but accepted in TOML v1.1 (See TomlParser#setTomlVersion)");
-			}
+		} else if (version == TomlVersion.v1_0) {
+			throw new ParsingException("Invalid time '" + chars + "': missing seconds. NOTE: this is rejected in TOML v1.0, but accepted in TOML v1.1 (See TomlParser#setTomlVersion)");
 		}
 
 		// nanoseconds are optional
@@ -103,7 +101,16 @@ final class TemporalParser {
 			nanos = 0;
 		}
 		return LocalTime.of(hour, minutes, seconds, nanos);
+	}
 
+	private static ZoneOffset parseOffset(CharsWrapper chars) {
+		// TOML is more strict than Java's ZoneOffset.
+		// For instance, java accepts +0209, but TOML only accepts +02:09
+		if (chars.indexOfFirst(':') == -1 && !chars.contentEquals("Z")) {
+			throw new ParsingException("Invalid time offset " + chars);
+		}
+		ZoneOffset offset = ZoneOffset.of(chars.toString());
+		return offset;
 	}
 
 	private TemporalParser() {}

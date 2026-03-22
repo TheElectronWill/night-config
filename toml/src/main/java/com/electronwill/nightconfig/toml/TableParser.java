@@ -86,6 +86,7 @@ final class TableParser {
 			checkDuplicateKey(key, previous, true);
 
 			char after = Toml.readNonSpaceChar(input, false);
+			boolean expectComma = false;
 			if (after == '}') {
 				// end of the inline config table
 				return config;
@@ -93,11 +94,27 @@ final class TableParser {
 				CharsWrapper comment = Toml.readLine(input);
 				commentsList.add(comment);
 			} else if (after != ',') {
-				throw new ParsingException(
+				if (after == '\n' || after == '\r') {
+					expectComma = true;
+				} else {
+					throw new ParsingException(
 						"Invalid entry separator '" + after + "' in inline table.");
+				}
 			}
 			parser.setComment(commentsList);
 			config.setComment(key, parser.consumeComment());
+
+			if (expectComma) {
+				after = Toml.readUsefulChar(input);
+				expectComma = false;
+				if (after == '}') {
+					// end of the table
+					return config;
+				} else if (after != ',') {
+					throw new ParsingException(
+						"Invalid entry separator '" + after + "' in inline table.");
+				}
+			}
 			
 			expectNextElement = true;
 		}
