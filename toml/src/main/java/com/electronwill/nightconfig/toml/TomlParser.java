@@ -22,6 +22,7 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 	private boolean lenientSeparators = false;
 	private boolean configWasEmpty = false;
 	private ParsingMode parsingMode;
+	private TomlVersion tomlVersion = TomlVersion.v1_0;
 
 	// --- Parser's state for TOML compliance ---
 	private final Set<Config> inlineTables = Collections.newSetFromMap(new IdentityHashMap<>());
@@ -223,6 +224,20 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 
 	ParsingMode getParsingMode() {
 		return parsingMode;
+	}
+
+	public TomlVersion getTomlVersion() {
+		return tomlVersion;
+	}
+
+	/**
+	 * Sets the version of the TOML format that is accepted by this parser.
+	 * See the TOML changelog at <https://github.com/toml-lang/toml/blob/main/CHANGELOG.md>. 
+	 * 
+	 * @param version the accepted version
+	 */
+	public void setTomlVersion(TomlVersion version) {
+		this.tomlVersion = version;
 	}
 
 	// --- Configured objects creation ---

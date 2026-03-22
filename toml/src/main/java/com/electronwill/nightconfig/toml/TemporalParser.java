@@ -26,11 +26,11 @@ final class TemporalParser {
 	 * @param chars the CharsWrapper to parse, <b>must be trimmed</b>
 	 * @return a Temporal value
 	 */
-	static Temporal parse(CharsWrapper chars) {
+	static Temporal parse(CharsWrapper chars, TomlVersion version) {
 		chars = chars.trimmedView(); // it's important to trim the trailing spaces (which occur when there's a comment after the datetime)
 		try {
 			if (chars.get(2) == ':') {// LocalTime
-				return parseTime(chars);
+				return parseTime(chars, version);
 			}
 			LocalDate date = parseDate(chars);
 			if (chars.length() == 10) {// LocalDate
@@ -44,14 +44,14 @@ final class TemporalParser {
 			CharsWrapper afterDate = chars.subView(11);
 			int offsetIndicatorIndex = afterDate.indexOfFirst(OFFSET_INDICATORS);
 			if (offsetIndicatorIndex == -1) {// LocalDateTime
-				LocalTime time = parseTime(afterDate);
+				LocalTime time = parseTime(afterDate, version);
 				return LocalDateTime.of(date, time);
 			}
 			if (afterDate.get(offsetIndicatorIndex) == 'z') {
 				// Java does not support 'z' but only 'Z'
 				afterDate.set(offsetIndicatorIndex, 'Z');
 			}
-			LocalTime time = parseTime(afterDate.subView(0, offsetIndicatorIndex));
+			LocalTime time = parseTime(afterDate.subView(0, offsetIndicatorIndex), version);
 			ZoneOffset offset = ZoneOffset.of(afterDate.subView(offsetIndicatorIndex).trimmedView().toString());
 			return OffsetDateTime.of(date, time, offset);// OffsetDateTime
 		} catch (ArrayIndexOutOfBoundsException | DateTimeException ex) {
@@ -69,13 +69,26 @@ final class TemporalParser {
 		return LocalDate.of(year, month, day);
 	}
 
-	private static LocalTime parseTime(CharsWrapper chars) {
+	private static LocalTime parseTime(CharsWrapper chars, TomlVersion version) {
+		// hours and minutes are always there
 		CharsWrapper hourChars = chars.subView(0, 2);
 		CharsWrapper minuteChars = chars.subView(3, 5);
-		CharsWrapper secondChars = chars.subView(6, 8);
 		int hour = Utils.parseInt(hourChars, 10);
 		int minutes = Utils.parseInt(minuteChars, 10);
-		int seconds = Utils.parseInt(secondChars, 10);
+		int seconds = 0;
+
+		// seconds can be omitted since TOML v1.1
+		CharsWrapper secondChars;
+		try {
+			secondChars = chars.subView(6, 8);
+			seconds = Utils.parseInt(secondChars, 10);
+		} catch (ArrayIndexOutOfBoundsException ex) {
+			if (version == TomlVersion.v1_0) {
+				throw new ParsingException("Invalid time '" + chars + "': missing seconds. NOTE: this is rejected in TOML v1.0, but accepted in TOML v1.1 (See TomlParser#setTomlVersion)");
+			}
+		}
+
+		// nanoseconds are optional
 		int nanos;
 
 		if (chars.length() > 8) {

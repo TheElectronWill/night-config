@@ -59,7 +59,7 @@ final class ValueParser {
 				input.pushBack(firstChar);
 				CharsWrapper valueChars = input.readUntil(END_OF_VALUE_DATE);
 				if (shouldBeTemporal(valueChars)) {
-					return TemporalParser.parse(valueChars);
+					return TemporalParser.parse(valueChars, parser.getTomlVersion());
 				}
 				CharsWrapper trimmed = valueChars.trimmedView();
 				if (trimmed.isEmpty()) {
@@ -74,7 +74,7 @@ final class ValueParser {
 	}
 
 	private static boolean shouldBeTemporal(CharsWrapper valueChars) {
-		return (valueChars.length() >= 8)
+		return (valueChars.length() >= 5)
 				&& (valueChars.get(2) == ':' || (valueChars.get(4) == '-' && valueChars.get(7) == '-'));
 	}
 
