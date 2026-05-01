@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.electronwill.nightconfig.core.serde.annotations.SerdeComment;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeKey;
 import org.junit.jupiter.api.Test;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
@@ -21,6 +23,16 @@ public class SerdeWithRecordTest {
 
     static record Name(String username, String nickname) {
     }
+
+	static record SimpleAnnotations(
+		@SerdeComment("This is uniqueId")
+		@SerdeKey("uniqueId")
+		String myUniqueId,
+		@SerdeComment("This is myUid")
+		@SerdeKey("myUid")
+		int uid
+	) {
+	}
 
     static class Player {
         int id = 123;
@@ -94,6 +106,19 @@ public class SerdeWithRecordTest {
         var serialized = ObjectSerializer.builder().build().serialize(new Point3d(123, 456, 789), Config::inMemory);
         assertEquals(conf, serialized);
     }
+
+	@Test
+	public void testAnnotatedRecordsDirect() {
+		var conf = Config.inMemory();
+		conf.set("uniqueId", "abc");
+		conf.set("myUid", 123);
+
+		var deserialized = ObjectDeserializer.builder().build().deserializeToRecord(conf, SimpleAnnotations.class);
+		assertEquals(new SimpleAnnotations("abc", 123), deserialized);
+
+		var serialized = ObjectSerializer.builder().build().serialize(new SimpleAnnotations("abc", 123), Config::inMemory);
+		assertEquals(conf, serialized);
+	}
 
     @Test
     public void testFieldsRecords() {
