@@ -63,7 +63,7 @@ final class ConfigToPojoDeserializer
 		    DeserializerContext ctx) {
 		var components = objectClass.getRecordComponents();
 		var constructor = getCanonicalRecordConstructor(objectClass, components);
-		var componentKeys = new String[components.length];
+		var componentFields = new Field[components.length];
 		var componentValues = new Object[components.length];
 		for (int i = 0; i < components.length; i++) {
 			Field field;
@@ -71,15 +71,17 @@ final class ConfigToPojoDeserializer
 				field = objectClass.getDeclaredField(components[i].getName());
 			} catch (NoSuchFieldException e) {
 				throw new SerdeException(
-						"Failed to get declared field " + components[i].getName()
-							+ " of record " + objectClass, e);
+					"Failed to get declared field " + components[i].getName()
+						+ " of record " + objectClass, e);
 			}
-			componentKeys[i] = configKey(field);
-			Object configValue = value.getRaw(Collections.singletonList(componentKeys[i]));
+			componentFields[i] = field;
+		}
+		for (int i = 0; i < components.length; i++) {
+			Object configValue = value.getRaw(Collections.singletonList(configKey(componentFields[i])));
 			if (configValue == null) {
 				// missing component!
 				// find all the missing components to emit a more helpful error message
-				List<String> missingComponents = Arrays.stream(componentKeys)
+				List<String> missingComponents = Arrays.stream(componentFields).map(f -> configKey(f))
 						.filter(c -> !value.contains(c)).collect(Collectors.toList());
 				var missingComponentsStr = String.join(", ", missingComponents);
 				throw new SerdeException(
@@ -93,7 +95,7 @@ final class ConfigToPojoDeserializer
 			}
 
 			// deserialize
-			TypeConstraint resultType = new TypeConstraint(field.getGenericType());
+			TypeConstraint resultType = new TypeConstraint(componentFields[i].getGenericType());
 			componentValues[i] = ctx.deserializeValue(configValue, Optional.of(resultType));
 		}
 		try {
