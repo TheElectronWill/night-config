@@ -35,7 +35,7 @@ final class ConfigToPojoDeserializer
 					"Could not find a concrete type that can satisfy the constraint " + t));
 
 			if (cls.isRecord()) {
-				return deserializeToRecord(value, cls);
+				return deserializeToRecord(value, cls, ctx);
 			} else {
 				return deserializeToNormalClass(value, cls, ctx);
 			}
@@ -59,7 +59,8 @@ final class ConfigToPojoDeserializer
 		return instance;
 	}
 
-	private Object deserializeToRecord(UnmodifiableConfig value, Class<?> objectClass) {
+	private Object deserializeToRecord(UnmodifiableConfig value, Class<?> objectClass,
+		    DeserializerContext ctx) {
 		var components = objectClass.getRecordComponents();
 		var constructor = getCanonicalRecordConstructor(objectClass, components);
 		var componentKeys = new String[components.length];
@@ -90,7 +91,10 @@ final class ConfigToPojoDeserializer
 				// component of value null
 				configValue = null;
 			}
-			componentValues[i] = configValue;
+
+			// deserialize
+			TypeConstraint resultType = new TypeConstraint(field.getGenericType());
+			componentValues[i] = ctx.deserializeValue(configValue, Optional.of(resultType));
 		}
 		try {
 			return constructor.newInstance(componentValues);

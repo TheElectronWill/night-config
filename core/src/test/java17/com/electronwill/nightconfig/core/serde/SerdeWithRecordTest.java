@@ -3,6 +3,7 @@ package com.electronwill.nightconfig.core.serde;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -23,6 +24,9 @@ public class SerdeWithRecordTest {
 
     static record Name(String username, String nickname) {
     }
+
+	static record SimpleMaps(Map<String, String> simpleMap) {
+	}
 
 	static record SimpleAnnotations(
 		@SerdeComment("This is uniqueId")
@@ -106,6 +110,24 @@ public class SerdeWithRecordTest {
         var serialized = ObjectSerializer.builder().build().serialize(new Point3d(123, 456, 789), Config::inMemory);
         assertEquals(conf, serialized);
     }
+
+	@Test
+	public void testRecordsWithMapsDirect() {
+		var conf = Config.inMemory();
+		conf.set("simpleMap.key1", "value1");
+		conf.set("simpleMap.key2", "value2");
+		conf.set("simpleMap.key3", null);
+		var object = new SimpleMaps(new HashMap<>());
+		object.simpleMap.put("key1", "value1");
+		object.simpleMap.put("key2", "value2");
+		object.simpleMap.put("key3", null);
+
+		var deserialized = ObjectDeserializer.builder().build().deserializeToRecord(conf, SimpleMaps.class);
+		assertEquals(object, deserialized);
+
+		var serialized = ObjectSerializer.builder().build().serialize(object, Config::inMemory);
+		assertEquals(conf, serialized);
+	}
 
 	@Test
 	public void testAnnotatedRecordsDirect() {
