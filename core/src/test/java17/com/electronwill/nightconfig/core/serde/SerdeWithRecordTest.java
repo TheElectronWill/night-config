@@ -3,10 +3,13 @@ package com.electronwill.nightconfig.core.serde;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.electronwill.nightconfig.core.serde.annotations.SerdeComment;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeKey;
 import org.junit.jupiter.api.Test;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
@@ -21,6 +24,19 @@ public class SerdeWithRecordTest {
 
     static record Name(String username, String nickname) {
     }
+
+	static record SimpleMaps(Map<String, String> simpleMap) {
+	}
+
+	static record SimpleAnnotations(
+		@SerdeComment("This is uniqueId")
+		@SerdeKey("uniqueId")
+		String myUniqueId,
+		@SerdeComment("This is myUid")
+		@SerdeKey("myUid")
+		int uid
+	) {
+	}
 
     static class Player {
         int id = 123;
@@ -94,6 +110,37 @@ public class SerdeWithRecordTest {
         var serialized = ObjectSerializer.builder().build().serialize(new Point3d(123, 456, 789), Config::inMemory);
         assertEquals(conf, serialized);
     }
+
+	@Test
+	public void testRecordsWithMapsDirect() {
+		var conf = Config.inMemory();
+		conf.set("simpleMap.key1", "value1");
+		conf.set("simpleMap.key2", "value2");
+		conf.set("simpleMap.key3", null);
+		var object = new SimpleMaps(new HashMap<>());
+		object.simpleMap.put("key1", "value1");
+		object.simpleMap.put("key2", "value2");
+		object.simpleMap.put("key3", null);
+
+		var deserialized = ObjectDeserializer.builder().build().deserializeToRecord(conf, SimpleMaps.class);
+		assertEquals(object, deserialized);
+
+		var serialized = ObjectSerializer.builder().build().serialize(object, Config::inMemory);
+		assertEquals(conf, serialized);
+	}
+
+	@Test
+	public void testAnnotatedRecordsDirect() {
+		var conf = Config.inMemory();
+		conf.set("uniqueId", "abc");
+		conf.set("myUid", 123);
+
+		var deserialized = ObjectDeserializer.builder().build().deserializeToRecord(conf, SimpleAnnotations.class);
+		assertEquals(new SimpleAnnotations("abc", 123), deserialized);
+
+		var serialized = ObjectSerializer.builder().build().serialize(new SimpleAnnotations("abc", 123), Config::inMemory);
+		assertEquals(conf, serialized);
+	}
 
     @Test
     public void testFieldsRecords() {

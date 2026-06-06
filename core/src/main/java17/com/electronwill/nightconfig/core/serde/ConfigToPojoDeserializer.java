@@ -1,5 +1,6 @@
 package com.electronwill.nightconfig.core.serde;
 
+import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.Collections;
 import java.util.Arrays;
@@ -11,6 +12,8 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.RecordComponent;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import com.electronwill.nightconfig.core.serde.annotations.SerdeKey;
+
 import static com.electronwill.nightconfig.core.NullObject.NULL_OBJECT;
 
 /**
@@ -32,7 +35,7 @@ final class ConfigToPojoDeserializer
 					"Could not find a concrete type that can satisfy the constraint " + t));
 
 			if (cls.isRecord()) {
-				return deserializeToRecord(value, cls);
+				return deserializeToRecord(value, cls, ctx);
 			} else {
 				return deserializeToNormalClass(value, cls, ctx);
 			}
@@ -56,17 +59,29 @@ final class ConfigToPojoDeserializer
 		return instance;
 	}
 
-	private Object deserializeToRecord(UnmodifiableConfig value, Class<?> objectClass) {
+	private Object deserializeToRecord(UnmodifiableConfig value, Class<?> objectClass,
+		    DeserializerContext ctx) {
 		var components = objectClass.getRecordComponents();
 		var constructor = getCanonicalRecordConstructor(objectClass, components);
+		var componentFields = new Field[components.length];
 		var componentValues = new Object[components.length];
 		for (int i = 0; i < components.length; i++) {
-			RecordComponent comp = components[i];
-			Object configValue = value.getRaw(Collections.singletonList(comp.getName()));
+			Field field;
+			try {
+				field = objectClass.getDeclaredField(components[i].getName());
+			} catch (NoSuchFieldException e) {
+				throw new SerdeException(
+					"Failed to get declared field " + components[i].getName()
+						+ " of record " + objectClass, e);
+			}
+			componentFields[i] = field;
+		}
+		for (int i = 0; i < components.length; i++) {
+			Object configValue = value.getRaw(Collections.singletonList(configKey(componentFields[i])));
 			if (configValue == null) {
 				// missing component!
 				// find all the missing components to emit a more helpful error message
-				List<String> missingComponents = Arrays.stream(components).map(c -> c.getName())
+				List<String> missingComponents = Arrays.stream(componentFields).map(f -> configKey(f))
 						.filter(c -> !value.contains(c)).collect(Collectors.toList());
 				var missingComponentsStr = String.join(", ", missingComponents);
 				throw new SerdeException(
@@ -78,7 +93,10 @@ final class ConfigToPojoDeserializer
 				// component of value null
 				configValue = null;
 			}
-			componentValues[i] = configValue;
+
+			// deserialize
+			TypeConstraint resultType = new TypeConstraint(componentFields[i].getGenericType());
+			componentValues[i] = ctx.deserializeValue(configValue, Optional.of(resultType));
 		}
 		try {
 			return constructor.newInstance(componentValues);
@@ -99,5 +117,10 @@ final class ConfigToPojoDeserializer
 			throw new SerdeException(
 					"Failed to get the canonical constructor of record " + cls, e);
 		}
+	}
+
+	private static String configKey(Field field) {
+		SerdeKey keyAnnot = field.getAnnotation(SerdeKey.class);
+		return keyAnnot == null ? field.getName() : keyAnnot.value();
 	}
 }
