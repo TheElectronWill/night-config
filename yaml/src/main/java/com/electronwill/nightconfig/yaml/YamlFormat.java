@@ -44,6 +44,7 @@ public final class YamlFormat implements ConfigFormat<Config> {
 	}
 
 	/**
+	 * @param mapCreator map creator
 	 * @return a new config with the given map creator
 	 */
 	public static Config newConfig(Supplier<Map<String, Object>> mapCreator) {

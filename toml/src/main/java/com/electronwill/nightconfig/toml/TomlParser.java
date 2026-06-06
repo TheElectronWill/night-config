@@ -232,8 +232,8 @@ public final class TomlParser implements ConfigParser<CommentedConfig> {
 
 	/**
 	 * Sets the version of the TOML format that is accepted by this parser.
-	 * See the TOML changelog at <https://github.com/toml-lang/toml/blob/main/CHANGELOG.md>. 
-	 * 
+	 * See the TOML changelog at https://github.com/toml-lang/toml/blob/main/CHANGELOG.md.
+	 *
 	 * @param version the accepted version
 	 */
 	public void setTomlVersion(TomlVersion version) {

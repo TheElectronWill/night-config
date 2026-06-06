@@ -29,6 +29,7 @@ public final class TomlFormat implements ConfigFormat<CommentedConfig> {
 	}
 
 	/**
+	 * @param s map creator
 	 * @return a new config with the given map creator
 	 */
 	public static CommentedConfig newConfig(Supplier<Map<String, Object>> s) {

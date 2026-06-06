@@ -71,6 +71,7 @@ public final class TomlWriter implements ConfigWriter {
 
 	/**
 	 * Sets whether redundant intermediate levels should be hidden or written to the TOML output.
+	 * @param hideRedundantLevels true to hide, false to write
 	 * @see #isHidingRedundantLevels()
 	 */
 	public void setHideRedundantLevels(boolean hideRedundantLevels) {
@@ -79,6 +80,7 @@ public final class TomlWriter implements ConfigWriter {
 
 	/**
 	 * @see #isHidingRedundantLevels()
+	 * @return true to hide, false to write
 	 */
 	public boolean isOmitIntermediateLevels() {
 		return hideRedundantLevels;
@@ -86,6 +88,7 @@ public final class TomlWriter implements ConfigWriter {
 
 	/**
 	 * @see #setHideRedundantLevels(boolean)
+	 * @param omitIntermediateLevels true to hide, false to write
 	 */
 	public void setOmitIntermediateLevels(boolean omitIntermediateLevels) {
 		setHideRedundantLevels(omitIntermediateLevels);
@@ -118,6 +121,8 @@ public final class TomlWriter implements ConfigWriter {
 	/**
 	 * Changes the indentation style using a predefined style.
 	 * For example, to indent with four spaces, call {@code setIndent(IndentStyle.SPACES_4)}.
+	 *
+	 * @param indentStyle style to use
 	 */
 	public void setIndent(IndentStyle indentStyle) {
 		this.indent = indentStyle.chars;
@@ -126,6 +131,8 @@ public final class TomlWriter implements ConfigWriter {
 	/**
 	 * Changes the indentation style using a custom string.
 	 * For example, to indent with tabs, call {@code setIndent("\t")}.
+	 *
+	 * @param indentString content of one indentation
 	 */
 	public void setIndent(String indentString) {
 		this.indent = indentString.toCharArray();
@@ -138,6 +145,8 @@ public final class TomlWriter implements ConfigWriter {
 	/**
 	 * Changes the string to write for newlines.
 	 * By default, the system's line separator is used.
+	 *
+	 * @param newlineString content of one newline
 	 */
 	public void setNewline(String newlineString) {
 		this.newline = newlineString.toCharArray();
