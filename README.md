@@ -11,7 +11,7 @@ NightConfig is a powerful yet easy-to-use java configuration library, written in
 It supports the following formats:
 - [JSON](https://www.json.org/)
 - [YAML v1.1](https://yaml.org/)
-- [TOML v1.0](https://github.com/toml-lang/toml)
+- [TOML](https://github.com/toml-lang/toml) v1.0 and v1.1
 - [HOCON](https://github.com/typesafehub/config/blob/master/HOCON.md)
 
 # How to use
