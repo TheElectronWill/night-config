@@ -22,6 +22,7 @@ import com.electronwill.nightconfig.core.io.ParsingException;
 import com.electronwill.nightconfig.json.JsonParser;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import com.electronwill.nightconfig.toml.TomlParser;
+import com.electronwill.nightconfig.toml.TomlVersion;
 import com.electronwill.nightconfig.toml.TomlWriter;
 
 /**
@@ -50,19 +51,22 @@ public class StandardTomlTests {
 	private static final Path TEST_LIST_1_1 = TOML_TEST_DIR.resolve("files-toml-1.1.0");
 
 	private static final List<String> PARSER_BLACKLIST = List.of(
-    	"invalid/inline-table/duplicate-key-3.toml",
+    	"invalid/inline-table/duplicate-key-03.toml",
     	"invalid/inline-table/overwrite-08.toml",
-    	"invalid/array/tables-1.toml",
-    	"invalid/spec/inline-table-2-0.toml",
+    	"invalid/array/tables-01.toml",
+    	"invalid/spec-1.0.0/inline-table-2-0.toml",
+    	"invalid/spec-1.1.0/common-49-0.toml",
     	"invalid/table/append-to-array-with-dotted-keys.toml",
-    	"invalid/table/append-with-dotted-keys-1.toml",
-    	"invalid/table/append-with-dotted-keys-2.toml",
-    	"invalid/table/redefine-2.toml",
+    	"invalid/table/append-with-dotted-keys-01.toml",
+    	"invalid/table/append-with-dotted-keys-02.toml",
+    	"invalid/table/append-with-dotted-keys-03.toml",
+    	"invalid/table/redefine-02.toml",
     	"invalid/table/super-twice.toml",
     	"invalid/array/extend-defined-aot.toml",
     	"invalid/control/bare-cr.toml",
     	"invalid/control/multi-cr.toml",
-    	"invalid/control/rawmulti-cd.toml"
+    	"invalid/control/rawmulti-cd.toml",
+    	"invalid/control/rawmulti-cr.toml"
 	);
 
 	/**
@@ -76,73 +80,22 @@ public class StandardTomlTests {
 
 		for (String testPath : Files.readAllLines(TEST_LIST_1_0)) {
 			if (testPath.startsWith("invalid/")) {
-				var testFile = TOML_TEST_DIR.resolve(testPath);
-				var testFileName = testFile.getFileName().toString();
-				var relativePath = TOML_TEST_DIR.relativize(testFile);
-
-				if (PARSER_BLACKLIST.contains(relativePath.toString())) {
-					System.err.println("skipping test " + relativePath);
-					continue; // skip this test
-				}
-
-				if (testFileName.endsWith(".toml")) {
-					// Regular TOML test.
-					invalidTests.add(dynamicTest(relativePath.toString(), () -> {
-						TomlParser parser = new TomlParser();
-						assertThrows(ParsingException.class, () -> {
-							parser.parse(testFile, FileNotFoundAction.THROW_ERROR);
-						}, () -> String.format("invalid file '%s' should have been rejected by the parser",
-								relativePath));
-					}));
-
-				} else if (testFileName.endsWith(".multi")) {
-					invalidTests.add(dynamicTest(relativePath.toString(), () -> {
-						TomlParser parser = new TomlParser();
-
-						// "Multi" TOML test that contains multiple invalid key-value pairs.
-						for (var line : Files.readAllLines(testFile)) {
-							// skip blank lines and comments
-							if (!(line.isBlank() || line.stripLeading().startsWith("#"))) {
-								// we have found a key-value pair, extract the key to give a name to the test
-								var key = line.substring(0, line.indexOf('=')).strip();
-								var testName = relativePath + "(" + key + ")";
-
-								System.out.println("testing " + testName);
-								assertThrows(ParsingException.class, () -> {
-									parser.parse(line);
-								}, () -> String.format("invalid test '%s' should have failed", testName));
-							}
-						}
-					}));
-				}
+				createParserTestInvalid(testPath, TomlVersion.v1_0, invalidTests);
 			} else if (testPath.startsWith("valid/")) {
-				var testFile = TOML_TEST_DIR.resolve(testPath);
-				var testFileName = testFile.getFileName().toString();
-				var relativePath = TOML_TEST_DIR.relativize(testFile);
-
-				if (testFileName.endsWith(".toml")) {
-					// Regular TOML test + JSON file containing the expected result.
-					var expectFile = testFile.resolveSibling(testFileName.replace(".toml", ".json"));
-
-					validTests.add(dynamicTest(relativePath.toString(), () -> {
-						TomlParser tomlParser = new TomlParser();
-						JsonParser jsonParser = new JsonParser();
-
-						try {
-							CommentedConfig parsed = tomlParser.parse(testFile, FileNotFoundAction.THROW_ERROR);
-							Config expected = jsonParser.parse(expectFile, FileNotFoundAction.THROW_ERROR);
-							assertConfigMatchesJsonExpectation(parsed, expected, relativePath.toString());
-						} catch (Exception ex) {
-							fail("Exception occured in test " + relativePath, ex);
-						}
-					}));
-
-				}
+				createParserTestValid(testPath, TomlVersion.v1_0, validTests);
 			}
 		}
 
-		var allTests = Arrays.asList(dynamicContainer("parser valid", validTests),
-				dynamicContainer("parser invalid", invalidTests));
+		for (String testPath : Files.readAllLines(TEST_LIST_1_1)) {
+			if (testPath.startsWith("invalid/")) {
+				createParserTestInvalid(testPath, TomlVersion.v1_1, invalidTests);
+			} else if (testPath.startsWith("valid/")) {
+				createParserTestValid(testPath, TomlVersion.v1_1, validTests);
+			}
+		}
+
+		var allTests = Arrays.asList(dynamicContainer("parse valid documents", validTests),
+				dynamicContainer("reject invalid documents", invalidTests));
 		return allTests;
 	}
 
@@ -156,43 +109,138 @@ public class StandardTomlTests {
 
 		for (String testPath : Files.readAllLines(TEST_LIST_1_0)) {
 			if (testPath.startsWith("valid/")) {
-				var testFile = TOML_TEST_DIR.resolve(testPath);
-				var testFileName = testFile.getFileName().toString();
-				var relativePath = TOML_TEST_DIR.relativize(testFile);
-
-				if (testFileName.endsWith(".json")) {
-					// JSON file specifying the config + TOML file containing the expected result.
-					var jsonFile = testFile;
-					var tomlFile = testFile.resolveSibling(testFileName.replace(".json", ".toml"));
-
-					validTests.add(dynamicTest(relativePath.toString(), () -> {
-						TomlParser tomlParser = new TomlParser();
-						TomlWriter tomlWriter = new TomlWriter();
-						JsonParser jsonParser = new JsonParser();
-
-						try {
-							Config config = parseJsonExpectationToConfig(jsonParser.parse(jsonFile, FileNotFoundAction.THROW_ERROR));
-							String written = tomlWriter.writeToString(config);
-
-							try {
-								CommentedConfig writtenParsed = tomlParser.parse(written);
-								CommentedConfig expected = tomlParser.parse(tomlFile, FileNotFoundAction.THROW_ERROR);
-								assertEquals(expected, writtenParsed, String.format("Invalid output for test %s:\n%s", relativePath, written));
-							} catch (Exception ex) {
-								fail("Exception occured while parsing serialization of:\n" + config + "\nwhich has been written as:\n"
-										+ written, ex);
-							}
-
-						} catch (Exception ex) {
-							fail("Exception occured while serializing test " + relativePath, ex);
-						}
-
-					}));
-				}
+				createWriterTest(testPath, TomlVersion.v1_0, validTests);
 			}
 		}
+		for (String testPath : Files.readAllLines(TEST_LIST_1_1)) {
+			if (testPath.startsWith("valid/")) {
+				createWriterTest(testPath, TomlVersion.v1_1, validTests);
+			}
+		}
+
 		var allTests = Arrays.asList(dynamicContainer("writer valid", validTests));
 		return allTests;
+	}
+
+	private void createParserTestInvalid(String testPath, TomlVersion version, ArrayList<DynamicTest> tests) {
+		var testFile = TOML_TEST_DIR.resolve(testPath);
+		var testFileName = testFile.getFileName().toString();
+		var relativePath = TOML_TEST_DIR.relativize(testFile);
+		var testName = relativePath + "(" + version + ")";
+
+		var skip = PARSER_BLACKLIST.contains(relativePath.toString());
+
+		if (testFileName.endsWith(".toml")) {
+			// Regular TOML test.
+			tests.add(dynamicTest(testName, () -> {
+				if (skip) {
+					System.err.println("skipping test " + testName);
+					return;
+				}
+
+				TomlParser parser = new TomlParser();
+				parser.setTomlVersion(version);
+				assertThrows(ParsingException.class, () -> {
+					parser.parse(testFile, FileNotFoundAction.THROW_ERROR);
+				}, () -> String.format("invalid file '%s' should have been rejected by the parser",
+						relativePath));
+			}));
+
+		} else if (testFileName.endsWith(".multi")) {
+			// "Multi" TOML test that contains multiple invalid key-value pairs.
+			tests.add(dynamicTest(testName, () -> {
+				if (skip) {
+					System.err.println("skipping test " + testName);
+					return;
+				}
+
+				TomlParser parser = new TomlParser();
+				parser.setTomlVersion(version);
+
+				for (var line : Files.readAllLines(testFile)) {
+					// skip blank lines and comments
+					if (!(line.isBlank() || line.stripLeading().startsWith("#"))) {
+						// we have found a key-value pair, extract the key to give a name to the test
+						var key = line.substring(0, line.indexOf('=')).strip();
+						var fullTestName = testName + " at [" + key + "]";
+
+						System.out.println("testing " + testName);
+						assertThrows(ParsingException.class, () -> {
+							parser.parse(line);
+						}, () -> String.format("invalid test '%s' should have failed", fullTestName));
+					}
+				}
+			}));
+		}
+	}
+
+	private void createParserTestValid(String testPath, TomlVersion version, ArrayList<DynamicTest> tests) {
+		var testFile = TOML_TEST_DIR.resolve(testPath);
+		var testFileName = testFile.getFileName().toString();
+		var relativePath = TOML_TEST_DIR.relativize(testFile);
+
+		if (testFileName.endsWith(".toml")) {
+			// Regular TOML test + JSON file containing the expected result.
+			var expectFile = testFile.resolveSibling(testFileName.replace(".toml", ".json"));
+			var testName = relativePath + "(" + version + ")";
+
+			tests.add(dynamicTest(testName, () -> {
+				TomlParser tomlParser = new TomlParser();
+				tomlParser.setTomlVersion(version);
+
+				JsonParser jsonParser = new JsonParser();
+
+				try {
+					CommentedConfig parsed = tomlParser.parse(testFile, FileNotFoundAction.THROW_ERROR);
+					Config expected = jsonParser.parse(expectFile, FileNotFoundAction.THROW_ERROR);
+					assertConfigMatchesJsonExpectation(parsed, expected, relativePath.toString());
+				} catch (Exception ex) {
+					fail("Exception occured in test " + relativePath, ex);
+				}
+			}));
+
+		}
+	}
+
+	private void createWriterTest(String testPath, TomlVersion version, ArrayList<DynamicTest> tests) {
+		var testFile = TOML_TEST_DIR.resolve(testPath);
+		var testFileName = testFile.getFileName().toString();
+		var relativePath = TOML_TEST_DIR.relativize(testFile);
+		var testName = relativePath + "(" + version + ")";
+
+		if (testFileName.endsWith(".json")) {
+			// JSON file specifying the config + TOML file containing the expected result.
+			var jsonFile = testFile;
+			var tomlFile = testFile.resolveSibling(testFileName.replace(".json", ".toml"));
+
+			tests.add(dynamicTest(testName, () -> {
+				TomlParser tomlParser = new TomlParser();
+				tomlParser.setTomlVersion(version);
+				TomlWriter tomlWriter = new TomlWriter();
+				JsonParser jsonParser = new JsonParser();
+
+				try {
+					Config config = parseJsonExpectationToConfig(
+							jsonParser.parse(jsonFile, FileNotFoundAction.THROW_ERROR));
+					String written = tomlWriter.writeToString(config);
+
+					try {
+						CommentedConfig writtenParsed = tomlParser.parse(written);
+						CommentedConfig expected = tomlParser.parse(tomlFile, FileNotFoundAction.THROW_ERROR);
+						assertEquals(expected, writtenParsed,
+								String.format("Invalid output for test %s:\n%s", relativePath, written));
+					} catch (Exception ex) {
+						fail("Exception occured while parsing serialization of:\n" + config
+								+ "\nwhich has been written as:\n"
+								+ written, ex);
+					}
+
+				} catch (Exception ex) {
+					fail("Exception occured while serializing test " + relativePath, ex);
+				}
+
+			}));
+		}
 	}
 
 	private Config parseJsonExpectationToConfig(Config jsonExpect) {

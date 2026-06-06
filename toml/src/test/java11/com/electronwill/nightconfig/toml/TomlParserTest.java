@@ -18,6 +18,8 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Arrays;
 
@@ -336,5 +338,19 @@ public class TomlParserTest {
 		assertEquals(2, sub.size());
 		assertEquals("1.2.3", sub.get(Arrays.asList("version", "number")));
 		assertEquals("normal key", sub.get(Arrays.asList("a.b.c")));
+	}
+
+	@Test
+	public void readTomlExamplev1_1() {
+		File f = new File("update_v1.1.toml");
+		TomlParser parser = new TomlParser();
+		parser.setTomlVersion(TomlVersion.v1_1);
+		CommentedConfig config = parser.parse(f, FileNotFoundAction.THROW_ERROR, StandardCharsets.UTF_8);
+		assertEquals("a string", config.get("tbl.key"));
+		assertEquals(1, config.getInt("tbl.moar-tbl.key"));
+		assertEquals("null byte: " + String.valueOf((char)0) + "; letter a: a", config.get("null"));
+		assertEquals(String.valueOf((char)0x1B) + "[", config.get("csi"));
+		assertEquals(LocalDateTime.of(2010, 02, 03, 14, 15, 00), config.get("dt"));
+		assertEquals(LocalTime.of(14, 15, 00), config.get("t"));
 	}
 }

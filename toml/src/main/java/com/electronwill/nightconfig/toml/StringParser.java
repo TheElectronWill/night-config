@@ -22,7 +22,7 @@ final class StringParser {
 		char c;
 		while ((c = input.readChar()) != '\"' || escape) {
 			if (escape) {
-				builder.write(unescape(c, input));
+				builder.write(unescape(c, input, parser.getTomlVersion()));
 				escape = false;
 			} else if (c == '\\') {
 				escape = true;
@@ -79,7 +79,7 @@ final class StringParser {
 				} else if (next == '\t' || next == ' ') {
 					throw new ParsingException("Invalid escapement: \\" + next);
 				}
-				builder.write(unescape(next, input));
+				builder.write(unescape(next, input, parser.getTomlVersion()));
 			} else if (c != '\n' && c != '\r' && c != '\t' && Toml.isControlChar(c)) {
 				String properEscape = "\\u" + Integer.toHexString((int)c).toUpperCase();
 				throw new ParsingException("Invalid control character '" + c + "' in multiline string, you should escape it by writing " + properEscape);
@@ -151,7 +151,7 @@ final class StringParser {
 	 *
 	 * @param c the first character, ie the one just after the backslash.
 	 */
-	private static String unescape(char c, CharacterInput input) {
+	private static String unescape(char c, CharacterInput input, TomlVersion version) {
 		switch (c) {
 			case '"':
 			case '\\':
@@ -166,6 +166,13 @@ final class StringParser {
 				return "\r";
 			case 't':
 				return "\t";
+			case 'x': {
+				if (version == TomlVersion.v1_0) {
+					throw new ParsingException("Invalid escapement: \\x. NOTE: \\xHH is not supported in TOML v1.0. Use TOML v1.1 to accept it (see TomlParser#setTomlVersion)");
+				}
+				CharsWrapper chars = input.readChars(2);
+				return parseUnicodeCodepoint(chars);
+			}
 			case 'u': {
 				CharsWrapper chars = input.readChars(4);
 				return parseUnicodeCodepoint(chars);
@@ -173,6 +180,12 @@ final class StringParser {
 			case 'U': {
 				CharsWrapper chars = input.readChars(8);
 				return parseUnicodeCodepoint(chars);
+			}
+			case 'e': {
+				if (version == TomlVersion.v1_0) {
+					throw new ParsingException("Invalid escapement: \\e. NOTE: \\e is not supported in TOML v1.0. Use TOML v1.1 to accept it (see TomlParser#setTomlVersion)");
+				}
+				return String.valueOf((char)0x1B);
 			}
 			default:
 				throw new ParsingException("Invalid escapement: \\" + c);

@@ -20,6 +20,17 @@ final class TableParser {
 	private static final char[] KEY_END = {'\t', ' ', '=', '.', '\n', '\r', ']', ':'};
 
 	static <T extends CommentedConfig> T parseInline(CharacterInput input, TomlParser parser, T config) {
+		switch (parser.getTomlVersion()) {
+			case v1_0:
+				return parseInlineV1_0(input, parser, config);
+			case v1_1:
+				return parseInlineV1_1(input, parser, config);
+			default:
+				throw new RuntimeException("unexpected");
+		}
+	}
+
+	static <T extends CommentedConfig> T parseInlineV1_0(CharacterInput input, TomlParser parser, T config) {
 		parser.registerInlineTable(config);
 		boolean configWasInitiallyEmpty = config.isEmpty();
 		boolean expectNextElement = false;
@@ -27,7 +38,7 @@ final class TableParser {
 			char keyFirst = Toml.readNonSpaceChar(input, false);
 			if (keyFirst == '}') {
 				if (expectNextElement) {
-					throw new ParsingException("Invalid trailing comma in inline table");
+					throw new ParsingException("Invalid trailing comma in inline table. NOTE: this is accepted in TOML v1.1 (see TomlParser#setTomlVersion).");
 				}
 				return config;// handles {} and {k1=v1,... ,}
 			}
@@ -47,6 +58,64 @@ final class TableParser {
 				throw new ParsingException(
 						"Invalid entry separator '" + after + "' in inline table.");
 			}
+			expectNextElement = true;
+		}
+	}
+
+	static <T extends CommentedConfig> T parseInlineV1_1(CharacterInput input, TomlParser parser, T config) {
+		parser.registerInlineTable(config);
+		boolean configWasInitiallyEmpty = config.isEmpty();
+		boolean expectNextElement = false;
+		while (true) {
+			List<CharsWrapper> commentsList = new ArrayList<>(2);
+			int keyFirst = Toml.readUseful(input, commentsList);
+			if (keyFirst == -1) {
+				throw new ParsingException("Invalid inline table: missing closing brace }");
+			} else if (keyFirst == '}') {
+				if (expectNextElement) {
+					// accept trailing commas
+				}
+				return config;// handles {} and {k1=v1,... ,}
+			}
+			List<String> key = parseDottedKey(input, (char)keyFirst, parser);
+			// Forbid the insertion if a parent already exists
+			checkDuplicateKeyBecauseOfParents(key, config, configWasInitiallyEmpty);
+
+			Object value = ValueParser.parse(input, parser, config);
+			Object previous = parser.getParsingMode().put(config, key, value);
+			checkDuplicateKey(key, previous, true);
+
+			char after = Toml.readNonSpaceChar(input, false);
+			boolean expectComma = false;
+			if (after == '}') {
+				// end of the inline config table
+				return config;
+			} else if (after == '#') {
+				CharsWrapper comment = Toml.readLine(input);
+				commentsList.add(comment);
+			} else if (after != ',') {
+				if (after == '\n' || after == '\r') {
+					expectComma = true;
+				} else {
+					throw new ParsingException(
+						"Invalid entry separator '" + after + "' in inline table.");
+				}
+			}
+			parser.setComment(commentsList);
+			config.setComment(key, parser.consumeComment());
+
+			if (expectComma) {
+				after = Toml.readUsefulChar(input);
+				expectComma = false;
+				if (after == '}') {
+					// end of the table
+					return config;
+				} else if (after != ',') {
+					throw new ParsingException(
+						"Invalid entry separator '" + after + "' in inline table.");
+				}
+			}
+			
 			expectNextElement = true;
 		}
 	}
