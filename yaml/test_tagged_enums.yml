@@ -1,0 +1,2 @@
+sub: {'null': null, nullObject: null}
+enum: !!com.electronwill.sharedtests.BasicTestEnum 'A'
