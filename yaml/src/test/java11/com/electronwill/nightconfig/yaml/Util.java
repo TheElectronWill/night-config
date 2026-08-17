@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
-import com.electronwill.sharedtests.BasicTestEnum;
 import com.electronwill.nightconfig.core.Config;
 
 public class Util {
@@ -17,7 +16,6 @@ public class Util {
         assertEquals("works", config.get(List.of("not.a.subconfig")));
         assertNull(config.get("nullObject"));
         assertEquals(List.of(10, 12), config.get("list"));
-        assertEquals(BasicTestEnum.A, config.get("enum"));
 
         List<? extends Config> configList = config.get("objectList");
         assertEquals("bar", configList.get(0).get("foo"));

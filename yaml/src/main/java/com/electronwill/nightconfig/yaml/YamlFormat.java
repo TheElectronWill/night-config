@@ -5,6 +5,7 @@ import com.electronwill.nightconfig.core.ConfigFormat;
 import com.electronwill.nightconfig.core.file.FormatDetector;
 import com.electronwill.nightconfig.core.io.ConfigParser;
 import com.electronwill.nightconfig.core.io.ConfigWriter;
+
 import org.yaml.snakeyaml.Yaml;
 
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.function.Supplier;
  */
 public final class YamlFormat implements ConfigFormat<Config> {
 	private static final ThreadLocal<YamlFormat> LOCAL_DEFAULT_FORMAT = ThreadLocal.withInitial(
-			() -> new YamlFormat(new Yaml()));
+			() -> new YamlFormat(new Yaml(new SaferConstructor())));
 
 	/**
 	 * @return the default instance of HoconFormat
