@@ -70,21 +70,23 @@ public abstract class AbstractCommentedConfig extends AbstractConfig implements 
 	 */
 	@Deprecated
 	public AbstractCommentedConfig(UnmodifiableCommentedConfig toCopy, boolean concurrent) {
-		super(toCopy, concurrent);
-		this.commentMap = getDefaultCommentMap(concurrent);
-		try {
-			this.commentMap.putAll(toCopy.commentMap());
-		} catch (UnsupportedOperationException ex) {
-			// Some types of config don't support commentMap(), but they do support entrySet()
-			for (UnmodifiableCommentedConfig.Entry entry : toCopy.entrySet()) {
-				this.commentMap.put(entry.getKey(), entry.getComment());
-			}
-		}
+		this(toCopy, getDefaultMapCreator(concurrent));
 	}
 
 	public AbstractCommentedConfig(UnmodifiableCommentedConfig toCopy, Supplier<Map<String, Object>> mapCreator) {
 		super(toCopy, mapCreator);
 		this.commentMap = AbstractConfig.<String>getWildcardMapCreator(mapCreator).get();
+		try {
+			this.commentMap.putAll(toCopy.commentMap());
+		} catch (UnsupportedOperationException ex) {
+			// Some types of config don't support commentMap(), but they do support entrySet()
+			for (UnmodifiableCommentedConfig.Entry entry : toCopy.entrySet()) {
+				String comment = entry.getComment();
+				if (comment != null) {
+					this.commentMap.put(entry.getKey(), comment);
+				}
+			}
+		}
 	}
 
 	@Deprecated
