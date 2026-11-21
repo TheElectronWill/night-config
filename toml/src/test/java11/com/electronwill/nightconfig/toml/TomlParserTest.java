@@ -353,4 +353,10 @@ public class TomlParserTest {
 		assertEquals(LocalDateTime.of(2010, 02, 03, 14, 15, 00), config.get("dt"));
 		assertEquals(LocalTime.of(14, 15, 00), config.get("t"));
 	}
+
+	@Test
+	public void testValidTrailingHexE() {
+		var config = new TomlParser().parse("mask = 0x0000000E");
+		assertEquals(14, config.getInt("mask"));
+	}
 }

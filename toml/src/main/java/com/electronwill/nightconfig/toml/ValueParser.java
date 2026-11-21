@@ -232,7 +232,9 @@ final class ValueParser {
 			throw new ParsingException("Invalid trailing underscore in number: " + numberChars);
 		} else if (previousChar == '.') {
 			throw new ParsingException("Invalid trailing decimal point in number: " + numberChars);
-		} else if (previousChar == 'e' || previousChar == 'E' || previousChar == '-' || previousChar == '+') {
+		} else if ((base == 10 && (previousChar == 'e' || previousChar == 'E'))
+					|| previousChar == '-'
+					|| previousChar == '+') {
 			throw new ParsingException("Invalid trailing '" + previousChar + "' in number: " + numberChars);
 		}
 		return builder.build();
